@@ -1,4 +1,4 @@
-#import "monokai_pro.typ": *
+#import "typst/monokai_pro.typ": *
 
 #set page(
   height: 1280pt,

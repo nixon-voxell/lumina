@@ -11,8 +11,12 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Shared logic.
-        app.add_plugins((crate::protocol::ProtocolPlugin, crate::game::GamePlugin))
-            .add_systems(Startup, spawn_ui_camera);
+        app.add_plugins((
+            crate::protocol::ProtocolPlugin,
+            crate::ui::UiPlugin,
+            crate::game::GamePlugin,
+        ))
+        .add_systems(Startup, spawn_ui_camera);
     }
 }
 
