@@ -1332,7 +1332,11 @@ dependencies = [
 name = "bevy_vello_graphics"
 version = "0.1.0"
 dependencies = [
- "bevy",
+ "bevy_app",
+ "bevy_color",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_utils",
  "bevy_vello",
 ]
 
