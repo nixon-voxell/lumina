@@ -37,18 +37,22 @@ fn handle_join_lobby(
     for join_lobby in join_lobby_evt.read() {
         let client_id = join_lobby.context;
         let lobby_id = join_lobby.message.lobby_id;
-
-        info!("Client {client_id:?} joined lobby {lobby_id:?}");
         let lobby = &mut lobbies.lobbies[lobby_id];
-        lobby.players.push(client_id);
+
+        if lobby.players.contains(&client_id) == false {
+            info!("Client {client_id:?} joined lobby {lobby_id:?}!");
+            lobby.players.push(client_id);
+        } else {
+            warn!("Client {client_id:?} attempted to join the same lobby again.");
+        }
 
         room_manager.add_client(client_id, RoomId(lobby_id as u64));
 
-        if lobby.in_game {
-            // If the game has already started, we need to spawn the player entity
-            let entity = spawn_player_entity(&mut commands, client_id);
-            room_manager.add_entity(entity, RoomId(lobby_id as u64));
-        }
+        // if lobby.in_game {
+        // If the game has already started, we need to spawn the player entity
+        let entity = spawn_player_entity(&mut commands, client_id);
+        room_manager.add_entity(entity, RoomId(lobby_id as u64));
+        // }
     }
 }
 

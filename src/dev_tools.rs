@@ -2,9 +2,7 @@
 
 use bevy::{dev_tools::states::log_transitions, prelude::*};
 
-use crate::game::lobby::LobbyState;
-
-pub(super) fn plugin(app: &mut App) {
-    // Print state transitions in dev builds
-    // app.add_systems(Update, log_transitions::<LobbyState>);
+pub(super) fn log_transition<S: States>(app: &mut App) {
+    // Log state transitions in dev builds
+    app.add_systems(Update, log_transitions::<S>);
 }

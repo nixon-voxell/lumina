@@ -60,9 +60,6 @@ impl Plugin for AppPlugin {
 
         app.add_plugins(shared::SharedPlugin);
 
-        // Enable dev tools for dev builds.
-        #[cfg(feature = "dev")]
-        app.add_plugins(crate::dev_tools::plugin);
     }
 }
 

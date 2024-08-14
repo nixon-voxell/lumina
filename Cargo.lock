@@ -1239,7 +1239,7 @@ name = "bevy_typst"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "bevy_vello",
+ "bevy_vello 0.6.0",
  "bevy_vello_graphics 0.1.0 (git+https://github.com/voxell-tech/bevy_vello_graphics)",
  "chrono",
  "comemo",
@@ -1329,6 +1329,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_vello"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1b7c91dcc2ac5984e4e005f2a4747650eb585733a5cdce686780b4f25f42134"
+dependencies = [
+ "bevy",
+ "once_cell",
+ "thiserror",
+ "velato",
+ "vello",
+ "vello_svg",
+]
+
+[[package]]
 name = "bevy_vello_graphics"
 version = "0.1.0"
 dependencies = [
@@ -1337,7 +1351,7 @@ dependencies = [
  "bevy_ecs",
  "bevy_math",
  "bevy_utils",
- "bevy_vello",
+ "bevy_vello 0.6.0",
 ]
 
 [[package]]
@@ -1346,7 +1360,7 @@ version = "0.1.0"
 source = "git+https://github.com/voxell-tech/bevy_vello_graphics#18cba862dbe94c8c3d294679402471e7f37b323c"
 dependencies = [
  "bevy",
- "bevy_vello",
+ "bevy_vello 0.5.1",
 ]
 
 [[package]]

@@ -8,6 +8,7 @@ use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
 
 mod lobby;
+mod ui;
 
 const CLIENT_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
 
@@ -22,8 +23,12 @@ impl Plugin for ClientPlugin {
         app.add_plugins(ClientPlugins::new(client_config(self.port_offset)));
 
         // Server-specific logic.
-        app.add_plugins(lobby::LobbyPlugin)
+        app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin))
             .add_systems(Startup, spawn_game_camera);
+
+        // Enable dev tools for dev builds.
+        #[cfg(feature = "dev")]
+        app.add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
     }
 }
 
@@ -76,7 +81,4 @@ fn spawn_game_camera(mut commands: Commands) {
         },
         RenderLayers::layer(0),
     ));
-
-    // TODO: Remove this.
-    commands.connect_client();
 }

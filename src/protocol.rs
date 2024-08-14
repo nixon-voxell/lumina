@@ -20,6 +20,9 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
+        app.register_component::<PlayerTranslation>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
         // Resources
         app.register_resource::<Lobbies>(ChannelDirection::ServerToClient);
     }
@@ -93,5 +96,8 @@ pub struct StartGame {
 }
 
 // Player
-#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
+
+#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
+pub struct PlayerTranslation(pub Vec2);

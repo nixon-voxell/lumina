@@ -7,13 +7,15 @@
 )
 
 #let parent(body) = {
-  set text(fill: base8, size: 24pt)
+  set text(fill: base8, size: 18pt)
   body
 }
 
 #let frame(body, stroke_color: base7) = {
-  let fill_col = base0.mix((stroke_color, 20%))
-  let text_col = base8.mix((stroke_color, 40%))
+  // let fill_col = base0.mix((stroke_color, 20%))
+  // let text_col = base8.mix((stroke_color, 40%))
+  let fill_col = base0
+  let text_col = base8
   box(stroke: stroke_color + 0.2em, fill: fill_col, inset: 1em)[
     #text(fill: text_col)[#body]
   ]

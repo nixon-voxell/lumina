@@ -33,6 +33,17 @@ log = { version = "0.4", features = [
 ] }
 clap = { version = "4.5", features = ["derive"] }
 
+# Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
+# In some cases they may still signal poor code quality however, so consider commenting out these lines.
+[workspace.lints.clippy]
+# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
+# request more than 7 arguments -- which triggers this lint.
+too_many_arguments = "allow"
+# Queries that access many components may trigger this lint.
+type_complexity = "allow"
+bool_comparison = "allow"
+redundant_type_annotations = "warn"
+
 [package]
 name = "side_effects"
 version.workspace = true
@@ -73,17 +84,6 @@ dev_native = [
     "bevy/embedded_watcher",
 ]
 
-# Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
-# In some cases they may still signal poor code quality however, so consider commenting out these lines.
-[workspace.lints.clippy]
-# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
-# request more than 7 arguments -- which triggers this lint.
-too_many_arguments = "allow"
-# Queries that access many components may trigger this lint.
-type_complexity = "allow"
-bool_comparison = "allow"
-redundant_type_annotations = "warn"
-
 # Compile with Performance Optimizations:
 # https://bevyengine.org/learn/quick-start/getting-started/setup/#compile-with-performance-optimizations
 
@@ -123,3 +123,6 @@ inherits = "release"
 opt-level = 3
 # Keep debug information in the binary.
 strip = "none"
+
+[lints]
+workspace = true

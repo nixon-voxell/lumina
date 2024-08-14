@@ -4,10 +4,12 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use crate::protocol::{Lobbies, PlayerId, ReliableChannel};
+use crate::game::player::PlayerBundle;
+use crate::protocol::{Lobbies, PlayerId, PlayerTranslation, ReliableChannel};
 use crate::shared::{shared_config, SERVER_REPLICATION_INTERVAL};
 
 mod lobby;
+mod ui;
 
 pub const SERVER_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
 
@@ -20,7 +22,7 @@ impl Plugin for ServerPlugin {
         app.add_plugins(ServerPlugins::new(server_config()));
 
         // Server-specific logic.
-        app.add_plugins(lobby::LobbyPlugin)
+        app.add_plugins((lobby::LobbyPlugin, ui::ServerUiPlugin))
             .add_systems(Startup, start_server);
     }
 }
@@ -46,7 +48,14 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
         relevance_mode: NetworkRelevanceMode::InterestManagement,
         ..default()
     };
-    let entity = commands.spawn((PlayerId(client_id), replicate));
+    let entity = commands.spawn((
+        PlayerBundle {
+            id: PlayerId(client_id),
+            player_translation: PlayerTranslation::default(),
+            sprite_bundle: SpriteBundle::default(),
+        },
+        replicate,
+    ));
     info!("Spawn entity {:?} for client {:?}", entity.id(), client_id);
     entity.id()
 }
