@@ -57,7 +57,7 @@ fn create_lobby_ui(
                     TextBundle::from_section(
                         format!("Lobby #{i}, Player Count: {player_count}"),
                         TextStyle {
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                             ..default()
                         },
                     ),
