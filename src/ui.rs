@@ -124,4 +124,14 @@ impl EmptyNodeBundle {
             ..default()
         }
     }
+
+    pub fn grow(grow: f32) -> Self {
+        Self {
+            style: Style {
+                flex_grow: grow,
+                ..default()
+            },
+            ..default()
+        }
+    }
 }

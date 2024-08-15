@@ -24,12 +24,61 @@ impl Plugin for ClientPlugin {
 
         // Server-specific logic.
         app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin))
-            .add_systems(Startup, spawn_game_camera);
+            .init_state::<Connection>()
+            .enable_state_scoped_entities::<Connection>()
+            .add_systems(Startup, spawn_game_camera)
+            .add_systems(OnEnter(Connection::Connect), connect_server)
+            .add_systems(
+                PreUpdate,
+                (handle_connection, handle_disconnection).after(MainSet::Receive),
+            );
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
         app.add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
     }
+}
+
+fn connect_server(mut commands: Commands) {
+    commands.connect_client();
+}
+
+fn handle_connection(
+    mut connection_event: EventReader<ConnectEvent>,
+    mut connection: ResMut<NextState<Connection>>,
+) {
+    for event in connection_event.read() {
+        let client_id = event.client_id();
+        info!("Connected with Id: {client_id:?}");
+
+        connection.set(Connection::Connected);
+    }
+}
+
+fn handle_disconnection(
+    mut connection_event: EventReader<DisconnectEvent>,
+    mut connection: ResMut<NextState<Connection>>,
+) {
+    for event in connection_event.read() {
+        warn!("Disconnected: {:?}", event.reason);
+
+        connection.set(Connection::Disconnected);
+    }
+}
+
+/// Spawn camera for game rendering (render layer 0).
+fn spawn_game_camera(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Game Camera"),
+        Camera2dBundle {
+            camera: Camera {
+                clear_color: Color::NONE.into(),
+                ..default()
+            },
+            ..default()
+        },
+        RenderLayers::layer(0),
+    ));
 }
 
 /// Create the lightyear [`ClientConfig`].
@@ -68,17 +117,10 @@ fn client_config(port_offset: u16) -> ClientConfig {
     }
 }
 
-/// Spawn camera for game rendering (render layer 0).
-fn spawn_game_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Game Camera"),
-        Camera2dBundle {
-            camera: Camera {
-                clear_color: ClearColorConfig::None,
-                ..default()
-            },
-            ..default()
-        },
-        RenderLayers::layer(0),
-    ));
+#[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+enum Connection {
+    Connect,
+    Connected,
+    #[default]
+    Disconnected,
 }

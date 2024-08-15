@@ -6,44 +6,18 @@ use lightyear::prelude::*;
 use crate::game::player::PlayerBundle;
 use crate::protocol::{PlayerId, PlayerTranslation};
 
+use super::Connection;
+
 pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_state::<LobbyState>()
+        app.add_sub_state::<LobbyState>()
             .enable_state_scoped_entities::<LobbyState>()
-            .add_systems(
-                PreUpdate,
-                (handle_connection, handle_disconnection).after(MainSet::Receive),
-            )
-            .add_systems(Update, (handle_predicted_spawn, handle_interpolated_spawn))
-            .add_systems(Startup, test_connect);
+            .add_systems(Update, (handle_predicted_spawn, handle_interpolated_spawn));
     }
 }
 
-fn test_connect(mut commands: Commands) {
-    commands.connect_client();
-}
-
-fn handle_connection(mut commands: Commands, mut connection_event: EventReader<ConnectEvent>) {
-    for event in connection_event.read() {
-        let client_id = event.client_id();
-        info!("Connected with Id: {client_id:?}");
-    }
-}
-
-fn handle_disconnection(
-    mut commands: Commands,
-    mut connection_event: EventReader<DisconnectEvent>,
-) {
-    for event in connection_event.read() {
-        warn!("Disconnected: {:?}", event.reason);
-    }
-}
-
-/// When the predicted copy of the client-owned entity is spawned, do stuff
-/// - assign it a different saturation
-/// - keep track of it in the Global resource
 fn handle_predicted_spawn(
     mut commands: Commands,
     q_predicted: Query<(Entity, &PlayerId), Added<Predicted>>,
@@ -65,9 +39,6 @@ fn handle_predicted_spawn(
     }
 }
 
-/// When the predicted copy of the client-owned entity is spawned, do stuff
-/// - assign it a different saturation
-/// - keep track of it in the Global resource
 fn handle_interpolated_spawn(
     mut commands: Commands,
     mut interpolated: Query<(Entity, &PlayerId), Added<Interpolated>>,
@@ -106,7 +77,8 @@ pub(crate) fn player_movement(
     // }
 }
 
-#[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[source(Connection = Connection::Connected)]
 pub(super) enum LobbyState {
     #[default]
     None,

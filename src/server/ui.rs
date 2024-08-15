@@ -25,8 +25,8 @@ struct LobbyUiMarker;
 fn create_lobby_ui(
     mut commands: Commands,
     q_lobby_uis: Query<Entity, With<LobbyUiMarker>>,
-    ui_template: Res<UiTemplate>,
-    compiler: Res<TypstCompiler>,
+    // ui_template: Res<UiTemplate>,
+    // compiler: Res<TypstCompiler>,
     lobbies: Res<Lobbies>,
 ) {
     println!("create server lobby ui");
@@ -34,7 +34,7 @@ fn create_lobby_ui(
         commands.entity(entity).despawn_recursive();
     }
 
-    let world = compiler.world_meta();
+    // let world = compiler.world_meta();
     commands
         .spawn((
             EmptyNodeBundle {
@@ -42,6 +42,7 @@ fn create_lobby_ui(
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
                     padding: UiRect::all(Val::Px(60.0)),
+                    flex_direction: FlexDirection::Row,
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
@@ -51,18 +52,36 @@ fn create_lobby_ui(
             LobbyUiMarker,
         ))
         .with_children(|parent| {
-            for (i, lobby) in lobbies.lobbies.iter().enumerate() {
-                let player_count = lobby.players.len();
-                parent.spawn((
-                    TextBundle::from_section(
-                        format!("Lobby #{i}, Player Count: {player_count}"),
-                        TextStyle {
-                            color: Color::WHITE,
-                            ..default()
-                        },
-                    ),
-                    RenderLayers::layer(1),
-                ));
-            }
+            parent.spawn(EmptyNodeBundle::grow(1.0));
+
+            parent
+                .spawn(EmptyNodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(EmptyNodeBundle::grow(1.0));
+
+                    for (i, lobby) in lobbies.lobbies.iter().enumerate() {
+                        let player_count = lobby.players.len();
+                        parent.spawn((
+                            TextBundle::from_section(
+                                format!("Lobby #{i}, Player Count: {player_count}"),
+                                TextStyle {
+                                    color: Color::WHITE,
+                                    ..default()
+                                },
+                            ),
+                            RenderLayers::layer(1),
+                        ));
+                    }
+
+                    parent.spawn(EmptyNodeBundle::grow(1.0));
+                });
+
+            parent.spawn(EmptyNodeBundle::grow(1.0));
         });
 }

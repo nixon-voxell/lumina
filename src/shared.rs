@@ -26,7 +26,7 @@ fn spawn_ui_camera(mut commands: Commands) {
         Name::new("Ui Camera"),
         Camera2dBundle {
             camera: Camera {
-                clear_color: ClearColorConfig::None,
+                clear_color: Color::NONE.into(),
                 order: 1,
                 ..default()
             },
