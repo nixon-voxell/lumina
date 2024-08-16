@@ -68,18 +68,18 @@ pub enum UiState {
     Loaded,
 }
 
-pub fn typst_scene(writer: impl DocWriter, world: &TypstWorldMeta) -> TypstScene {
-    let document = world.compile_content(writer.pack()).unwrap();
-    TypstScene::from_document(&document, Abs::zero()).unwrap()
-}
+// pub fn typst_scene(writer: impl DocWriter, world: &TypstWorldMeta) -> TypstScene {
+//     let document = world.compile_content(writer.pack()).unwrap();
+//     TypstScene::from_document(&document, Abs::zero()).unwrap()
+// }
 
-pub fn vello_scene(scene: TypstScene) -> VelloSceneBundle {
-    VelloSceneBundle {
-        scene: VelloScene::from(scene.scene),
-        coordinate_space: CoordinateSpace::ScreenSpace,
-        ..default()
-    }
-}
+// pub fn vello_scene(scene: TypstScene) -> VelloSceneBundle {
+//     VelloSceneBundle {
+//         scene: VelloScene::from(scene.scene),
+//         coordinate_space: CoordinateSpace::ScreenSpace,
+//         ..default()
+//     }
+// }
 
 #[derive(Bundle, Clone, Debug, Default)]
 pub struct EmptyNodeBundle {
@@ -125,13 +125,13 @@ impl EmptyNodeBundle {
         }
     }
 
-    pub fn grow(grow: f32) -> Self {
-        Self {
-            style: Style {
-                flex_grow: grow,
-                ..default()
-            },
-            ..default()
-        }
+    pub fn with_height(mut self, height: Val) -> Self {
+        self.style.height = height;
+        self
+    }
+
+    pub fn with_width(mut self, width: Val) -> Self {
+        self.style.width = width;
+        self
     }
 }

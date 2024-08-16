@@ -14,6 +14,7 @@ impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<LobbyState>()
             .enable_state_scoped_entities::<LobbyState>()
+            .init_resource::<MyLobbyId>()
             .add_systems(Update, (handle_predicted_spawn, handle_interpolated_spawn));
     }
 }
@@ -83,5 +84,9 @@ pub(super) enum LobbyState {
     #[default]
     None,
     Joined,
+    InGame,
     Left,
 }
+
+#[derive(Resource, Default, Debug, Clone, Copy, PartialEq)]
+pub(super) struct MyLobbyId(pub usize);

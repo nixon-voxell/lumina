@@ -1,9 +1,9 @@
 use bevy::{prelude::*, render::view::RenderLayers};
-use bevy_typst::{prelude::*, typst_element::prelude::*};
+// use bevy_typst::{prelude::*, typst_element::prelude::*};
 
 use crate::{
     protocol::Lobbies,
-    ui::{typst_scene, vello_scene, EmptyNodeBundle, UiState, UiTemplate},
+    ui::{EmptyNodeBundle, UiState},
 };
 
 pub(super) struct ServerUiPlugin;
@@ -12,59 +12,44 @@ impl Plugin for ServerUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            create_lobby_ui
+            lobby_ui
                 .run_if(in_state(UiState::Loaded))
                 .run_if(resource_changed::<Lobbies>),
         );
     }
 }
 
-#[derive(Component)]
-struct LobbyUiMarker;
-
-fn create_lobby_ui(
-    mut commands: Commands,
-    q_lobby_uis: Query<Entity, With<LobbyUiMarker>>,
-    // ui_template: Res<UiTemplate>,
-    // compiler: Res<TypstCompiler>,
-    lobbies: Res<Lobbies>,
-) {
-    println!("create server lobby ui");
-    for entity in q_lobby_uis.iter() {
-        commands.entity(entity).despawn_recursive();
+fn lobby_ui(mut commands: Commands, lobbies: Res<Lobbies>, mut ui_entity: Local<Option<Entity>>) {
+    if let Some(ui_entity) = *ui_entity {
+        if let Some(c) = commands.get_entity(ui_entity) {
+            c.despawn_recursive()
+        }
     }
 
-    // let world = compiler.world_meta();
-    commands
-        .spawn((
-            EmptyNodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    padding: UiRect::all(Val::Px(60.0)),
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-                render_layer: RenderLayers::layer(1),
+    let id = commands
+        .spawn(EmptyNodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                padding: UiRect::all(Val::Px(60.0)),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
                 ..default()
             },
-            LobbyUiMarker,
-        ))
+            render_layer: RenderLayers::layer(1),
+            ..default()
+        })
         .with_children(|parent| {
-            parent.spawn(EmptyNodeBundle::grow(1.0));
-
             parent
                 .spawn(EmptyNodeBundle {
                     style: Style {
                         flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     },
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(EmptyNodeBundle::grow(1.0));
-
                     for (i, lobby) in lobbies.lobbies.iter().enumerate() {
                         let player_count = lobby.players.len();
                         parent.spawn((
@@ -78,10 +63,9 @@ fn create_lobby_ui(
                             RenderLayers::layer(1),
                         ));
                     }
-
-                    parent.spawn(EmptyNodeBundle::grow(1.0));
                 });
+        })
+        .id();
 
-            parent.spawn(EmptyNodeBundle::grow(1.0));
-        });
+    *ui_entity = Some(id);
 }

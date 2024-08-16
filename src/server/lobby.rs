@@ -3,7 +3,7 @@ use lightyear::prelude::server::*;
 
 use crate::{
     protocol::{ExitLobby, JoinLobby, Lobbies, Lobby},
-    server::spawn_player_entity,
+    // server::spawn_player_entity,
 };
 
 pub(super) struct LobbyPlugin;
@@ -29,7 +29,7 @@ fn ensure_empty_lobby(mut lobbies: ResMut<Lobbies>) {
 }
 
 fn handle_join_lobby(
-    mut commands: Commands,
+    // mut commands: Commands,
     mut join_lobby_evt: EventReader<MessageEvent<JoinLobby>>,
     mut lobbies: ResMut<Lobbies>,
     mut room_manager: ResMut<RoomManager>,
@@ -48,11 +48,11 @@ fn handle_join_lobby(
 
         room_manager.add_client(client_id, RoomId(lobby_id as u64));
 
-        // if lobby.in_game {
-        // If the game has already started, we need to spawn the player entity
-        let entity = spawn_player_entity(&mut commands, client_id);
-        room_manager.add_entity(entity, RoomId(lobby_id as u64));
-        // }
+        if lobby.in_game {
+            // If the game has already started, we need to spawn the player entity
+            // let entity = spawn_player_entity(&mut commands, client_id);
+            // room_manager.add_entity(entity, RoomId(lobby_id as u64));
+        }
     }
 }
 
@@ -67,7 +67,9 @@ fn handle_exit_lobby(
 
         info!("Client {client_id:?} exited lobby {lobby_id:?}");
         let lobby = &mut lobbies.lobbies[lobby_id];
-        lobby.players.push(client_id);
+        if let Some(client_index) = lobby.players.iter().position(|c| *c == client_id) {
+            lobby.players.remove(client_index);
+        }
 
         room_manager.remove_client(client_id, RoomId(lobby_id as u64));
 
