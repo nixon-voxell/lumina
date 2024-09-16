@@ -10,8 +10,8 @@ readme = "README.md"
 authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
-bevy_typst = { path = "external_crates/bevy_typst" }
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
+velyst = { path = "external_crates/velyst" }
 
 bevy = { version = "0.14", features = ["wayland"] }
 lightyear = { version = "0.16", features = [
@@ -52,8 +52,8 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
-bevy_typst = { workspace = true }
 bevy_vello_graphics = { workspace = true }
+velyst = { workspace = true }
 
 bevy = { workspace = true }
 lightyear = { workspace = true }
@@ -81,7 +81,8 @@ dev_native = [
     # Enable asset hot reloading for native dev builds.
     "bevy/file_watcher",
     # Enable embedded asset hot reloading for native dev builds.
-    "bevy/embedded_watcher",
+    # Disabled due to slow startup time.
+    # "bevy/embedded_watcher",
 ]
 
 # Compile with Performance Optimizations:

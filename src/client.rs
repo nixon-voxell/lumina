@@ -6,7 +6,6 @@ use lightyear::prelude::*;
 
 use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
-use crate::ui::UiState;
 
 mod lobby;
 mod ui;
@@ -25,7 +24,7 @@ impl Plugin for ClientPlugin {
 
         // Server-specific logic.
         app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin))
-            .add_sub_state::<Connection>()
+            .init_state::<Connection>()
             .enable_state_scoped_entities::<Connection>()
             .add_systems(Startup, spawn_game_camera)
             .add_systems(OnEnter(Connection::Connect), connect_server)
@@ -36,8 +35,7 @@ impl Plugin for ClientPlugin {
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
-        app.add_plugins(crate::dev_tools::log_transition::<UiState>)
-            .add_plugins(crate::dev_tools::log_transition::<Connection>)
+        app.add_plugins(crate::dev_tools::log_transition::<Connection>)
             .add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
     }
 }
@@ -122,9 +120,7 @@ fn client_config(port_offset: u16) -> ClientConfig {
     }
 }
 
-#[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
-// Ui needs to be loaded before we can perform any connection.
-#[source(UiState = UiState::Loaded)]
+#[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Connection {
     Connect,
     Connected,
