@@ -59,7 +59,6 @@ impl Plugin for AppPlugin {
         };
 
         app.add_plugins(shared::SharedPlugin);
-
     }
 }
 
