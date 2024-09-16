@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy_vello_graphics::{bevy_vello::VelloPlugin, prelude::*};
-use velyst::VelystPlugin;
+use velyst::{prelude::*, VelystPlugin};
 
 pub struct UiPlugin;
 
@@ -16,4 +16,25 @@ impl Plugin for UiPlugin {
             VelystPlugin::default(),
         ));
     }
+}
+
+pub type InteractionQuery<'a, 'w, 's> =
+    Query<'w, 's, (&'a Interaction, &'a TypstLabel), Changed<Interaction>>;
+
+pub fn pressed<'a>(
+    mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
+    label_str: &str,
+) -> bool {
+    q_interactions.any(|(interaction, label)| {
+        label.as_str() == label_str && *interaction == Interaction::Pressed
+    })
+}
+
+pub fn hovered<'a>(
+    mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
+    label_str: &str,
+) -> bool {
+    q_interactions.any(|(interaction, label)| {
+        label.as_str() == label_str && *interaction == Interaction::Hovered
+    })
 }

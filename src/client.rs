@@ -122,9 +122,10 @@ fn client_config(port_offset: u16) -> ClientConfig {
 
 #[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Connection {
-    Connect,
-    Connected,
     #[default]
+    Connect,
+    Disconnect,
+    Connected,
     Disconnected,
 }
 
