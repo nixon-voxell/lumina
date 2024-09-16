@@ -98,6 +98,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: ${{ env.USE_GIT_LFS }}
+          submodules: recursive
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
