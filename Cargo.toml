@@ -20,7 +20,7 @@ lightyear = { version = "0.16", features = [
   "leafwing",
   "steam",
 ] }
-leafwing-input-manager = "0.15"
+leafwing-input-manager = "0.14"
 avian2d = "0.1"
 bincode = "1.3"
 serde = "1.0"
