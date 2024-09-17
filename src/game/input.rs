@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
+use super::GameState;
+
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
@@ -8,7 +10,10 @@ impl Plugin for InputPlugin {
         app.add_plugins(InputManagerPlugin::<PlayerAction>::default())
             .init_resource::<ActionState<PlayerAction>>()
             .insert_resource(PlayerAction::input_map())
-            .add_systems(Update, handle_player_input);
+            .add_systems(
+                Update,
+                handle_player_input.run_if(in_state(GameState::InGame)),
+            );
     }
 }
 
@@ -20,7 +25,7 @@ fn handle_player_input(action_state: Res<ActionState<PlayerAction>>) {
         }
     }
 
-    if action_state.pressed(&PlayerAction::Jump) {
+    if action_state.pressed(&PlayerAction::Interact) {
         println!("jump");
     }
 
@@ -32,7 +37,7 @@ fn handle_player_input(action_state: Res<ActionState<PlayerAction>>) {
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Move,
-    Jump,
+    Interact,
     UseItem,
 }
 
@@ -43,12 +48,12 @@ impl PlayerAction {
 
         // Default gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
-        input_map.insert(Self::Jump, GamepadButtonType::South);
+        input_map.insert(Self::Interact, GamepadButtonType::South);
         input_map.insert(Self::UseItem, GamepadButtonType::RightTrigger2);
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
-        input_map.insert(Self::Jump, KeyCode::Space);
+        input_map.insert(Self::Interact, KeyCode::Space);
         input_map.insert(Self::UseItem, MouseButton::Left);
 
         input_map

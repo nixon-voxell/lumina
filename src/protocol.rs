@@ -2,6 +2,9 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 
+use crate::game::player::{PlayerId, PlayerTransform};
+
+/// Protocol plugin for [lobbies][Lobbies] with `C` number of players.
 pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
@@ -13,91 +16,44 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
-        app.register_message::<JoinLobby>(ChannelDirection::ClientToServer);
+        app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
+        app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
-        app.register_message::<StartGame>(ChannelDirection::ClientToServer);
+        app.register_message::<StartGame>(ChannelDirection::ServerToClient);
+
         // Components
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
-        app.register_component::<PlayerTranslation>(ChannelDirection::ServerToClient)
+        app.register_component::<PlayerTransform>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
+
         // Resources
-        app.register_resource::<Lobbies>(ChannelDirection::ServerToClient);
+        // app.register_resource::<Lobbies<C>>(ChannelDirection::ServerToClient);
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-pub struct Lobby {
-    pub players: Vec<ClientId>,
-    /// If true, the lobby is in game. If not, it is still in lobby mode.
-    pub in_game: bool,
+/// Matchmake command (with lobby size encoded) sent from
+/// client to server to find an available lobby to join.
+#[derive(Serialize, Deserialize, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
+pub struct Matchmake(pub u8);
+
+/// Update on lobby status sent from server to client.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct LobbyStatus {
+    pub entity: Entity,
+    pub client_count: u8,
 }
 
-#[derive(Resource, Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-pub struct Lobbies {
-    pub lobbies: Vec<Lobby>,
-}
+/// Exit lobby command sent from client to server when already inside a lobby.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ExitLobby;
 
-impl Lobbies {
-    /// Return true if there is an empty lobby available for players to join
-    pub fn has_empty_lobby(&self) -> bool {
-        if self.lobbies.is_empty() {
-            return false;
-        }
-        self.lobbies.iter().any(|lobby| lobby.players.is_empty())
-    }
+/// Start game command sent from server to client when the lobby room is full.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct StartGame;
 
-    /// Remove a client from a lobby
-    pub fn remove_client(&mut self, client_id: ClientId) {
-        let mut removed_lobby = None;
-        for (lobby_id, lobby) in self.lobbies.iter_mut().enumerate() {
-            if let Some(index) = lobby.players.iter().position(|id| *id == client_id) {
-                lobby.players.remove(index);
-                if lobby.players.is_empty() {
-                    removed_lobby = Some(lobby_id);
-                }
-            }
-            // if lobby.players.remove(&client_id).is_some() {
-            //     if lobby.players.is_empty() {
-            //         removed_lobby = Some(lobby_id);
-            //     }
-            // }
-        }
-        if let Some(lobby_id) = removed_lobby {
-            self.lobbies.remove(lobby_id);
-            // always make sure that there is an empty lobby for players to join
-            if !self.has_empty_lobby() {
-                self.lobbies.push(Lobby::default());
-            }
-        }
-    }
-}
-
+/// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]
 pub struct ReliableChannel;
-
-// Lobby
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct JoinLobby {
-    pub lobby_id: usize,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct ExitLobby {
-    pub lobby_id: usize,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct StartGame {
-    pub lobby_id: usize,
-    pub host: Option<ClientId>,
-}
-
-// Player
-#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct PlayerId(pub ClientId);
-
-#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
-pub struct PlayerTranslation(pub Vec2);

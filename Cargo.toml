@@ -10,6 +10,7 @@ readme = "README.md"
 authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
+# Local dependencies
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 velyst = { path = "external_crates/velyst" }
 
@@ -26,12 +27,8 @@ bincode = "1.3"
 serde = "1.0"
 steamworks = "0.11"
 rand = "0.8"
-# Disable low-severity logs at compile time for performance.
-log = { version = "0.4", features = [
-    "max_level_debug",
-    "release_max_level_warn",
-] }
 clap = { version = "4.5", features = ["derive"] }
+smallvec = "1"
 
 # Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
 # In some cases they may still signal poor code quality however, so consider commenting out these lines.
@@ -45,7 +42,7 @@ bool_comparison = "allow"
 redundant_type_annotations = "warn"
 
 [package]
-name = "side_effects"
+name = "lumina"
 version.workspace = true
 edition.workspace = true
 readme.workspace = true
@@ -63,8 +60,8 @@ bincode = { workspace = true }
 serde = { workspace = true }
 steamworks = { workspace = true }
 rand = { workspace = true }
-log = { workspace = true }
 clap = { workspace = true }
+smallvec = { workspace = true }
 
 [features]
 default = [

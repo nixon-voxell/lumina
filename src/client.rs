@@ -124,7 +124,6 @@ fn client_config(port_offset: u16) -> ClientConfig {
 enum Connection {
     #[default]
     Connect,
-    Disconnect,
     Connected,
     Disconnected,
 }

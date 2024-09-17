@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use main_menu::MainMenuUiPlugin;
+use matchmaking::MatchmakingUiPlugin;
 
 pub(super) mod main_menu;
 pub(super) mod matchmaking;
@@ -8,7 +9,8 @@ pub(super) struct ClientUiPlugin;
 
 impl Plugin for ClientUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MainMenuUiPlugin);
+        app.add_plugins(MainMenuUiPlugin)
+            .add_plugins(MatchmakingUiPlugin);
         // .add_systems(
         //     Update,
         //     (

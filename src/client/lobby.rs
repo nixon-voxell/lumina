@@ -3,8 +3,7 @@ use bevy::prelude::*;
 use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
-use crate::game::player::PlayerBundle;
-use crate::protocol::{PlayerId, PlayerTranslation};
+use crate::game::player::{PlayerBundle, PlayerId, PlayerTransform};
 
 use super::Connection;
 
@@ -25,9 +24,10 @@ fn handle_predicted_spawn(
 ) {
     for (entity, id) in q_predicted.iter() {
         info!("Spawn predicted entity.");
+
         commands.entity(entity).insert(PlayerBundle {
             id: *id,
-            player_translation: PlayerTranslation::default(),
+            player_transform: PlayerTransform::default(),
             sprite_bundle: SpriteBundle {
                 sprite: Sprite {
                     color: Color::WHITE,
@@ -42,13 +42,14 @@ fn handle_predicted_spawn(
 
 fn handle_interpolated_spawn(
     mut commands: Commands,
-    mut interpolated: Query<(Entity, &PlayerId), Added<Interpolated>>,
+    interpolated: Query<(Entity, &PlayerId), Added<Interpolated>>,
 ) {
-    for (entity, id) in interpolated.iter_mut() {
+    for (entity, id) in interpolated.iter() {
         info!("Spawn interpolated entity.");
+
         commands.entity(entity).insert(PlayerBundle {
             id: *id,
-            player_translation: PlayerTranslation::default(),
+            player_transform: PlayerTransform::default(),
             sprite_bundle: SpriteBundle {
                 sprite: Sprite {
                     color: css::RED.into(),
@@ -60,22 +61,6 @@ fn handle_interpolated_spawn(
             },
         });
     }
-}
-
-/// The client input only gets applied to predicted entities that we own
-/// This works because we only predict the user's controlled entity.
-/// If we were predicting more entities, we would have to only apply movement to the player owned one.
-pub(crate) fn player_movement(
-    mut position_query: Query<&mut PlayerTranslation, With<Predicted>>,
-    // mut input_reader: EventReader<InputEvent<Inputs>>,
-) {
-    // for input in input_reader.read() {
-    //     if let Some(input) = input.input() {
-    //         for position in position_query.iter_mut() {
-    //             // shared_movement_behaviour(position, input);
-    //         }
-    //     }
-    // }
 }
 
 #[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]

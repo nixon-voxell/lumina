@@ -30,8 +30,7 @@
   animate: 0.0,
   connected: false,
 ) = {
-
-  set text(fill: base8)
+  set text(fill: base7)
 
   show label(hovered_button): body => [
     #let box_fill = text.fill.transparentize(((1.0 - animate) * 100%))
@@ -62,7 +61,7 @@
       #pad(bottom: 40pt)[#text(fill: yellow)[= Lumina]]
 
       #move(dx: 2%)[
-        #set text(size: 28pt, fill: base7)
+        #set text(size: 28pt)
         #text(fill: green)[#button(lbl: <btn:play>)[= Play]]\
         #text(fill: purple)[#button(lbl: <btn:luminators>)[= Luminators]]\
         #button(lbl: <btn:tutorial>)[= Tutorial]\

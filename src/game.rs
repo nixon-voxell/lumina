@@ -8,6 +8,14 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         // Game plugins
-        app.add_plugins((input::InputPlugin, player::PlayerPlugin));
+        app.init_state::<GameState>()
+            .add_plugins((input::InputPlugin, player::PlayerPlugin));
     }
+}
+
+#[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum GameState {
+    #[default]
+    None,
+    InGame,
 }

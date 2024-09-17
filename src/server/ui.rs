@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::view::RenderLayers, window::PrimaryWindow};
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::protocol::Lobbies;
+use super::lobby::Lobby;
 
 pub(super) struct ServerUiPlugin;
 
@@ -12,7 +12,7 @@ impl Plugin for ServerUiPlugin {
             .render_typst_func::<MainFunc>()
             .init_resource::<MainFunc>()
             .add_systems(Update, window)
-            .add_systems(Update, lobbies.run_if(resource_changed::<Lobbies>));
+            .add_systems(Update, lobbies);
     }
 }
 
@@ -28,11 +28,11 @@ fn window(
     main_func.height = window.height() as f64;
 }
 
-fn lobbies(lobbies: Res<Lobbies>, mut main_func: ResMut<MainFunc>) {
+fn lobbies(q_lobbies: Query<&Lobby>, mut main_func: ResMut<MainFunc>) {
     main_func.lobbies.clear();
 
-    for lobby in lobbies.lobbies.iter() {
-        let player_count = lobby.players.len();
+    for lobby in q_lobbies.iter() {
+        let player_count = lobby.len();
         main_func.lobbies.push(player_count as u32);
     }
 }

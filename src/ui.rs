@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
+use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_vello_graphics::{bevy_vello::VelloPlugin, prelude::*};
 use velyst::{prelude::*, VelystPlugin};
 
@@ -38,3 +38,6 @@ pub fn hovered<'a>(
         label.as_str() == label_str && *interaction == Interaction::Hovered
     })
 }
+
+pub type WindowQuery<'a, 'w, 's> =
+    Query<'w, 's, Ref<'a, Window>, (With<PrimaryWindow>, Changed<Window>)>;

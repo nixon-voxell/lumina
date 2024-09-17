@@ -1,9 +1,11 @@
-use bevy::{prelude::*, render::view::RenderLayers, window::PrimaryWindow};
+use bevy::{prelude::*, render::view::RenderLayers};
 use lightyear::prelude::client::*;
+use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::client::Connection;
-use crate::ui::{pressed, InteractionQuery};
+use crate::protocol::{Matchmake, ReliableChannel};
+use crate::ui::{pressed, InteractionQuery, WindowQuery};
 
 pub(super) struct MainMenuUiPlugin;
 
@@ -13,59 +15,57 @@ impl Plugin for MainMenuUiPlugin {
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
             .render_typst_func::<MainMenuFunc>()
             .init_resource::<MainMenuFunc>()
-            .add_systems(Update, (main_menu_window, main_menu_hover))
+            .add_systems(Update, (window, main_menu_hover))
             .add_systems(Update, (play_btn, reconnect_btn, exit_btn))
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
     }
 }
 
-fn main_menu_window(
-    q_window: Query<Ref<Window>, (With<PrimaryWindow>, Changed<Window>)>,
-    mut main_func: ResMut<MainMenuFunc>,
-) {
+fn window(q_window: WindowQuery, mut func: ResMut<MainMenuFunc>) {
     let Ok(window) = q_window.get_single() else {
         return;
     };
 
-    main_func.width = window.width() as f64;
-    main_func.height = window.height() as f64;
+    func.width = window.width() as f64;
+    func.height = window.height() as f64;
 }
 
 fn main_menu_hover(
     q_interactions: Query<(&Interaction, &TypstLabel)>,
-    mut main_func: ResMut<MainMenuFunc>,
+    mut func: ResMut<MainMenuFunc>,
     time: Res<Time>,
     mut last_hovered: Local<String>,
 ) {
-    main_func.hovered_button.clear();
+    func.hovered_button.clear();
     for (interaction, label) in q_interactions.iter() {
         if *interaction == Interaction::Hovered {
-            main_func.hovered_button = label.as_str().to_owned();
+            func.hovered_button = label.as_str().to_owned();
         }
     }
 
-    if main_func.hovered_button != *last_hovered {
-        main_func.animate = 0.0;
-        *last_hovered = main_func.hovered_button.clone();
+    if func.hovered_button != *last_hovered {
+        func.animate = 0.0;
+        *last_hovered = func.hovered_button.clone();
     }
 
     const SPEED: f64 = 8.0;
     // Clamp at 1.0
-    main_func.animate = f64::min(main_func.animate + time.delta_seconds_f64() * SPEED, 1.0);
+    func.animate = f64::min(func.animate + time.delta_seconds_f64() * SPEED, 1.0);
 }
 
-fn connected_to_server(mut main_func: ResMut<MainMenuFunc>) {
-    main_func.connected = true;
+fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
+    func.connected = true;
 }
 
-fn disconnected_from_server(mut main_func: ResMut<MainMenuFunc>) {
-    main_func.connected = false;
+fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
+    func.connected = false;
 }
 
-fn play_btn(q_interactions: InteractionQuery) {
+fn play_btn(q_interactions: InteractionQuery, mut connection_manager: ResMut<ConnectionManager>) {
     if pressed(q_interactions.iter(), "btn:play") {
-        println!("play btn pressed");
+        let _ = connection_manager
+            .send_message_to_target::<ReliableChannel, _>(&Matchmake(2), NetworkTarget::None);
     }
 }
 
