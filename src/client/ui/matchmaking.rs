@@ -14,8 +14,13 @@ impl Plugin for MatchmakingUiPlugin {
             .compile_typst_func::<MatchmakingUi, MatchmakingFunc>()
             .render_typst_func::<MatchmakingFunc>()
             .init_resource::<MatchmakingFunc>()
+            .add_systems(Startup, setup)
             .add_systems(Update, window);
     }
+}
+
+fn setup(mut scene: ResMut<VelystScene<MatchmakingFunc>>) {
+    scene.visibility = Visibility::Hidden;
 }
 
 fn window(q_window: WindowQuery, mut func: ResMut<MatchmakingFunc>) {
@@ -28,7 +33,7 @@ fn window(q_window: WindowQuery, mut func: ResMut<MatchmakingFunc>) {
 }
 
 #[derive(Resource, Default)]
-struct MatchmakingFunc {
+pub(super) struct MatchmakingFunc {
     width: f64,
     height: f64,
     player_count: u32,

@@ -8,6 +8,7 @@ use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
 
 mod lobby;
+mod player;
 mod ui;
 
 const CLIENT_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
@@ -22,8 +23,7 @@ impl Plugin for ClientPlugin {
         // Lightyear plugins
         app.add_plugins(ClientPlugins::new(client_config(self.port_offset)));
 
-        // Server-specific logic.
-        app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin))
+        app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin, player::PlayerPlugin))
             .init_state::<Connection>()
             .enable_state_scoped_entities::<Connection>()
             .add_systems(Startup, spawn_game_camera)

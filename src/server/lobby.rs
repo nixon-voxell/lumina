@@ -94,13 +94,14 @@ fn handle_matchmaking(
             }
         }
 
-        // If there are no available lobby to join, create a new one.
+        // If there is no available lobby to join, create a new one.
         let lobby_entity = lobby_entity
             .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
 
         let player_entity = spawn_player_entity(&mut commands, client_id);
 
         room_manager.add_client(client_id, lobby_entity.room_id());
+        room_manager.add_entity(player_entity, lobby_entity.room_id());
 
         // Cache client info
         client_infos.insert(
@@ -143,6 +144,7 @@ fn handle_exit_lobby(
 
 /// Spawn an entity for a given client.
 fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
+    info!("Spawn player for {:?}", client_id);
     let replicate = Replicate {
         sync: SyncTarget {
             prediction: NetworkTarget::Single(client_id),

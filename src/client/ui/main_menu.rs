@@ -7,6 +7,8 @@ use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::{pressed, InteractionQuery, WindowQuery};
 
+use super::matchmaking::MatchmakingFunc;
+
 pub(super) struct MainMenuUiPlugin;
 
 impl Plugin for MainMenuUiPlugin {
@@ -62,8 +64,16 @@ fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = false;
 }
 
-fn play_btn(q_interactions: InteractionQuery, mut connection_manager: ResMut<ConnectionManager>) {
+fn play_btn(
+    q_interactions: InteractionQuery,
+    mut connection_manager: ResMut<ConnectionManager>,
+    mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
+    mut matchmaking_scene: ResMut<VelystScene<MatchmakingFunc>>,
+) {
     if pressed(q_interactions.iter(), "btn:play") {
+        menu_scene.visibility = Visibility::Hidden;
+        matchmaking_scene.visibility = Visibility::Inherited;
+
         let _ = connection_manager
             .send_message_to_target::<ReliableChannel, _>(&Matchmake(2), NetworkTarget::None);
     }

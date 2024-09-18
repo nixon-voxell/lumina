@@ -26,11 +26,11 @@ fn handle_player_input(action_state: Res<ActionState<PlayerAction>>) {
     }
 
     if action_state.pressed(&PlayerAction::Interact) {
-        println!("jump");
+        println!("Interact");
     }
 
     if action_state.pressed(&PlayerAction::UseItem) {
-        println!("use item");
+        println!("UseItem");
     }
 }
 

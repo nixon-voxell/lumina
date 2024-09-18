@@ -20,7 +20,6 @@ impl Plugin for ServerPlugin {
         // Lightyear plugins
         app.add_plugins(ServerPlugins::new(server_config()));
 
-        // Server-specific logic.
         app.add_plugins((lobby::LobbyPlugin, ui::ServerUiPlugin))
             .add_systems(Startup, start_server);
     }
