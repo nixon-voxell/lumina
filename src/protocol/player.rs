@@ -1,31 +1,51 @@
 use std::ops::{Add, Mul};
 
 use bevy::prelude::*;
-use client::{ComponentSyncMode, Predicted};
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use super::{input::PlayerAction, GameState};
+use super::input::PlayerAction;
 
-pub struct PlayerPlugin;
+pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
         app.register_component::<PlayerTransform>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
+            .add_prediction(client::ComponentSyncMode::Full)
+            .add_interpolation(client::ComponentSyncMode::Full)
             .add_linear_interpolation_fn();
     }
 }
 
-#[derive(Bundle, Clone)]
-pub struct PlayerBundle {
+pub fn shared_movement_behaviour(
+    mut transform: Mut<PlayerTransform>,
+    action_state: &ActionState<PlayerAction>,
+) {
+    const SPEED: f32 = 8.0;
+
+    if action_state.pressed(&PlayerAction::Move) {
+        if let Some(axis_pair) = action_state.clamped_axis_pair(&PlayerAction::Move) {
+            println!("Move: ({}, {})", axis_pair.x(), axis_pair.y());
+            transform.translation += axis_pair.xy() * SPEED;
+        }
+    }
+
+    if action_state.pressed(&PlayerAction::Interact) {
+        println!("Interact");
+    }
+
+    if action_state.pressed(&PlayerAction::UseItem) {
+        println!("UseItem");
+    }
+}
+
+#[derive(Bundle)]
+pub struct PlayerReplicateBundle {
     pub id: PlayerId,
     pub player_transform: PlayerTransform,
-    pub sprite_bundle: SpriteBundle,
 }
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]

@@ -30,14 +30,14 @@ pub fn pressed<'a>(
     })
 }
 
-pub fn hovered<'a>(
-    mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
-    label_str: &str,
-) -> bool {
-    q_interactions.any(|(interaction, label)| {
-        label.as_str() == label_str && *interaction == Interaction::Hovered
-    })
-}
+// pub fn hovered<'a>(
+//     mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
+//     label_str: &str,
+// ) -> bool {
+//     q_interactions.any(|(interaction, label)| {
+//         label.as_str() == label_str && *interaction == Interaction::Hovered
+//     })
+// }
 
 pub type WindowQuery<'a, 'w, 's> =
     Query<'w, 's, Ref<'a, Window>, (With<PrimaryWindow>, Changed<Window>)>;

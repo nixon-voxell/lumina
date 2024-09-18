@@ -5,9 +5,9 @@ use matchmaking::MatchmakingUiPlugin;
 pub(super) mod main_menu;
 pub(super) mod matchmaking;
 
-pub(super) struct ClientUiPlugin;
+pub(super) struct UiPlugin;
 
-impl Plugin for ClientUiPlugin {
+impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MainMenuUiPlugin)
             .add_plugins(MatchmakingUiPlugin);

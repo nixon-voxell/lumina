@@ -8,7 +8,6 @@ use clap::Parser;
 pub mod steam;
 
 mod client;
-mod game;
 mod protocol;
 mod server;
 mod shared;

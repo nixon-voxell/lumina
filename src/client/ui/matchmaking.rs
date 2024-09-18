@@ -1,10 +1,7 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::{
-    protocol::ReliableChannel,
-    ui::{pressed, InteractionQuery, WindowQuery},
-};
+use crate::ui::WindowQuery;
 
 pub(super) struct MatchmakingUiPlugin;
 

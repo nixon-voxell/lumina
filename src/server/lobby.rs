@@ -1,26 +1,33 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use lightyear::prelude::server::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use server::*;
 use smallvec::SmallVec;
 
-use crate::game::player::{PlayerBundle, PlayerId, PlayerTransform};
-use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
+use crate::protocol::{
+    input::PlayerAction,
+    player::{shared_movement_behaviour, PlayerId, PlayerReplicateBundle, PlayerTransform},
+    ExitLobby, LobbyStatus, Matchmake, ReliableChannel,
+};
 use crate::utils::EntityRoomId;
 
 pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ClientInfos>().add_systems(
-            Update,
-            (
-                cleanup_empty_lobbies,
-                propagate_lobby_status,
-                handle_matchmaking,
-                handle_exit_lobby,
-            ),
-        );
+        app.init_resource::<ClientInfos>()
+            .add_systems(
+                Update,
+                (
+                    cleanup_empty_lobbies,
+                    propagate_lobby_status,
+                    handle_matchmaking,
+                    handle_exit_lobby,
+                    handle_player_action_spawn,
+                ),
+            )
+            .add_systems(FixedUpdate, handle_player_action);
     }
 }
 
@@ -109,19 +116,38 @@ fn handle_matchmaking(
             ClientInfo {
                 lobby: lobby_entity,
                 player: player_entity,
+                input_action: None,
             },
         );
     }
 }
 
+// TODO: Create event for when client leaves (either disconnects, or exit lobby)
+// fn handle_disconnection(
+//     mut commands: Commands,
+//     mut disconnect_evr: EventReader<DisconnectEvent>,
+//     mut client_infos: ResMut<ClientInfos>,
+// ) {
+//     for event in disconnect_evr.read() {
+//         // let client_id = event.client_id;
+//         if let Some(info) = client_infos.remove(&event.client_id) {
+//             if let Some(entity_cmd) = info.input_action.map(|e| commands.entity(e)) {
+//                 entity_cmd.despawn_recursive();
+//             }
+
+//             commands.entity(info.player).despawn_recursive();
+//         }
+//     }
+// }
+
 fn handle_exit_lobby(
     mut commands: Commands,
-    mut exit_lobby_evt: EventReader<MessageEvent<ExitLobby>>,
+    mut exit_lobby_evr: EventReader<MessageEvent<ExitLobby>>,
     mut q_lobbies: Query<&mut Lobby>,
     mut room_manager: ResMut<RoomManager>,
     mut client_infos: ResMut<ClientInfos>,
 ) {
-    for exit_lobby in exit_lobby_evt.read() {
+    for exit_lobby in exit_lobby_evr.read() {
         let client_id = exit_lobby.context;
         let Some(client_info) = client_infos.remove(&client_id) else {
             continue;
@@ -145,6 +171,7 @@ fn handle_exit_lobby(
 /// Spawn an entity for a given client.
 fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
     info!("Spawn player for {:?}", client_id);
+
     let replicate = Replicate {
         sync: SyncTarget {
             prediction: NetworkTarget::Single(client_id),
@@ -160,14 +187,48 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 
     commands
         .spawn((
-            PlayerBundle {
+            PlayerReplicateBundle {
                 id: PlayerId(client_id),
                 player_transform: PlayerTransform::default(),
-                sprite_bundle: SpriteBundle::default(),
             },
             replicate,
         ))
         .id()
+}
+
+/// Adds input action entity to [`ClientInfo`].
+fn handle_player_action_spawn(
+    q_actions: Query<(&PlayerId, Entity), Added<ActionState<PlayerAction>>>,
+    mut client_infos: ResMut<ClientInfos>,
+) {
+    for (id, entity) in q_actions.iter() {
+        let client_id = id.0;
+        if let Some(info) = client_infos.get_mut(&client_id) {
+            info.input_action = Some(entity);
+        }
+    }
+}
+
+fn handle_player_action(
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId)>,
+    mut q_players: Query<&mut PlayerTransform>,
+    client_infos: Res<ClientInfos>,
+) {
+    for (action, id) in q_actions.iter() {
+        if action.get_pressed().is_empty() {
+            continue;
+        }
+
+        let Some(transform) = client_infos
+            .get(&id.0)
+            .and_then(|info| q_players.get_mut(info.player).ok())
+        else {
+            continue;
+        };
+
+        println!("action from: {id:?}");
+        shared_movement_behaviour(transform, action);
+    }
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
@@ -177,6 +238,7 @@ pub struct ClientInfos(HashMap<ClientId, ClientInfo>);
 pub struct ClientInfo {
     pub lobby: Entity,
     pub player: Entity,
+    pub input_action: Option<Entity>,
 }
 
 impl ClientInfo {

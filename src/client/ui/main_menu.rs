@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::view::RenderLayers};
-use lightyear::prelude::client::*;
+use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 

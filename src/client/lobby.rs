@@ -1,9 +1,13 @@
-use bevy::color::palettes::css;
 use bevy::prelude::*;
-use lightyear::prelude::client::*;
+use client::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use crate::game::player::{PlayerBundle, PlayerId, PlayerTransform};
+use crate::protocol::{
+    input::{PlayerAction, ReplicateInputBundle},
+    player::{PlayerId, PlayerTransform},
+    PLAYER_REPLICATION_GROUP,
+};
 
 use super::Connection;
 
@@ -14,52 +18,48 @@ impl Plugin for LobbyPlugin {
         app.add_sub_state::<LobbyState>()
             .enable_state_scoped_entities::<LobbyState>()
             .init_resource::<MyLobbyId>()
-            .add_systems(Update, (handle_predicted_spawn, handle_interpolated_spawn));
+            .add_systems(Update, handle_player_spawn);
     }
 }
 
-fn handle_predicted_spawn(
+fn handle_player_spawn(
     mut commands: Commands,
-    q_predicted: Query<(Entity, &PlayerId), Added<Predicted>>,
+    q_predicted: Query<
+        (&PlayerId, Entity, Has<Predicted>),
+        (
+            Or<(Added<Predicted>, Added<Interpolated>)>,
+            With<PlayerTransform>,
+        ),
+    >,
 ) {
-    for (entity, id) in q_predicted.iter() {
+    for (id, entity, is_predicted) in q_predicted.iter() {
         info!("Spawn predicted entity.");
 
-        commands.entity(entity).insert(PlayerBundle {
-            id: *id,
-            player_transform: PlayerTransform::default(),
-            sprite_bundle: SpriteBundle {
-                sprite: Sprite {
-                    color: Color::WHITE,
-                    rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-                    ..default()
-                },
+        // Add visuals for player.
+        commands.entity(entity).insert(SpriteBundle {
+            sprite: Sprite {
+                color: Color::WHITE,
+                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
                 ..default()
             },
+            ..default()
         });
-    }
-}
 
-fn handle_interpolated_spawn(
-    mut commands: Commands,
-    interpolated: Query<(Entity, &PlayerId), Added<Interpolated>>,
-) {
-    for (entity, id) in interpolated.iter() {
-        info!("Spawn interpolated entity.");
-
-        commands.entity(entity).insert(PlayerBundle {
-            id: *id,
-            player_transform: PlayerTransform::default(),
-            sprite_bundle: SpriteBundle {
-                sprite: Sprite {
-                    color: css::RED.into(),
-                    rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
+        if is_predicted {
+            // Replicate input from client to server.
+            commands.spawn(ReplicateInputBundle {
+                id: *id,
+                replicate: Replicate {
+                    group: PLAYER_REPLICATION_GROUP,
                     ..default()
                 },
-                transform: Transform::from_xyz(30.0, 0.0, 0.0),
-                ..default()
-            },
-        });
+                input: InputManagerBundle::<PlayerAction> {
+                    action_state: ActionState::default(),
+                    input_map: PlayerAction::input_map(),
+                },
+                prepredicted: PrePredicted::default(),
+            });
+        }
     }
 }
 
@@ -68,9 +68,9 @@ fn handle_interpolated_spawn(
 pub(super) enum LobbyState {
     #[default]
     None,
-    Joined,
-    InGame,
-    Left,
+    // Joined,
+    // InGame,
+    // Left,
 }
 
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq)]

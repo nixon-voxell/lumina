@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
+use player::{PlayerId, PlayerTransform};
 
-use crate::game::player::{PlayerId, PlayerTransform};
+pub mod input;
+pub mod player;
 
-/// Protocol plugin for [lobbies][Lobbies] with `C` number of players.
+pub const PLAYER_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
+
 pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
@@ -17,8 +20,8 @@ impl Plugin for ProtocolPlugin {
 
         // Messages
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
-        app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
+        app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
 
         // Components
@@ -26,11 +29,14 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
         app.register_component::<PlayerTransform>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full);
 
         // Resources
         // app.register_resource::<Lobbies<C>>(ChannelDirection::ServerToClient);
+
+        // Plugins
+        app.add_plugins((input::InputPlugin, player::PlayerPlugin));
     }
 }
 
