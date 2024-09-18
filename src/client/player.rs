@@ -43,45 +43,45 @@ fn apply_transform(
     }
 }
 
-/// System that reads from peripherals and adds inputs to the buffer
-/// This system must be run in the `InputSystemSet::BufferInputs` set in the `FixedPreUpdate` schedule
-/// to work correctly.
-///
-/// I would also advise to use the `leafwing` feature to use the `LeafwingInputPlugin` instead of the
-/// `InputPlugin`, which contains more features.
-pub(crate) fn buffer_input(
-    tick_manager: Res<TickManager>,
-    mut input_manager: ResMut<InputManager<Inputs>>,
-    keypress: Res<ButtonInput<KeyCode>>,
-) {
-    let tick = tick_manager.tick();
-    let mut input = Inputs::None;
-    let mut direction = Direction {
-        up: false,
-        down: false,
-        left: false,
-        right: false,
-    };
-    if keypress.pressed(KeyCode::KeyW) || keypress.pressed(KeyCode::ArrowUp) {
-        direction.up = true;
-    }
-    if keypress.pressed(KeyCode::KeyS) || keypress.pressed(KeyCode::ArrowDown) {
-        direction.down = true;
-    }
-    if keypress.pressed(KeyCode::KeyA) || keypress.pressed(KeyCode::ArrowLeft) {
-        direction.left = true;
-    }
-    if keypress.pressed(KeyCode::KeyD) || keypress.pressed(KeyCode::ArrowRight) {
-        direction.right = true;
-    }
-    if !direction.is_none() {
-        input = Inputs::Direction(direction);
-    }
-    if keypress.pressed(KeyCode::Backspace) {
-        input = Inputs::Delete;
-    }
-    if keypress.pressed(KeyCode::Space) {
-        input = Inputs::Spawn;
-    }
-    input_manager.add_input(input, tick)
-}
+// System that reads from peripherals and adds inputs to the buffer
+// This system must be run in the `InputSystemSet::BufferInputs` set in the `FixedPreUpdate` schedule
+// to work correctly.
+//
+// I would also advise to use the `leafwing` feature to use the `LeafwingInputPlugin` instead of the
+// `InputPlugin`, which contains more features.
+// pub(crate) fn buffer_input(
+//     tick_manager: Res<TickManager>,
+//     mut input_manager: ResMut<InputManager<Inputs>>,
+//     keypress: Res<ButtonInput<KeyCode>>,
+// ) {
+//     let tick = tick_manager.tick();
+//     let mut input = Inputs::None;
+//     let mut direction = Direction {
+//         up: false,
+//         down: false,
+//         left: false,
+//         right: false,
+//     };
+//     if keypress.pressed(KeyCode::KeyW) || keypress.pressed(KeyCode::ArrowUp) {
+//         direction.up = true;
+//     }
+//     if keypress.pressed(KeyCode::KeyS) || keypress.pressed(KeyCode::ArrowDown) {
+//         direction.down = true;
+//     }
+//     if keypress.pressed(KeyCode::KeyA) || keypress.pressed(KeyCode::ArrowLeft) {
+//         direction.left = true;
+//     }
+//     if keypress.pressed(KeyCode::KeyD) || keypress.pressed(KeyCode::ArrowRight) {
+//         direction.right = true;
+//     }
+//     if !direction.is_none() {
+//         input = Inputs::Direction(direction);
+//     }
+//     if keypress.pressed(KeyCode::Backspace) {
+//         input = Inputs::Delete;
+//     }
+//     if keypress.pressed(KeyCode::Space) {
+//         input = Inputs::Spawn;
+//     }
+//     input_manager.add_input(input, tick)
+// }
