@@ -23,6 +23,8 @@
   ]
 }
 
+#let test_x = none
+
 #let main_menu(
   width,
   height,
@@ -31,6 +33,7 @@
   connected: false,
 ) = {
   set text(fill: base7)
+
 
   show label(hovered_button): body => [
     #let box_fill = text.fill.transparentize(((1.0 - animate) * 100%))
