@@ -8,11 +8,11 @@ use clap::Parser;
 pub mod steam;
 
 mod client;
-mod game;
 mod protocol;
 mod server;
 mod shared;
 mod ui;
+mod utils;
 
 #[cfg(feature = "dev")]
 mod dev_tools;
@@ -33,8 +33,8 @@ impl Plugin for AppPlugin {
                 })
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "Side Effects".to_string(),
-                        canvas: Some("#bevy".to_string()),
+                        title: "Lumina".to_string(),
+                        canvas: Some("Lumina".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
                         ..default()

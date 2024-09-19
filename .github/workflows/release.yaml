@@ -17,12 +17,12 @@ on:
 # Configure constants for this workflow.
 env:
   # The base filename of the binary produced by `cargo build`.
-  BINARY: side_effects
+  BINARY: lumina
   # The name to use for the packaged application produced by this workflow.
-  PACKAGE_NAME: side_effects
+  PACKAGE_NAME: lumina
   # The itch.io page to upload to, in the format: `user-name/project-name`.
   # Comment this out to disable.
-  ITCH_TARGET: nixon-voxell/side_effects
+  ITCH_TARGET: nixon-voxell/lumina
   # The organization or author that owns the rights to the game.
   OWNER: nixon-voxell
   # The path to the assets directory.

@@ -209,7 +209,7 @@ impl Plugin for SteamworksPlugin {
 
 /// A set of [`SystemSet`]s for systems used by [`SteamworksPlugin`]
 ///
-/// [`SystemSet`]: bevy_ecs::schedule::SystemSet
+/// [`SystemSet`]: bevy::ecs::schedule::SystemSet
 #[derive(Debug, Clone, Copy, Eq, Hash, SystemSet, PartialEq)]
 pub enum SteamworksSystem {
     /// A system set that runs the Steam SDK callbacks. Anything dependent on

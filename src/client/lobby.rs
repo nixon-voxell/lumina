@@ -1,12 +1,13 @@
-use bevy::color::palettes::css;
 use bevy::prelude::*;
-use lightyear::prelude::client::*;
+use client::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use crate::game::player::PlayerBundle;
-use crate::protocol::{PlayerId, PlayerTranslation};
+use crate::protocol::input::{PlayerAction, ReplicateInputBundle};
+use crate::protocol::player::{PlayerId, PlayerTransform};
+use crate::protocol::{LobbyStatus, PLAYER_REPLICATION_GROUP};
 
-use super::Connection;
+use super::{ui::lobby::LobbyFunc, Connection};
 
 pub(super) struct LobbyPlugin;
 
@@ -15,67 +16,75 @@ impl Plugin for LobbyPlugin {
         app.add_sub_state::<LobbyState>()
             .enable_state_scoped_entities::<LobbyState>()
             .init_resource::<MyLobbyId>()
-            .add_systems(Update, (handle_predicted_spawn, handle_interpolated_spawn));
+            .add_systems(
+                Update,
+                (
+                    handle_player_spawn,
+                    handle_lobby_status_update.run_if(in_state(Connection::Connected)),
+                ),
+            );
     }
 }
 
-fn handle_predicted_spawn(
+fn handle_player_spawn(
     mut commands: Commands,
-    q_predicted: Query<(Entity, &PlayerId), Added<Predicted>>,
+    q_predicted: Query<
+        (&PlayerId, Entity, Has<Predicted>),
+        (
+            Or<(Added<Predicted>, Added<Interpolated>)>,
+            With<PlayerTransform>,
+        ),
+    >,
 ) {
-    for (entity, id) in q_predicted.iter() {
+    for (id, entity, is_predicted) in q_predicted.iter() {
         info!("Spawn predicted entity.");
-        commands.entity(entity).insert(PlayerBundle {
-            id: *id,
-            player_translation: PlayerTranslation::default(),
-            sprite_bundle: SpriteBundle {
-                sprite: Sprite {
-                    color: Color::WHITE,
-                    rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-                    ..default()
-                },
+
+        // Add visuals for player.
+        commands.entity(entity).insert(SpriteBundle {
+            sprite: Sprite {
+                color: Color::WHITE,
+                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
                 ..default()
             },
+            ..default()
         });
+
+        if is_predicted {
+            // Replicate input from client to server.
+            commands.spawn(ReplicateInputBundle {
+                id: *id,
+                replicate: Replicate {
+                    group: PLAYER_REPLICATION_GROUP,
+                    ..default()
+                },
+                input: InputManagerBundle::<PlayerAction> {
+                    action_state: ActionState::default(),
+                    input_map: PlayerAction::input_map(),
+                },
+                prepredicted: PrePredicted::default(),
+            });
+        }
     }
 }
 
-fn handle_interpolated_spawn(
-    mut commands: Commands,
-    mut interpolated: Query<(Entity, &PlayerId), Added<Interpolated>>,
+/// Update [`LobbyFunc`] and [`LobbyState`] based on [`LobbyStatus`].
+fn handle_lobby_status_update(
+    mut lobby_status_evr: EventReader<MessageEvent<LobbyStatus>>,
+    mut lobby_func: ResMut<LobbyFunc>,
+    lobby_state: Res<State<LobbyState>>,
+    mut next_lobby_state: ResMut<NextState<LobbyState>>,
 ) {
-    for (entity, id) in interpolated.iter_mut() {
-        info!("Spawn interpolated entity.");
-        commands.entity(entity).insert(PlayerBundle {
-            id: *id,
-            player_translation: PlayerTranslation::default(),
-            sprite_bundle: SpriteBundle {
-                sprite: Sprite {
-                    color: css::RED.into(),
-                    rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-                    ..default()
-                },
-                transform: Transform::from_xyz(30.0, 0.0, 0.0),
-                ..default()
-            },
-        });
-    }
-}
+    for lobby_status in lobby_status_evr.read() {
+        let status = lobby_status.message();
+        // Update ui
+        lobby_func.curr_player_count = status.client_count;
+        lobby_func.room_id = Some(status.room_id.0);
 
-/// The client input only gets applied to predicted entities that we own
-/// This works because we only predict the user's controlled entity.
-/// If we were predicting more entities, we would have to only apply movement to the player owned one.
-pub(crate) fn player_movement(
-    mut position_query: Query<&mut PlayerTranslation, With<Predicted>>,
-    // mut input_reader: EventReader<InputEvent<Inputs>>,
-) {
-    // for input in input_reader.read() {
-    //     if let Some(input) = input.input() {
-    //         for position in position_query.iter_mut() {
-    //             // shared_movement_behaviour(position, input);
-    //         }
-    //     }
-    // }
+        // Update lobby state
+        if *lobby_state != LobbyState::Joined {
+            next_lobby_state.set(LobbyState::Joined);
+        }
+    }
 }
 
 #[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -84,8 +93,8 @@ pub(super) enum LobbyState {
     #[default]
     None,
     Joined,
-    InGame,
-    Left,
+    // InGame,
+    // Left,
 }
 
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq)]

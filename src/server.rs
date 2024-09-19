@@ -1,11 +1,9 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
-use lightyear::prelude::server::*;
 use lightyear::prelude::*;
+use server::*;
 
-use crate::game::player::PlayerBundle;
-use crate::protocol::{Lobbies, PlayerId, PlayerTranslation, ReliableChannel};
 use crate::shared::{shared_config, SERVER_REPLICATION_INTERVAL};
 
 mod lobby;
@@ -21,7 +19,6 @@ impl Plugin for ServerPlugin {
         // Lightyear plugins
         app.add_plugins(ServerPlugins::new(server_config()));
 
-        // Server-specific logic.
         app.add_plugins((lobby::LobbyPlugin, ui::ServerUiPlugin))
             .add_systems(Startup, start_server);
     }
@@ -30,34 +27,7 @@ impl Plugin for ServerPlugin {
 /// Start the server.
 fn start_server(mut commands: Commands) {
     info!("Starting server...");
-    commands.replicate_resource::<Lobbies, ReliableChannel>(NetworkTarget::All);
     commands.start_server();
-}
-
-/// Spawn an entity for a given client.
-fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
-    let replicate = Replicate {
-        sync: SyncTarget {
-            prediction: NetworkTarget::Single(client_id),
-            interpolation: NetworkTarget::AllExceptSingle(client_id),
-        },
-        controlled_by: ControlledBy {
-            target: NetworkTarget::Single(client_id),
-            ..default()
-        },
-        relevance_mode: NetworkRelevanceMode::InterestManagement,
-        ..default()
-    };
-    let entity = commands.spawn((
-        PlayerBundle {
-            id: PlayerId(client_id),
-            player_translation: PlayerTranslation::default(),
-            sprite_bundle: SpriteBundle::default(),
-        },
-        replicate,
-    ));
-    info!("Spawn entity {:?} for client {:?}", entity.id(), client_id);
-    entity.id()
 }
 
 /// Create the lightyear [`ServerConfig`].

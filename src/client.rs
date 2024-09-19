@@ -1,14 +1,15 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::{prelude::*, render::view::RenderLayers};
-use lightyear::prelude::client::*;
+use client::*;
 use lightyear::prelude::*;
 
 use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
-use crate::ui::UiState;
 
+mod input;
 mod lobby;
+mod player;
 mod ui;
 
 const CLIENT_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
@@ -23,21 +24,24 @@ impl Plugin for ClientPlugin {
         // Lightyear plugins
         app.add_plugins(ClientPlugins::new(client_config(self.port_offset)));
 
-        // Server-specific logic.
-        app.add_plugins((lobby::LobbyPlugin, ui::ClientUiPlugin))
-            .add_sub_state::<Connection>()
-            .enable_state_scoped_entities::<Connection>()
-            .add_systems(Startup, spawn_game_camera)
-            .add_systems(OnEnter(Connection::Connect), connect_server)
-            .add_systems(
-                PreUpdate,
-                (handle_connection, handle_disconnection).after(MainSet::Receive),
-            );
+        app.add_plugins((
+            lobby::LobbyPlugin,
+            ui::UiPlugin,
+            player::PlayerPlugin,
+            input::InputPlugin,
+        ))
+        .init_state::<Connection>()
+        .enable_state_scoped_entities::<Connection>()
+        .add_systems(Startup, spawn_game_camera)
+        .add_systems(OnEnter(Connection::Connect), connect_server)
+        .add_systems(
+            PreUpdate,
+            (handle_connection, handle_disconnection).after(MainSet::Receive),
+        );
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
-        app.add_plugins(crate::dev_tools::log_transition::<UiState>)
-            .add_plugins(crate::dev_tools::log_transition::<Connection>)
+        app.add_plugins(crate::dev_tools::log_transition::<Connection>)
             .add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
     }
 }
@@ -48,10 +52,10 @@ fn connect_server(mut commands: Commands) {
 
 fn handle_connection(
     mut commands: Commands,
-    mut connection_event: EventReader<ConnectEvent>,
+    mut connect_evr: EventReader<ConnectEvent>,
     mut connection: ResMut<NextState<Connection>>,
 ) {
-    for event in connection_event.read() {
+    for event in connect_evr.read() {
         let client_id = event.client_id();
         info!("Connected with Id: {client_id:?}");
 
@@ -61,10 +65,10 @@ fn handle_connection(
 }
 
 fn handle_disconnection(
-    mut connection_event: EventReader<DisconnectEvent>,
+    mut disconnect_evr: EventReader<DisconnectEvent>,
     mut connection: ResMut<NextState<Connection>>,
 ) {
-    for event in connection_event.read() {
+    for event in disconnect_evr.read() {
         warn!("Disconnected: {:?}", event.reason);
 
         connection.set(Connection::Disconnected);
@@ -122,13 +126,11 @@ fn client_config(port_offset: u16) -> ClientConfig {
     }
 }
 
-#[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
-// Ui needs to be loaded before we can perform any connection.
-#[source(UiState = UiState::Loaded)]
+#[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Connection {
+    #[default]
     Connect,
     Connected,
-    #[default]
     Disconnected,
 }
 
