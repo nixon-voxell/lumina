@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use player::{PlayerId, PlayerTransform};
+use server::RoomId;
 
 pub mod input;
 pub mod player;
@@ -48,7 +49,7 @@ pub struct Matchmake(pub u8);
 /// Update on lobby status sent from server to client.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct LobbyStatus {
-    pub entity: Entity,
+    pub room_id: RoomId,
     pub client_count: u8,
 }
 

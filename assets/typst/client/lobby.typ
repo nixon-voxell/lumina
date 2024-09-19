@@ -7,7 +7,13 @@
   fill: base0,
 )
 
-#let matchmaking(width, height, player_count: 0) = {
+#let lobby(
+  width,
+  height,
+  curr_player_count: 0,
+  max_player_count: 0,
+  room_id: none,
+) = {
   set text(fill: base7)
 
   let width = (width * 1pt)
@@ -19,8 +25,13 @@
     inset: (x: width * 6%, y: height * 6%),
   )[
     #place(center + top)[
-      #set text(size: 28pt)
-      = Waiting for players (#player_count/6)
+      #set text(size: 24pt)
+      = Waiting for players (#curr_player_count/#max_player_count)
+    ]
+
+    #place(bottom + right)[
+      #set text(size: 12pt)
+      Room Id: #room_id
     ]
   ]
 }

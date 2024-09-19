@@ -7,7 +7,7 @@ use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::{pressed, InteractionQuery, WindowQuery};
 
-use super::matchmaking::MatchmakingFunc;
+use super::lobby::LobbyFunc;
 
 pub(super) struct MainMenuUiPlugin;
 
@@ -68,14 +68,22 @@ fn play_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
     mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
-    mut matchmaking_scene: ResMut<VelystScene<MatchmakingFunc>>,
+    mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
+    mut lobby_func: ResMut<LobbyFunc>,
 ) {
+    // TODO: Support different player count modes.
+    const PLAYER_COUNT: u8 = 2;
+
     if pressed(q_interactions.iter(), "btn:play") {
         menu_scene.visibility = Visibility::Hidden;
-        matchmaking_scene.visibility = Visibility::Inherited;
+        lobby_scene.visibility = Visibility::Inherited;
+        lobby_func.curr_player_count = 0;
+        lobby_func.max_player_count = PLAYER_COUNT;
 
-        let _ = connection_manager
-            .send_message_to_target::<ReliableChannel, _>(&Matchmake(2), NetworkTarget::None);
+        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+            &Matchmake(PLAYER_COUNT),
+            NetworkTarget::None,
+        );
     }
 }
 

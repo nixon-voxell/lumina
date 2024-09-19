@@ -49,14 +49,14 @@ fn propagate_lobby_status(
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
-    for (lobby, entity) in q_lobbies.iter() {
+    for (lobby, lobby_entity) in q_lobbies.iter() {
         let client_count = lobby.len() as u8;
-        let room_id = entity.room_id();
+        let room_id = lobby_entity.room_id();
 
         // Send message to clients to notify about the changes.
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
             &LobbyStatus {
-                entity,
+                room_id,
                 client_count,
             },
             room_id,
