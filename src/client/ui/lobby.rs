@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::ui::{windowed_func, WindowedFunc};
+use crate::ui::{windowed_func, InteractableFunc, WindowedFunc};
 
 pub(super) struct LobbyUiPlugin;
 
@@ -54,6 +54,12 @@ impl WindowedFunc for LobbyFunc {
     fn set_width_height(&mut self, width: f64, height: f64) {
         self.width = width;
         self.height = height;
+    }
+}
+
+impl InteractableFunc for LobbyFunc {
+    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
+        // self.hovered_button
     }
 }
 

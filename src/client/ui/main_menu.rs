@@ -122,6 +122,7 @@ impl WindowedFunc for MainMenuFunc {
 
 impl InteractableFunc for MainMenuFunc {
     fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
+        // println!("hovered button: {hovered_button:?}, {hovered_animation}");
         self.hovered_button = hovered_button;
         self.hovered_animation = hovered_animation;
     }

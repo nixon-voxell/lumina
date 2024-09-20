@@ -1,4 +1,5 @@
 #import "../monokai_pro.typ": *
+#import "../utils.typ": *
 
 #set page(
   height: auto,
@@ -7,16 +8,8 @@
 )
 
 #let main(width, height, lobbies) = {
-  set text(fill: base7, size: 24pt)
-
-  let width = (width * 1pt)
-  let height = (height * 1pt)
-
-  box(
-    width: width,
-    height: height,
-    inset: (x: width * 6%, y: height * 6%),
-  )[
+  window(width, height)[
+    #set text(fill: base7, size: 24pt)
     = Lobbies
 
     #for (i, lobby) in lobbies.enumerate() [

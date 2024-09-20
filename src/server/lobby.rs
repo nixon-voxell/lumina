@@ -26,7 +26,7 @@ impl Plugin for LobbyPlugin {
                     handle_matchmaking,
                     handle_disconnection,
                     handle_exit_lobby,
-                    handle_player_action_spawn,
+                    handle_player_input_spawn,
                     execute_exit_lobby,
                 ),
             )
@@ -227,7 +227,7 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 }
 
 /// Adds input action entity to [`ClientInfo`].
-fn handle_player_action_spawn(
+fn handle_player_input_spawn(
     q_actions: Query<(&PlayerId, Entity), Added<ActionState<PlayerAction>>>,
     mut client_infos: ResMut<ClientInfos>,
 ) {
