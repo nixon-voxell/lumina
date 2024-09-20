@@ -39,6 +39,7 @@ smallvec = "1"
 too_many_arguments = "allow"
 # Queries that access many components may trigger this lint.
 type_complexity = "allow"
+# Allow `if x == false { }`
 bool_comparison = "allow"
 redundant_type_annotations = "warn"
 
@@ -57,7 +58,7 @@ bevy = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
-blenvy = { workspace = true }
+# blenvy = { workspace = true }
 bincode = { workspace = true }
 serde = { workspace = true }
 steamworks = { workspace = true }
