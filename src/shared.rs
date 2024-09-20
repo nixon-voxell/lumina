@@ -1,18 +1,44 @@
 //! This module contains the shared code between the client and the server.
+use avian2d::prelude::*;
 use bevy::{prelude::*, render::view::RenderLayers, utils::Duration};
 use lightyear::prelude::*;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
 pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(100);
 
-#[derive(Clone)]
+pub mod input;
+pub mod player;
+
+/// Shared logic.
 pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        // Shared logic.
-        app.add_plugins((crate::protocol::ProtocolPlugin, crate::ui::UiPlugin))
-            .add_systems(Startup, spawn_ui_camera);
+        app.add_plugins(PhysicsPlugins::new(FixedUpdate))
+            .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
+            .insert_resource(Gravity(Vec2::ZERO));
+
+        app.configure_sets(
+            FixedUpdate,
+            (
+                // make sure that any physics simulation happens after the Main SystemSet
+                // (where we apply user's actions)
+                (
+                    PhysicsSet::Prepare,
+                    PhysicsSet::StepSimulation,
+                    PhysicsSet::Sync,
+                )
+                    .in_set(FixedSet::Physics),
+                (FixedSet::Main, FixedSet::Physics).chain(),
+            ),
+        );
+
+        app.add_plugins((
+            crate::protocol::ProtocolPlugin,
+            crate::ui::UiPlugin,
+            player::PlayerPlugin,
+        ))
+        .add_systems(Startup, spawn_ui_camera);
     }
 }
 
@@ -49,4 +75,12 @@ pub fn shared_config() -> SharedConfig {
         },
         mode: Mode::Separate,
     }
+}
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub enum FixedSet {
+    // main fixed update systems (handle inputs)
+    Main,
+    // apply physics steps
+    Physics,
 }

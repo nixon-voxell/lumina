@@ -5,11 +5,12 @@ use lightyear::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::protocol::{
-    input::PlayerAction,
-    player::{shared_movement_behaviour, PlayerId, PlayerReplicateBundle, PlayerTransform},
-    ExitLobby, LobbyStatus, Matchmake, ReliableChannel,
+use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
+use crate::shared::input::PlayerAction;
+use crate::shared::player::{
+    shared_handle_player_movement, PlayerId, PlayerMovement, ReplicatePlayerBundle,
 };
+use crate::shared::FixedSet;
 use crate::utils::EntityRoomId;
 
 pub(super) struct LobbyPlugin;
@@ -30,7 +31,7 @@ impl Plugin for LobbyPlugin {
                     execute_exit_lobby,
                 ),
             )
-            .add_systems(FixedUpdate, handle_player_action);
+            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
     }
 }
 
@@ -80,6 +81,13 @@ fn handle_matchmaking(
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
+
+        // Already matchmake
+        if client_infos.contains_key(&client_id) {
+            warn!("Recieved duplicated matchmake commands from {client_id:?}");
+            continue;
+        }
+
         let lobby_size = *matchmake.message;
         let mut lobby_entity = None;
 
@@ -186,7 +194,10 @@ fn execute_exit_lobby(
             lobby.remove_client(&client_id);
             room_manager.remove_client(client_id, client_info.room_id());
 
-            // Player will be automatically despawned.
+            // Player might have already been despawned if it's a disconnection.
+            if let Some(player) = commands.get_entity(client_info.player) {
+                player.despawn_recursive();
+            }
             // Despawn input.
             if let Some(input) = client_info.input {
                 commands.entity(input).despawn_recursive();
@@ -216,13 +227,7 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
     };
 
     commands
-        .spawn((
-            PlayerReplicateBundle {
-                id: PlayerId(client_id),
-                player_transform: PlayerTransform::default(),
-            },
-            replicate,
-        ))
+        .spawn((ReplicatePlayerBundle::new(client_id, Vec2::ZERO), replicate))
         .id()
 }
 
@@ -239,25 +244,17 @@ fn handle_player_input_spawn(
     }
 }
 
-fn handle_player_action(
+fn handle_player_movement(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId)>,
-    mut q_players: Query<&mut PlayerTransform>,
     client_infos: Res<ClientInfos>,
+    mut player_movement_evw: EventWriter<PlayerMovement>,
 ) {
-    for (action, id) in q_actions.iter() {
-        if action.get_pressed().is_empty() {
-            continue;
-        }
-
-        let Some(transform) = client_infos
-            .get(&id.0)
-            .and_then(|info| q_players.get_mut(info.player).ok())
-        else {
+    for (action_state, id) in q_actions.iter() {
+        let Some(player_entity) = client_infos.get(&id.0).map(|info| info.player) else {
             continue;
         };
 
-        println!("action from: {id:?}");
-        shared_movement_behaviour(transform, action);
+        shared_handle_player_movement(action_state, player_entity, &mut player_movement_evw);
     }
 }
 

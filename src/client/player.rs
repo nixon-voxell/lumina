@@ -1,45 +1,62 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
-// use client::*;
-// use leafwing_input_manager::prelude::*;
-// use lightyear::prelude::*;
+use client::*;
+use leafwing_input_manager::prelude::*;
+use lightyear::prelude::*;
 
-use crate::protocol::player::PlayerTransform;
+use crate::shared::input::{PlayerAction, ReplicateInputBundle};
+use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement};
+use crate::shared::FixedSet;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, apply_transform);
+        app.add_systems(Update, handle_player_spawn)
+            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
     }
 }
 
-// /// Player movement
-// fn movement(
-//     mut q_player_transform: Query<&mut PlayerTransform, With<Predicted>>,
-//     action_state: Res<ActionState<PlayerAction>>,
-//     time: Res<Time>,
-// ) {
-//     const SPEED: f32 = 100.0;
-
-//     let Ok(mut player_transform) = q_player_transform.get_single_mut() else {
-//         return;
-//     };
-
-//     if action_state.pressed(&PlayerAction::Move) {
-//         if let Some(axis_pair) = action_state.clamped_axis_pair(&PlayerAction::Move) {
-//             player_transform.translation +=
-//                 axis_pair.xy().normalize() * time.delta_seconds() * SPEED;
-//         }
-//     }
-// }
-
-/// Apply [`Transform`] from [`PlayerTransform`].
-fn apply_transform(
-    mut q_transforms: Query<(&mut Transform, &PlayerTransform), Changed<PlayerTransform>>,
+fn handle_player_spawn(
+    mut commands: Commands,
+    q_predicted: Query<
+        (&PlayerId, Entity, Has<Predicted>),
+        (Or<(Added<Predicted>, Added<Interpolated>)>, With<Position>),
+    >,
 ) {
-    for (mut transform, player_transform) in q_transforms.iter_mut() {
-        transform.translation.x = player_transform.translation.x;
-        transform.translation.y = player_transform.translation.y;
-        transform.rotation = Quat::from_rotation_z(player_transform.rotation);
+    for (id, entity, is_predicted) in q_predicted.iter() {
+        info!("Spawn predicted entity.");
+
+        // Add visuals for player.
+        commands.entity(entity).insert(SpriteBundle {
+            sprite: Sprite {
+                color: Color::WHITE,
+                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
+                ..default()
+            },
+            ..default()
+        });
+
+        if is_predicted {
+            // Replicate input from client to server.
+            commands.spawn(ReplicateInputBundle::new(*id));
+        }
     }
+}
+
+/// Player movement
+fn handle_player_movement(
+    q_player: Query<Entity, (With<Predicted>, With<Position>)>,
+    q_action_states: Query<&ActionState<PlayerAction>, With<PrePredicted>>,
+    mut player_movement_evw: EventWriter<PlayerMovement>,
+) {
+    let Ok(action_state) = q_action_states.get_single() else {
+        return;
+    };
+
+    let Ok(player_entity) = q_player.get_single() else {
+        return;
+    };
+
+    shared_handle_player_movement(action_state, player_entity, &mut player_movement_evw);
 }

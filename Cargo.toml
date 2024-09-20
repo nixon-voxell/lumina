@@ -20,9 +20,16 @@ lightyear = { version = "0.16", features = [
   "websocket",
   "leafwing",
   "steam",
+  "avian2d",
 ] }
 leafwing-input-manager = "0.14"
-avian2d = "0.1"
+avian2d = { version = "0.1", default-features = false, features = [
+  "2d",
+  "f32",
+  "parry-f32",
+  "parallel",
+  "serialize",
+] }
 blenvy = "0.1.0-alpha.1"
 bincode = "1.3"
 serde = "1"

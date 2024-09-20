@@ -4,6 +4,7 @@ use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::{
+    client::lobby::LobbyState,
     protocol::{ExitLobby, ReliableChannel},
     ui::{
         interactable_func, pressed, windowed_func, InteractableFunc, InteractionQuery, WindowedFunc,
@@ -28,7 +29,9 @@ impl Plugin for LobbyUiPlugin {
                     interactable_func::<LobbyFunc>,
                     exit_lobby_btn,
                 ),
-            );
+            )
+            .add_systems(OnEnter(LobbyState::Joining), enter_lobby)
+            .add_systems(OnEnter(LobbyState::None), exit_lobby);
     }
 }
 
@@ -39,16 +42,29 @@ fn setup(mut scene: ResMut<VelystScene<LobbyFunc>>) {
 fn exit_lobby_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
+    mut next_lobby_state: ResMut<NextState<LobbyState>>,
+) {
+    if pressed(q_interactions.iter(), "btn:exit-lobby") {
+        let _ = connection_manager
+            .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
+        next_lobby_state.set(LobbyState::None);
+    }
+}
+
+fn enter_lobby(
     mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
     mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
 ) {
-    if pressed(q_interactions.iter(), "btn:exit-lobby") {
-        lobby_scene.visibility = Visibility::Hidden;
-        menu_scene.visibility = Visibility::Inherited;
+    lobby_scene.visibility = Visibility::Inherited;
+    menu_scene.visibility = Visibility::Hidden;
+}
 
-        let _ = connection_manager
-            .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
-    }
+fn exit_lobby(
+    mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
+    mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
+) {
+    lobby_scene.visibility = Visibility::Hidden;
+    menu_scene.visibility = Visibility::Inherited;
 }
 
 #[derive(Resource, Default)]

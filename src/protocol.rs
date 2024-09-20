@@ -1,13 +1,17 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
-use player::{PlayerId, PlayerTransform};
+use lightyear::utils::avian2d::*;
+use serde::{Deserialize, Serialize};
 use server::RoomId;
 
-pub mod input;
-pub mod player;
+use crate::shared::{input::PlayerAction, player::PlayerId};
 
-pub const PLAYER_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
+// pub mod input;
+// pub mod player;
+
+pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
 pub struct ProtocolPlugin;
 
@@ -27,17 +31,35 @@ impl Plugin for ProtocolPlugin {
 
         // Components
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
-        app.register_component::<PlayerTransform>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full);
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(position::lerp)
+            .add_correction_fn(position::lerp);
 
-        // Resources
-        // app.register_resource::<Lobbies<C>>(ChannelDirection::ServerToClient);
+        app.register_component::<Rotation>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(rotation::lerp)
+            .add_correction_fn(rotation::lerp);
 
-        // Plugins
-        app.add_plugins((input::InputPlugin, player::PlayerPlugin));
+        // NOTE: interpolation/correction is only needed for components that are visually displayed!
+        // we still need prediction to be able to correctly predict the physics on the client
+        app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        // Input
+        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
     }
 }
 

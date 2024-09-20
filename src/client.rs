@@ -7,7 +7,6 @@ use lightyear::prelude::*;
 use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
 
-mod input;
 mod lobby;
 mod player;
 mod ui;
@@ -24,20 +23,15 @@ impl Plugin for ClientPlugin {
         // Lightyear plugins
         app.add_plugins(ClientPlugins::new(client_config(self.port_offset)));
 
-        app.add_plugins((
-            lobby::LobbyPlugin,
-            ui::UiPlugin,
-            player::PlayerPlugin,
-            input::InputPlugin,
-        ))
-        .init_state::<Connection>()
-        .enable_state_scoped_entities::<Connection>()
-        .add_systems(Startup, spawn_game_camera)
-        .add_systems(OnEnter(Connection::Connect), connect_server)
-        .add_systems(
-            PreUpdate,
-            (handle_connection, handle_disconnection).after(MainSet::Receive),
-        );
+        app.add_plugins((lobby::LobbyPlugin, ui::UiPlugin, player::PlayerPlugin))
+            .init_state::<Connection>()
+            .enable_state_scoped_entities::<Connection>()
+            .add_systems(Startup, spawn_game_camera)
+            .add_systems(OnEnter(Connection::Connect), connect_server)
+            .add_systems(
+                PreUpdate,
+                (handle_connection, handle_disconnection).after(MainSet::Receive),
+            );
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]

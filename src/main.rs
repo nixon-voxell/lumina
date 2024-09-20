@@ -5,6 +5,5 @@ use bevy::prelude::*;
 use lumina::AppPlugin;
 
 fn main() -> AppExit {
-    println!("Entered main.");
     App::new().add_plugins(AppPlugin).run()
 }

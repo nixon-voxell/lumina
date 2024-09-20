@@ -3,6 +3,7 @@ use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
+use crate::client::lobby::LobbyState;
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::{
@@ -43,16 +44,13 @@ fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
 fn play_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
-    mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
-    mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
     mut lobby_func: ResMut<LobbyFunc>,
+    mut next_lobby_state: ResMut<NextState<LobbyState>>,
 ) {
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 2;
 
     if pressed(q_interactions.iter(), "btn:play") {
-        menu_scene.visibility = Visibility::Hidden;
-        lobby_scene.visibility = Visibility::Inherited;
         lobby_func.curr_player_count = 0;
         lobby_func.max_player_count = PLAYER_COUNT;
 
@@ -60,6 +58,8 @@ fn play_btn(
             &Matchmake(PLAYER_COUNT),
             NetworkTarget::None,
         );
+
+        next_lobby_state.set(LobbyState::Joining);
     }
 }
 
