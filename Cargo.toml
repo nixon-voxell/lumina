@@ -58,7 +58,7 @@ bevy = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
-# blenvy = { workspace = true }
+blenvy = { workspace = true }
 bincode = { workspace = true }
 serde = { workspace = true }
 steamworks = { workspace = true }
