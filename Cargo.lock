@@ -3817,7 +3817,6 @@ dependencies = [
  "rand",
  "serde",
  "smallvec",
- "steamworks",
  "velyst",
 ]
 
