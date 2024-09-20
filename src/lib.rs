@@ -5,8 +5,6 @@ use bevy::{
 };
 use clap::Parser;
 
-pub mod steam;
-
 mod client;
 mod protocol;
 mod server;

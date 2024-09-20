@@ -26,7 +26,6 @@ avian2d = "0.1"
 blenvy = "0.1.0-alpha.1"
 bincode = "1.3"
 serde = "1"
-steamworks = "0.11"
 rand = "0.8"
 clap = { version = "4.5", features = ["derive"] }
 smallvec = "1"
@@ -61,7 +60,6 @@ avian2d = { workspace = true }
 blenvy = { workspace = true }
 bincode = { workspace = true }
 serde = { workspace = true }
-steamworks = { workspace = true }
 rand = { workspace = true }
 clap = { workspace = true }
 smallvec = { workspace = true }
