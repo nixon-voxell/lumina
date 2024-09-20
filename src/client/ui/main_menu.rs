@@ -5,7 +5,9 @@ use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::ui::{pressed, windowed_func, InteractionQuery, WindowedFunc};
+use crate::ui::{
+    interactable_func, pressed, windowed_func, InteractableFunc, InteractionQuery, WindowedFunc,
+};
 
 use super::lobby::LobbyFunc;
 
@@ -17,34 +19,17 @@ impl Plugin for MainMenuUiPlugin {
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
             .render_typst_func::<MainMenuFunc>()
             .init_resource::<MainMenuFunc>()
-            .add_systems(Update, (windowed_func::<MainMenuFunc>, main_menu_hover))
+            .add_systems(
+                Update,
+                (
+                    windowed_func::<MainMenuFunc>,
+                    interactable_func::<MainMenuFunc>,
+                ),
+            )
             .add_systems(Update, (play_btn, reconnect_btn, exit_btn))
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
     }
-}
-
-fn main_menu_hover(
-    q_interactions: Query<(&Interaction, &TypstLabel)>,
-    mut func: ResMut<MainMenuFunc>,
-    time: Res<Time>,
-    mut last_hovered: Local<String>,
-) {
-    func.hovered_button.clear();
-    for (interaction, label) in q_interactions.iter() {
-        if *interaction == Interaction::Hovered {
-            func.hovered_button = label.as_str().to_owned();
-        }
-    }
-
-    if func.hovered_button != *last_hovered {
-        func.animate = 0.0;
-        *last_hovered = func.hovered_button.clone();
-    }
-
-    const SPEED: f64 = 8.0;
-    // Clamp at 1.0
-    func.animate = f64::min(func.animate + time.delta_seconds_f64() * SPEED, 1.0);
 }
 
 fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
@@ -102,8 +87,8 @@ fn exit_btn(
 pub struct MainMenuFunc {
     width: f64,
     height: f64,
-    hovered_button: String,
-    animate: f64,
+    hovered_button: Option<TypLabel>,
+    hovered_animation: f64,
     connected: bool,
 }
 
@@ -120,8 +105,8 @@ impl TypstFunc for MainMenuFunc {
         elem::context(func, |args| {
             args.push(self.width);
             args.push(self.height);
-            args.push_named("hovered_button", self.hovered_button.clone());
-            args.push_named("animate", self.animate);
+            args.push_named("hovered_button", self.hovered_button);
+            args.push_named("hovered_animation", self.hovered_animation);
             args.push_named("connected", self.connected);
         })
         .pack()
@@ -132,6 +117,13 @@ impl WindowedFunc for MainMenuFunc {
     fn set_width_height(&mut self, width: f64, height: f64) {
         self.width = width;
         self.height = height;
+    }
+}
+
+impl InteractableFunc for MainMenuFunc {
+    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
+        self.hovered_button = hovered_button;
+        self.hovered_animation = hovered_animation;
     }
 }
 

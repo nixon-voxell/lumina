@@ -28,22 +28,30 @@
 #let main_menu(
   width,
   height,
-  hovered_button: "",
-  animate: 0.0,
+  hovered_button: none,
+  hovered_animation: 0.0,
   connected: false,
 ) = {
   set text(fill: base7)
 
-  show label(hovered_button): body => [
-    #let box_fill = text.fill.transparentize(((1.0 - animate) * 100%))
-    #set text(
-      fill: color.mix(
-        (text.fill, ((1.0 - animate) * 100%)),
-        (base0, animate * 100%),
-      ),
-    )
-    #box(fill: box_fill, radius: 10pt, outset: (animate * 6pt))[#body]
-  ]
+  if hovered_button != none {
+    show hovered_button: body => [
+      #let box_fill = text.fill.transparentize((
+        (1.0 - hovered_animation) * 100%
+      ))
+      #set text(
+        fill: color.mix(
+          (text.fill, ((1.0 - hovered_animation) * 100%)),
+          (base0, hovered_animation * 100%),
+        ),
+      )
+      #box(
+        fill: box_fill,
+        radius: 10pt,
+        outset: (hovered_animation * 6pt),
+      )[#body]
+    ]
+  }
 
   let width = (width * 1pt)
   let height = (height * 1pt)
