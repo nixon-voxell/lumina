@@ -1,5 +1,7 @@
-use bevy::{prelude::*, render::view::RenderLayers, window::PrimaryWindow};
+use bevy::{prelude::*, render::view::RenderLayers};
 use velyst::{prelude::*, typst_element::prelude::*};
+
+use crate::ui::{windowed_func, WindowedFunc};
 
 use super::lobby::Lobby;
 
@@ -11,21 +13,9 @@ impl Plugin for ServerUiPlugin {
             .compile_typst_func::<ServerUi, MainFunc>()
             .render_typst_func::<MainFunc>()
             .init_resource::<MainFunc>()
-            .add_systems(Update, window)
+            .add_systems(Update, windowed_func::<MainFunc>)
             .add_systems(Update, lobbies);
     }
-}
-
-fn window(
-    q_window: Query<Ref<Window>, (With<PrimaryWindow>, Changed<Window>)>,
-    mut main_func: ResMut<MainFunc>,
-) {
-    let Ok(window) = q_window.get_single() else {
-        return;
-    };
-
-    main_func.width = window.width() as f64;
-    main_func.height = window.height() as f64;
 }
 
 fn lobbies(q_lobbies: Query<&Lobby>, mut main_func: ResMut<MainFunc>) {
@@ -60,6 +50,13 @@ impl TypstFunc for MainFunc {
             args.push(self.lobbies.clone());
         })
         .pack()
+    }
+}
+
+impl WindowedFunc for MainFunc {
+    fn set_width_height(&mut self, width: f64, height: f64) {
+        self.width = width;
+        self.height = height;
     }
 }
 

@@ -17,14 +17,17 @@ pub(super) struct LobbyPlugin;
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ClientInfos>()
+            .add_event::<ClientExitLobby>()
             .add_systems(
                 Update,
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
                     handle_matchmaking,
+                    handle_disconnection,
                     handle_exit_lobby,
-                    handle_player_action_spawn,
+                    handle_player_input_spawn,
+                    execute_exit_lobby,
                 ),
             )
             .add_systems(FixedUpdate, handle_player_action);
@@ -116,39 +119,59 @@ fn handle_matchmaking(
             ClientInfo {
                 lobby: lobby_entity,
                 player: player_entity,
-                input_action: None,
+                input: None,
             },
         );
     }
 }
 
-// TODO: Create event for when client leaves (either disconnects, or exit lobby)
-// fn handle_disconnection(
-//     mut commands: Commands,
-//     mut disconnect_evr: EventReader<DisconnectEvent>,
-//     mut client_infos: ResMut<ClientInfos>,
-// ) {
-//     for event in disconnect_evr.read() {
-//         // let client_id = event.client_id;
-//         if let Some(info) = client_infos.remove(&event.client_id) {
-//             if let Some(entity_cmd) = info.input_action.map(|e| commands.entity(e)) {
-//                 entity_cmd.despawn_recursive();
-//             }
+fn handle_disconnection(
+    mut commands: Commands,
+    mut disconnect_evr: EventReader<DisconnectEvent>,
+    mut client_infos: ResMut<ClientInfos>,
+    mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
+) {
+    if disconnect_evr.is_empty() == false {
+        client_exit_lobby_evw.send_batch(
+            disconnect_evr
+                .read()
+                .map(|disconnect| ClientExitLobby(disconnect.client_id)),
+        );
+    }
 
-//             commands.entity(info.player).despawn_recursive();
-//         }
-//     }
-// }
+    for event in disconnect_evr.read() {
+        if let Some(info) = client_infos.remove(&event.client_id) {
+            if let Some(entity_cmd) = info.input.map(|e| commands.entity(e)) {
+                entity_cmd.despawn_recursive();
+            }
+
+            commands.entity(info.player).despawn_recursive();
+        }
+    }
+}
 
 fn handle_exit_lobby(
-    mut commands: Commands,
     mut exit_lobby_evr: EventReader<MessageEvent<ExitLobby>>,
+    mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
+) {
+    if exit_lobby_evr.is_empty() == false {
+        client_exit_lobby_evw.send_batch(
+            exit_lobby_evr
+                .read()
+                .map(|exit| ClientExitLobby(exit.context)),
+        );
+    }
+}
+
+fn execute_exit_lobby(
+    mut commands: Commands,
+    mut client_exit_lobby_evr: EventReader<ClientExitLobby>,
     mut q_lobbies: Query<&mut Lobby>,
     mut room_manager: ResMut<RoomManager>,
     mut client_infos: ResMut<ClientInfos>,
 ) {
-    for exit_lobby in exit_lobby_evr.read() {
-        let client_id = exit_lobby.context;
+    for exit_client in client_exit_lobby_evr.read() {
+        let client_id = exit_client.id();
         let Some(client_info) = client_infos.remove(&client_id) else {
             continue;
         };
@@ -162,8 +185,15 @@ fn handle_exit_lobby(
             // Remove client from lobby and room.
             lobby.remove_client(&client_id);
             room_manager.remove_client(client_id, client_info.room_id());
-            // Despawn player.
-            commands.entity(client_info.player).despawn();
+
+            // Player will be automatically despawned.
+            // Despawn input.
+            if let Some(input) = client_info.input {
+                commands.entity(input).despawn_recursive();
+            }
+
+            // Now that someone left, the lobby is no longer full
+            commands.entity(client_info.lobby).remove::<LobbyFull>();
         }
     }
 }
@@ -197,14 +227,14 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 }
 
 /// Adds input action entity to [`ClientInfo`].
-fn handle_player_action_spawn(
+fn handle_player_input_spawn(
     q_actions: Query<(&PlayerId, Entity), Added<ActionState<PlayerAction>>>,
     mut client_infos: ResMut<ClientInfos>,
 ) {
     for (id, entity) in q_actions.iter() {
         let client_id = id.0;
         if let Some(info) = client_infos.get_mut(&client_id) {
-            info.input_action = Some(entity);
+            info.input = Some(entity);
         }
     }
 }
@@ -232,13 +262,13 @@ fn handle_player_action(
 }
 
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
-pub struct ClientInfos(HashMap<ClientId, ClientInfo>);
+pub(super) struct ClientInfos(HashMap<ClientId, ClientInfo>);
 
 #[derive(Debug)]
 pub struct ClientInfo {
     pub lobby: Entity,
     pub player: Entity,
-    pub input_action: Option<Entity>,
+    pub input: Option<Entity>,
 }
 
 impl ClientInfo {
@@ -249,7 +279,7 @@ impl ClientInfo {
 }
 
 #[derive(Bundle, Default)]
-pub struct LobbyBundle {
+pub(super) struct LobbyBundle {
     pub lobby: Lobby,
     pub size: LobbySize,
 }
@@ -275,14 +305,23 @@ impl Lobby {
     }
 }
 
+#[derive(Event)]
+pub(super) struct ClientExitLobby(ClientId);
+
+impl ClientExitLobby {
+    pub fn id(&self) -> ClientId {
+        self.0
+    }
+}
+
 /// Size of lobby, indicating the max number of players in the lobby.
 #[derive(Component, Default, Debug, Deref, DerefMut)]
-pub struct LobbySize(u8);
+pub(super) struct LobbySize(u8);
 
 /// Tag for specifying a lobby is currently in game.
 #[derive(Component, Default)]
-pub struct LobbyInGame;
+pub(super) struct LobbyInGame;
 
 /// Tag for specifying a lobby is currently full.
 #[derive(Component, Default)]
-pub struct LobbyFull;
+pub(super) struct LobbyFull;

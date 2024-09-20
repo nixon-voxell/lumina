@@ -26,31 +26,18 @@
 #let main_menu(
   width,
   height,
-  hovered_button: "",
-  animate: 0.0,
+  hovered_button: none,
+  hovered_animation: 0.0,
   connected: false,
 ) = {
-  set text(fill: base7)
-
-  show label(hovered_button): body => [
-    #let box_fill = text.fill.transparentize(((1.0 - animate) * 100%))
-    #set text(
-      fill: color.mix(
-        (text.fill, ((1.0 - animate) * 100%)),
-        (base0, animate * 100%),
-      ),
-    )
-    #box(fill: box_fill, radius: 10pt, outset: (animate * 6pt))[#body]
-  ]
-
-  let width = (width * 1pt)
-  let height = (height * 1pt)
-
-  box(
-    width: width,
-    height: height,
-    inset: (x: width * 6%, y: height * 6%),
+  interactable_window(
+    width,
+    height,
+    hovered_button: hovered_button,
+    hovered_animation: hovered_animation,
   )[
+    #set text(fill: base7)
+
     #if connected == false {
       connect_server()
       return
