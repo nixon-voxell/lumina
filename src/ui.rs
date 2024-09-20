@@ -39,5 +39,17 @@ pub fn pressed<'a>(
 //     })
 // }
 
-pub type WindowQuery<'a, 'w, 's> =
-    Query<'w, 's, Ref<'a, Window>, (With<PrimaryWindow>, Changed<Window>)>;
+pub fn windowed_func<F: WindowedFunc>(
+    q_window: Query<&Window, (With<PrimaryWindow>, Changed<Window>)>,
+    mut func: ResMut<F>,
+) {
+    let Ok(window) = q_window.get_single() else {
+        return;
+    };
+
+    func.set_width_height(window.width() as f64, window.height() as f64);
+}
+
+pub trait WindowedFunc: TypstFunc {
+    fn set_width_height(&mut self, width: f64, height: f64);
+}

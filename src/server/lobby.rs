@@ -140,7 +140,6 @@ fn handle_disconnection(
     }
 
     for event in disconnect_evr.read() {
-        // let client_id = event.client_id;
         if let Some(info) = client_infos.remove(&event.client_id) {
             if let Some(entity_cmd) = info.input.map(|e| commands.entity(e)) {
                 entity_cmd.despawn_recursive();
@@ -192,6 +191,9 @@ fn execute_exit_lobby(
             if let Some(input) = client_info.input {
                 commands.entity(input).despawn_recursive();
             }
+
+            // Now that someone left, the lobby is no longer full
+            commands.entity(client_info.lobby).remove::<LobbyFull>();
         }
     }
 }

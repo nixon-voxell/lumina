@@ -5,7 +5,7 @@ use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::ui::{pressed, InteractionQuery, WindowQuery};
+use crate::ui::{pressed, windowed_func, InteractionQuery, WindowedFunc};
 
 use super::lobby::LobbyFunc;
 
@@ -17,20 +17,11 @@ impl Plugin for MainMenuUiPlugin {
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
             .render_typst_func::<MainMenuFunc>()
             .init_resource::<MainMenuFunc>()
-            .add_systems(Update, (window, main_menu_hover))
+            .add_systems(Update, (windowed_func::<MainMenuFunc>, main_menu_hover))
             .add_systems(Update, (play_btn, reconnect_btn, exit_btn))
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
     }
-}
-
-fn window(q_window: WindowQuery, mut func: ResMut<MainMenuFunc>) {
-    let Ok(window) = q_window.get_single() else {
-        return;
-    };
-
-    func.width = window.width() as f64;
-    func.height = window.height() as f64;
 }
 
 fn main_menu_hover(
@@ -134,6 +125,13 @@ impl TypstFunc for MainMenuFunc {
             args.push_named("connected", self.connected);
         })
         .pack()
+    }
+}
+
+impl WindowedFunc for MainMenuFunc {
+    fn set_width_height(&mut self, width: f64, height: f64) {
+        self.width = width;
+        self.height = height;
     }
 }
 
