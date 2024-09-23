@@ -197,10 +197,12 @@ fn execute_exit_lobby(
             // Player might have already been despawned if it's a disconnection.
             if let Some(player) = commands.get_entity(client_info.player) {
                 player.despawn_recursive();
+                room_manager.remove_entity(client_info.player, client_info.room_id());
             }
             // Despawn input.
             if let Some(input) = client_info.input {
                 commands.entity(input).despawn_recursive();
+                room_manager.remove_entity(input, client_info.room_id());
             }
 
             // Now that someone left, the lobby is no longer full

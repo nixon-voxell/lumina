@@ -8,12 +8,15 @@ use crate::shared::input::{PlayerAction, ReplicateInputBundle};
 use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement};
 use crate::shared::FixedSet;
 
+use super::lobby::LobbyState;
+
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, handle_player_spawn)
-            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
+            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main))
+            .add_systems(OnEnter(LobbyState::None), despawn_input);
     }
 }
 
@@ -59,4 +62,13 @@ fn handle_player_movement(
     };
 
     shared_handle_player_movement(action_state, player_entity, &mut player_movement_evw);
+}
+
+fn despawn_input(
+    mut commands: Commands,
+    q_action_states: Query<Entity, With<ActionState<PlayerAction>>>,
+) {
+    for entity in q_action_states.iter() {
+        commands.entity(entity).despawn();
+    }
 }
