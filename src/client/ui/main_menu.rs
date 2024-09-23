@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::view::RenderLayers};
+use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
@@ -83,34 +83,17 @@ fn exit_btn(
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "main_menu", layer = 1)]
 pub struct MainMenuFunc {
     width: f64,
     height: f64,
+    #[typst_func(named)]
     hovered_button: Option<TypLabel>,
+    #[typst_func(named)]
     hovered_animation: f64,
+    #[typst_func(named)]
     connected: bool,
-}
-
-impl TypstFunc for MainMenuFunc {
-    fn func_name(&self) -> &str {
-        "main_menu"
-    }
-
-    fn render_layers(&self) -> RenderLayers {
-        RenderLayers::layer(1)
-    }
-
-    fn content(&self, func: foundations::Func) -> Content {
-        elem::context(func, |args| {
-            args.push(self.width);
-            args.push(self.height);
-            args.push_named("hovered_button", self.hovered_button);
-            args.push_named("hovered_animation", self.hovered_animation);
-            args.push_named("connected", self.connected);
-        })
-        .pack()
-    }
 }
 
 impl WindowedFunc for MainMenuFunc {
@@ -122,16 +105,11 @@ impl WindowedFunc for MainMenuFunc {
 
 impl InteractableFunc for MainMenuFunc {
     fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        // println!("hovered button: {hovered_button:?}, {hovered_animation}");
         self.hovered_button = hovered_button;
         self.hovered_animation = hovered_animation;
     }
 }
 
+#[derive(TypstPath)]
+#[typst_path = "typst/client/main_menu.typ"]
 struct MainMenuUi;
-
-impl TypstPath for MainMenuUi {
-    fn path() -> &'static str {
-        "typst/client/main_menu.typ"
-    }
-}
