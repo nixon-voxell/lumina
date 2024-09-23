@@ -1,6 +1,7 @@
 //! This module contains the shared code between the client and the server.
 use avian2d::prelude::*;
 use bevy::{prelude::*, render::view::RenderLayers, utils::Duration};
+use blenvy::BlenvyPlugin;
 use lightyear::prelude::*;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
@@ -14,7 +15,7 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(PhysicsPlugins::new(FixedUpdate))
+        app.add_plugins((PhysicsPlugins::new(FixedUpdate), BlenvyPlugin::default()))
             .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
             .insert_resource(Gravity(Vec2::ZERO));
 

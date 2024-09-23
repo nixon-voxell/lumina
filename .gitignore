@@ -5,6 +5,8 @@
 
 # Pdf files
 *.pdf
+# Blender backup files
+*.blend1
 
 # This file contains environment-specific configuration like linker settings
 .cargo/config.toml

@@ -8,9 +8,6 @@ use server::RoomId;
 
 use crate::shared::{input::PlayerAction, player::PlayerId};
 
-// pub mod input;
-// pub mod player;
-
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
 pub struct ProtocolPlugin;
