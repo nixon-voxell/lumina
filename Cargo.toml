@@ -11,10 +11,12 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
 # Local dependencies
-bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 velyst = { path = "external_crates/velyst" }
+bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
+bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
 
 bevy = { version = "0.14", features = ["wayland"] }
+bevy_vello = "0.6"
 lightyear = { version = "0.16", features = [
   "webtransport",
   "websocket",
@@ -57,10 +59,13 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
-bevy_vello_graphics = { workspace = true }
+# Local dependencies
 velyst = { workspace = true }
+bevy_vello_graphics = { workspace = true }
+bevy_motiongfx = { workspace = true }
 
 bevy = { workspace = true }
+bevy_vello = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }

@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-use super::main_menu::MainMenuFunc;
+use super::{main_menu::MainMenuFunc, state_scoped_scene, Screen};
 
 pub(super) struct LobbyUiPlugin;
 
@@ -32,6 +32,8 @@ impl Plugin for LobbyUiPlugin {
             )
             .add_systems(OnEnter(LobbyState::Joining), enter_lobby)
             .add_systems(OnEnter(LobbyState::None), exit_lobby);
+
+        state_scoped_scene::<LobbyFunc>(app, Screen::MultiplayerLobby);
     }
 }
 
@@ -43,11 +45,14 @@ fn exit_lobby_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
     mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     if pressed(q_interactions.iter(), "btn:exit-lobby") {
         let _ = connection_manager
             .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
+
         next_lobby_state.set(LobbyState::None);
+        next_screen_state.set(Screen::MainMenu);
     }
 }
 

@@ -11,6 +11,7 @@ use crate::ui::{
 };
 
 use super::lobby::LobbyFunc;
+use super::{state_scoped_scene, Screen};
 
 pub(super) struct MainMenuUiPlugin;
 
@@ -25,11 +26,16 @@ impl Plugin for MainMenuUiPlugin {
                 (
                     windowed_func::<MainMenuFunc>,
                     interactable_func::<MainMenuFunc>,
-                ),
+                    play_btn,
+                    reconnect_btn,
+                    exit_btn,
+                )
+                    .run_if(in_state(Screen::MainMenu)),
             )
-            .add_systems(Update, (play_btn, reconnect_btn, exit_btn))
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
+
+        state_scoped_scene::<MainMenuFunc>(app, Screen::MainMenu);
     }
 }
 
@@ -39,6 +45,7 @@ fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
 
 fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = false;
+    func.connection_msg = "Disconnected...".to_string();
 }
 
 fn play_btn(
@@ -46,6 +53,7 @@ fn play_btn(
     mut connection_manager: ResMut<ConnectionManager>,
     mut lobby_func: ResMut<LobbyFunc>,
     mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 2;
@@ -60,15 +68,18 @@ fn play_btn(
         );
 
         next_lobby_state.set(LobbyState::Joining);
+        next_screen_state.set(Screen::MultiplayerLobby);
     }
 }
 
 fn reconnect_btn(
     q_interactions: InteractionQuery,
     mut next_connection_state: ResMut<NextState<Connection>>,
+    mut func: ResMut<MainMenuFunc>,
 ) {
     if pressed(q_interactions.iter(), "btn:reconnect") {
         next_connection_state.set(Connection::Connect);
+        func.connection_msg = "Connecting to server...".to_string();
     }
 }
 
@@ -94,6 +105,8 @@ pub struct MainMenuFunc {
     hovered_animation: f64,
     #[typst_func(named)]
     connected: bool,
+    #[typst_func(named)]
+    connection_msg: String,
 }
 
 impl WindowedFunc for MainMenuFunc {

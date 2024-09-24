@@ -4,3 +4,6 @@
 [submodule "external_crates/bevy_vello_graphics"]
 	path = external_crates/bevy_vello_graphics
 	url = https://github.com/voxell-tech/bevy_vello_graphics
+[submodule "external_crates/bevy_motiongfx"]
+	path = external_crates/bevy_motiongfx
+	url = https://github.com/voxell-tech/bevy_motiongfx

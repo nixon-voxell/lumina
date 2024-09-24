@@ -16,7 +16,7 @@
   height,
   body,
   hovered_button: none,
-  hovered_animation: 0.0
+  hovered_animation: 0.0,
 ) = {
   window(width, height)[
     #let hovered_button = if hovered_button != none {
@@ -25,22 +25,24 @@
       label("")
     }
 
-    #show hovered_button: body => [
-      #let box_fill = text.fill.transparentize((
+    #show hovered_button: body => {
+      let box_fill = text.fill.transparentize((
         (1.0 - hovered_animation) * 100%
       ))
-      #set text(
+
+      set text(
         fill: color.mix(
           (text.fill, ((1.0 - hovered_animation) * 100%)),
           (base0, hovered_animation * 100%),
         ),
       )
-      #box(
+
+      box(
         fill: box_fill,
         radius: 10pt,
         outset: (hovered_animation * 6pt),
       )[#body]
-    ]
+    }
 
     #body
   ]

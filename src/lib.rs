@@ -8,6 +8,7 @@ use clap::Parser;
 mod client;
 mod protocol;
 mod server;
+mod settings;
 mod shared;
 mod ui;
 mod utils;

@@ -10,13 +10,10 @@ pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_sub_state::<LobbyState>()
-            .enable_state_scoped_entities::<LobbyState>()
-            .init_resource::<MyLobbyId>()
-            .add_systems(
-                Update,
-                handle_lobby_status_update.run_if(in_state(Connection::Connected)),
-            );
+        app.add_sub_state::<LobbyState>().add_systems(
+            Update,
+            handle_lobby_status_update.run_if(in_state(Connection::Connected)),
+        );
     }
 }
 
@@ -47,8 +44,4 @@ pub(super) enum LobbyState {
     None,
     Joining,
     Joined,
-    // InGame,
 }
-
-#[derive(Resource, Default, Debug, Clone, Copy, PartialEq)]
-pub(super) struct MyLobbyId(pub usize);
