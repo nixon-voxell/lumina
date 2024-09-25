@@ -29,6 +29,7 @@ serde = "1"
 rand = "0.8"
 clap = { version = "4.5", features = ["derive"] }
 smallvec = "1"
+noise = "0.9"
 
 # Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
 # In some cases they may still signal poor code quality however, so consider commenting out these lines.

@@ -6,7 +6,10 @@ use bevy::{
 use clap::Parser;
 
 mod client;
+mod grid_spawning;
+mod procedural_algorithm;
 mod protocol;
+mod rectangle_spawning;
 mod server;
 mod shared;
 mod ui;
@@ -57,6 +60,7 @@ impl Plugin for AppPlugin {
         };
 
         app.add_plugins(shared::SharedPlugin);
+        app.add_plugins(rectangle_spawning::rectangle_batch_spawn::RectangleBatchSpawnPlugin);
     }
 }
 
