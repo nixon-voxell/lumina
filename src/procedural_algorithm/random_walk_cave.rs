@@ -17,7 +17,7 @@ pub fn generate_random_walk_cave(
 
 /// Generates a cave-like map using the Random Walk Algorithm.
 fn random_walk_cave(
-    map: &mut Vec<i32>,
+    map: &mut [i32],
     width: usize,
     height: usize,
     seed: u32,
