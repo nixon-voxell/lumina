@@ -38,7 +38,7 @@ fn player_movement(
     mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
-    const THURSTER: f32 = 20.0;
+    const THURSTER: f32 = 40.0;
     const MAX_SPEED: f32 = 200.0;
     for player_movement in player_movement_evr.read() {
         if let Ok((mut linear, mut angular, rotation)) =
@@ -47,9 +47,11 @@ fn player_movement(
             let movement = player_movement.movement.normalize_or_zero();
             let desired_angle = movement.y.atan2(movement.x);
 
-            angular.0 = rotation.angle_between(Rotation::radians(desired_angle));
+            angular.0 += rotation.angle_between(Rotation::radians(desired_angle));
 
-            linear.0 += movement * THURSTER;
+            let direction = Vec2::new(rotation.cos, rotation.sin);
+
+            linear.0 += direction * THURSTER;
 
             // Clamp the speed
             linear.0 = linear.clamp_length_max(MAX_SPEED);
@@ -87,6 +89,8 @@ pub struct PlayerId(pub ClientId);
 pub struct PhysicsBundle {
     pub collider: Collider,
     pub rigidbody: RigidBody,
+    pub linear_damping: LinearDamping,
+    pub angular_damping: AngularDamping,
 }
 
 impl PhysicsBundle {
@@ -94,6 +98,8 @@ impl PhysicsBundle {
         Self {
             collider: Collider::rectangle(1.0, 1.0),
             rigidbody: RigidBody::Dynamic,
+            linear_damping: LinearDamping(2.0),
+            angular_damping: AngularDamping(6.0),
         }
     }
 }

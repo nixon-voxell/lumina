@@ -22,7 +22,7 @@ impl Plugin for SharedPlugin {
         app.configure_sets(
             FixedUpdate,
             (
-                // make sure that any physics simulation happens after the Main SystemSet
+                // Make sure that any physics simulation happens after the Main SystemSet
                 // (where we apply user's actions)
                 (
                     PhysicsSet::Prepare,

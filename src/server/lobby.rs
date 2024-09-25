@@ -19,6 +19,7 @@ impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ClientInfos>()
             .add_event::<ClientExitLobby>()
+            .add_systems(Startup, spawn_debug_camera)
             .add_systems(
                 Update,
                 (
@@ -33,6 +34,20 @@ impl Plugin for LobbyPlugin {
             )
             .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
     }
+}
+
+fn spawn_debug_camera(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Game Camera"),
+        Camera2dBundle {
+            camera: Camera {
+                clear_color: Color::NONE.into(),
+                ..default()
+            },
+            ..default()
+        },
+        // RenderLayers::layer(0),
+    ));
 }
 
 fn cleanup_empty_lobbies(
@@ -230,6 +245,14 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 
     commands
         .spawn((ReplicatePlayerBundle::new(client_id, Vec2::ZERO), replicate))
+        .insert(SpriteBundle {
+            sprite: Sprite {
+                color: Color::WHITE,
+                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
+                ..default()
+            },
+            ..default()
+        })
         .id()
 }
 

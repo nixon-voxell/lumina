@@ -1,11 +1,11 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use bevy::{prelude::*, render::view::RenderLayers};
-use client::*;
-use lightyear::prelude::*;
-
 use crate::settings::NetworkSettings;
 use crate::shared::shared_config;
+use bevy::{prelude::*, render::view::RenderLayers};
+
+use client::*;
+use lightyear::prelude::*;
 
 mod lobby;
 mod player;

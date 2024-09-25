@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
@@ -31,14 +32,21 @@ fn handle_player_spawn(
         info!("Spawn predicted entity.");
 
         // Add visuals for player.
-        commands.entity(entity).insert(SpriteBundle {
-            sprite: Sprite {
-                color: Color::WHITE,
-                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
+        commands
+            .entity(entity)
+            .insert((
+                BlueprintInfo::from_path("blueprints/Player.glb"), // mandatory !!
+                SpawnBlueprint,
+                // TransformBundle::from_transform(Transform::default()),
+            ))
+            .insert(SpriteBundle {
+                sprite: Sprite {
+                    color: Color::WHITE,
+                    rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        });
+            });
 
         if is_predicted {
             // Replicate input from client to server.
