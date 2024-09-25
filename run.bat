@@ -23,7 +23,7 @@ timeout 1
 echo Starting %count% client instances...
 for /L %%i in (1,1,%count%) do (
     echo Starting client instance %%i...
-    start /B cargo run -- client -p %%i
+    start /B cargo run -- client
     timeout 1
 )
 
