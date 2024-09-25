@@ -72,11 +72,11 @@ fn is_within_bounds(x: usize, y: usize, width: usize, height: usize) -> bool {
 }
 
 /// Gets the tile value at the specified coordinates.
-fn get_tile(map: &Vec<i32>, width: usize, x: usize, y: usize) -> i32 {
+fn get_tile(map: &[i32], width: usize, x: usize, y: usize) -> i32 {
     map[y * width + x]
 }
 
 /// Sets the tile value at the specified coordinates.
-fn set_tile(map: &mut Vec<i32>, width: usize, x: usize, y: usize, value: i32) {
+fn set_tile(map: &mut [i32], width: usize, x: usize, y: usize, value: i32) {
     map[y * width + x] = value;
 }

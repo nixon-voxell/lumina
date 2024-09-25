@@ -95,7 +95,7 @@ impl Plugin for RectangleBatchSpawnPlugin {
             required_empty_percent,
         );
 
-        app.insert_resource(RectanglePool::new(200_00))
+        app.insert_resource(RectanglePool::new(20_000)) // Corrected
             .insert_resource(RectangleBatchSpawner::default())
             .insert_resource(cave_map) // Insert the generated grid
             .insert_resource(grid_size)
@@ -106,5 +106,5 @@ impl Plugin for RectangleBatchSpawnPlugin {
 
 // Placeholder for preload_rectangles function
 fn preload_rectangles(mut pool: ResMut<RectanglePool>) {
-    pool.preload(200_00);
+    pool.preload(20_000);
 }
