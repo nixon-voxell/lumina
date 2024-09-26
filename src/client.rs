@@ -4,6 +4,7 @@ use bevy::{prelude::*, render::view::RenderLayers};
 use client::*;
 use lightyear::prelude::*;
 
+use crate::protocol::player::PlayerTransform;
 use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
 
@@ -34,6 +35,7 @@ impl Plugin for ClientPlugin {
         .enable_state_scoped_entities::<Connection>()
         .add_systems(Startup, spawn_game_camera)
         .add_systems(OnEnter(Connection::Connect), connect_server)
+        .add_systems(Update, follow_player)
         .add_systems(
             PreUpdate,
             (handle_connection, handle_disconnection).after(MainSet::Receive),
@@ -88,6 +90,26 @@ fn spawn_game_camera(mut commands: Commands) {
         },
         RenderLayers::layer(0),
     ));
+}
+
+fn follow_player(
+    mut q_camera: Query<&mut Transform, With<Camera>>,
+    q_player: Query<&PlayerTransform, With<Predicted>>,
+) {
+    // Ensure we have at least one player
+    if let Ok(player_transform) = q_player.get_single() {
+        for mut camera_transform in q_camera.iter_mut() {
+            // Update camera position based on player's position
+            camera_transform.translation.x = player_transform.translation.x;
+            camera_transform.translation.y = player_transform.translation.y;
+
+            // Optional: Add an offset if you want the camera to be above or behind the player
+            camera_transform.translation.y += 200.0; // Adjust this value as needed
+            println!("Player Found!");
+        }
+    } else {
+        println!("Player not found!");
+    }
 }
 
 /// Create the lightyear [`ClientConfig`].
