@@ -64,22 +64,10 @@ fn handle_player_spawn(
         info!("Spawn predicted entity.");
 
         // Add visuals for player.
-        commands
-            .entity(entity)
-            .insert((
-                BlueprintInfo::from_path("blueprints/Player.glb"), // mandatory !!
-                SpawnBlueprint,
-                // TransformBundle::from_transform(Transform::default()),
-            ))
-            // .insert(SpriteBundle {
-            //     sprite: Sprite {
-            //         color: Color::WHITE,
-            //         rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-            //         ..default()
-            //     },
-            //     ..default()
-            // })
-            ;
+        commands.entity(entity).insert((
+            BlueprintInfo::from_path("blueprints/Player.glb"), // mandatory !!
+            SpawnBlueprint,
+        ));
 
         if is_predicted {
             // Replicate input from client to server.
@@ -119,10 +107,12 @@ fn despawn_input(
 }
 
 fn follow_player(
-    mut q_camera: Query<&mut Transform, With<Camera>>,
-    q_player: Query<&PlayerTransform, With<Predicted>>,
+    mut q_camera: Query<&mut Transform, (With<Camera>, Without<Predicted>)>,
+    q_player: Query<&Transform, (With<Predicted>, Without<Camera>)>,
     time: Res<Time>,
 ) {
+    const LERP_FACTOR: f32 = 4.0; // Adjust this value for more or less delay
+
     // Ensure we have at least one player
     if let Ok(player_transform) = q_player.get_single() {
         for mut camera_transform in q_camera.iter_mut() {
@@ -134,10 +124,11 @@ fn follow_player(
             );
 
             // Smoothly interpolate the camera's position towards the target position
-            let lerp_factor = 1.0; // Adjust this value for more or less delay
-            camera_transform.translation = camera_transform
-                .translation
-                .lerp(target_position, lerp_factor * time.delta_seconds());
+            camera_transform.translation = camera_transform.translation.lerp(
+                target_position,
+                // Clamp within 1.0 to prevent overshooting
+                f32::min(1.0, LERP_FACTOR * time.delta_seconds()),
+            );
         }
     }
 }
