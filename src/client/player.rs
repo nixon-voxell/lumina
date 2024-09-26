@@ -16,13 +16,10 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (handle_player_spawn, convert_3d_mesh_to_2d, follow_player),
-        )
-        .add_systems(Update, convert_3d_mesh_to_2d)
-        .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main))
-        .add_systems(OnEnter(LobbyState::None), despawn_input);
+        app.add_systems(Update, (handle_player_spawn, convert_3d_mesh_to_2d))
+            .add_systems(Update, convert_3d_mesh_to_2d)
+            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main))
+            .add_systems(OnEnter(LobbyState::None), despawn_input);
     }
 }
 
@@ -103,32 +100,5 @@ fn despawn_input(
 ) {
     for entity in q_action_states.iter() {
         commands.entity(entity).despawn();
-    }
-}
-
-fn follow_player(
-    mut q_camera: Query<&mut Transform, (With<Camera>, Without<Predicted>)>,
-    q_player: Query<&Transform, (With<Predicted>, Without<Camera>)>,
-    time: Res<Time>,
-) {
-    const LERP_FACTOR: f32 = 4.0; // Adjust this value for more or less delay
-
-    // Ensure we have at least one player
-    if let Ok(player_transform) = q_player.get_single() {
-        for mut camera_transform in q_camera.iter_mut() {
-            // Calculate the target position based on player's position
-            let target_position = Vec3::new(
-                player_transform.translation.x,
-                player_transform.translation.y, // Adjust this value as needed
-                camera_transform.translation.z, // Keep the same z position
-            );
-
-            // Smoothly interpolate the camera's position towards the target position
-            camera_transform.translation = camera_transform.translation.lerp(
-                target_position,
-                // Clamp within 1.0 to prevent overshooting
-                f32::min(1.0, LERP_FACTOR * time.delta_seconds()),
-            );
-        }
     }
 }

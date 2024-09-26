@@ -46,7 +46,6 @@ fn spawn_debug_camera(mut commands: Commands) {
             },
             ..default()
         },
-        // RenderLayers::layer(0),
     ));
 }
 
