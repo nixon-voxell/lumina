@@ -66,6 +66,6 @@ fn follow_player(
             camera_transform.translation = camera_transform
                 .translation
                 .lerp(target_position, lerp_factor * time.delta_seconds());
-
-            
+        }
+    }
 }
