@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use lightyear::prelude::client::Predicted;
 // use client::*;
 // use leafwing_input_manager::prelude::*;
 // use lightyear::prelude::*;
@@ -10,6 +11,7 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, apply_transform);
+        app.add_systems(Update, follow_player);
     }
 }
 
@@ -41,5 +43,33 @@ fn apply_transform(
         transform.translation.x = player_transform.translation.x;
         transform.translation.y = player_transform.translation.y;
         transform.rotation = Quat::from_rotation_z(player_transform.rotation);
+    }
+}
+
+fn follow_player(
+    mut q_camera: Query<&mut Transform, With<Camera>>,
+    q_player: Query<&PlayerTransform, With<Predicted>>,
+    time: Res<Time>,
+) {
+    // Ensure we have at least one player
+    if let Ok(player_transform) = q_player.get_single() {
+        for mut camera_transform in q_camera.iter_mut() {
+            // Calculate the target position based on player's position
+            let target_position = Vec3::new(
+                player_transform.translation.x,
+                player_transform.translation.y, // Adjust this value as needed
+                camera_transform.translation.z, // Keep the same z position
+            );
+
+            // Smoothly interpolate the camera's position towards the target position
+            let lerp_factor = 1.0; // Adjust this value for more or less delay
+            camera_transform.translation = camera_transform
+                .translation
+                .lerp(target_position, lerp_factor * time.delta_seconds());
+
+            println!("Camera Following Player!");
+        }
+    } else {
+        println!("Player not found!");
     }
 }

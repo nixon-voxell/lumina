@@ -4,7 +4,6 @@ use bevy::{prelude::*, render::view::RenderLayers};
 use client::*;
 use lightyear::prelude::*;
 
-use crate::protocol::player::PlayerTransform;
 use crate::server::SERVER_ADDR;
 use crate::shared::shared_config;
 
@@ -35,7 +34,6 @@ impl Plugin for ClientPlugin {
         .enable_state_scoped_entities::<Connection>()
         .add_systems(Startup, spawn_game_camera)
         .add_systems(OnEnter(Connection::Connect), connect_server)
-        .add_systems(Update, follow_player)
         .add_systems(
             PreUpdate,
             (handle_connection, handle_disconnection).after(MainSet::Receive),
@@ -90,34 +88,6 @@ fn spawn_game_camera(mut commands: Commands) {
         },
         RenderLayers::layer(0),
     ));
-}
-
-fn follow_player(
-    mut q_camera: Query<&mut Transform, With<Camera>>,
-    q_player: Query<&PlayerTransform, With<Predicted>>,
-    time: Res<Time>,
-) {
-    // Ensure we have at least one player
-    if let Ok(player_transform) = q_player.get_single() {
-        for mut camera_transform in q_camera.iter_mut() {
-            // Calculate the target position based on player's position
-            let target_position = Vec3::new(
-                player_transform.translation.x,
-                player_transform.translation.y, // Adjust this value as needed
-                camera_transform.translation.z, // Keep the same z position
-            );
-
-            // Smoothly interpolate the camera's position towards the target position
-            let lerp_factor = 1.0; // Adjust this value for more or less delay
-            camera_transform.translation = camera_transform
-                .translation
-                .lerp(target_position, lerp_factor * time.delta_seconds());
-
-            println!("Camera Following Player!");
-        }
-    } else {
-        println!("Player not found!");
-    }
 }
 
 /// Create the lightyear [`ClientConfig`].
