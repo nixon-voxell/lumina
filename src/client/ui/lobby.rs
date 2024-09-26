@@ -4,13 +4,14 @@ use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::{
+    client::lobby::LobbyState,
     protocol::{ExitLobby, ReliableChannel},
     ui::{
         interactable_func, pressed, windowed_func, InteractableFunc, InteractionQuery, WindowedFunc,
     },
 };
 
-use super::main_menu::MainMenuFunc;
+use super::{main_menu::MainMenuFunc, state_scoped_scene, Screen};
 
 pub(super) struct LobbyUiPlugin;
 
@@ -28,7 +29,11 @@ impl Plugin for LobbyUiPlugin {
                     interactable_func::<LobbyFunc>,
                     exit_lobby_btn,
                 ),
-            );
+            )
+            .add_systems(OnEnter(LobbyState::Joining), enter_lobby)
+            .add_systems(OnEnter(LobbyState::None), exit_lobby);
+
+        state_scoped_scene::<LobbyFunc>(app, Screen::MultiplayerLobby);
     }
 }
 
@@ -39,46 +44,49 @@ fn setup(mut scene: ResMut<VelystScene<LobbyFunc>>) {
 fn exit_lobby_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
+    mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
+) {
+    if pressed(q_interactions.iter(), "btn:exit-lobby") {
+        let _ = connection_manager
+            .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
+
+        next_lobby_state.set(LobbyState::None);
+        next_screen_state.set(Screen::MainMenu);
+    }
+}
+
+fn enter_lobby(
     mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
     mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
 ) {
-    if pressed(q_interactions.iter(), "btn:exit-lobby") {
-        lobby_scene.visibility = Visibility::Hidden;
-        menu_scene.visibility = Visibility::Inherited;
-
-        let _ = connection_manager
-            .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
-    }
+    lobby_scene.visibility = Visibility::Inherited;
+    menu_scene.visibility = Visibility::Hidden;
 }
 
-#[derive(Resource, Default)]
+fn exit_lobby(
+    mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
+    mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
+) {
+    lobby_scene.visibility = Visibility::Hidden;
+    menu_scene.visibility = Visibility::Inherited;
+}
+
+#[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "lobby", layer = 1)]
 pub struct LobbyFunc {
     width: f64,
     height: f64,
+    #[typst_func(named)]
     hovered_button: Option<TypLabel>,
+    #[typst_func(named)]
     hovered_animation: f64,
+    #[typst_func(named)]
     pub curr_player_count: u8,
+    #[typst_func(named)]
     pub max_player_count: u8,
+    #[typst_func(named)]
     pub room_id: Option<u64>,
-}
-
-impl TypstFunc for LobbyFunc {
-    fn func_name(&self) -> &str {
-        "lobby"
-    }
-
-    fn content(&self, func: foundations::Func) -> Content {
-        elem::context(func, |args| {
-            args.push(self.width);
-            args.push(self.height);
-            args.push_named("hovered_button", self.hovered_button);
-            args.push_named("hovered_animation", self.hovered_animation);
-            args.push_named("curr_player_count", self.curr_player_count);
-            args.push_named("max_player_count", self.max_player_count);
-            args.push_named("room_id", self.room_id);
-        })
-        .pack()
-    }
 }
 
 impl WindowedFunc for LobbyFunc {
@@ -95,10 +103,6 @@ impl InteractableFunc for LobbyFunc {
     }
 }
 
+#[derive(TypstPath)]
+#[typst_path = "typst/client/lobby.typ"]
 struct LobbyUi;
-
-impl TypstPath for LobbyUi {
-    fn path() -> &'static str {
-        "typst/client/lobby.typ"
-    }
-}

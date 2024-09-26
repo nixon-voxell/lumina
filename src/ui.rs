@@ -1,6 +1,7 @@
 use bevy::render::view::RenderLayers;
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_vello_graphics::{bevy_vello::VelloPlugin, prelude::*};
+use bevy_vello::VelloPlugin;
+use bevy_vello_graphics::VelloGraphicsPlugin;
 use velyst::{prelude::*, typst_element::prelude::*, VelystPlugin};
 
 pub struct UiPlugin;
@@ -69,7 +70,7 @@ pub fn interactable_func<F: InteractableFunc>(
         *last_hovered = hovered_button;
     }
 
-    const SPEED: f64 = 8.0;
+    const SPEED: f64 = 6.0;
     // Clamp at 1.0
     *hovered_animation = f64::min(*hovered_animation + time.delta_seconds_f64() * SPEED, 1.0);
 

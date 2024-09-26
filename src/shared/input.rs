@@ -2,15 +2,9 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
+use crate::protocol::INPUT_REPLICATION_GROUP;
+
 use super::player::PlayerId;
-
-pub(super) struct InputPlugin;
-
-impl Plugin for InputPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
-    }
-}
 
 #[derive(Bundle)]
 pub struct ReplicateInputBundle {
@@ -18,6 +12,23 @@ pub struct ReplicateInputBundle {
     pub replicate: client::Replicate,
     pub input: InputManagerBundle<PlayerAction>,
     pub prepredicted: PrePredicted,
+}
+
+impl ReplicateInputBundle {
+    pub fn new(id: PlayerId) -> Self {
+        Self {
+            id,
+            replicate: client::Replicate {
+                group: INPUT_REPLICATION_GROUP,
+                ..default()
+            },
+            input: InputManagerBundle::<PlayerAction> {
+                action_state: ActionState::default(),
+                input_map: PlayerAction::input_map(),
+            },
+            prepredicted: PrePredicted::default(),
+        }
+    }
 }
 
 #[derive(Actionlike, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
