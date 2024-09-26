@@ -67,9 +67,5 @@ fn follow_player(
                 .translation
                 .lerp(target_position, lerp_factor * time.delta_seconds());
 
-            println!("Camera Following Player!");
-        }
-    } else {
-        println!("Player not found!");
-    }
+            
 }
