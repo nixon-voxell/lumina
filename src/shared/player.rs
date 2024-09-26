@@ -38,8 +38,9 @@ fn player_movement(
     mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
-    const THURSTER: f32 = 40.0;
-    const MAX_SPEED: f32 = 200.0;
+    const MOVEMENT_SPEED: f32 = 100.0;
+    const ROTATION_SPEED: f32 = 0.4;
+    const MAX_SPEED: f32 = 400.0;
     for player_movement in player_movement_evr.read() {
         if let Ok((mut linear, mut angular, rotation)) =
             q_movements.get_mut(player_movement.player_entity)
@@ -47,11 +48,11 @@ fn player_movement(
             let movement = player_movement.movement.normalize_or_zero();
             let desired_angle = movement.y.atan2(movement.x);
 
-            angular.0 += rotation.angle_between(Rotation::radians(desired_angle));
+            angular.0 += rotation.angle_between(Rotation::radians(desired_angle)) * ROTATION_SPEED;
 
             let direction = Vec2::new(rotation.cos, rotation.sin);
 
-            linear.0 += direction * THURSTER;
+            linear.0 += direction * MOVEMENT_SPEED;
 
             // Clamp the speed
             linear.0 = linear.clamp_length_max(MAX_SPEED);

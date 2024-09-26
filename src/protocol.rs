@@ -58,10 +58,14 @@ impl Plugin for ProtocolPlugin {
         // NOTE: interpolation/correction is only needed for components that are visually displayed!
         // we still need prediction to be able to correctly predict the physics on the client
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation_fn(linear_velocity::lerp)
+            .add_correction_fn(linear_velocity::lerp);
 
         app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation_fn(angular_velocity::lerp)
+            .add_correction_fn(angular_velocity::lerp);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
