@@ -1,5 +1,5 @@
-use bevy::{prelude::*, render::view::RenderLayers};
-use velyst::{prelude::*, typst_element::prelude::*};
+use bevy::prelude::*;
+use velyst::prelude::*;
 
 use crate::ui::{windowed_func, WindowedFunc};
 
@@ -27,30 +27,12 @@ fn lobbies(q_lobbies: Query<&Lobby>, mut main_func: ResMut<MainFunc>) {
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "main", layer = 1)]
 struct MainFunc {
     width: f64,
     height: f64,
     lobbies: Vec<u32>,
-}
-
-impl TypstFunc for MainFunc {
-    fn func_name(&self) -> &str {
-        "main"
-    }
-
-    fn render_layers(&self) -> RenderLayers {
-        RenderLayers::layer(1)
-    }
-
-    fn content(&self, func: foundations::Func) -> Content {
-        elem::context(func, |args| {
-            args.push(self.width);
-            args.push(self.height);
-            args.push(self.lobbies.clone());
-        })
-        .pack()
-    }
 }
 
 impl WindowedFunc for MainFunc {
@@ -60,10 +42,6 @@ impl WindowedFunc for MainFunc {
     }
 }
 
+#[derive(TypstPath)]
+#[typst_path = "typst/server/main.typ"]
 struct ServerUi;
-
-impl TypstPath for ServerUi {
-    fn path() -> &'static str {
-        "typst/server/main.typ"
-    }
-}

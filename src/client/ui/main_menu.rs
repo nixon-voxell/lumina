@@ -1,8 +1,9 @@
-use bevy::{prelude::*, render::view::RenderLayers};
+use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
+use crate::client::lobby::LobbyState;
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::{
@@ -10,6 +11,7 @@ use crate::ui::{
 };
 
 use super::lobby::LobbyFunc;
+use super::{state_scoped_scene, Screen};
 
 pub(super) struct MainMenuUiPlugin;
 
@@ -24,11 +26,16 @@ impl Plugin for MainMenuUiPlugin {
                 (
                     windowed_func::<MainMenuFunc>,
                     interactable_func::<MainMenuFunc>,
-                ),
+                    play_btn,
+                    reconnect_btn,
+                    exit_btn,
+                )
+                    .run_if(in_state(Screen::MainMenu)),
             )
-            .add_systems(Update, (play_btn, reconnect_btn, exit_btn))
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
+
+        state_scoped_scene::<MainMenuFunc>(app, Screen::MainMenu);
     }
 }
 
@@ -38,21 +45,20 @@ fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
 
 fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = false;
+    func.connection_msg = "Disconnected...".to_string();
 }
 
 fn play_btn(
     q_interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
-    mut menu_scene: ResMut<VelystScene<MainMenuFunc>>,
-    mut lobby_scene: ResMut<VelystScene<LobbyFunc>>,
     mut lobby_func: ResMut<LobbyFunc>,
+    mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 2;
 
     if pressed(q_interactions.iter(), "btn:play") {
-        menu_scene.visibility = Visibility::Hidden;
-        lobby_scene.visibility = Visibility::Inherited;
         lobby_func.curr_player_count = 0;
         lobby_func.max_player_count = PLAYER_COUNT;
 
@@ -60,15 +66,20 @@ fn play_btn(
             &Matchmake(PLAYER_COUNT),
             NetworkTarget::None,
         );
+
+        next_lobby_state.set(LobbyState::Joining);
+        next_screen_state.set(Screen::MultiplayerLobby);
     }
 }
 
 fn reconnect_btn(
     q_interactions: InteractionQuery,
     mut next_connection_state: ResMut<NextState<Connection>>,
+    mut func: ResMut<MainMenuFunc>,
 ) {
     if pressed(q_interactions.iter(), "btn:reconnect") {
         next_connection_state.set(Connection::Connect);
+        func.connection_msg = "Connecting to server...".to_string();
     }
 }
 
@@ -83,34 +94,19 @@ fn exit_btn(
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "main_menu", layer = 1)]
 pub struct MainMenuFunc {
     width: f64,
     height: f64,
+    #[typst_func(named)]
     hovered_button: Option<TypLabel>,
+    #[typst_func(named)]
     hovered_animation: f64,
+    #[typst_func(named)]
     connected: bool,
-}
-
-impl TypstFunc for MainMenuFunc {
-    fn func_name(&self) -> &str {
-        "main_menu"
-    }
-
-    fn render_layers(&self) -> RenderLayers {
-        RenderLayers::layer(1)
-    }
-
-    fn content(&self, func: foundations::Func) -> Content {
-        elem::context(func, |args| {
-            args.push(self.width);
-            args.push(self.height);
-            args.push_named("hovered_button", self.hovered_button);
-            args.push_named("hovered_animation", self.hovered_animation);
-            args.push_named("connected", self.connected);
-        })
-        .pack()
-    }
+    #[typst_func(named)]
+    connection_msg: String,
 }
 
 impl WindowedFunc for MainMenuFunc {
@@ -122,16 +118,11 @@ impl WindowedFunc for MainMenuFunc {
 
 impl InteractableFunc for MainMenuFunc {
     fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        // println!("hovered button: {hovered_button:?}, {hovered_animation}");
         self.hovered_button = hovered_button;
         self.hovered_animation = hovered_animation;
     }
 }
 
+#[derive(TypstPath)]
+#[typst_path = "typst/client/main_menu.typ"]
 struct MainMenuUi;
-
-impl TypstPath for MainMenuUi {
-    fn path() -> &'static str {
-        "typst/client/main_menu.typ"
-    }
-}

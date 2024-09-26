@@ -1,3 +1,4 @@
+#import "../packages/suiji-0.3.0/src/lib.typ": *
 #import "../monokai_pro.typ": *
 #import "../utils.typ": *
 
@@ -7,12 +8,12 @@
   fill: base0,
 )
 
-#let connect_server() = {
+#let connect_server(connection_msg) = {
   set text(size: 24pt)
 
   place(center + horizon)[
     #set text(fill: base7)
-    = Connecting to server...
+    = #connection_msg
 
     #linebreak()
 
@@ -29,6 +30,7 @@
   hovered_button: none,
   hovered_animation: 0.0,
   connected: false,
+  connection_msg: "Disconnected...",
 ) = {
   interactable_window(
     width,
@@ -39,7 +41,7 @@
     #set text(fill: base7)
 
     #if connected == false {
-      connect_server()
+      connect_server(connection_msg)
       return
     }
 
