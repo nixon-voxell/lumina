@@ -25,10 +25,7 @@ impl Plugin for PlayerPlugin {
 
 fn convert_3d_mesh_to_2d(
     mut commands: Commands,
-    q_meshes: Query<
-        (&Handle<Mesh>, &Handle<StandardMaterial>, &Name, Entity),
-        // (Added<Handle<Mesh>>, Added<Handle<StandardMaterial>>),
-    >,
+    q_meshes: Query<(&Handle<Mesh>, &Handle<StandardMaterial>, &Name, Entity)>,
     std_materials: Res<Assets<StandardMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
 ) {
