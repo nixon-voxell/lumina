@@ -95,17 +95,25 @@ fn spawn_game_camera(mut commands: Commands) {
 fn follow_player(
     mut q_camera: Query<&mut Transform, With<Camera>>,
     q_player: Query<&PlayerTransform, With<Predicted>>,
+    time: Res<Time>,
 ) {
     // Ensure we have at least one player
     if let Ok(player_transform) = q_player.get_single() {
         for mut camera_transform in q_camera.iter_mut() {
-            // Update camera position based on player's position
-            camera_transform.translation.x = player_transform.translation.x;
-            camera_transform.translation.y = player_transform.translation.y;
+            // Calculate the target position based on player's position
+            let target_position = Vec3::new(
+                player_transform.translation.x,
+                player_transform.translation.y, // Adjust this value as needed
+                camera_transform.translation.z, // Keep the same z position
+            );
 
-            // Optional: Add an offset if you want the camera to be above or behind the player
-            camera_transform.translation.y += 200.0; // Adjust this value as needed
-            println!("Player Found!");
+            // Smoothly interpolate the camera's position towards the target position
+            let lerp_factor = 1.0; // Adjust this value for more or less delay
+            camera_transform.translation = camera_transform
+                .translation
+                .lerp(target_position, lerp_factor * time.delta_seconds());
+
+            println!("Camera Following Player!");
         }
     } else {
         println!("Player not found!");
