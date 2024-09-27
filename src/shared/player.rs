@@ -10,6 +10,7 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerMovement>()
+            .add_systems(Update, init_players)
             .add_systems(FixedUpdate, player_movement.in_set(FixedSet::Main));
     }
 }
@@ -34,12 +35,36 @@ pub fn shared_handle_player_movement(
     }
 }
 
+fn init_players(
+    mut commands: Commands,
+    q_players: Query<Entity, (With<SpaceShip>, Without<Collider>)>,
+) {
+    if q_players.is_empty() {
+        return;
+    }
+
+    let collider = Collider::triangle(
+        Vec2::new(-20.0, -20.0),
+        Vec2::new(-20.0, 20.0),
+        Vec2::new(20.0, 0.0),
+    );
+
+    for entity in q_players.iter() {
+        info!("\n\nAdding collider for {entity:?}");
+        commands.entity(entity).insert((
+            MassPropertiesBundle::new_computed(&collider, 1.0),
+            collider.clone(),
+        ));
+    }
+}
+
 fn player_movement(
     mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
     const MOVEMENT_SPEED: f32 = 100.0;
-    const ROTATION_SPEED: f32 = 0.4;
+    // const ROTATION_SPEED: f32 = 0.4;
+    const ROTATION_SPEED: f32 = 1.0;
     const MAX_SPEED: f32 = 400.0;
     for player_movement in player_movement_evr.read() {
         if let Ok((mut linear, mut angular, rotation)) =
@@ -69,15 +94,19 @@ pub struct PlayerMovement {
 #[derive(Bundle)]
 pub struct ReplicatePlayerBundle {
     pub id: PlayerId,
+    pub ship: SpaceShip,
     pub position: Position,
+    pub rotation: Rotation,
     pub physics_bundle: PhysicsBundle,
 }
 
 impl ReplicatePlayerBundle {
-    pub fn new(client_id: ClientId, position: Vec2) -> Self {
+    pub fn new(client_id: ClientId, position: Vec2, rotation: f32) -> Self {
         Self {
             id: PlayerId(client_id),
+            ship: SpaceShip,
             position: Position::new(position),
+            rotation: Rotation::radians(rotation),
             physics_bundle: PhysicsBundle::player(),
         }
     }
@@ -86,9 +115,22 @@ impl ReplicatePlayerBundle {
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
 
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct SpaceShip;
+
+// pub enum SpaceShipClass {
+//     Tank,
+//     Assassin,
+// }
+
+// TODO: Make a config which gets replicated on the client side...
+// TODO: Create a shared system that converts player config into actual components
+// pub struct PlayerConfig {
+//     pub density: f32,
+// }
+
 #[derive(Bundle)]
 pub struct PhysicsBundle {
-    pub collider: Collider,
     pub rigidbody: RigidBody,
     pub linear_damping: LinearDamping,
     pub angular_damping: AngularDamping,
@@ -97,7 +139,6 @@ pub struct PhysicsBundle {
 impl PhysicsBundle {
     pub fn player() -> Self {
         Self {
-            collider: Collider::rectangle(1.0, 1.0),
             rigidbody: RigidBody::Dynamic,
             linear_damping: LinearDamping(2.0),
             angular_damping: AngularDamping(6.0),

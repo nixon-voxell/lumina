@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use server::*;
@@ -243,15 +244,10 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
     };
 
     commands
-        .spawn((ReplicatePlayerBundle::new(client_id, Vec2::ZERO), replicate))
-        .insert(SpriteBundle {
-            sprite: Sprite {
-                color: Color::WHITE,
-                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-                ..default()
-            },
-            ..default()
-        })
+        .spawn((
+            ReplicatePlayerBundle::new(client_id, Vec2::ZERO, 0.0),
+            replicate,
+        ))
         .id()
 }
 

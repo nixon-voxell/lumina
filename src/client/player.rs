@@ -62,7 +62,7 @@ fn handle_player_spawn(
 
         // Add visuals for player.
         commands.entity(entity).insert((
-            BlueprintInfo::from_path("blueprints/Player.glb"), // mandatory !!
+            BlueprintInfo::from_path("blueprints/Player.glb"),
             SpawnBlueprint,
         ));
 

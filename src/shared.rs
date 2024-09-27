@@ -15,9 +15,12 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((PhysicsPlugins::new(FixedUpdate), BlenvyPlugin::default()))
-            .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
-            .insert_resource(Gravity(Vec2::ZERO));
+        app.add_plugins((
+            PhysicsPlugins::new(FixedUpdate).with_length_unit(100.0),
+            BlenvyPlugin::default(),
+        ))
+        .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
+        .insert_resource(Gravity(Vec2::ZERO));
 
         app.configure_sets(
             FixedUpdate,
