@@ -2,7 +2,7 @@ use crate::grid_spawning::grid_spawn::{
     spawn_rectangle_grid, spawn_rectangle_grid_system, Grid, RectangleGridSize,
     SpawnRectangleGridEvent,
 };
-use crate::procedural_algorithm::random_walk_cave::generate_random_walk_cave;
+use crate::procedural_algorithm::random_walk_cave::{create_cave_map, CaveConfig};
 use crate::rectangle_spawning::rectangle_entity::{RectangleConfig, RectangleMaterialHandle};
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
@@ -102,14 +102,18 @@ impl Plugin for RectangleBatchSpawnPlugin {
         // Create an empty map for the cave generation
         let initial_map = Grid::new(grid_size.width, grid_size.height, 1); // Start with all walls (1s)
 
+        // Create a CaveConfig instance
+        let cave_config = CaveConfig {
+            map_width: grid_size.width,
+            map_height: grid_size.height,
+            random_seed: seed,
+            empty_space_percentage: required_empty_percent,
+            edge_thickness: 1,
+            max_dig_attempts: 10000, // or any other value you prefer
+        };
+
         // Generate the cave map using the random walk algorithm
-        let cave_map = generate_random_walk_cave(
-            initial_map,
-            grid_size.width,
-            grid_size.height,
-            seed,
-            required_empty_percent,
-        );
+        let cave_map = create_cave_map(initial_map, cave_config);
 
         app.insert_resource(RectanglePool::new(20_000)) // Corrected
             .insert_resource(RectangleBatchSpawner::default())
