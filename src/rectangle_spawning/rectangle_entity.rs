@@ -30,25 +30,25 @@ impl Default for RectangleDimension {
 pub struct RectangleConfig {
     pub width: RectangleDimension,
     pub height: RectangleDimension,
+    pub color: Color,
 }
 
 impl RectangleConfig {
-    pub fn new(width: RectangleDimension, height: RectangleDimension) -> Self {
-        Self { width, height }
+    pub fn new(width: RectangleDimension, height: RectangleDimension, color: Color) -> Self {
+        Self {
+            width,
+            height,
+            color,
+        }
     }
 
     pub fn default() -> Self {
         Self::new(
             RectangleDimension::new(100.0).unwrap(),
             RectangleDimension::new(100.0).unwrap(),
+            Color::srgb(0.0, 0.5, 0.8),
         )
     }
-}
-
-// Resource to store the Handle<ColorMaterial>
-#[derive(Resource, Clone)]
-pub struct RectangleMaterialHandle {
-    pub handle: Handle<ColorMaterial>,
 }
 
 // Creates a mesh for the rectangle
@@ -66,7 +66,7 @@ fn create_rectangle_mesh(
 pub fn spawn_rectangle(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &Res<RectangleMaterialHandle>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
     config: RectangleConfig,
     position: Transform,
 ) -> Result<(), String> {
@@ -74,7 +74,7 @@ pub fn spawn_rectangle(
         create_rectangle_mesh(meshes, config.width.value(), config.height.value())?;
     commands.spawn(MaterialMesh2dBundle {
         mesh: rectangle_handle,
-        material: materials.handle.clone(),
+        material: materials.add(config.color),
         transform: position,
         ..default()
     });

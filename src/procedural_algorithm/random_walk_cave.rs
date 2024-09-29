@@ -1,103 +1,82 @@
 use crate::grid_spawning::grid_spawn::Grid;
-use bevy::utils::HashMap;
 use rand::Rng;
 use rand::SeedableRng;
 
-/// Creates a cave map using the Random Walk algorithm.
+/// Generates a cave map using the Random Walk algorithm on an existing map and returns it.
 pub fn generate_random_walk_cave(
     grid: Grid,
     width: usize,
     height: usize,
     seed: u32,
     required_empty_percent: f32,
-    border_size: usize,
 ) -> Grid {
-    let mut map = grid.data.clone(); // Copy the map
-    perform_random_walk(
-        &mut map,
-        width,
-        height,
-        seed,
-        required_empty_percent,
-        border_size,
-    );
-    Grid {
-        data: map,
-        border_size,
-    } // Return the new map
+    let mut map = grid.0.clone(); // Clone the Vec<i32> from Grid
+    random_walk_cave(&mut map, width, height, seed, required_empty_percent);
+    Grid(map) // Return the modified Grid
 }
 
-/// Does the Random Walk to make the cave.
-fn perform_random_walk(
-    map: &mut HashMap<(usize, usize), i32>,
+/// Generates a cave-like map using the Random Walk Algorithm.
+fn random_walk_cave(
+    map: &mut [i32],
     width: usize,
     height: usize,
     seed: u32,
     required_empty_percent: f32,
-    border_size: usize,
 ) {
-    let total_tiles = (width - 2 * border_size) * (height - 2 * border_size);
+    let total_tiles = width * height;
     let required_empty_tiles =
         (total_tiles as f32 * required_empty_percent / 100.0).round() as usize;
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed as u64);
 
-    let (mut current_x, mut current_y) = get_random_start(&mut rng, width, height, border_size);
-    let mut empty_tile_count = 1; // Start with one empty tile
+    let (mut floor_x, mut floor_y) = random_start_position(width, height, &mut rng);
+    let mut empty_tile_count = 1; // Starting position is already counted as empty
     const MAX_ITERATIONS: usize = 10000;
 
-    set_tile(map, current_x, current_y, 0); // Make the start tile empty
+    set_tile(map, width, floor_x, floor_y, 0); // Set starting position to empty
 
-    let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]; // Directions to move
-    let mut iterations = 0; // Count the steps
+    let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+    let mut iterations = 0; // Track the number of iterations
 
     while empty_tile_count < required_empty_tiles && iterations < MAX_ITERATIONS {
         let (dx, dy) = directions[rng.gen_range(0..4)];
         let (new_x, new_y) = (
-            (current_x as isize + dx) as usize,
-            (current_y as isize + dy) as usize,
+            (floor_x as isize + dx) as usize,
+            (floor_y as isize + dy) as usize,
         );
 
-        if is_within_bounds(new_x, new_y, width, height, border_size) {
-            if get_tile(map, new_x, new_y) == 1 {
-                // If it's a wall, make it empty
-                set_tile(map, new_x, new_y, 0);
-                empty_tile_count += 1; // Count the new empty tile
-                if empty_tile_count >= required_empty_tiles {
-                    break; // Early exit if required empty tiles are achieved
-                }
+        if is_within_bounds(new_x, new_y, width, height) {
+            if get_tile(map, width, new_x, new_y) == 1 {
+                // Check if the tile is a wall
+                set_tile(map, width, new_x, new_y, 0); // Convert wall to empty
+                empty_tile_count += 1; // Increment empty tile count
             }
-            // Move to the new position
-            current_x = new_x;
-            current_y = new_y;
+            // Update current position
+            floor_x = new_x;
+            floor_y = new_y;
         } else {
-            iterations += 1; // Count the step if out of bounds
+            iterations += 1; // Increment iterations if out of bounds
         }
     }
 }
 
-/// Gets a random start position inside the map.
-fn get_random_start(
-    rng: &mut impl Rng,
-    width: usize,
-    height: usize,
-    border_size: usize,
-) -> (usize, usize) {
-    let x = rng.gen_range(border_size..width - border_size);
-    let y = rng.gen_range(border_size..height - border_size);
+/// Generates a random starting position within the map's bounds.
+fn random_start_position(width: usize, height: usize, rng: &mut impl Rng) -> (usize, usize) {
+    let x = rng.gen_range(1..width - 1);
+    let y = rng.gen_range(1..height - 1);
     (x, y)
 }
 
-/// Checks if the position is inside the map.
-fn is_within_bounds(x: usize, y: usize, width: usize, height: usize, border_size: usize) -> bool {
-    x >= border_size && x < width - border_size && y >= border_size && y < height - border_size
+/// Checks if the given coordinates are within the bounds of the map.
+fn is_within_bounds(x: usize, y: usize, width: usize, height: usize) -> bool {
+    x > 0 && x < width - 1 && y > 0 && y < height - 1
 }
 
-/// Gets the value of a tile.
-fn get_tile(map: &HashMap<(usize, usize), i32>, x: usize, y: usize) -> i32 {
-    *map.get(&(x, y)).unwrap_or(&1)
+/// Gets the tile value at the specified coordinates.
+fn get_tile(map: &[i32], width: usize, x: usize, y: usize) -> i32 {
+    map[y * width + x]
 }
 
-/// Sets the value of a tile.
-fn set_tile(map: &mut HashMap<(usize, usize), i32>, x: usize, y: usize, value: i32) {
-    map.insert((x, y), value);
+/// Sets the tile value at the specified coordinates.
+fn set_tile(map: &mut [i32], width: usize, x: usize, y: usize, value: i32) {
+    map[y * width + x] = value;
 }
