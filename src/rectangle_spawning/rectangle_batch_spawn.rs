@@ -1,6 +1,6 @@
 use crate::grid_spawning::grid_spawn::{spawn_rectangle_grid, Grid, RectangleGridSize};
 use crate::procedural_algorithm::random_walk_cave::generate_random_walk_cave;
-use crate::rectangle_spawning::rectangle_entity::RectangleConfig;
+use crate::rectangle_spawning::rectangle_entity::{RectangleConfig, RectangleMaterialHandle};
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 use rand::Rng;
@@ -24,7 +24,7 @@ impl Default for RectangleBatchSpawner {
 pub fn batch_spawn_rectangles(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    materials: Res<RectangleMaterialHandle>, // Ensure this is Res<RectangleMaterialHandle>
     mut pool: ResMut<RectanglePool>,
     mut spawner: ResMut<RectangleBatchSpawner>,
     grid_size: Res<RectangleGridSize>,
@@ -37,7 +37,7 @@ pub fn batch_spawn_rectangles(
     spawn_rectangles_frame_by_frame(
         &mut commands,
         &mut meshes,
-        &mut materials,
+        materials, // Pass the Res<RectangleMaterialHandle> directly
         &mut pool,
         &mut spawner,
         &grid_size,
@@ -58,17 +58,17 @@ fn fill_spawn_queue(spawner: &mut RectangleBatchSpawner, pool: &mut RectanglePoo
 fn spawn_rectangles_frame_by_frame(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
+    materials: Res<RectangleMaterialHandle>, // Ensure this is Res<RectangleMaterialHandle>
     pool: &mut RectanglePool,
     spawner: &mut RectangleBatchSpawner,
     grid_size: &RectangleGridSize,
     grid: &Grid,
 ) {
-    let spawn_per_frame = 100;
+    let spawn_per_frame = 100; // Consider tuning this value based on performance metrics
 
     for _ in 0..spawn_per_frame {
         if let Some(config) = spawner.spawn_queue.pop_front() {
-            spawn_rectangle_grid(commands, meshes, materials, pool, config, grid_size, grid);
+            spawn_rectangle_grid(commands, meshes, &materials, pool, config, grid_size, grid);
         } else {
             break; // No more configurations to spawn in this frame
         }
@@ -82,9 +82,10 @@ impl Plugin for RectangleBatchSpawnPlugin {
         let grid_size = RectangleGridSize::new(200, 100);
         let seed = rand::thread_rng().gen_range(0..u32::MAX); // Choose a seed for the random number generator
         let required_empty_percent = 40.0; // Percentage of empty spaces in the cave
+        let border_size = 1; // Define the border size
 
         // Create an empty map for the cave generation
-        let initial_map = Grid::new(grid_size.width, grid_size.height, 1); // Start with all walls (1s)
+        let initial_map = Grid::new(grid_size.width, grid_size.height, 1, border_size); // Start with all walls (1s)
 
         // Generate the cave map using the random walk algorithm
         let cave_map = generate_random_walk_cave(
@@ -93,9 +94,10 @@ impl Plugin for RectangleBatchSpawnPlugin {
             grid_size.height,
             seed,
             required_empty_percent,
+            border_size,
         );
 
-        app.insert_resource(RectanglePool::new(20_000)) // Corrected
+        app.insert_resource(RectanglePool::new(20_000)) // Consider dynamically adjusting pool size
             .insert_resource(RectangleBatchSpawner::default())
             .insert_resource(cave_map) // Insert the generated grid
             .insert_resource(grid_size)
@@ -106,5 +108,5 @@ impl Plugin for RectangleBatchSpawnPlugin {
 
 // Placeholder for preload_rectangles function
 fn preload_rectangles(mut pool: ResMut<RectanglePool>) {
-    pool.preload(20_000);
+    pool.preload(20_000); // Consider dynamically adjusting pool size
 }
