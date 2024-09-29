@@ -2,12 +2,17 @@ use crate::rectangle_spawning::rectangle_entity::{spawn_rectangle, RectangleConf
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 
+// Constants for default values
+const DEFAULT_WIDTH: usize = 100;
+const DEFAULT_HEIGHT: usize = 100;
+
+// Represents a grid of integers
 #[derive(Resource, Clone)]
 pub struct Grid(pub Vec<i32>);
 
 impl Grid {
+    // Creates a new grid filled with a specified value (0 or 1)
     pub fn new(width: usize, height: usize, fill_value: i32) -> Self {
-        // Create a grid filled with the specified fill_value (0 or 1)
         let grid = vec![fill_value; height * width];
         Self(grid)
     }
@@ -18,6 +23,7 @@ impl Grid {
     }
 }
 
+// Represents the size of the rectangle grid
 #[derive(Resource)]
 pub struct RectangleGridSize {
     pub width: usize,
@@ -25,20 +31,23 @@ pub struct RectangleGridSize {
 }
 
 impl RectangleGridSize {
+    // Creates a new RectangleGridSize with specified width and height
     pub fn new(width: usize, height: usize) -> Self {
         Self { width, height }
     }
 }
 
+// Provides default values for RectangleGridSize
 impl Default for RectangleGridSize {
     fn default() -> Self {
         Self {
-            width: 100,
-            height: 100,
+            width: DEFAULT_WIDTH,
+            height: DEFAULT_HEIGHT,
         }
     }
 }
 
+// Function to spawn rectangles based on the grid
 pub fn spawn_rectangle_grid(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
@@ -46,7 +55,7 @@ pub fn spawn_rectangle_grid(
     pool: &mut RectanglePool,
     config: RectangleConfig,
     grid_size: &RectangleGridSize,
-    grid: &Grid, // Use the grid resource
+    grid: &Grid,
 ) {
     let (rect_width, rect_height) = (config.width.value(), config.height.value());
 
@@ -61,5 +70,35 @@ pub fn spawn_rectangle_grid(
                 }
             }
         }
+    }
+}
+
+// Event to trigger the spawning of the rectangle grid
+#[derive(Event)]
+pub struct SpawnRectangleGridEvent;
+
+// System that listens for the SpawnRectangleGridEvent and calls the spawn_rectangle_grid function
+pub fn spawn_rectangle_grid_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut pool: ResMut<RectanglePool>,
+    config: Res<RectangleConfig>,
+    grid_size: Res<RectangleGridSize>,
+    grid: Res<Grid>,
+    mut event_reader: EventReader<SpawnRectangleGridEvent>,
+) {
+    // Check if the event was triggered
+    for _ in event_reader.read() {
+        // Call the spawn_rectangle_grid function
+        spawn_rectangle_grid(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            &mut pool,
+            config.clone(),
+            &grid_size,
+            &grid,
+        );
     }
 }

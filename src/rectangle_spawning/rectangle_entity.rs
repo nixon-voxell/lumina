@@ -26,7 +26,7 @@ impl Default for RectangleDimension {
 }
 
 // Configuration for the rectangle's properties
-#[derive(Debug, Default, Clone, Component)]
+#[derive(Debug, Default, Clone, Component, Resource)]
 pub struct RectangleConfig {
     pub width: RectangleDimension,
     pub height: RectangleDimension,

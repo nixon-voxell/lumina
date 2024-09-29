@@ -1,4 +1,7 @@
-use crate::grid_spawning::grid_spawn::{spawn_rectangle_grid, Grid, RectangleGridSize};
+use crate::grid_spawning::grid_spawn::{
+    spawn_rectangle_grid, spawn_rectangle_grid_system, Grid, RectangleGridSize,
+    SpawnRectangleGridEvent,
+};
 use crate::procedural_algorithm::random_walk_cave::generate_random_walk_cave;
 use crate::rectangle_spawning::rectangle_entity::RectangleConfig;
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
@@ -99,8 +102,11 @@ impl Plugin for RectangleBatchSpawnPlugin {
             .insert_resource(RectangleBatchSpawner::default())
             .insert_resource(cave_map) // Insert the generated grid
             .insert_resource(grid_size)
+            .insert_resource(RectangleConfig::default()) // Insert the RectangleConfig resource
+            .add_event::<SpawnRectangleGridEvent>() // Add the event
             .add_systems(Startup, preload_rectangles)
-            .add_systems(Update, batch_spawn_rectangles);
+            .add_systems(Update, batch_spawn_rectangles)
+            .add_systems(Update, spawn_rectangle_grid_system); // Add the system
     }
 }
 
