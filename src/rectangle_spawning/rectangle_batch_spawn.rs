@@ -7,31 +7,19 @@ use crate::rectangle_spawning::rectangle_entity::{RectangleConfig, RectangleMate
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 use rand::Rng;
-use std::collections::VecDeque;
 
 // This struct keeps track of how many rectangles to spawn at once and the queue of rectangles to be spawned.
 #[derive(Resource)]
 pub struct RectangleBatchSpawner {
     pub batch_size: usize,
-    pub spawn_queue: VecDeque<RectangleConfig>,
+    pub progress: usize,
 }
 
 impl Default for RectangleBatchSpawner {
     fn default() -> Self {
         Self {
             batch_size: 100,
-            spawn_queue: VecDeque::new(),
-        }
-    }
-}
-
-// This function fills the spawn queue with rectangle configurations from the pool.
-fn fill_spawn_queue(spawner: &mut RectangleBatchSpawner, pool: &mut RectanglePool) {
-    while spawner.spawn_queue.len() < spawner.batch_size {
-        if let Some(config) = pool.get() {
-            spawner.spawn_queue.push_back(config);
-        } else {
-            break; // No more configurations available to spawn
+            progress: 0,
         }
     }
 }
@@ -49,18 +37,23 @@ fn spawn_rectangles_frame_by_frame(
     let spawn_per_frame = 100;
 
     for _ in 0..spawn_per_frame {
-        if let Some(config) = spawner.spawn_queue.pop_front() {
-            spawn_rectangle_grid(
-                commands,
-                meshes,
-                pool,
-                material_handle,
-                config,
-                grid_size,
-                grid,
-            );
+        if spawner.progress < spawner.batch_size {
+            if let Some(config) = pool.get() {
+                spawn_rectangle_grid(
+                    commands,
+                    meshes,
+                    pool,
+                    material_handle,
+                    config,
+                    grid_size,
+                    grid,
+                );
+                spawner.progress += 1;
+            } else {
+                break; // No more configurations to spawn
+            }
         } else {
-            break; // No more configurations to spawn in this frame
+            break; // Batch size limit reached
         }
     }
 }
@@ -76,8 +69,8 @@ pub fn batch_spawn_rectangles(
     material_handle: Res<RectangleMaterialHandle>,
     mut event_writer: EventWriter<BatchSpawnRectanglesEvent>,
 ) {
-    // Fill the spawn queue with configurations
-    fill_spawn_queue(&mut spawner, &mut pool);
+    // Reset the progress
+    spawner.progress = 0;
 
     // Spawn rectangles frame by frame
     spawn_rectangles_frame_by_frame(
