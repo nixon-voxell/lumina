@@ -25,31 +25,6 @@ impl Default for RectangleBatchSpawner {
     }
 }
 
-// This function is called to start the batch spawning process.
-pub fn batch_spawn_rectangles(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut pool: ResMut<RectanglePool>,
-    mut spawner: ResMut<RectangleBatchSpawner>,
-    grid_size: Res<RectangleGridSize>,
-    grid: Res<Grid>,
-    material_handle: Res<RectangleMaterialHandle>,
-) {
-    // Fill the spawn queue with configurations
-    fill_spawn_queue(&mut spawner, &mut pool);
-
-    // Spawn rectangles frame by frame
-    spawn_rectangles_frame_by_frame(
-        &mut commands,
-        &mut meshes,
-        &mut pool,
-        &mut spawner,
-        &grid_size,
-        &grid,
-        &material_handle,
-    );
-}
-
 // This function fills the spawn queue with rectangle configurations from the pool.
 fn fill_spawn_queue(spawner: &mut RectangleBatchSpawner, pool: &mut RectanglePool) {
     while spawner.spawn_queue.len() < spawner.batch_size {
@@ -90,6 +65,33 @@ fn spawn_rectangles_frame_by_frame(
     }
 }
 
+// This function is called to start the batch spawning process.
+pub fn batch_spawn_rectangles(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut pool: ResMut<RectanglePool>,
+    mut spawner: ResMut<RectangleBatchSpawner>,
+    grid_size: Res<RectangleGridSize>,
+    grid: Res<Grid>,
+    material_handle: Res<RectangleMaterialHandle>,
+    mut event_writer: EventWriter<BatchSpawnRectanglesEvent>,
+) {
+    // Fill the spawn queue with configurations
+    fill_spawn_queue(&mut spawner, &mut pool);
+
+    // Spawn rectangles frame by frame
+    spawn_rectangles_frame_by_frame(
+        &mut commands,
+        &mut meshes,
+        &mut pool,
+        &mut spawner,
+        &grid_size,
+        &grid,
+        &material_handle,
+    );
+    event_writer.send(BatchSpawnRectanglesEvent);
+}
+
 // This plugin sets up the batch spawning system.
 pub struct RectangleBatchSpawnPlugin;
 
@@ -121,13 +123,15 @@ impl Plugin for RectangleBatchSpawnPlugin {
             .insert_resource(grid_size)
             .insert_resource(RectangleConfig::default()) // Insert the RectangleConfig resource
             .add_event::<SpawnRectangleGridEvent>() // Add the event
+            .add_event::<BatchSpawnRectanglesEvent>() // Add the new event
             .add_systems(Startup, preload_rectangles)
             .add_systems(Update, batch_spawn_rectangles)
-            .add_systems(Update, spawn_rectangle_grid_system); // Add the system
+            .add_systems(Update, spawn_rectangle_grid_system) // Add the system
+            .add_systems(Update, handle_batch_spawn_rectangles_event); // Add the new system
     }
 }
 
-// Placeholder for preload_rectangles function
+// This function preloads rectangles into the pool and creates a material handle.
 fn preload_rectangles(
     mut pool: ResMut<RectanglePool>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -138,4 +142,32 @@ fn preload_rectangles(
     // Create and store the material handle
     let material_handle = materials.add(ColorMaterial::from(Color::srgb(0.0, 0.5, 0.8)));
     commands.insert_resource(RectangleMaterialHandle(material_handle));
+}
+
+// Event to trigger batch spawning of rectangles.
+#[derive(Event)]
+pub struct BatchSpawnRectanglesEvent;
+
+// This function handles the batch spawn rectangles event.
+fn handle_batch_spawn_rectangles_event(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut pool: ResMut<RectanglePool>,
+    mut spawner: ResMut<RectangleBatchSpawner>,
+    grid_size: Res<RectangleGridSize>,
+    grid: Res<Grid>,
+    material_handle: Res<RectangleMaterialHandle>,
+    mut event_reader: EventReader<BatchSpawnRectanglesEvent>,
+) {
+    for _ in event_reader.read() {
+        spawn_rectangles_frame_by_frame(
+            &mut commands,
+            &mut meshes,
+            &mut pool,
+            &mut spawner,
+            &grid_size,
+            &grid,
+            &material_handle,
+        );
+    }
 }
