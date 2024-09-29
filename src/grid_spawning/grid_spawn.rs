@@ -1,4 +1,6 @@
-use crate::rectangle_spawning::rectangle_entity::{spawn_rectangle, RectangleConfig};
+use crate::rectangle_spawning::rectangle_entity::{
+    spawn_rectangle, RectangleConfig, RectangleMaterialHandle,
+};
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 
@@ -51,8 +53,8 @@ impl Default for RectangleGridSize {
 pub fn spawn_rectangle_grid(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
     pool: &mut RectanglePool,
+    material_handle: &RectangleMaterialHandle,
     config: RectangleConfig,
     grid_size: &RectangleGridSize,
     grid: &Grid,
@@ -65,7 +67,7 @@ pub fn spawn_rectangle_grid(
                 let position =
                     Transform::from_xyz(x as f32 * rect_width, y as f32 * rect_height, 0.0);
                 if let Some(rect_config) = pool.get() {
-                    spawn_rectangle(commands, meshes, materials, rect_config, position)
+                    spawn_rectangle(commands, meshes, material_handle, rect_config, position)
                         .expect("Failed to spawn rectangle");
                 }
             }
@@ -81,8 +83,8 @@ pub struct SpawnRectangleGridEvent;
 pub fn spawn_rectangle_grid_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut pool: ResMut<RectanglePool>,
+    material_handle: Res<RectangleMaterialHandle>,
     config: Res<RectangleConfig>,
     grid_size: Res<RectangleGridSize>,
     grid: Res<Grid>,
@@ -94,8 +96,8 @@ pub fn spawn_rectangle_grid_system(
         spawn_rectangle_grid(
             &mut commands,
             &mut meshes,
-            &mut materials,
             &mut pool,
+            &material_handle,
             config.clone(),
             &grid_size,
             &grid,

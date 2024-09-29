@@ -3,12 +3,13 @@ use crate::grid_spawning::grid_spawn::{
     SpawnRectangleGridEvent,
 };
 use crate::procedural_algorithm::random_walk_cave::generate_random_walk_cave;
-use crate::rectangle_spawning::rectangle_entity::RectangleConfig;
+use crate::rectangle_spawning::rectangle_entity::{RectangleConfig, RectangleMaterialHandle};
 use crate::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 use rand::Rng;
 use std::collections::VecDeque;
 
+// This struct keeps track of how many rectangles to spawn at once and the queue of rectangles to be spawned.
 #[derive(Resource)]
 pub struct RectangleBatchSpawner {
     pub batch_size: usize,
@@ -24,14 +25,15 @@ impl Default for RectangleBatchSpawner {
     }
 }
 
+// This function is called to start the batch spawning process.
 pub fn batch_spawn_rectangles(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut pool: ResMut<RectanglePool>,
     mut spawner: ResMut<RectangleBatchSpawner>,
     grid_size: Res<RectangleGridSize>,
     grid: Res<Grid>,
+    material_handle: Res<RectangleMaterialHandle>,
 ) {
     // Fill the spawn queue with configurations
     fill_spawn_queue(&mut spawner, &mut pool);
@@ -40,14 +42,15 @@ pub fn batch_spawn_rectangles(
     spawn_rectangles_frame_by_frame(
         &mut commands,
         &mut meshes,
-        &mut materials,
         &mut pool,
         &mut spawner,
         &grid_size,
         &grid,
+        &material_handle,
     );
 }
 
+// This function fills the spawn queue with rectangle configurations from the pool.
 fn fill_spawn_queue(spawner: &mut RectangleBatchSpawner, pool: &mut RectanglePool) {
     while spawner.spawn_queue.len() < spawner.batch_size {
         if let Some(config) = pool.get() {
@@ -58,26 +61,36 @@ fn fill_spawn_queue(spawner: &mut RectangleBatchSpawner, pool: &mut RectanglePoo
     }
 }
 
+// This function spawns rectangles frame by frame from the spawn queue.
 fn spawn_rectangles_frame_by_frame(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
     pool: &mut RectanglePool,
     spawner: &mut RectangleBatchSpawner,
     grid_size: &RectangleGridSize,
     grid: &Grid,
+    material_handle: &RectangleMaterialHandle,
 ) {
     let spawn_per_frame = 100;
 
     for _ in 0..spawn_per_frame {
         if let Some(config) = spawner.spawn_queue.pop_front() {
-            spawn_rectangle_grid(commands, meshes, materials, pool, config, grid_size, grid);
+            spawn_rectangle_grid(
+                commands,
+                meshes,
+                pool,
+                material_handle,
+                config,
+                grid_size,
+                grid,
+            );
         } else {
             break; // No more configurations to spawn in this frame
         }
     }
 }
 
+// This plugin sets up the batch spawning system.
 pub struct RectangleBatchSpawnPlugin;
 
 impl Plugin for RectangleBatchSpawnPlugin {
@@ -111,6 +124,14 @@ impl Plugin for RectangleBatchSpawnPlugin {
 }
 
 // Placeholder for preload_rectangles function
-fn preload_rectangles(mut pool: ResMut<RectanglePool>) {
+fn preload_rectangles(
+    mut pool: ResMut<RectanglePool>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut commands: Commands,
+) {
     pool.preload(20_000);
+
+    // Create and store the material handle
+    let material_handle = materials.add(ColorMaterial::from(Color::srgb(0.0, 0.5, 0.8)));
+    commands.insert_resource(RectangleMaterialHandle(material_handle));
 }
