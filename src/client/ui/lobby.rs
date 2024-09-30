@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
-use velyst::{prelude::*, typst_element::prelude::*};
+use velyst::{prelude::*, typst_element::prelude::*, typst_vello::Layer};
 
 use crate::{
     client::lobby::LobbyState,
@@ -37,6 +37,20 @@ impl Plugin for LobbyUiPlugin {
     }
 }
 
+// struct TestSceneProcessor;
+
+// impl SceneProcesser for TestSceneProcessor {
+//     fn process_scene(&self, _: usize, scene: &SceneKind) -> bevy_vello::vello::Scene {
+//         match scene {
+//             SceneKind::Shape(shape) => {
+
+//             },
+//             SceneKind::Text(_) => todo!(),
+//             SceneKind::Image(_) => todo!(),
+//         }
+//     }
+// }
+
 fn setup(mut scene: ResMut<VelystScene<LobbyFunc>>) {
     scene.visibility = Visibility::Hidden;
 }
@@ -70,6 +84,17 @@ fn exit_lobby(
 ) {
     lobby_scene.visibility = Visibility::Hidden;
     menu_scene.visibility = Visibility::Inherited;
+
+    lobby_scene.post_process_map.insert(
+        TypLabel::new("btn:exit-lobby"),
+        velyst::typst_vello::PostProcess {
+            layer: Some(Layer {
+                alpha: 0.1,
+                ..default()
+            }),
+            ..default()
+        },
+    );
 }
 
 #[derive(TypstFunc, Resource, Default)]

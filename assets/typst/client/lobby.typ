@@ -16,7 +16,6 @@
   max_player_count: 0,
   room_id: none,
 ) = {
-
   interactable_window(
     width,
     height,
