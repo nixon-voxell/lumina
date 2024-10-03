@@ -89,7 +89,7 @@ fn exit_lobby(
         TypLabel::new("btn:exit-lobby"),
         velyst::typst_vello::PostProcess {
             layer: Some(Layer {
-                alpha: 0.1,
+                alpha: 0.5,
                 ..default()
             }),
             ..default()
