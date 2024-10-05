@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use client::*;
-use lightyear::prelude::*;
+
+use super::player::MyPlayer;
 
 pub(super) struct CameraPlugin;
 
@@ -18,7 +18,7 @@ fn spawn_game_camera(mut commands: Commands) {
         GameCamera,
         Camera2dBundle {
             camera: Camera {
-                clear_color: Color::NONE.into(),
+                clear_color: Color::from(Srgba::hex("19181A").unwrap()).into(),
                 ..default()
             },
             ..default()
@@ -27,21 +27,29 @@ fn spawn_game_camera(mut commands: Commands) {
 }
 
 fn follow_player(
-    mut q_camera: Query<&mut Transform, (With<GameCamera>, Without<Predicted>)>,
-    // TODO: Actually query for With<PlayerId>, With<Position>
+    mut q_transforms: Query<&mut Transform>,
+    q_camera: Query<Entity, With<GameCamera>>,
     // TODO: Checkout Interpolated, what does it do?
-    q_player: Query<&Transform, (With<Predicted>, Without<GameCamera>)>,
+    q_player: Query<Entity, With<MyPlayer>>,
     time: Res<Time>,
 ) {
     // Adjust this value for more or less delay.
-    const LERP_FACTOR: f32 = 4.0;
+    const LERP_FACTOR: f32 = 2.0;
 
     // Ensure we have at least one player.
-    let Ok(player_transform) = q_player.get_single() else {
+    let Some(player_transform) = q_player
+        .get_single()
+        .ok()
+        .and_then(|e| q_transforms.get(e).ok().copied())
+    else {
         return;
     };
 
-    let Ok(mut camera_transform) = q_camera.get_single_mut() else {
+    let Some(mut camera_transform) = q_camera
+        .get_single()
+        .ok()
+        .and_then(|e| q_transforms.get_mut(e).ok())
+    else {
         return;
     };
 

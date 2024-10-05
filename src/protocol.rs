@@ -40,6 +40,14 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
+        app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
             .add_interpolation(ComponentSyncMode::Full)

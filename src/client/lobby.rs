@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 
@@ -10,11 +11,17 @@ pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_sub_state::<LobbyState>().add_systems(
-            Update,
-            handle_lobby_status_update.run_if(in_state(Connection::Connected)),
-        );
+        app.add_sub_state::<LobbyState>()
+            .add_systems(Startup, spawn_lobby)
+            .add_systems(
+                Update,
+                handle_lobby_status_update.run_if(in_state(Connection::Connected)),
+            );
     }
+}
+
+fn spawn_lobby(mut commands: Commands) {
+    commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
 }
 
 /// Update [`LobbyFunc`] and [`LobbyState`] based on [`LobbyStatus`].

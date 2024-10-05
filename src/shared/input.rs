@@ -22,10 +22,7 @@ impl ReplicateInputBundle {
                 group: INPUT_REPLICATION_GROUP,
                 ..default()
             },
-            input: InputManagerBundle::<PlayerAction> {
-                action_state: ActionState::default(),
-                input_map: PlayerAction::input_map(),
-            },
+            input: InputManagerBundle::<PlayerAction>::with_map(PlayerAction::input_map()),
             prepredicted: PrePredicted::default(),
         }
     }

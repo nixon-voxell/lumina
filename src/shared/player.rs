@@ -3,15 +3,15 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use super::{input::PlayerAction, FixedSet};
+use super::{input::PlayerAction, MovementSet};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerMovement>()
-            .add_systems(Update, init_players)
-            .add_systems(FixedUpdate, player_movement.in_set(FixedSet::Main));
+            .add_systems(PostUpdate, init_players)
+            .add_systems(FixedUpdate, player_movement.in_set(MovementSet::Physics));
     }
 }
 
@@ -28,6 +28,8 @@ pub fn shared_handle_player_movement(
             return;
         };
 
+        println!("{}", movement);
+
         player_movement_evw.send(PlayerMovement {
             movement,
             player_entity,
@@ -37,20 +39,27 @@ pub fn shared_handle_player_movement(
 
 fn init_players(
     mut commands: Commands,
-    q_players: Query<Entity, (With<SpaceShip>, Without<Collider>)>,
+    q_players: Query<
+        Entity,
+        (
+            With<SpaceShip>,
+            Without<Collider>,
+            Or<(With<Replicating>, With<client::Predicted>)>,
+        ),
+    >,
 ) {
     if q_players.is_empty() {
         return;
     }
 
     let collider = Collider::triangle(
-        Vec2::new(-20.0, -20.0),
         Vec2::new(-20.0, 20.0),
+        Vec2::new(-20.0, -20.0),
         Vec2::new(20.0, 0.0),
     );
 
     for entity in q_players.iter() {
-        info!("\n\nAdding collider for {entity:?}");
+        info!("Adding collider for {entity:?}");
         commands.entity(entity).insert((
             MassPropertiesBundle::new_computed(&collider, 1.0),
             collider.clone(),
@@ -62,10 +71,11 @@ fn player_movement(
     mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
-    const MOVEMENT_SPEED: f32 = 100.0;
+    const MOVEMENT_SPEED: f32 = 50.0;
     // const ROTATION_SPEED: f32 = 0.4;
     const ROTATION_SPEED: f32 = 1.0;
     const MAX_SPEED: f32 = 400.0;
+
     for player_movement in player_movement_evr.read() {
         if let Ok((mut linear, mut angular, rotation)) =
             q_movements.get_mut(player_movement.player_entity)

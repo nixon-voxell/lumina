@@ -10,7 +10,7 @@ use crate::shared::input::PlayerAction;
 use crate::shared::player::{
     shared_handle_player_movement, PlayerId, PlayerMovement, ReplicatePlayerBundle,
 };
-use crate::shared::FixedSet;
+use crate::shared::MovementSet;
 use crate::utils::EntityRoomId;
 
 pub(super) struct LobbyPlugin;
@@ -32,7 +32,10 @@ impl Plugin for LobbyPlugin {
                     execute_exit_lobby,
                 ),
             )
-            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
+            .add_systems(
+                FixedUpdate,
+                handle_player_movement.in_set(MovementSet::Input),
+            );
     }
 }
 
@@ -231,7 +234,7 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 
     let replicate = Replicate {
         sync: SyncTarget {
-            prediction: NetworkTarget::Single(client_id),
+            prediction: NetworkTarget::All,
             interpolation: NetworkTarget::AllExceptSingle(client_id),
         },
         controlled_by: ControlledBy {
@@ -246,6 +249,15 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
         .spawn((
             ReplicatePlayerBundle::new(client_id, Vec2::ZERO, 0.0),
             replicate,
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::WHITE,
+                    custom_size: Some(Vec2::splat(40.0)),
+                    ..default()
+                },
+                // transform: Transform::from_scale(Vec3::splat(20.0)),
+                ..default()
+            },
         ))
         .id()
 }

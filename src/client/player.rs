@@ -1,4 +1,3 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
 use blenvy::*;
@@ -7,19 +6,29 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::shared::input::{PlayerAction, ReplicateInputBundle};
-use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement};
-use crate::shared::FixedSet;
+use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement, SpaceShip};
+use crate::shared::MovementSet;
 
 use super::lobby::LobbyState;
+use super::MyClientId;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (handle_player_spawn, convert_3d_mesh_to_2d))
-            .add_systems(Update, convert_3d_mesh_to_2d)
-            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main))
-            .add_systems(OnEnter(LobbyState::None), despawn_input);
+        app.add_systems(
+            Update,
+            (
+                handle_player_spawn.run_if(resource_exists::<MyClientId>),
+                convert_3d_mesh_to_2d,
+            ),
+        )
+        .add_systems(Update, convert_3d_mesh_to_2d)
+        .add_systems(
+            FixedUpdate,
+            handle_player_movement.in_set(MovementSet::Input),
+        )
+        .add_systems(OnEnter(LobbyState::None), despawn_input);
     }
 }
 
@@ -54,11 +63,16 @@ fn handle_player_spawn(
     mut commands: Commands,
     q_predicted: Query<
         (&PlayerId, Entity, Has<Predicted>),
-        (Or<(Added<Predicted>, Added<Interpolated>)>, With<Position>),
+        (
+            // Or<(Added<Predicted>, Added<Interpolated>)>,
+            Added<Predicted>,
+            Added<SpaceShip>,
+        ),
     >,
+    my_client_id: Res<MyClientId>,
 ) {
-    for (id, entity, is_predicted) in q_predicted.iter() {
-        info!("Spawn predicted entity.");
+    for (player_id, entity, _is_predicted) in q_predicted.iter() {
+        info!("Spawn predicted entity ({:?}).", player_id);
 
         // Add visuals for player.
         commands.entity(entity).insert((
@@ -66,20 +80,19 @@ fn handle_player_spawn(
             SpawnBlueprint,
         ));
 
-        if is_predicted {
+        if player_id.0 == my_client_id.0 {
+            commands.entity(entity).insert(MyPlayer);
             // Replicate input from client to server.
-            commands.spawn(ReplicateInputBundle::new(*id));
+            commands.spawn(ReplicateInputBundle::new(*player_id));
         }
     }
 }
 
+// TODO: Simulate other client's actions as well.
 /// Handle player movement on [`PlayerAction`].
 fn handle_player_movement(
-    q_player: Query<Entity, (With<Predicted>, With<Position>)>,
-    q_action_states: Query<
-        &ActionState<PlayerAction>,
-        (With<PrePredicted>, Changed<ActionState<PlayerAction>>),
-    >,
+    q_player: Query<Entity, With<MyPlayer>>,
+    q_action_states: Query<&ActionState<PlayerAction>, With<PrePredicted>>,
     mut player_movement_evw: EventWriter<PlayerMovement>,
 ) {
     let Ok(action_state) = q_action_states.get_single() else {
@@ -102,3 +115,6 @@ fn despawn_input(
         commands.entity(entity).despawn();
     }
 }
+
+#[derive(Component)]
+pub(super) struct MyPlayer;

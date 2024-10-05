@@ -15,8 +15,32 @@ impl Plugin for UiPlugin {
             },
             VelloGraphicsPlugin,
             VelystPlugin::default(),
-        ));
+        ))
+        .add_systems(Startup, spawn_ui_camera);
     }
+}
+
+/// Spawn camera specifically only for Ui rendering (render layer 1).
+fn spawn_ui_camera(mut commands: Commands) {
+    commands.spawn((
+        Name::new("Ui Camera"),
+        Camera2dBundle {
+            camera: Camera {
+                clear_color: Color::NONE.into(),
+                order: 1,
+                ..default()
+            },
+            ..default()
+        },
+        // Render all UI to this camera.
+        // Not strictly necessary since we only use one camera,
+        // but if we don't use this component, our UI will disappear as soon
+        // as we add another camera. This includes indirect ways of adding cameras like using
+        // [ui node outlines](https://bevyengine.org/news/bevy-0-14/#ui-node-outline-gizmos)
+        // for debugging. So it's good to have this here for future-proofing.
+        IsDefaultUiCamera,
+        RenderLayers::layer(1),
+    ));
 }
 
 pub type InteractionQuery<'a, 'w, 's> =

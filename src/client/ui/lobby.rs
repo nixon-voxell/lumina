@@ -85,16 +85,16 @@ fn exit_lobby(
     lobby_scene.visibility = Visibility::Hidden;
     menu_scene.visibility = Visibility::Inherited;
 
-    lobby_scene.post_process_map.insert(
-        TypLabel::new("btn:exit-lobby"),
-        velyst::typst_vello::PostProcess {
-            layer: Some(Layer {
-                alpha: 0.5,
-                ..default()
-            }),
-            ..default()
-        },
-    );
+    // lobby_scene.post_process_map.insert(
+    //     TypLabel::new("btn:exit-lobby"),
+    //     velyst::typst_vello::PostProcess {
+    //         layer: Some(Layer {
+    //             alpha: 0.5,
+    //             ..default()
+    //         }),
+    //         ..default()
+    //     },
+    // );
 }
 
 #[derive(TypstFunc, Resource, Default)]
