@@ -19149,6 +19149,80 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina::shared::physics::MeshCollider": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::MeshCollider",
+      "oneOf": [
+        "ConvexHull",
+        "Trimesh"
+      ],
+      "short_name": "MeshCollider",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina::shared::physics::MeshRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::MeshRigidbody",
+      "properties": {
+        "collider_type": {
+          "type": {
+            "$ref": "#/$defs/lumina::shared::physics::MeshCollider"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_type"
+      ],
+      "short_name": "MeshRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::physics::PrimitiveRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::PrimitiveRigidbody",
+      "properties": {
+        "collider_constructor": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_constructor"
+      ],
+      "short_name": "PrimitiveRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
       "isComponent": false,
       "isResource": false,

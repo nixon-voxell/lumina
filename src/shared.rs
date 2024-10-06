@@ -1,11 +1,10 @@
 //! This module contains the shared code between the client and the server.
-use avian2d::prelude::*;
-use bevy::{prelude::*, render::view::RenderLayers, utils::Duration};
+use bevy::{prelude::*, utils::Duration};
 use blenvy::BlenvyPlugin;
 use lightyear::prelude::*;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 60.0;
-pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(20);
+pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(100);
 
 pub mod input;
 pub mod physics;
@@ -16,18 +15,13 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            PhysicsPlugins::new(FixedPostUpdate).with_length_unit(100.0),
-            BlenvyPlugin::default(),
-        ))
-        .insert_resource(Time::<Fixed>::from_hz(FIXED_TIMESTEP_HZ))
-        .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
-        .insert_resource(Gravity(Vec2::ZERO));
+        app.add_plugins(BlenvyPlugin::default());
 
         app.add_plugins((
             crate::protocol::ProtocolPlugin,
             crate::ui::UiPlugin,
             player::PlayerPlugin,
+            physics::PhysicsPlugin,
         ));
     }
 }

@@ -20,10 +20,11 @@ impl Plugin for PlayerPlugin {
             Update,
             (
                 handle_player_spawn.run_if(resource_exists::<MyClientId>),
-                convert_3d_mesh_to_2d,
+                convert_3d_to_2d_mesh,
+                convert_std_to_color_material,
             ),
         )
-        .add_systems(Update, convert_3d_mesh_to_2d)
+        .add_systems(Update, convert_3d_to_2d_mesh)
         .add_systems(
             FixedUpdate,
             handle_player_movement.in_set(MovementSet::Input),
@@ -32,14 +33,25 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn convert_3d_mesh_to_2d(
+fn convert_3d_to_2d_mesh(mut commands: Commands, q_meshes: Query<(&Handle<Mesh>, &Name, Entity)>) {
+    for (mesh_handle, name, entity) in q_meshes.iter() {
+        commands
+            .entity(entity)
+            .remove::<Handle<Mesh>>()
+            .insert(Mesh2dHandle(mesh_handle.clone()));
+
+        info!("Converted {name:?} 3d mesh into 2d mesh.");
+    }
+}
+
+fn convert_std_to_color_material(
     mut commands: Commands,
-    q_meshes: Query<(&Handle<Mesh>, &Handle<StandardMaterial>, &Name, Entity)>,
+    q_meshes: Query<(&Handle<StandardMaterial>, &Name, Entity)>,
     std_materials: Res<Assets<StandardMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for (mesh_handle, std_material_handle, name, entity) in q_meshes.iter() {
-        let Some(std_material) = std_materials.get(std_material_handle) else {
+    for (std_material, name, entity) in q_meshes.iter() {
+        let Some(std_material) = std_materials.get(std_material) else {
             continue;
         };
 
@@ -50,11 +62,10 @@ fn convert_3d_mesh_to_2d(
 
         commands
             .entity(entity)
-            .remove::<Handle<Mesh>>()
             .remove::<Handle<StandardMaterial>>()
-            .insert((Mesh2dHandle(mesh_handle.clone()), color_material));
+            .insert(color_material);
 
-        info!("Converted {name:?} into 2d mesh.");
+        info!("Converted {name:?} standard material into color material.");
     }
 }
 

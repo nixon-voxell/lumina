@@ -1,0 +1,3 @@
+({
+    "Crate": File ( path: "blueprints/Crate.glb" ),
+})

@@ -58,7 +58,7 @@ fn cleanup_empty_lobbies(
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
-            println!("Removing empty lobby: {entity:?}");
+            info!("Removing empty lobby: {entity:?}");
             commands.entity(entity).despawn();
         }
     }

@@ -28,8 +28,6 @@ pub fn shared_handle_player_movement(
             return;
         };
 
-        println!("{}", movement);
-
         player_movement_evw.send(PlayerMovement {
             movement,
             player_entity,

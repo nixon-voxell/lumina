@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 
 use super::player::MyPlayer;
@@ -18,7 +19,7 @@ fn spawn_game_camera(mut commands: Commands) {
         GameCamera,
         Camera2dBundle {
             camera: Camera {
-                clear_color: Color::from(Srgba::hex("19181A").unwrap()).into(),
+                clear_color: Color::Srgba(Srgba::hex("19181A").unwrap()).into(),
                 ..default()
             },
             ..default()
@@ -27,36 +28,26 @@ fn spawn_game_camera(mut commands: Commands) {
 }
 
 fn follow_player(
-    mut q_transforms: Query<&mut Transform>,
-    q_camera: Query<Entity, With<GameCamera>>,
-    // TODO: Checkout Interpolated, what does it do?
-    q_player: Query<Entity, With<MyPlayer>>,
+    mut q_camera: Query<&mut Transform, With<GameCamera>>,
+    q_player: Query<&Position, With<MyPlayer>>,
     time: Res<Time>,
 ) {
     // Adjust this value for more or less delay.
     const LERP_FACTOR: f32 = 2.0;
 
     // Ensure we have at least one player.
-    let Some(player_transform) = q_player
-        .get_single()
-        .ok()
-        .and_then(|e| q_transforms.get(e).ok().copied())
-    else {
+    let Ok(player_pos) = q_player.get_single() else {
         return;
     };
 
-    let Some(mut camera_transform) = q_camera
-        .get_single()
-        .ok()
-        .and_then(|e| q_transforms.get_mut(e).ok())
-    else {
+    let Ok(mut camera_transform) = q_camera.get_single_mut() else {
         return;
     };
 
     // Calculate the target position based on player's position.
     let target_position = Vec3::new(
-        player_transform.translation.x,
-        player_transform.translation.y,
+        player_pos.x,
+        player_pos.y,
         camera_transform.translation.z, // Keep the same z position
     );
 
