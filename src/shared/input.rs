@@ -36,6 +36,7 @@ pub enum PlayerAction {
     Move,
     Interact,
     UseItem,
+    Shoot,
 }
 
 impl PlayerAction {
@@ -51,6 +52,7 @@ impl PlayerAction {
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
         input_map.insert(Self::Interact, KeyCode::Space);
+        input_map.insert(Self::Shoot, KeyCode::KeyF);
         input_map.insert(Self::UseItem, MouseButton::Left);
 
         input_map
