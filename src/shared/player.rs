@@ -103,19 +103,17 @@ pub struct PlayerMovement {
 pub struct ReplicatePlayerBundle {
     pub id: PlayerId,
     pub ship: SpaceShip,
-    pub position: Position,
-    pub rotation: Rotation,
     pub physics_bundle: PhysicsBundle,
 }
 
 impl ReplicatePlayerBundle {
-    pub fn new(client_id: ClientId, position: Vec2, rotation: f32) -> Self {
+    pub fn new(client_id: ClientId, position: Position, rotation: Rotation) -> Self {
         Self {
             id: PlayerId(client_id),
             ship: SpaceShip,
-            position: Position::new(position),
-            rotation: Rotation::radians(rotation),
-            physics_bundle: PhysicsBundle::player(),
+            physics_bundle: PhysicsBundle::player()
+                .with_position(position)
+                .with_rotation(rotation),
         }
     }
 }
@@ -137,9 +135,11 @@ pub struct SpaceShip;
 //     pub density: f32,
 // }
 
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct PhysicsBundle {
     pub rigidbody: RigidBody,
+    pub position: Position,
+    pub rotation: Rotation,
     pub linear_damping: LinearDamping,
     pub angular_damping: AngularDamping,
 }
@@ -150,6 +150,35 @@ impl PhysicsBundle {
             rigidbody: RigidBody::Dynamic,
             linear_damping: LinearDamping(2.0),
             angular_damping: AngularDamping(6.0),
+            ..default()
         }
+    }
+}
+
+// Builder pattern.
+impl PhysicsBundle {
+    pub fn with_rigidbody(mut self, rigidbody: RigidBody) -> Self {
+        self.rigidbody = rigidbody;
+        self
+    }
+
+    pub fn with_position(mut self, position: Position) -> Self {
+        self.position = position;
+        self
+    }
+
+    pub fn with_rotation(mut self, rotation: Rotation) -> Self {
+        self.rotation = rotation;
+        self
+    }
+
+    pub fn with_linear_damping(mut self, linear_damping: LinearDamping) -> Self {
+        self.linear_damping = linear_damping;
+        self
+    }
+
+    pub fn with_angular_damping(mut self, angular_damping: AngularDamping) -> Self {
+        self.angular_damping = angular_damping;
+        self
     }
 }
