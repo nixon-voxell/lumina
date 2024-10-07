@@ -175,6 +175,7 @@ pub struct MeshRigidbody {
 }
 
 #[derive(Reflect, Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[reflect(Default, Debug)]
 pub enum MeshCollider {
     #[default]
     ConvexHull,

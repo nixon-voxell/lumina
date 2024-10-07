@@ -17,6 +17,11 @@ impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(BlenvyPlugin::default());
 
+        app.configure_sets(
+            FixedUpdate,
+            (MovementSet::Input, MovementSet::Physics).chain(),
+        );
+
         app.add_plugins((
             crate::protocol::ProtocolPlugin,
             crate::ui::UiPlugin,
