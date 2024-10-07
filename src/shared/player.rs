@@ -7,7 +7,11 @@ use bevy::{
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
+use crate::shared::player;
+
 use super::{input::PlayerAction, FixedSet};
+
+pub mod weapon;
 
 pub(super) struct PlayerPlugin;
 
@@ -125,17 +129,31 @@ pub struct DistanceTraveled {
 }
 
 fn spawn_bullet_mesh(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    //keyboard_input: Res<ButtonInput<KeyCode>>,
+    q_player: Query<&Position, With<client::Predicted>>,
+    q_action_states: Query<
+        &ActionState<PlayerAction>,
+        (With<PrePredicted>, Changed<ActionState<PlayerAction>>),
+    >,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::KeyF) {
+    let Ok(action_state) = q_action_states.get_single() else {
+        return;
+    };
+
+    let Ok(player_position) = q_player.get_single() else {
+        return;
+    };
+    //Make sure to spawn from Player
+    if action_state.pressed(&PlayerAction::Attack) {
         let initial_pos = Vec3::ZERO;
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::default()).into(),
-                transform: Transform::default().with_scale(Vec3::splat(16.)),
+                transform: Transform::from_xyz(player_position.x, player_position.y, 0.0)
+                    .with_scale(Vec3::splat(16.)),
                 material: materials.add(Color::from(WHITE)),
                 ..default()
             },

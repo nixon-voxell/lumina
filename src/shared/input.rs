@@ -35,8 +35,7 @@ impl ReplicateInputBundle {
 pub enum PlayerAction {
     Move,
     Interact,
-    UseItem,
-    Shoot,
+    Attack,
 }
 
 impl PlayerAction {
@@ -47,13 +46,12 @@ impl PlayerAction {
         // Default gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
         input_map.insert(Self::Interact, GamepadButtonType::South);
-        input_map.insert(Self::UseItem, GamepadButtonType::RightTrigger2);
+        input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
         input_map.insert(Self::Interact, KeyCode::Space);
-        input_map.insert(Self::Shoot, KeyCode::KeyF);
-        input_map.insert(Self::UseItem, MouseButton::Left);
+        input_map.insert(Self::Attack, MouseButton::Left);
 
         input_map
     }
