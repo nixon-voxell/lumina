@@ -15,8 +15,6 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        // We change SyncPlugin to PostUpdate, because we want the visually interpreted values
-        // synced to transform every time, not just when Fixed schedule runs.
         app.add_plugins(
             PhysicsPlugins::new(FixedPostUpdate)
                 // 1 pixel is 10 units
@@ -26,8 +24,8 @@ impl Plugin for PhysicsPlugin {
         app.insert_resource(Time::<Fixed>::from_hz(FIXED_TIMESTEP_HZ))
             .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
             .insert_resource(Gravity(Vec2::ZERO))
-            // We use Position and Rotation as primary source of truth, so no need to sync changes
-            // from Transform->Pos, just Pos->Transform.
+            // We use Position and Rotation as primary source of truth,
+            // so no need to sync changes from Transform->Pos, just Pos->Transform.
             .insert_resource(avian2d::sync::SyncConfig {
                 transform_to_position: false,
                 position_to_transform: true,

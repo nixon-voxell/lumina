@@ -87,3 +87,7 @@ pub fn shared_config() -> SharedConfig {
         mode: Mode::Separate,
     }
 }
+
+/// Specify that an entity is not supposed to be networked.
+#[derive(Component, Default, Debug, Clone, Copy)]
+pub struct LocalEntity;

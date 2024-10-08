@@ -5,14 +5,17 @@ use lightyear::prelude::*;
 
 use crate::protocol::LobbyStatus;
 
-use super::{ui::lobby::LobbyFunc, Connection};
+use super::{
+    ui::{lobby::LobbyFunc, Screen},
+    Connection,
+};
 
-pub(super) struct LobbyPlugin;
+pub(super) struct MultiplayerLobbyPlugin;
 
-impl Plugin for LobbyPlugin {
+impl Plugin for MultiplayerLobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_sub_state::<LobbyState>()
-            .add_systems(Startup, spawn_lobby)
+        app.add_sub_state::<MatchmakeState>()
+            .add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
             .add_systems(
                 Update,
                 handle_lobby_status_update.run_if(in_state(Connection::Connected)),
@@ -28,8 +31,8 @@ fn spawn_lobby(mut commands: Commands) {
 fn handle_lobby_status_update(
     mut lobby_status_evr: EventReader<MessageEvent<LobbyStatus>>,
     mut lobby_func: ResMut<LobbyFunc>,
-    lobby_state: Res<State<LobbyState>>,
-    mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    matchmake_state: Res<State<MatchmakeState>>,
+    mut next_matchmake_state: ResMut<NextState<MatchmakeState>>,
 ) {
     for lobby_status in lobby_status_evr.read() {
         let status = lobby_status.message();
@@ -37,18 +40,20 @@ fn handle_lobby_status_update(
         lobby_func.curr_player_count = status.client_count;
         lobby_func.room_id = Some(status.room_id.0);
 
-        // Update lobby state
-        if *lobby_state != LobbyState::Joined {
-            next_lobby_state.set(LobbyState::Joined);
+        // Update matchmake state
+        if *matchmake_state != MatchmakeState::Joined {
+            next_matchmake_state.set(MatchmakeState::Joined);
         }
     }
 }
 
 #[derive(SubStates, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 #[source(Connection = Connection::Connected)]
-pub(super) enum LobbyState {
+pub(super) enum MatchmakeState {
     #[default]
     None,
     Joining,
     Joined,
+    // Starting,
+    // Started,
 }

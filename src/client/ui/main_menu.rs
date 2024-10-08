@@ -3,7 +3,7 @@ use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::client::lobby::LobbyState;
+use crate::client::multiplayer_lobby::MatchmakeState;
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::main_window::push_to_main_window;
@@ -49,25 +49,25 @@ fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
 
 fn play_btn(
     q_interactions: InteractionQuery,
-    mut connection_manager: ResMut<ConnectionManager>,
-    mut lobby_func: ResMut<LobbyFunc>,
-    mut next_lobby_state: ResMut<NextState<LobbyState>>,
+    // mut connection_manager: ResMut<ConnectionManager>,
+    // mut lobby_func: ResMut<LobbyFunc>,
+    // mut next_lobby_state: ResMut<NextState<MatchmakeState>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     // TODO: Support different player count modes.
-    const PLAYER_COUNT: u8 = 2;
+    // const PLAYER_COUNT: u8 = 2;
 
     if pressed(q_interactions.iter(), "btn:play") {
-        lobby_func.curr_player_count = 0;
-        lobby_func.max_player_count = PLAYER_COUNT;
+        // lobby_func.curr_player_count = 0;
+        // lobby_func.max_player_count = PLAYER_COUNT;
 
-        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
-            &Matchmake(PLAYER_COUNT),
-            NetworkTarget::None,
-        );
+        // let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+        //     &Matchmake(PLAYER_COUNT),
+        //     NetworkTarget::None,
+        // );
 
-        next_lobby_state.set(LobbyState::Joining);
-        next_screen_state.set(Screen::MultiplayerLobby);
+        // next_lobby_state.set(MatchmakeState::Joining);
+        next_screen_state.set(Screen::LocalLobby);
     }
 }
 

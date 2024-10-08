@@ -3,14 +3,14 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use super::{input::PlayerAction, MovementSet};
+use super::{input::PlayerAction, LocalEntity, MovementSet};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerMovement>()
-            .add_systems(PostUpdate, init_players)
+            .add_systems(Update, init_players)
             .add_systems(FixedUpdate, player_movement.in_set(MovementSet::Physics));
     }
 }
@@ -42,7 +42,7 @@ fn init_players(
         (
             With<SpaceShip>,
             Without<Collider>,
-            Or<(With<Replicating>, With<client::Predicted>)>,
+            Or<(With<client::Predicted>, With<LocalEntity>)>,
         ),
     >,
 ) {
@@ -66,7 +66,7 @@ fn init_players(
 }
 
 fn player_movement(
-    mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
+    mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<SpaceShip>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
     const MOVEMENT_SPEED: f32 = 50.0;
@@ -103,7 +103,7 @@ pub struct PlayerMovement {
 pub struct ReplicatePlayerBundle {
     pub id: PlayerId,
     pub ship: SpaceShip,
-    pub physics_bundle: PhysicsBundle,
+    pub physics: PhysicsBundle,
 }
 
 impl ReplicatePlayerBundle {
@@ -111,9 +111,28 @@ impl ReplicatePlayerBundle {
         Self {
             id: PlayerId(client_id),
             ship: SpaceShip,
-            physics_bundle: PhysicsBundle::player()
+            physics: PhysicsBundle::player()
                 .with_position(position)
                 .with_rotation(rotation),
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct LocalPlayerBundle {
+    pub ship: SpaceShip,
+    pub physics: PhysicsBundle,
+    pub local: LocalEntity,
+}
+
+impl LocalPlayerBundle {
+    pub fn new(position: Position, rotation: Rotation) -> Self {
+        Self {
+            ship: SpaceShip,
+            physics: PhysicsBundle::player()
+                .with_position(position)
+                .with_rotation(rotation),
+            local: LocalEntity,
         }
     }
 }
@@ -121,18 +140,12 @@ impl ReplicatePlayerBundle {
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
 
-#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
 pub struct SpaceShip;
 
 // pub enum SpaceShipClass {
 //     Tank,
 //     Assassin,
-// }
-
-// TODO: Make a config which gets replicated on the client side...
-// TODO: Create a shared system that converts player config into actual components
-// pub struct PlayerConfig {
-//     pub density: f32,
 // }
 
 #[derive(Bundle, Default)]

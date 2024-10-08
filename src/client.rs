@@ -8,7 +8,8 @@ use crate::settings::NetworkSettings;
 use crate::shared::shared_config;
 
 mod camera;
-mod lobby;
+mod local_lobby;
+mod multiplayer_lobby;
 mod player;
 mod ui;
 
@@ -23,10 +24,11 @@ impl Plugin for ClientPlugin {
         app.add_plugins(ClientPlugins::new(client_config(settings)));
 
         app.add_plugins((
-            lobby::LobbyPlugin,
             ui::UiPlugin,
             player::PlayerPlugin,
             camera::CameraPlugin,
+            local_lobby::LocalLobbyPlugin,
+            multiplayer_lobby::MultiplayerLobbyPlugin,
         ))
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
@@ -39,7 +41,7 @@ impl Plugin for ClientPlugin {
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
         app.add_plugins(crate::dev_tools::log_transition::<Connection>)
-            .add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
+            .add_plugins(crate::dev_tools::log_transition::<multiplayer_lobby::MatchmakeState>);
     }
 }
 

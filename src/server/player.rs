@@ -49,7 +49,11 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
 
     commands
         .spawn((
-            ReplicatePlayerBundle::new(client_id, Position::default(), Rotation::default()),
+            ReplicatePlayerBundle::new(
+                client_id,
+                Position::default(),
+                Rotation::radians(std::f32::consts::FRAC_PI_2),
+            ),
             replicate,
             SpriteBundle {
                 sprite: Sprite {
@@ -63,7 +67,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
         .id()
 }
 
-/// Adds input action entity to [`ClientInfo`] and replicate it back to other clients.
+/// Adds input action entity to [`ClientInfos`] and replicate it back to other clients.
 fn handle_input_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
