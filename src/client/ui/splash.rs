@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use bevy_motiongfx::{motiongfx_core::UpdateSequenceSet, prelude::*};
 use velyst::prelude::*;
 
-use crate::ui::{windowed_func, WindowedFunc};
+use crate::ui::main_window::push_to_main_window;
 
-use super::{state_scoped_scene, Screen};
+use super::Screen;
 
 pub(super) struct SplashUiPlugin;
 
@@ -12,19 +12,16 @@ impl Plugin for SplashUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<SplashUi>()
             .compile_typst_func::<SplashUi, SplashFunc>()
-            .render_typst_func::<SplashFunc>()
             .init_resource::<SplashFunc>()
             // .add_systems(Startup, setup_animation)
             .add_systems(
                 Update,
                 (
-                    windowed_func::<SplashFunc>,
+                    push_to_main_window::<SplashFunc>(),
                     animate_resource::<SplashFunc, f32>.in_set(UpdateSequenceSet),
                 )
                     .run_if(in_state(Screen::Splash)),
             );
-
-        state_scoped_scene::<SplashFunc>(app, Screen::Splash);
     }
 }
 
@@ -36,19 +33,9 @@ impl Plugin for SplashUiPlugin {
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "splash", layer = 1)]
 pub struct SplashFunc {
-    width: f64,
-    height: f64,
-    #[typst_func(named)]
     time: f64,
 }
 
-impl WindowedFunc for SplashFunc {
-    fn set_width_height(&mut self, width: f64, height: f64) {
-        self.width = width;
-        self.height = height;
-    }
-}
-
 #[derive(TypstPath)]
-#[typst_path = "typst/client/main_menu.typ"]
+#[typst_path = "typst/client/splash.typ"]
 struct SplashUi;

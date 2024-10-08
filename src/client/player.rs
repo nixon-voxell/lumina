@@ -89,7 +89,7 @@ fn handle_player_spawn(
         let client_id = player_id.0;
 
         if client_id == my_client_id.0 {
-            commands.entity(entity);
+            commands.entity(entity).insert(MyPlayer);
             // Replicate input from client to server.
             commands.spawn(ReplicateInputBundle::new(*player_id));
         }
@@ -98,17 +98,10 @@ fn handle_player_spawn(
     }
 }
 
-/// Handle player movement on [`PlayerAction`].
+/// Handle player movement based on [`PlayerAction`].
 fn handle_player_movement(
-    q_actions: Query<
-        (&PlayerId, &ActionState<PlayerAction>),
-        Or<(
-            // Local player
-            With<PrePredicted>,
-            // Other players
-            (Without<PrePredicted>, With<Predicted>),
-        )>,
-    >,
+    // Handles all predicted player movements too (other clients).
+    q_actions: Query<(&PlayerId, &ActionState<PlayerAction>), With<Predicted>>,
     mut player_movement_evw: EventWriter<PlayerMovement>,
     player_map: Res<PlayerMap>,
 ) {
@@ -129,6 +122,7 @@ fn despawn_input(
     }
 }
 
+/// The player the the local client is controlling.
 #[derive(Component)]
 pub(super) struct MyPlayer;
 

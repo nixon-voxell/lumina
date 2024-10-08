@@ -10,12 +10,12 @@ NetworkSettings(
         client_id: 0,
         // The OS will assign a random open port.
         client_port: 0, 
-        // conditioner: Some(Conditioner(
-        //     latency_ms: 75,
-        //     jitter_ms: 10,
-        //     packet_loss: 0.02
-        // )),
-        conditioner: None,
+        conditioner: Some(Conditioner(
+            latency_ms: 75,
+            jitter_ms: 10,
+            packet_loss: 0.02
+        )),
+        // conditioner: None,
         input_delay_ticks: 10,
         correction_ticks_factor: 1.5,
     ),

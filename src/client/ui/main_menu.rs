@@ -6,12 +6,11 @@ use velyst::{prelude::*, typst_element::prelude::*};
 use crate::client::lobby::LobbyState;
 use crate::client::Connection;
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::ui::{
-    interactable_func, pressed, windowed_func, InteractableFunc, InteractionQuery, WindowedFunc,
-};
+use crate::ui::main_window::push_to_main_window;
+use crate::ui::{interactable_func, pressed, InteractableFunc, InteractionQuery};
 
 use super::lobby::LobbyFunc;
-use super::{state_scoped_scene, Screen};
+use super::Screen;
 
 pub(super) struct MainMenuUiPlugin;
 
@@ -19,12 +18,14 @@ impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<MainMenuUi>()
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
-            .render_typst_func::<MainMenuFunc>()
-            .init_resource::<MainMenuFunc>()
+            .insert_resource(MainMenuFunc {
+                connection_msg: "Connecting to server...".to_string(),
+                ..default()
+            })
             .add_systems(
                 Update,
                 (
-                    windowed_func::<MainMenuFunc>,
+                    push_to_main_window::<MainMenuFunc>(),
                     interactable_func::<MainMenuFunc>,
                     play_btn,
                     reconnect_btn,
@@ -34,8 +35,6 @@ impl Plugin for MainMenuUiPlugin {
             )
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
-
-        state_scoped_scene::<MainMenuFunc>(app, Screen::MainMenu);
     }
 }
 
@@ -97,8 +96,6 @@ fn exit_btn(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main_menu", layer = 1)]
 pub struct MainMenuFunc {
-    width: f64,
-    height: f64,
     #[typst_func(named)]
     hovered_button: Option<TypLabel>,
     #[typst_func(named)]
@@ -107,13 +104,6 @@ pub struct MainMenuFunc {
     connected: bool,
     #[typst_func(named)]
     connection_msg: String,
-}
-
-impl WindowedFunc for MainMenuFunc {
-    fn set_width_height(&mut self, width: f64, height: f64) {
-        self.width = width;
-        self.height = height;
-    }
 }
 
 impl InteractableFunc for MainMenuFunc {

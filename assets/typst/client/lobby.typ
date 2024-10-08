@@ -1,15 +1,7 @@
 #import "../monokai_pro.typ": *
 #import "../utils.typ": *
 
-#set page(
-  height: auto,
-  width: auto,
-  fill: base0,
-)
-
 #let lobby(
-  width,
-  height,
   hovered_button: none,
   hovered_animation: 0.0,
   curr_player_count: 0,
@@ -17,8 +9,6 @@
   room_id: none,
 ) = {
   interactable_window(
-    width,
-    height,
     hovered_button: hovered_button,
     hovered_animation: hovered_animation,
   )[

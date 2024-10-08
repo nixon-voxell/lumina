@@ -28,7 +28,6 @@ impl Plugin for LobbyPlugin {
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
-                    handle_matchmaking,
                     handle_disconnection,
                     handle_exit_lobby,
                     execute_exit_lobby,
@@ -38,7 +37,8 @@ impl Plugin for LobbyPlugin {
                 PreUpdate,
                 (
                     replicate_inputs.after(MainSet::EmitEvents),
-                    handle_input_spawn.in_set(ServerReplicationSet::ClientReplication),
+                    (handle_matchmaking, handle_input_spawn)
+                        .in_set(ServerReplicationSet::ClientReplication),
                 ),
             )
             .add_systems(
@@ -318,25 +318,29 @@ fn handle_input_spawn(
 /// Replicate the inputs of a client to other clients
 /// so that a client can predict other clients.
 fn replicate_inputs(
+    q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
     mut input_events: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
     client_infos: Res<ClientInfos>,
-    room_manager: Res<RoomManager>,
+    // room_manager: Res<RoomManager>,
 ) {
     for event in input_events.read() {
         let inputs = event.message();
         let client_id = event.context();
 
+        let Some(info) = client_infos.get(client_id) else {
+            continue;
+        };
+
+        let Ok(lobby) = q_lobbies.get(info.lobby) else {
+            continue;
+        };
+
         // OPTIONAL: Do some validation on the inputs to check that there's no cheating
 
-        if let Some(info) = client_infos.get(client_id) {
-            // Rebroadcast the input to other clients.
-            // TODO: Do not send to the client that emmits the message.
-            let _ = connection.send_message_to_room::<InputChannel, _>(
-                inputs,
-                info.room_id(),
-                &room_manager,
-            );
+        // Rebroadcast the input to other clients inside the lobby.
+        for client_id in lobby.iter().filter(|id| *id != client_id) {
+            let _ = connection.send_message::<InputChannel, _>(*client_id, inputs);
         }
     }
 }

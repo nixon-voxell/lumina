@@ -18,19 +18,6 @@ impl Plugin for UiPlugin {
     }
 }
 
-fn state_scoped_scene<F: TypstFunc>(app: &mut App, state: Screen) {
-    app.add_systems(OnEnter(state.clone()), show_scene::<F>)
-        .add_systems(OnExit(state), hide_scene::<F>);
-}
-
-fn show_scene<F: TypstFunc>(mut scene: ResMut<VelystScene<F>>) {
-    scene.visibility = Visibility::Inherited;
-}
-
-fn hide_scene<F: TypstFunc>(mut scene: ResMut<VelystScene<F>>) {
-    scene.visibility = Visibility::Hidden;
-}
-
 #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
 pub enum Screen {
     // #[default]

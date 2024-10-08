@@ -1,8 +1,13 @@
+use std::marker::PhantomData;
+
+use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
-use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_vello::VelloPlugin;
 use bevy_vello_graphics::VelloGraphicsPlugin;
 use velyst::{prelude::*, typst_element::prelude::*, VelystPlugin};
+
+pub mod main_window;
+pub mod perf_metrics;
 
 pub struct UiPlugin;
 
@@ -15,6 +20,11 @@ impl Plugin for UiPlugin {
             },
             VelloGraphicsPlugin,
             VelystPlugin::default(),
+        ));
+
+        app.add_plugins((
+            main_window::MainWindowUiPlugin,
+            perf_metrics::PerfMetricsUiPlugin,
         ))
         .add_systems(Startup, spawn_ui_camera);
     }
@@ -43,6 +53,9 @@ fn spawn_ui_camera(mut commands: Commands) {
     ));
 }
 
+// Helper for typst func interactions.
+
+/// Compact query parameter for getting labeled interactions.
 pub type InteractionQuery<'a, 'w, 's> =
     Query<'w, 's, (&'a Interaction, &'a TypstLabel), Changed<Interaction>>;
 
@@ -63,17 +76,6 @@ pub fn pressed<'a>(
 //         label.as_str() == label_str && *interaction == Interaction::Hovered
 //     })
 // }
-
-pub fn windowed_func<F: WindowedFunc>(
-    q_window: Query<&Window, (With<PrimaryWindow>, Changed<Window>)>,
-    mut func: ResMut<F>,
-) {
-    let Ok(window) = q_window.get_single() else {
-        return;
-    };
-
-    func.set_width_height(window.width() as f64, window.height() as f64);
-}
 
 pub fn interactable_func<F: InteractableFunc>(
     q_interactions: Query<(&Interaction, &TypstLabel)>,
@@ -101,10 +103,21 @@ pub fn interactable_func<F: InteractableFunc>(
     func.hovered_button(hovered_button, *hovered_animation);
 }
 
-pub trait WindowedFunc: TypstFunc {
-    fn set_width_height(&mut self, width: f64, height: f64);
-}
-
 pub trait InteractableFunc: TypstFunc {
     fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64);
+}
+
+// Helper to show/hide typst functions.
+
+pub fn can_show_content<F: TypstFunc>(show: Res<CanShowContent<F>>) -> bool {
+    **show
+}
+
+#[derive(Resource, Deref, DerefMut)]
+pub struct CanShowContent<F: TypstFunc>(#[deref] bool, PhantomData<F>);
+
+impl<F: TypstFunc> Default for CanShowContent<F> {
+    fn default() -> Self {
+        Self(false, PhantomData)
+    }
 }
