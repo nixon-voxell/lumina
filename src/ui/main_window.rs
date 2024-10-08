@@ -11,9 +11,9 @@ impl Plugin for MainWindowUiPlugin {
         app.configure_sets(
             Update,
             (
-                MainWindowSet::First,
-                MainWindowSet::Main,
-                MainWindowSet::Last,
+                MainWindowSet::Background,
+                MainWindowSet::Default,
+                MainWindowSet::Foreground,
             )
                 .chain(),
         );
@@ -65,15 +65,15 @@ struct MainWindowUi;
 /// Helper for ordering and pushing content to MainWindowFunc.
 
 pub fn push_to_main_window_first<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::First)
+    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Background)
 }
 
 pub fn push_to_main_window<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Main)
+    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Default)
 }
 
 pub fn push_to_main_window_last<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Last)
+    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Foreground)
 }
 
 /// Push content to the main window in no particular order.
@@ -94,7 +94,7 @@ fn push_to_main_window_impl<F: TypstFunc>(
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MainWindowSet {
-    First,
-    Main,
-    Last,
+    Background,
+    Default,
+    Foreground,
 }
