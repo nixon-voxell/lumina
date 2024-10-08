@@ -64,7 +64,7 @@ struct MainWindowUi;
 
 /// Helper for ordering and pushing content to MainWindowFunc.
 
-pub fn push_to_main_window_first<F: TypstFunc>() -> SystemConfigs {
+pub fn push_to_main_window_background<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Background)
 }
 
@@ -72,7 +72,7 @@ pub fn push_to_main_window<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Default)
 }
 
-pub fn push_to_main_window_last<F: TypstFunc>() -> SystemConfigs {
+pub fn push_to_main_window_foreground<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Foreground)
 }
 
@@ -84,6 +84,7 @@ fn push_to_main_window_unordered<F: TypstFunc>() -> SystemConfigs {
 }
 
 /// Push content of a typst function to the main window.
+///
 /// NOTE: The content shown will be 1 frame behind.
 fn push_to_main_window_impl<F: TypstFunc>(
     content: Res<TypstContent<F>>,

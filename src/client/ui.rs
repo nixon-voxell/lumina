@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_motiongfx::MotionGfxPlugin;
-use velyst::prelude::*;
 
 pub(super) mod lobby;
 pub(super) mod main_menu;

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use velyst::prelude::*;
 
-use super::main_window::push_to_main_window_last;
+use super::main_window::push_to_main_window_foreground;
 use super::{can_show_content, CanShowContent};
 
 pub(super) struct PerfMetricsUiPlugin;
@@ -16,7 +16,7 @@ impl Plugin for PerfMetricsUiPlugin {
                 Update,
                 (
                     perf_metrics,
-                    push_to_main_window_last::<PerfMetricsFunc>()
+                    push_to_main_window_foreground::<PerfMetricsFunc>()
                         .run_if(can_show_content::<PerfMetricsFunc>),
                 ),
             );
