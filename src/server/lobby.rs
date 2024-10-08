@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use leafwing_input_manager::prelude::*;
@@ -5,7 +6,9 @@ use lightyear::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
+use crate::protocol::{
+    ExitLobby, LobbyStatus, Matchmake, ReliableChannel, INPUT_REPLICATION_GROUP,
+};
 use crate::shared::input::PlayerAction;
 use crate::shared::player::{
     shared_handle_player_movement, PlayerId, PlayerMovement, ReplicatePlayerBundle,
@@ -28,8 +31,14 @@ impl Plugin for LobbyPlugin {
                     handle_matchmaking,
                     handle_disconnection,
                     handle_exit_lobby,
-                    handle_player_input_spawn,
                     execute_exit_lobby,
+                ),
+            )
+            .add_systems(
+                PreUpdate,
+                (
+                    replicate_inputs.after(MainSet::EmitEvents),
+                    handle_input_spawn.in_set(ServerReplicationSet::ClientReplication),
                 ),
             )
             .add_systems(
@@ -107,6 +116,8 @@ fn handle_matchmaking(
 
         let lobby_size = *matchmake.message;
         let mut lobby_entity = None;
+        // Number of clients in the lobby before the client joins.
+        // let mut lobby_len = 0;
 
         // Find an available lobby to join.
         for (mut lobby, size, entity) in q_lobbies.iter_mut() {
@@ -116,6 +127,7 @@ fn handle_matchmaking(
             }
 
             if lobby.len() < **size as usize {
+                // lobby_len = lobby.len();
                 lobby.push(client_id);
                 lobby_entity = Some(entity);
 
@@ -212,13 +224,15 @@ fn execute_exit_lobby(
             room_manager.remove_client(client_id, client_info.room_id());
 
             // Player might have already been despawned if it's a disconnection.
-            if let Some(player) = commands.get_entity(client_info.player) {
-                player.despawn_recursive();
+            if let Some(player_cmd) = commands.get_entity(client_info.player) {
+                player_cmd.despawn_recursive();
                 room_manager.remove_entity(client_info.player, client_info.room_id());
             }
             // Despawn input.
             if let Some(input) = client_info.input {
-                commands.entity(input).despawn_recursive();
+                if let Some(input_cmd) = commands.get_entity(input) {
+                    input_cmd.despawn_recursive();
+                }
                 room_manager.remove_entity(input, client_info.room_id());
             }
 
@@ -247,7 +261,7 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
 
     commands
         .spawn((
-            ReplicatePlayerBundle::new(client_id, Vec2::ZERO, 0.0),
+            ReplicatePlayerBundle::new(client_id, Position::default(), Rotation::default()),
             replicate,
             SpriteBundle {
                 sprite: Sprite {
@@ -255,22 +269,71 @@ fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
                     custom_size: Some(Vec2::splat(40.0)),
                     ..default()
                 },
-                // transform: Transform::from_scale(Vec3::splat(20.0)),
                 ..default()
             },
         ))
         .id()
 }
 
-/// Adds input action entity to [`ClientInfo`].
-fn handle_player_input_spawn(
-    q_actions: Query<(&PlayerId, Entity), Added<ActionState<PlayerAction>>>,
+/// Adds input action entity to [`ClientInfo`] and replicate it back to other clients.
+fn handle_input_spawn(
+    mut commands: Commands,
+    q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
     mut client_infos: ResMut<ClientInfos>,
 ) {
     for (id, entity) in q_actions.iter() {
         let client_id = id.0;
+        info!("Received input spawn from {client_id:?}");
+
         if let Some(info) = client_infos.get_mut(&client_id) {
             info.input = Some(entity);
+
+            let replicate = Replicate {
+                sync: SyncTarget {
+                    // Allow a client to predict other client's input.
+                    prediction: NetworkTarget::All,
+                    ..default()
+                },
+                controlled_by: ControlledBy {
+                    target: NetworkTarget::Single(client_id),
+                    ..default()
+                },
+                group: INPUT_REPLICATION_GROUP,
+                ..default()
+            };
+
+            commands.entity(entity).insert((
+                replicate,
+                // If we receive a pre-predicted entity, only send the
+                // prepredicted component back to the original client.
+                OverrideTargetComponent::<PrePredicted>::new(NetworkTarget::Single(client_id)),
+            ));
+        }
+    }
+}
+
+/// Replicate the inputs of a client to other clients
+/// so that a client can predict other clients.
+fn replicate_inputs(
+    mut connection: ResMut<ConnectionManager>,
+    mut input_events: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
+    client_infos: Res<ClientInfos>,
+    room_manager: Res<RoomManager>,
+) {
+    for event in input_events.read() {
+        let inputs = event.message();
+        let client_id = event.context();
+
+        // OPTIONAL: Do some validation on the inputs to check that there's no cheating
+
+        if let Some(info) = client_infos.get(client_id) {
+            // Rebroadcast the input to other clients.
+            // TODO: Do not send to the client that emmits the message.
+            let _ = connection.send_message_to_room::<InputChannel, _>(
+                inputs,
+                info.room_id(),
+                &room_manager,
+            );
         }
     }
 }

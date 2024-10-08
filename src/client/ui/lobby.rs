@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
-use velyst::{prelude::*, typst_element::prelude::*, typst_vello::Layer};
+use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::{
     client::lobby::LobbyState,
