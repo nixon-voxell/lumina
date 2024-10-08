@@ -159,7 +159,7 @@ pub fn convex_hull_from_mesh(mesh: &Mesh) -> Option<Collider> {
 }
 
 #[derive(Component, Reflect, Debug, Clone)]
-#[reflect(Component, Debug)]
+#[reflect(Component)]
 pub struct PrimitiveRigidbody {
     pub rigidbody: RigidBody,
     pub density: ColliderDensity,
@@ -167,7 +167,7 @@ pub struct PrimitiveRigidbody {
 }
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
-#[reflect(Component, Default, Debug)]
+#[reflect(Component)]
 pub struct MeshRigidbody {
     pub rigidbody: RigidBody,
     pub density: ColliderDensity,
@@ -175,7 +175,6 @@ pub struct MeshRigidbody {
 }
 
 #[derive(Reflect, Default, Debug, Clone, Copy, PartialEq, Eq)]
-#[reflect(Default, Debug)]
 pub enum MeshCollider {
     #[default]
     ConvexHull,

@@ -53,3 +53,11 @@ impl PlayerAction {
         input_map
     }
 }
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub enum MovementSet {
+    // Input handling.
+    Input,
+    // Apply physics.
+    Physics,
+}

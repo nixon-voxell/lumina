@@ -23,6 +23,7 @@ pub enum Screen {
     Splash,
     #[default]
     MainMenu,
+    LocalLobby,
     MultiplayerLobby,
     // Playing,
     // GameOver,
