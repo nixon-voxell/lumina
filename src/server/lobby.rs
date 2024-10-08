@@ -280,6 +280,7 @@ fn handle_input_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
     mut client_infos: ResMut<ClientInfos>,
+    mut room_manager: ResMut<RoomManager>,
 ) {
     for (id, entity) in q_actions.iter() {
         let client_id = id.0;
@@ -299,6 +300,7 @@ fn handle_input_spawn(
                     ..default()
                 },
                 group: INPUT_REPLICATION_GROUP,
+                relevance_mode: NetworkRelevanceMode::InterestManagement,
                 ..default()
             };
 
@@ -308,6 +310,7 @@ fn handle_input_spawn(
                 // prepredicted component back to the original client.
                 OverrideTargetComponent::<PrePredicted>::new(NetworkTarget::Single(client_id)),
             ));
+            room_manager.add_entity(entity, info.room_id());
         }
     }
 }
