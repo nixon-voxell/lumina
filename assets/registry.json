@@ -18896,6 +18896,31 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina::shared::effector::Effector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::effector::Effector",
+      "properties": {
+        "collider": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "collider"
+      ],
+      "short_name": "Effector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina::shared::effector::EffectorPopupMsg": {
       "isComponent": true,
       "isResource": false,
@@ -18929,244 +18954,6 @@
       "long_name": "lumina::shared::input::PlayerAction",
       "oneOf": [
         "Move",
-        "Interact",
-        "UseItem"
-      ],
-      "short_name": "PlayerAction",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina::shared::physics::MeshCollider": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina::shared::physics::MeshCollider",
-      "oneOf": [
-        "ConvexHull",
-        "Trimesh"
-      ],
-      "short_name": "MeshCollider",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina::shared::physics::MeshRigidbody": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::shared::physics::MeshRigidbody",
-      "properties": {
-        "collider_type": {
-          "type": {
-            "$ref": "#/$defs/lumina::shared::physics::MeshCollider"
-          }
-        },
-        "density": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "density",
-        "collider_type"
-      ],
-      "short_name": "MeshRigidbody",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::physics::PrimitiveRigidbody": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::shared::physics::PrimitiveRigidbody",
-      "properties": {
-        "collider_constructor": {
-          "type": {
-            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
-          }
-        },
-        "density": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "density",
-        "collider_constructor"
-      ],
-      "short_name": "PrimitiveRigidbody",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>",
-      "short_name": "DiGraph<AnimationGraphNode, (), u32>",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "petgraph::graph::NodeIndex": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "petgraph::graph::NodeIndex",
-      "short_name": "NodeIndex",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "smallvec::SmallVec<[bevy_ecs::entity::Entity; 8]>": {
-      "isComponent": false,
-      "isResource": false,
-      "items": {
-        "type": {
-          "$ref": "#/$defs/bevy_ecs::entity::Entity"
-        }
-      },
-      "long_name": "smallvec::SmallVec<[bevy_ecs::entity::Entity; 8]>",
-      "short_name": "SmallVec<[Entity; 8]>",
-      "type": "array",
-      "typeInfo": "List"
-    },
-    "smallvec::SmallVec<[bevy_ui::ui_node::GridTrack; 1]>": {
-      "isComponent": false,
-      "isResource": false,
-      "items": {
-        "type": {
-          "$ref": "#/$defs/bevy_ui::ui_node::GridTrack"
-        }
-      },
-      "long_name": "smallvec::SmallVec<[bevy_ui::ui_node::GridTrack; 1]>",
-      "short_name": "SmallVec<[GridTrack; 1]>",
-      "type": "array",
-      "typeInfo": "List"
-    },
-    "smallvec::SmallVec<[u64; 1]>": {
-      "isComponent": false,
-      "isResource": false,
-      "items": {
-        "type": {
-          "$ref": "#/$defs/u64"
-        }
-      },
-      "long_name": "smallvec::SmallVec<[u64; 1]>",
-      "short_name": "SmallVec<[u64; 1]>",
-      "type": "array",
-      "typeInfo": "List"
-    },
-    "smol_str::SmolStr": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "smol_str::SmolStr",
-      "short_name": "SmolStr",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "std::collections::BTreeMap<petgraph::graph::NodeIndex, bevy_animation::ActiveAnimation>": {
-      "isComponent": false,
-      "isResource": false,
-      "keyType": {
-        "type": {
-          "$ref": "#/$defs/petgraph::graph::NodeIndex"
-        }
-      },
-      "long_name": "std::collections::BTreeMap<petgraph::graph::NodeIndex, bevy_animation::ActiveAnimation>",
-      "short_name": "BTreeMap<NodeIndex, ActiveAnimation>",
-      "type": "object",
-      "typeInfo": "Map",
-      "valueType": {
-        "type": {
-          "$ref": "#/$defs/bevy_animation::ActiveAnimation"
-        }
-      }
-    },
-    "std::path::PathBuf": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "std::path::PathBuf",
-      "short_name": "PathBuf",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "std::sync::Arc<bevy_asset::handle::StrongHandle>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "std::sync::Arc<bevy_asset::handle::StrongHandle>",
-      "short_name": "Arc<StrongHandle>",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "u128": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u128",
-      "short_name": "u128",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u16": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u16",
-      "short_name": "u16",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u32": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u32",
-      "short_name": "u32",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u64": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u64",
-      "short_name": "u64",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u8": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u8",
-      "short_name": "u8",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "usize": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "usize",
-      "short_name": "usize",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "uuid::Uuid": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "uuid::Uuid",
-      "short_name": "Uuid",
-      "type": "object",
-      "typeInfo": "Value"
-    }
-  },
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "long_name": "bevy component registry schema"
-}Move",
         "Interact",
         "UseItem"
       ],
