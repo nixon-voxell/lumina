@@ -27,7 +27,7 @@ fn convert_effector(mut commands: Commands, q_effectors: Query<(&Effector, Entit
 }
 
 /// Popup message when player enters the effector collision range.
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
 #[reflect(Component)]
 pub struct EffectorPopupMsg(pub String);
 

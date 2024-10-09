@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
-// use serde::{Deserialize, Serialize};
 use server::RoomId;
 
 use crate::shared::input::PlayerAction;

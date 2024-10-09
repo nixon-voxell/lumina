@@ -32,4 +32,4 @@ pub struct EffectorPopupFunc {
 
 #[derive(TypstPath)]
 #[typst_path = "typst/effector_popup.typ"]
-struct EffectorPopupUi;
+pub struct EffectorPopupUi;

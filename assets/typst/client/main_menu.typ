@@ -28,32 +28,34 @@
     hovered_button: hovered_button,
     hovered_animation: hovered_animation,
   )[
-    #set text(fill: base7)
+    #box(width: 100%, height: 100%, inset: (x: 4.6%, y: 8%))[
+      #set text(fill: base7)
 
-    #if connected == false {
-      connect_server(connection_msg)
-      return
-    }
+      #if connected == false {
+        connect_server(connection_msg)
+        return
+      }
 
-    #place(left + horizon)[
-      #set text(size: 48pt)
-      #pad(bottom: 40pt)[#text(fill: yellow)[= Lumina]]
+      #place(left + horizon)[
+        #set text(size: 48pt)
+        #pad(bottom: 40pt)[#text(fill: yellow)[= Lumina]]
 
-      #move(dx: 2%)[
-        #set text(size: 28pt)
-        #text(fill: green)[#button(lbl: <btn:play>)[= Play]]\
-        #text(fill: purple)[#button(lbl: <btn:luminators>)[= Luminators]]\
-      ]
-    ]
-
-    #place(left + bottom)[
-
-      #text(size: 16pt, fill: red.transparentize(40%))[
-        #button(lbl: <btn:exit-game>)[= Exit Game]
+        #move(dx: 2%)[
+          #set text(size: 28pt)
+          #text(fill: green)[#button(lbl: <btn:play>)[= Play]]\
+          #text(fill: purple)[#button(lbl: <btn:luminators>)[= Luminators]]\
+        ]
       ]
 
-      #text(size: 18pt)[
-        #button(lbl: <btn:settings>)[#emoji.gear Settings]
+      #place(left + bottom)[
+
+        #text(size: 16pt, fill: red.transparentize(40%))[
+          #button(lbl: <btn:exit-game>)[= Exit Game]
+        ]
+
+        #text(size: 18pt)[
+          #button(lbl: <btn:settings>)[#emoji.gear Settings]
+        ]
       ]
     ]
   ]

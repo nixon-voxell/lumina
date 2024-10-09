@@ -3894,6 +3894,7 @@ dependencies = [
  "clap",
  "leafwing-input-manager",
  "lightyear",
+ "noisy_bevy",
  "rand",
  "serde",
  "smallvec",
@@ -4214,6 +4215,15 @@ name = "no-std-compat"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b93853da6d84c2e3c7d730d6473e8817692dd89be387eb01b94d7f108ecb5b8c"
+
+[[package]]
+name = "noisy_bevy"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a498a5310e40540a941aca31ef341a0b229e11b04fb359c9c023ac412e34465b"
+dependencies = [
+ "bevy",
+]
 
 [[package]]
 name = "nom"

@@ -1,9 +1,11 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
+use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-use crate::ui::effector_popup::EffectorPopupFunc;
+use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
+use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 
 use super::camera::GameCamera;
 use super::player::MyPlayer;
@@ -12,23 +14,20 @@ pub(super) struct EffectorPlugin;
 
 impl Plugin for EffectorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, collect_effector_collisions);
+        app.init_resource::<CollidedEffector>()
+            .add_systems(FixedUpdate, collect_effector_collisions)
+            .add_systems(Update, show_effector_popup);
     }
 }
 
 fn collect_effector_collisions(
-    q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
     q_sensors: Query<&GlobalTransform, With<Sensor>>,
     q_my_player: Query<&GlobalTransform, With<MyPlayer>>,
     mut started_evr: EventReader<CollisionStarted>,
     mut ended_evr: EventReader<CollisionEnded>,
-    mut func: ResMut<EffectorPopupFunc>,
+    mut collided_effector: ResMut<CollidedEffector>,
     mut collisions: Local<HashSet<EffectorCollision>>,
 ) {
-    let Ok((camera, camera_transform)) = q_camera.get_single() else {
-        return;
-    };
-
     let Ok(player_transform) = q_my_player.get_single() else {
         return;
     };
@@ -73,8 +72,8 @@ fn collect_effector_collisions(
     }
 
     // Find the closest effector to the player.
-    let mut closest_effector_translation = None;
     let mut closest_distance = f32::MAX;
+    let mut closest_effector = None;
 
     for collision in collisions.iter() {
         let Ok(effector_translation) = q_sensors.get(collision.effector).map(|t| t.translation())
@@ -86,19 +85,79 @@ fn collect_effector_collisions(
 
         if distance < closest_distance {
             closest_distance = distance;
-            closest_effector_translation = Some(effector_translation);
+            closest_effector = Some(collision.effector);
         }
     }
 
-    if let Some(viewport_coordinate) =
-        closest_effector_translation.and_then(|t| camera.world_to_viewport(camera_transform, t))
-    {
-        println!("got viewport coordinate");
-        func.x = viewport_coordinate.x as f64;
-        func.y = viewport_coordinate.y as f64;
-        func.body = Some(text::TextElem::new(format!("{}", viewport_coordinate).into()).pack());
+    collided_effector.set_if_neq(CollidedEffector(closest_effector));
+}
+
+fn show_effector_popup(
+    q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+    q_sensors: Query<
+        (
+            &GlobalTransform,
+            &Collider,
+            Has<InteractableEffector>,
+            Option<&EffectorPopupMsg>,
+        ),
+        With<Sensor>,
+    >,
+    collided_effector: Res<CollidedEffector>,
+    mut func: ResMut<EffectorPopupFunc>,
+    context: TypstContext<EffectorPopupUi>,
+) {
+    let Some(scope) = context.get_scope() else {
+        return;
+    };
+
+    if let Some(entity) = **collided_effector {
+        let (camera, camera_transform) = q_camera.single();
+
+        let Ok((effector_transform, collider, is_interactable, popup_msg)) = q_sensors.get(entity)
+        else {
+            return;
+        };
+
+        if let Some(viewport_coordinate) =
+            camera.world_to_viewport(camera_transform, effector_transform.translation())
+        {
+            func.x = viewport_coordinate.x as f64;
+            func.y = (viewport_coordinate.y - collider.shape_scaled().0.compute_local_aabb().maxs.y)
+                as f64;
+
+            if collided_effector.is_changed() {
+                let mut contents = Vec::new();
+
+                if is_interactable {
+                    contents.push(
+                        elem::context(scope.get_func_unchecked("button_popup"), |args| {
+                            args.push("E");
+                        })
+                        .pack(),
+                    );
+                }
+
+                if let Some(popup_msg) = popup_msg {
+                    contents.push(
+                        elem::context(scope.get_func_unchecked("msg_popup"), |args| {
+                            args.push(popup_msg.0.clone());
+                        })
+                        .pack(),
+                    );
+                }
+
+                func.body = Some(elem::sequence(contents).pack());
+            }
+        }
+    } else if func.body.is_some() {
+        func.body = None;
     }
 }
+
+/// Collided effector that is closest to the player.
+#[derive(Resource, Default, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
+pub(super) struct CollidedEffector(pub Option<Entity>);
 
 /// Used to store collision information betweewn [`MyPlayer`] and [`Effector`][effector].
 ///
