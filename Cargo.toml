@@ -11,18 +11,27 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
 # Local dependencies
-bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 velyst = { path = "external_crates/velyst" }
+bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
+bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
 
 bevy = { version = "0.14", features = ["wayland"] }
+bevy_vello = "0.6"
 lightyear = { version = "0.16", features = [
   "webtransport",
   "websocket",
   "leafwing",
   "steam",
+  "avian2d",
 ] }
 leafwing-input-manager = "0.14"
-avian2d = "0.1"
+avian2d = { version = "0.1", default-features = false, features = [
+  "2d",
+  "f32",
+  "parry-f32",
+  "parallel",
+  "serialize",
+] }
 blenvy = "0.1.0-alpha.1"
 bincode = "1.3"
 serde = "1"
@@ -51,10 +60,13 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
-bevy_vello_graphics = { workspace = true }
+# Local dependencies
 velyst = { workspace = true }
+bevy_vello_graphics = { workspace = true }
+bevy_motiongfx = { workspace = true }
 
 bevy = { workspace = true }
+bevy_vello = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }

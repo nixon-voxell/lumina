@@ -1,43 +1,35 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use crate::settings::NetworkSettings;
+use crate::shared::shared_config;
 use bevy::{prelude::*, render::view::RenderLayers};
+
 use client::*;
 use lightyear::prelude::*;
 
-use crate::server::SERVER_ADDR;
-use crate::shared::shared_config;
-
-mod input;
 mod lobby;
 mod player;
 mod ui;
 
-const CLIENT_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
-
-pub struct ClientPlugin {
-    pub port_offset: u16,
-}
+pub struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
         info!("Adding `ClientPlugin`.");
-        // Lightyear plugins
-        app.add_plugins(ClientPlugins::new(client_config(self.port_offset)));
 
-        app.add_plugins((
-            lobby::LobbyPlugin,
-            ui::UiPlugin,
-            player::PlayerPlugin,
-            input::InputPlugin,
-        ))
-        .init_state::<Connection>()
-        .enable_state_scoped_entities::<Connection>()
-        .add_systems(Startup, spawn_game_camera)
-        .add_systems(OnEnter(Connection::Connect), connect_server)
-        .add_systems(
-            PreUpdate,
-            (handle_connection, handle_disconnection).after(MainSet::Receive),
-        );
+        // Lightyear plugins
+        let settings = app.world().get_resource::<NetworkSettings>().unwrap();
+        app.add_plugins(ClientPlugins::new(client_config(settings)));
+
+        app.add_plugins((lobby::LobbyPlugin, ui::UiPlugin, player::PlayerPlugin))
+            .init_state::<Connection>()
+            .enable_state_scoped_entities::<Connection>()
+            .add_systems(Startup, spawn_game_camera)
+            .add_systems(OnEnter(Connection::Connect), connect_server)
+            .add_systems(
+                PreUpdate,
+                (handle_connection, handle_disconnection).after(MainSet::Receive),
+            );
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
@@ -91,37 +83,46 @@ fn spawn_game_camera(mut commands: Commands) {
 }
 
 /// Create the lightyear [`ClientConfig`].
-fn client_config(port_offset: u16) -> ClientConfig {
-    // Authentication is where you specify how the client should connect to the server
-    // This is where you provide the server address.
+fn client_config(settings: &NetworkSettings) -> ClientConfig {
+    let server_addr = SocketAddr::new(
+        IpAddr::V4(settings.shared.server_addr),
+        settings.shared.server_port,
+    );
+
     let auth = Authentication::Manual {
-        server_addr: SERVER_ADDR,
+        server_addr,
         client_id: rand::random(),
-        private_key: Key::default(),
-        protocol_id: 0,
+        private_key: settings.shared.private_key,
+        protocol_id: settings.shared.protocol_id,
     };
 
-    let mut client_addr = CLIENT_ADDR;
-    client_addr.set_port(CLIENT_ADDR.port() + port_offset);
+    let transport = ClientTransport::UdpSocket(SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+        settings.client.client_port,
+    ));
+    let conditioner = settings.client.conditioner.map(|c| c.build());
 
     // The IoConfig will specify the transport to use.
     let io = IoConfig {
-        // the address specified here is the client_address, because we open a UDP socket on the client
-        transport: ClientTransport::UdpSocket(client_addr),
-        ..default()
+        transport,
+        conditioner,
+        compression: settings.shared.compression,
     };
+
     // The NetConfig specifies how we establish a connection with the server.
-    // We can use either Steam (in which case we will use steam sockets and there is no need to specify
-    // our own io) or Netcode (in which case we need to specify our own io).
     let net_config = NetConfig::Netcode {
         auth,
         io,
         config: NetcodeConfig::default(),
     };
     ClientConfig {
-        // part of the config needs to be shared between the client and server
         shared: shared_config(),
         net: net_config,
+        prediction: PredictionConfig {
+            minimum_input_delay_ticks: settings.client.input_delay_ticks,
+            correction_ticks_factor: settings.client.correction_ticks_factor,
+            ..default()
+        },
         ..default()
     }
 }
