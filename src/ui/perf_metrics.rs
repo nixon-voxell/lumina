@@ -26,7 +26,7 @@ impl Plugin for PerfMetricsUiPlugin {
 fn perf_metrics(
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut perf_func: ResMut<PerfMetricsFunc>,
+    mut func: ResMut<PerfMetricsFunc>,
     mut show: ResMut<CanShowContent<PerfMetricsFunc>>,
 ) {
     if keys.just_pressed(KeyCode::KeyP) {
@@ -34,7 +34,7 @@ fn perf_metrics(
     }
 
     if **show {
-        perf_func.fps = (1.0 / time.delta_seconds_f64() * 100.0).round() / 100.0;
+        func.fps = (1.0 / time.delta_seconds_f64() * 100.0).round() / 100.0;
     }
 }
 

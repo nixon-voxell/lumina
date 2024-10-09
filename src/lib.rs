@@ -5,9 +5,9 @@ use bevy::{
 };
 use clap::Parser;
 
-pub mod shared;
-pub mod ui;
-pub mod utils;
+mod shared;
+mod ui;
+mod utils;
 
 mod client;
 mod protocol;

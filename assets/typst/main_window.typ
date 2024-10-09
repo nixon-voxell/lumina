@@ -5,7 +5,7 @@
   #box(
     width: width,
     height: height,
-    inset: (x: width * 4.6%, y: height * 8%),
+    // inset: (x: width * 4.6%, y: height * 8%),
   )[
     #for content in body {
       content

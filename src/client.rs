@@ -8,6 +8,7 @@ use crate::settings::NetworkSettings;
 use crate::shared::shared_config;
 
 mod camera;
+mod effector;
 mod local_lobby;
 mod multiplayer_lobby;
 mod player;
@@ -29,6 +30,7 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             local_lobby::LocalLobbyPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
+            effector::EffectorPlugin,
         ))
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
