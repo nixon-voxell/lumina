@@ -7,9 +7,8 @@ use bevy::{
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use crate::shared::player;
-
-use super::{input::PlayerAction, FixedSet};
+use crate::shared::input::PlayerAction;
+use crate::shared::FixedSet;
 
 #[derive(Component)]
 pub struct BulletMovement {
