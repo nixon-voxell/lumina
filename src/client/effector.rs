@@ -5,10 +5,9 @@ use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
-use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 
-use super::camera::GameCamera;
 use super::player::MyPlayer;
+use super::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 
 pub(super) struct EffectorPlugin;
 
@@ -93,7 +92,7 @@ fn collect_effector_collisions(
 }
 
 fn show_effector_popup(
-    q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+    context: TypstContext<EffectorPopupUi>,
     q_sensors: Query<
         (
             &GlobalTransform,
@@ -103,9 +102,9 @@ fn show_effector_popup(
         ),
         With<Sensor>,
     >,
+    mut q_popup_style: Query<&mut Style, With<VelystSceneTag<EffectorPopupFunc>>>,
     collided_effector: Res<CollidedEffector>,
     mut func: ResMut<EffectorPopupFunc>,
-    context: TypstContext<EffectorPopupUi>,
     // mut scene: ResMut<VelystScene<EffectorPopupFunc>>,
     time: Res<Time>,
     mut animation: Local<f64>,
@@ -114,53 +113,54 @@ fn show_effector_popup(
         return;
     };
 
+    let Ok(mut popup_style) = q_popup_style.get_single_mut() else {
+        return;
+    };
+
     if let Some(entity) = **collided_effector {
-        let (camera, camera_transform) = q_camera.single();
+        // let (camera, camera_transform) = q_camera.single();
 
         let Ok((effector_transform, collider, is_interactable, popup_msg)) = q_sensors.get(entity)
         else {
             return;
         };
 
-        if let Some(viewport_coordinate) =
-            camera.world_to_viewport(camera_transform, effector_transform.translation())
-        {
-            func.x = viewport_coordinate.x as f64;
-            func.y = (viewport_coordinate.y - collider.shape_scaled().0.compute_local_aabb().maxs.y)
-                as f64;
+        if collided_effector.is_changed() {
+            let translation = effector_transform.translation();
+            popup_style.left = Val::Px(translation.x);
+            popup_style.top =
+                Val::Px(translation.y + collider.shape_scaled().0.compute_local_aabb().maxs.y);
 
-            if collided_effector.is_changed() {
-                let mut contents = Vec::new();
+            let mut contents = Vec::new();
 
-                if is_interactable {
-                    contents.push(
-                        elem::context(scope.get_func_unchecked("button_popup"), |args| {
-                            args.push("E");
-                        })
-                        .pack(),
-                    );
-                }
-
-                if let Some(popup_msg) = popup_msg {
-                    contents.push(
-                        elem::context(scope.get_func_unchecked("msg_popup"), |args| {
-                            args.push(popup_msg.0.clone());
-                        })
-                        .pack(),
-                    );
-                }
-
-                let stack = elem::stack(
-                    contents
-                        .iter()
-                        .map(|c| layout::StackChild::Block(c.clone()))
-                        .collect::<Vec<_>>(),
-                )
-                .with_dir(layout::Dir::LTR)
-                .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
-
-                func.body = Some(stack.pack());
+            if is_interactable {
+                contents.push(
+                    elem::context(scope.get_func_unchecked("button_popup"), |args| {
+                        args.push("E");
+                    })
+                    .pack(),
+                );
             }
+
+            if let Some(popup_msg) = popup_msg {
+                contents.push(
+                    elem::context(scope.get_func_unchecked("msg_popup"), |args| {
+                        args.push(popup_msg.0.clone());
+                    })
+                    .pack(),
+                );
+            }
+
+            let stack = elem::stack(
+                contents
+                    .iter()
+                    .map(|c| layout::StackChild::Block(c.clone()))
+                    .collect::<Vec<_>>(),
+            )
+            .with_dir(layout::Dir::LTR)
+            .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
+
+            func.body = Some(stack.pack());
         }
 
         *animation = f64::min(*animation + time.delta_seconds_f64(), 1.0);

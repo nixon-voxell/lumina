@@ -1,10 +1,8 @@
 #import "monokai_pro.typ": *
 
 #let button_popup(body, progress: 0.0) = {
-  circle(fill: base1.transparentize(20%), stroke: base3 + 2pt)[
-    #set align(horizon + center)
-    #body
-  ]
+  set circle(fill: base1.transparentize(20%), stroke: base3 + 2pt, inset: 6pt)
+  circle()[#body]
 }
 
 #let msg_popup(body) = {
@@ -19,16 +17,14 @@
   ]
 }
 
-#let effector_popup(x, y, body) = {
-  let x = x * 1pt
-  let y = y * 1pt
-
+#let effector_popup(body) = {
+  set align(horizon + center)
   set text(fill: base8)
+
   let body = text(body, size: 16pt, weight: "bold")
   let size = measure(body)
 
-  place(dx: x - size.width * 0.5, dy: y - size.height - 10pt)[
-    #set align(horizon + center)
-    #body <body>
+  place(dx: -size.width * 0.5, dy: -size.height - 10pt)[
+    #body
   ]
 }

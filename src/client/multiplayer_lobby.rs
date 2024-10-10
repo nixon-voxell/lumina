@@ -27,7 +27,7 @@ fn spawn_lobby(mut commands: Commands) {
     commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
 }
 
-/// Update [`LobbyFunc`] and [`LobbyState`] based on [`LobbyStatus`].
+/// Update [`LobbyFunc`] and [`MatchmakeState`] based on [`LobbyStatus`].
 fn handle_lobby_status_update(
     mut lobby_status_evr: EventReader<MessageEvent<LobbyStatus>>,
     mut lobby_func: ResMut<LobbyFunc>,

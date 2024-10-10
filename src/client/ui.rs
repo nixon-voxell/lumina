@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_motiongfx::MotionGfxPlugin;
 
+pub(super) mod effector_popup;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod splash;
@@ -11,9 +12,12 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MotionGfxPlugin)
             .init_state::<Screen>()
-            .add_plugins(splash::SplashUiPlugin)
-            .add_plugins(main_menu::MainMenuUiPlugin)
-            .add_plugins(lobby::LobbyUiPlugin);
+            .add_plugins((
+                splash::SplashUiPlugin,
+                main_menu::MainMenuUiPlugin,
+                lobby::LobbyUiPlugin,
+                effector_popup::EffectorPopupUiPlugin,
+            ));
     }
 }
 

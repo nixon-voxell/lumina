@@ -40,7 +40,7 @@ pub struct InteractableEffector;
 
 /// A constructor for effector which will be converted into avian sensor related components:
 ///
-/// - [`Rigidbody`]
+/// - [`RigidBody`]
 /// - [`Collider`]
 /// - [`Sensor`]
 #[derive(Component, Reflect, Debug)]
