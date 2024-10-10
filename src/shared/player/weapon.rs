@@ -14,15 +14,15 @@ pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, spawn_bullet_mesh.in_set(FixedSet::Main))
+        app.add_systems(Startup, setup_weapon)
+            .add_systems(Update, spawn_bullet_mesh.in_set(FixedSet::Main))
             .add_systems(Update, move_bullets);
-
-        app.register_type::<TurretProperties>();
     }
 }
 
 fn spawn_bullet_mesh(
-    //keyboard_input: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+    mut firing_timer: Local<f32>, // Local variable to keep track of firing time
     q_player: Query<&Position, With<client::Predicted>>,
     q_action_states: Query<
         &ActionState<PlayerAction>,
@@ -31,7 +31,11 @@ fn spawn_bullet_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    weapon_query: Query<&WeaponProperties>, // Query for WeaponProperties
 ) {
+    // Update the firing timer
+    *firing_timer += time.delta_seconds();
+
     let Ok(action_state) = q_action_states.get_single() else {
         return;
     };
@@ -39,9 +43,17 @@ fn spawn_bullet_mesh(
     let Ok(player_position) = q_player.get_single() else {
         return;
     };
-    //Make sure to spawn from Player
-    if action_state.pressed(&PlayerAction::Attack) {
+
+    // Get the weapon properties
+    let Ok(weapon_properties) = weapon_query.get_single() else {
+        return; // Ensure we have valid weapon properties
+    };
+
+    // Check if the attack button is pressed and if enough time has passed
+    if action_state.pressed(&PlayerAction::Attack) && *firing_timer >= weapon_properties.firing_rate
+    {
         let initial_pos = Vec3::ZERO;
+
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::default()).into(),
@@ -61,6 +73,9 @@ fn spawn_bullet_mesh(
         ));
 
         println!("Circle Spawned!");
+
+        // Reset the firing timer
+        *firing_timer = 0.0;
     }
 }
 
@@ -83,6 +98,16 @@ fn move_bullets(
             println!("Circle Despawned after reaching max distance!");
         }
     }
+}
+
+fn setup_weapon(mut commands: Commands) {
+    commands.spawn((
+        Position::default(), // Ensure you have a Position component or similar
+        WeaponProperties {
+            firing_rate: 0.3, // Set your desired firing rate here (in seconds)
+            magazine_size: 10,
+        },
+    ));
 }
 
 #[derive(Component, Reflect)]
