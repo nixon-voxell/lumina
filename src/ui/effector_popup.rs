@@ -9,6 +9,8 @@ pub(super) struct EffectorPopupUiPlugin;
 impl Plugin for EffectorPopupUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<EffectorPopupUi>()
+            // .compile_typst_func::<EffectorPopupUi, ButtonPopupFunc>()
+            // .compile_typst_func::<EffectorPopupUi, MsgPopupFunc>()
             .compile_typst_func::<EffectorPopupUi, EffectorPopupFunc>()
             .init_resource::<EffectorPopupFunc>()
             .add_systems(
@@ -22,6 +24,27 @@ fn show_effector_popup(func: Res<EffectorPopupFunc>) -> bool {
     func.body.is_some()
 }
 
+// #[derive(TypstFunc, Resource, Default)]
+// #[typst_func(name = "button_popup", layer = 1)]
+// pub struct ButtonPopupFunc {
+//     /// The button name.
+//     pub button: &'static str,
+//     /// Long press progress.
+//     #[typst_func(named)]
+//     pub progress: f64,
+// }
+
+// #[derive(TypstFunc, Resource, Default)]
+// #[typst_func(name = "msg_popup", layer = 1)]
+// pub struct MsgPopupFunc {
+//     /// The popup message.
+//     pub message: String,
+//     /// Popup animation time.
+//     #[typst_func(named)]
+//     pub animation: f64,
+// }
+
+// TODO: Have effector popup func render on world space instead.
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "effector_popup", layer = 1)]
 pub struct EffectorPopupFunc {

@@ -106,6 +106,9 @@ fn show_effector_popup(
     collided_effector: Res<CollidedEffector>,
     mut func: ResMut<EffectorPopupFunc>,
     context: TypstContext<EffectorPopupUi>,
+    // mut scene: ResMut<VelystScene<EffectorPopupFunc>>,
+    time: Res<Time>,
+    mut animation: Local<f64>,
 ) {
     let Some(scope) = context.get_scope() else {
         return;
@@ -147,9 +150,21 @@ fn show_effector_popup(
                     );
                 }
 
-                func.body = Some(elem::sequence(contents).pack());
+                let stack = elem::stack(
+                    contents
+                        .iter()
+                        .map(|c| layout::StackChild::Block(c.clone()))
+                        .collect::<Vec<_>>(),
+                )
+                .with_dir(layout::Dir::LTR)
+                .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
+
+                func.body = Some(stack.pack());
             }
         }
+
+        *animation = f64::min(*animation + time.delta_seconds_f64(), 1.0);
+        // scene.post_process_map.insert(TypLabel::new("body"), PostPro)
     } else if func.body.is_some() {
         func.body = None;
     }
