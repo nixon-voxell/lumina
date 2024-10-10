@@ -10,25 +10,14 @@ use lightyear::prelude::*;
 use crate::shared::input::PlayerAction;
 use crate::shared::FixedSet;
 
-#[derive(Component)]
-pub struct BulletMovement {
-    direction: Vec3,
-    speed: f32,
-}
-
-#[derive(Component)]
-
-pub struct DistanceTraveled {
-    start_pos: Vec3,
-    max_distance: f32,
-}
-
 pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, spawn_bullet_mesh.in_set(FixedSet::Main))
             .add_systems(Update, move_bullets);
+
+        app.register_type::<TurretProperties>();
     }
 }
 
@@ -95,3 +84,29 @@ fn move_bullets(
         }
     }
 }
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct BulletMovement {
+    direction: Vec3,
+    speed: f32,
+}
+
+#[derive(Component)]
+pub struct DistanceTraveled {
+    start_pos: Vec3,
+    max_distance: f32,
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct WeaponProperties {
+    /// Interval in seconds between each fire.
+    firing_rate: f32,
+    /// Number of bullets the player can fire before the player needs to reload.
+    magazine_size: u32,
+}
+
+/// The current number of bullets left in the turret.
+#[derive(Component)]
+pub struct WeaponMagazine(pub u32);
