@@ -52,8 +52,6 @@ fn spawn_bullet_mesh(
     // Check if the attack button is pressed and if enough time has passed
     if action_state.pressed(&PlayerAction::Attack) && *firing_timer >= weapon_properties.firing_rate
     {
-        let initial_pos = Vec3::ZERO;
-
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::default()).into(),
@@ -66,9 +64,9 @@ fn spawn_bullet_mesh(
                 direction: Vec3::new(1.0, 0.0, 0.0),
                 speed: 300.0,
             },
-            DistanceTraveled {
-                start_pos: initial_pos,
-                max_distance: 700.0,
+            BulletLifetime {
+                elapsed_time: 0.0,
+                despawn_time: 3.0,
             },
         ));
 
@@ -82,20 +80,18 @@ fn spawn_bullet_mesh(
 fn move_bullets(
     time: Res<Time>,
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform, &BulletMovement, &DistanceTraveled)>,
+    mut query: Query<(Entity, &mut Transform, &BulletMovement, &mut BulletLifetime)>,
 ) {
-    for (entity, mut transform, bullet_movement, distance_traveled) in &mut query {
+    for (entity, mut transform, bullet_movement, mut bullet_lifetime) in &mut query {
         // Move the circle based on its velocity
         transform.translation +=
             bullet_movement.direction * bullet_movement.speed * time.delta_seconds();
 
-        // Calculate the distance traveled from the start position
-        let distance = transform.translation.distance(distance_traveled.start_pos);
+        bullet_lifetime.elapsed_time += time.delta_seconds();
 
-        // Despawn the circle if it has traveled beyond the maximum distance
-        if distance > distance_traveled.max_distance {
+        if bullet_lifetime.elapsed_time > bullet_lifetime.despawn_time {
             commands.entity(entity).despawn();
-            println!("Circle Despawned after reaching max distance!");
+            println!("Bullet Despawned!");
         }
     }
 }
@@ -118,9 +114,9 @@ pub struct BulletMovement {
 }
 
 #[derive(Component)]
-pub struct DistanceTraveled {
-    start_pos: Vec3,
-    max_distance: f32,
+pub struct BulletLifetime {
+    pub elapsed_time: f32,
+    pub despawn_time: f32,
 }
 
 #[derive(Component, Reflect)]
