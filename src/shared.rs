@@ -9,6 +9,7 @@ pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(20);
 
 pub mod input;
 pub mod player;
+pub mod procedural_map;
 
 /// Shared logic.
 pub struct SharedPlugin;

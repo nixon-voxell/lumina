@@ -1,7 +1,7 @@
-use crate::rectangle_spawning::rectangle_entity::{
+use crate::shared::procedural_map::rectangle_spawning::rectangle_entity::{
     spawn_rectangle, RectangleConfig, RectangleMaterialHandle,
 };
-use crate::rectangle_spawning::rectangle_pool::RectanglePool;
+use crate::shared::procedural_map::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 
 // Constants for default values

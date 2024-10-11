@@ -1,4 +1,4 @@
-use crate::rectangle_spawning::rectangle_entity::RectangleConfig;
+use crate::shared::procedural_map::rectangle_spawning::rectangle_entity::RectangleConfig;
 use bevy::prelude::*;
 use std::collections::VecDeque;
 

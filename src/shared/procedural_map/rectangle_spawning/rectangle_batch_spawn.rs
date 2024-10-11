@@ -1,10 +1,12 @@
-use crate::grid_spawning::grid_spawn::{
+use crate::shared::procedural_map::grid::{
     spawn_rectangle_grid, spawn_rectangle_grid_system, Grid, RectangleGridSize,
     SpawnRectangleGridEvent,
 };
-use crate::procedural_algorithm::random_walk_cave::{create_cave_map, CaveConfig};
-use crate::rectangle_spawning::rectangle_entity::{RectangleConfig, RectangleMaterialHandle};
-use crate::rectangle_spawning::rectangle_pool::RectanglePool;
+use crate::shared::procedural_map::random_walk_cave::{create_cave_map, CaveConfig};
+use crate::shared::procedural_map::rectangle_spawning::rectangle_entity::{
+    RectangleConfig, RectangleMaterialHandle,
+};
+use crate::shared::procedural_map::rectangle_spawning::rectangle_pool::RectanglePool;
 use bevy::prelude::*;
 use rand::Rng;
 

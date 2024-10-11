@@ -1,4 +1,4 @@
-use crate::grid_spawning::grid_spawn::Grid;
+use crate::shared::procedural_map::grid::Grid;
 use rand::Rng;
 use rand::SeedableRng;
 
