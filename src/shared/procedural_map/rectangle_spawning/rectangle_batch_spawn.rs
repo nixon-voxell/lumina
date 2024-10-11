@@ -1,5 +1,5 @@
-use crate::shared::procedural_map::grid::{
-    spawn_rectangle_grid, spawn_rectangle_grid_system, Grid, RectangleGridSize,
+use crate::shared::procedural_map::grid_map::{
+    spawn_rectangle_grid, spawn_rectangle_grid_system, GridMap, RectangleGridSize,
     SpawnRectangleGridEvent,
 };
 use crate::shared::procedural_map::random_walk_cave::{create_cave_map, CaveConfig};
@@ -33,7 +33,7 @@ fn spawn_rectangles_frame_by_frame(
     pool: &mut RectanglePool,
     spawner: &mut RectangleBatchSpawner,
     grid_size: &RectangleGridSize,
-    grid: &Grid,
+    grid: &GridMap,
     material_handle: &RectangleMaterialHandle,
 ) {
     let spawn_per_frame = 100;
@@ -67,7 +67,7 @@ pub fn batch_spawn_rectangles(
     mut pool: ResMut<RectanglePool>,
     mut spawner: ResMut<RectangleBatchSpawner>,
     grid_size: Res<RectangleGridSize>,
-    grid: Res<Grid>,
+    grid: Res<GridMap>,
     material_handle: Res<RectangleMaterialHandle>,
     mut event_writer: EventWriter<BatchSpawnRectanglesEvent>,
 ) {
@@ -97,7 +97,7 @@ impl Plugin for RectangleBatchSpawnPlugin {
         let required_empty_percent = 40.0; // Percentage of empty spaces in the cave
 
         // Create an empty map for the cave generation
-        let initial_map = Grid::new(grid_size.width, grid_size.height, 1); // Start with all walls (1s)
+        let initial_map = GridMap::new(grid_size.width as u32, grid_size.height as u32, 1); // Start with all walls (1s)
 
         // Create a CaveConfig instance
         let cave_config = CaveConfig {
@@ -150,7 +150,7 @@ fn handle_batch_spawn_rectangles_event(
     mut pool: ResMut<RectanglePool>,
     mut spawner: ResMut<RectangleBatchSpawner>,
     grid_size: Res<RectangleGridSize>,
-    grid: Res<Grid>,
+    grid: Res<GridMap>,
     material_handle: Res<RectangleMaterialHandle>,
     mut event_reader: EventReader<BatchSpawnRectanglesEvent>,
 ) {

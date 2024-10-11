@@ -1,4 +1,4 @@
-use crate::shared::procedural_map::grid::Grid;
+use crate::shared::procedural_map::grid_map::GridMap;
 use rand::Rng;
 use rand::SeedableRng;
 
@@ -24,11 +24,12 @@ impl Default for CaveConfig {
     }
 }
 
+// TODO: Move to grid.rs
 // This function creates a cave-like map using a random walk algorithm
-pub fn create_cave_map(initial_grid: Grid, config: CaveConfig) -> Grid {
+pub fn create_cave_map(initial_grid: GridMap, config: CaveConfig) -> GridMap {
     let mut cave_map = initial_grid.0.clone();
     carve_cave_paths(&mut cave_map, &config);
-    Grid(cave_map)
+    GridMap(cave_map)
 }
 
 // Choose a random starting position for the cave digging
