@@ -16946,33 +16946,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "core::option::Option<u64>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "core::option::Option<u64>",
-      "oneOf": [
-        {
-          "long_name": "None"
-        },
-        {
-          "items": false,
-          "long_name": "Some",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/u64"
-              }
-            }
-          ],
-          "short_name": "Some",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "Option<u64>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "f32": {
       "isComponent": false,
       "isResource": false,
@@ -18102,320 +18075,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "lightyear::client::components::Confirmed": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::components::Confirmed",
-      "properties": {
-        "interpolated": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
-          }
-        },
-        "predicted": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
-          }
-        },
-        "tick": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::tick_manager::tick_module::Tick"
-          }
-        }
-      },
-      "required": [
-        "tick"
-      ],
-      "short_name": "Confirmed",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::interpolation::Interpolated": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::interpolation::Interpolated",
-      "properties": {
-        "confirmed_entity": {
-          "type": {
-            "$ref": "#/$defs/bevy_ecs::entity::Entity"
-          }
-        }
-      },
-      "required": [
-        "confirmed_entity"
-      ],
-      "short_name": "Interpolated",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::interpolation::plugin::InterpolationConfig": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::interpolation::plugin::InterpolationConfig",
-      "properties": {
-        "delay": {
-          "type": {
-            "$ref": "#/$defs/lightyear::client::interpolation::plugin::InterpolationDelay"
-          }
-        }
-      },
-      "required": [
-        "delay"
-      ],
-      "short_name": "InterpolationConfig",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::interpolation::plugin::InterpolationDelay": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::interpolation::plugin::InterpolationDelay",
-      "properties": {
-        "min_delay": {
-          "type": {
-            "$ref": "#/$defs/bevy_utils::Duration"
-          }
-        },
-        "send_interval_ratio": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        }
-      },
-      "required": [
-        "min_delay",
-        "send_interval_ratio"
-      ],
-      "short_name": "InterpolationDelay",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::networking::HostServerMetadata": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": true,
-      "long_name": "lightyear::client::networking::HostServerMetadata",
-      "properties": {
-        "client_entity": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
-          }
-        }
-      },
-      "required": [],
-      "short_name": "HostServerMetadata",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::Predicted": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::prediction::Predicted",
-      "properties": {
-        "confirmed_entity": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
-          }
-        }
-      },
-      "required": [],
-      "short_name": "Predicted",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::despawn::PredictionDespawnMarker": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::prediction::despawn::PredictionDespawnMarker",
-      "properties": {
-        "death_tick": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::tick_manager::tick_module::Tick"
-          }
-        }
-      },
-      "required": [
-        "death_tick"
-      ],
-      "short_name": "PredictionDespawnMarker",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::diagnostics::PredictionMetrics": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": true,
-      "long_name": "lightyear::client::prediction::diagnostics::PredictionMetrics",
-      "properties": {
-        "rollback_ticks": {
-          "type": {
-            "$ref": "#/$defs/u32"
-          }
-        },
-        "rollbacks": {
-          "type": {
-            "$ref": "#/$defs/u32"
-          }
-        }
-      },
-      "required": [
-        "rollbacks",
-        "rollback_ticks"
-      ],
-      "short_name": "PredictionMetrics",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::plugin::PredictionConfig": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::prediction::plugin::PredictionConfig",
-      "properties": {
-        "always_rollback": {
-          "type": {
-            "$ref": "#/$defs/bool"
-          }
-        },
-        "correction_ticks_factor": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "maximum_input_delay_before_prediction": {
-          "type": {
-            "$ref": "#/$defs/u16"
-          }
-        },
-        "maximum_predicted_ticks": {
-          "type": {
-            "$ref": "#/$defs/u16"
-          }
-        },
-        "minimum_input_delay_ticks": {
-          "type": {
-            "$ref": "#/$defs/u16"
-          }
-        }
-      },
-      "required": [
-        "always_rollback",
-        "minimum_input_delay_ticks",
-        "maximum_input_delay_before_prediction",
-        "maximum_predicted_ticks",
-        "correction_ticks_factor"
-      ],
-      "short_name": "PredictionConfig",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::prespawn::PreSpawnedPlayerObject": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::prediction::prespawn::PreSpawnedPlayerObject",
-      "properties": {
-        "hash": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<u64>"
-          }
-        },
-        "user_salt": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<u64>"
-          }
-        }
-      },
-      "required": [],
-      "short_name": "PreSpawnedPlayerObject",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::rollback::Rollback": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": true,
-      "long_name": "lightyear::client::prediction::rollback::Rollback",
-      "properties": {},
-      "required": [],
-      "short_name": "Rollback",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::client::prediction::rollback::RollbackState": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::prediction::rollback::RollbackState",
-      "oneOf": [
-        {
-          "long_name": "Default"
-        },
-        {
-          "additionalProperties": false,
-          "long_name": "ShouldRollback",
-          "properties": {
-            "current_tick": {
-              "long_name": "current_tick",
-              "type": {
-                "$ref": "#/$defs/lightyear::shared::tick_manager::tick_module::Tick"
-              }
-            }
-          },
-          "required": [
-            "current_tick"
-          ],
-          "short_name": "ShouldRollback",
-          "type": "object",
-          "typeInfo": "Struct"
-        }
-      ],
-      "short_name": "RollbackState",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "lightyear::client::replication::send::Replicate": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::replication::send::Replicate",
-      "properties": {
-        "group": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicationGroup"
-          }
-        },
-        "hierarchy": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicateHierarchy"
-          }
-        },
-        "replicating": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::components::Replicating"
-          }
-        },
-        "target": {
-          "type": {
-            "$ref": "#/$defs/lightyear::client::replication::send::ReplicateToServer"
-          }
-        }
-      },
-      "required": [
-        "target",
-        "group",
-        "hierarchy",
-        "replicating"
-      ],
-      "short_name": "Replicate",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
     "lightyear::client::replication::send::ReplicateToServer": {
       "additionalProperties": false,
       "isComponent": false,
@@ -18478,6 +18137,123 @@
       "short_name": "ClientId",
       "type": "object",
       "typeInfo": "Enum"
+    },
+    "lightyear::server::replication::send::ControlledBy": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lightyear::server::replication::send::ControlledBy",
+      "properties": {
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/lightyear::server::replication::send::Lifetime"
+          }
+        },
+        "target": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::network_target::NetworkTarget"
+          }
+        }
+      },
+      "required": [
+        "target",
+        "lifetime"
+      ],
+      "short_name": "ControlledBy",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::server::replication::send::Lifetime": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::server::replication::send::Lifetime",
+      "oneOf": [
+        "SessionBased",
+        "Persistent"
+      ],
+      "short_name": "Lifetime",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lightyear::server::replication::send::Replicate": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::server::replication::send::Replicate",
+      "properties": {
+        "controlled_by": {
+          "type": {
+            "$ref": "#/$defs/lightyear::server::replication::send::ControlledBy"
+          }
+        },
+        "group": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicationGroup"
+          }
+        },
+        "hierarchy": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicateHierarchy"
+          }
+        },
+        "marker": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::Replicating"
+          }
+        },
+        "relevance_mode": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::NetworkRelevanceMode"
+          }
+        },
+        "sync": {
+          "type": {
+            "$ref": "#/$defs/lightyear::server::replication::send::SyncTarget"
+          }
+        },
+        "target": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicationTarget"
+          }
+        }
+      },
+      "required": [
+        "target",
+        "sync",
+        "relevance_mode",
+        "controlled_by",
+        "group",
+        "hierarchy",
+        "marker"
+      ],
+      "short_name": "Replicate",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::server::replication::send::SyncTarget": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::server::replication::send::SyncTarget",
+      "properties": {
+        "interpolation": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::network_target::NetworkTarget"
+          }
+        },
+        "prediction": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::network_target::NetworkTarget"
+          }
+        }
+      },
+      "required": [
+        "prediction",
+        "interpolation"
+      ],
+      "short_name": "SyncTarget",
+      "type": "object",
+      "typeInfo": "Struct"
     },
     "lightyear::shared::config::Mode": {
       "isComponent": false,
@@ -19003,22 +18779,6 @@
       "short_name": "TickConfig",
       "type": "object",
       "typeInfo": "Struct"
-    },
-    "lightyear::shared::tick_manager::tick_module::Tick": {
-      "isComponent": false,
-      "isResource": false,
-      "items": false,
-      "long_name": "lightyear::shared::tick_manager::tick_module::Tick",
-      "prefixItems": [
-        {
-          "type": {
-            "$ref": "#/$defs/u16"
-          }
-        }
-      ],
-      "short_name": "Tick",
-      "type": "array",
-      "typeInfo": "TupleStruct"
     },
     "lightyear::transport::config::SharedIoConfig<lightyear::server::io::config::ServerTransport>": {
       "additionalProperties": false,

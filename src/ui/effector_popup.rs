@@ -3,7 +3,7 @@ use bevy_vello::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-pub(super) struct EffectorPopupUiPlugin;
+pub struct EffectorPopupUiPlugin;
 
 impl Plugin for EffectorPopupUiPlugin {
     fn build(&self, app: &mut App) {

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_motiongfx::MotionGfxPlugin;
 
-pub(super) mod effector_popup;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod splash;
@@ -16,7 +15,6 @@ impl Plugin for UiPlugin {
                 splash::SplashUiPlugin,
                 main_menu::MainMenuUiPlugin,
                 lobby::LobbyUiPlugin,
-                effector_popup::EffectorPopupUiPlugin,
             ));
     }
 }

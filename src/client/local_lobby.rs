@@ -11,6 +11,9 @@ pub(super) struct LocalLobbyPlugin;
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::LocalLobby), init_lobby);
+
+        app.register_type::<MatchmakeEffector>()
+            .register_type::<TutorialEffector>();
     }
 }
 
@@ -25,3 +28,11 @@ fn init_lobby(mut commands: Commands) {
         .insert(LocalInputBundle::default())
         .insert(MyPlayer);
 }
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub(super) struct MatchmakeEffector;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub(super) struct TutorialEffector;

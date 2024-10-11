@@ -1,13 +1,15 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
+use leafwing_input_manager::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
+use crate::shared::input::PlayerAction;
+use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 
 use super::player::MyPlayer;
-use super::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 
 pub(super) struct EffectorPlugin;
 
@@ -15,10 +17,11 @@ impl Plugin for EffectorPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CollidedEffector>()
             .add_systems(FixedUpdate, collect_effector_collisions)
-            .add_systems(Update, show_effector_popup);
+            .add_systems(Update, (show_effector_popup, interact_effector));
     }
 }
 
+/// Collect effector collision and place the closest result to [`CollidedEffector`].
 fn collect_effector_collisions(
     q_sensors: Query<&GlobalTransform, With<Sensor>>,
     q_my_player: Query<&GlobalTransform, With<MyPlayer>>,
@@ -167,6 +170,32 @@ fn show_effector_popup(
         // scene.post_process_map.insert(TypLabel::new("body"), PostPro)
     } else if func.body.is_some() {
         func.body = None;
+    }
+}
+
+fn interact_effector(
+    q_effectors: Query<&InteractableEffector>,
+    action: Res<ActionState<PlayerAction>>,
+    collided_effector: Res<CollidedEffector>,
+    time: Res<Time>,
+    mut accumulation: Local<f32>,
+) {
+    if collided_effector.is_changed() {
+        *accumulation = 0.0;
+    }
+
+    let Some(effector) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
+        return;
+    };
+
+    if action.pressed(&PlayerAction::Interact) {
+        *accumulation += time.delta_seconds();
+
+        if *accumulation >= effector.required_accumulation {
+            // Perform interaction
+        }
+    } else if action.released(&PlayerAction::Interact) {
+        *accumulation -= time.delta_seconds();
     }
 }
 

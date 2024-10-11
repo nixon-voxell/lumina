@@ -6,6 +6,7 @@ use bevy_vello::VelloPlugin;
 use bevy_vello_graphics::VelloGraphicsPlugin;
 use velyst::{prelude::*, typst_element::prelude::*, VelystPlugin};
 
+pub mod effector_popup;
 pub mod main_window;
 pub mod perf_metrics;
 
@@ -25,6 +26,7 @@ impl Plugin for UiPlugin {
         app.add_plugins((
             main_window::MainWindowUiPlugin,
             perf_metrics::PerfMetricsUiPlugin,
+            effector_popup::EffectorPopupUiPlugin,
         ))
         .add_systems(Startup, spawn_ui_camera);
     }

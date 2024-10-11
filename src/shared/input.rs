@@ -46,6 +46,7 @@ impl Default for LocalInputBundle {
 #[derive(Actionlike, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Move,
+    Brake,
     Interact,
     UseItem,
 }
@@ -57,12 +58,14 @@ impl PlayerAction {
 
         // Default gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
+        input_map.insert(Self::Brake, GamepadButtonType::East);
         input_map.insert(Self::Interact, GamepadButtonType::South);
         input_map.insert(Self::UseItem, GamepadButtonType::RightTrigger2);
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
-        input_map.insert(Self::Interact, KeyCode::Space);
+        input_map.insert(Self::Brake, KeyCode::Space);
+        input_map.insert(Self::Interact, KeyCode::KeyE);
         input_map.insert(Self::UseItem, MouseButton::Left);
 
         input_map
