@@ -22,7 +22,6 @@ impl Plugin for BulletPlugin {
 
 fn spawn_bullet_mesh(
     time: Res<Time>,
-    mut firing_timer: Local<f32>, // Local variable to keep track of firing time
     q_player: Query<&Position, With<client::Predicted>>,
     q_action_states: Query<
         &ActionState<PlayerAction>,
@@ -31,11 +30,8 @@ fn spawn_bullet_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    weapon_query: Query<&WeaponProperties>, // Query for WeaponProperties
+    mut weapon_query: Query<&mut WeaponProperties>, // Query for WeaponProperties
 ) {
-    // Update the firing timer
-    *firing_timer += time.delta_seconds();
-
     let Ok(action_state) = q_action_states.get_single() else {
         return;
     };
@@ -45,12 +41,16 @@ fn spawn_bullet_mesh(
     };
 
     // Get the weapon properties
-    let Ok(weapon_properties) = weapon_query.get_single() else {
+    let Ok(mut weapon_properties) = weapon_query.get_single_mut() else {
         return; // Ensure we have valid weapon properties
     };
 
-    // Check if the attack button is pressed and if enough time has passed
-    if action_state.pressed(&PlayerAction::Attack) && *firing_timer >= weapon_properties.firing_rate
+    // Update the elapsed time since last fire
+    weapon_properties.elapsed_time += time.delta_seconds();
+
+    // Check if the attack button is pressed and if enough time has passed since the last fire
+    if action_state.pressed(&PlayerAction::Attack)
+        && weapon_properties.elapsed_time >= weapon_properties.firing_rate
     {
         commands.spawn((
             MaterialMesh2dBundle {
@@ -66,14 +66,14 @@ fn spawn_bullet_mesh(
             },
             BulletLifetime {
                 elapsed_time: 0.0,
-                despawn_time: 3.0,
+                despawn_time: 3.0, // Bullet lives for 3 seconds
             },
         ));
 
-        println!("Circle Spawned!");
+        println!("Bullet Spawned!");
 
-        // Reset the firing timer
-        *firing_timer = 0.0;
+        // Reset the firing timer (set elapsed time back to 0)
+        weapon_properties.elapsed_time = 0.0;
     }
 }
 
@@ -102,6 +102,7 @@ fn setup_weapon(mut commands: Commands) {
         WeaponProperties {
             firing_rate: 0.3, // Set your desired firing rate here (in seconds)
             magazine_size: 10,
+            elapsed_time: 0.0,
         },
     ));
 }
@@ -126,6 +127,8 @@ pub struct WeaponProperties {
     firing_rate: f32,
     /// Number of bullets the player can fire before the player needs to reload.
     magazine_size: u32,
+    /// Time elapsed since the last bullet was fired
+    elapsed_time: f32,
 }
 
 /// The current number of bullets left in the turret.
