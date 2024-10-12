@@ -61,9 +61,6 @@ impl Plugin for AppPlugin {
         };
 
         app.add_plugins(shared::SharedPlugin);
-        app.add_plugins(
-            shared::procedural_map::rectangle_spawning::rectangle_batch_spawn::RectangleBatchSpawnPlugin,
-        );
     }
 }
 

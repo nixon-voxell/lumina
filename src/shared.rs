@@ -39,6 +39,7 @@ impl Plugin for SharedPlugin {
             crate::protocol::ProtocolPlugin,
             crate::ui::UiPlugin,
             player::PlayerPlugin,
+            procedural_map::GridMapPlugin,
         ))
         .add_systems(Startup, spawn_ui_camera);
     }

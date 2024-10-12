@@ -1,4 +1,4 @@
-use crate::shared::procedural_map::grid_map::GridMap;
+use crate::shared::procedural_map::grid_map::{CellState, GridMap};
 use rand::Rng;
 use rand::SeedableRng;
 
@@ -11,44 +11,15 @@ pub struct CaveConfig {
     pub max_dig_attempts: usize,
 }
 
-impl Default for CaveConfig {
-    fn default() -> Self {
-        Self {
-            map_width: 100,
-            map_height: 100,
-            random_seed: 0,
-            empty_space_percentage: 40.0,
-            edge_thickness: 1,
-            max_dig_attempts: 10000,
-        }
-    }
-}
-
-// TODO: Move to grid.rs
 // This function creates a cave-like map using a random walk algorithm
 pub fn create_cave_map(initial_grid: GridMap, config: CaveConfig) -> GridMap {
-    let mut cave_map = initial_grid.0.clone();
-    carve_cave_paths(&mut cave_map, &config);
-    GridMap(cave_map)
-}
-
-// Choose a random starting position for the cave digging
-fn pick_start_position(rng: &mut impl Rng, config: &CaveConfig) -> (usize, usize) {
-    let x = rng.gen_range(config.edge_thickness..config.map_width - config.edge_thickness);
-    let y = rng.gen_range(config.edge_thickness..config.map_height - config.edge_thickness);
-    (x, y)
-}
-
-// Check if a position is within the valid bounds
-fn is_within_bounds(x: isize, y: isize, config: &CaveConfig) -> bool {
-    x >= config.edge_thickness as isize
-        && x < (config.map_width - config.edge_thickness) as isize
-        && y >= config.edge_thickness as isize
-        && y < (config.map_height - config.edge_thickness) as isize
+    let mut cave_map = initial_grid.clone();
+    carve_cave_paths(cave_map.states_mut(), &config);
+    cave_map
 }
 
 // The main function that creates the cave by digging random paths
-fn carve_cave_paths(map: &mut [i32], config: &CaveConfig) {
+fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
     // Calculate how many empty tiles we need
     let total_tiles = config.map_width * config.map_height;
     let required_empty_tiles =
@@ -63,8 +34,8 @@ fn carve_cave_paths(map: &mut [i32], config: &CaveConfig) {
     // Set up variables for the digging process
     let mut empty_tile_count = 1;
 
-    // Make the starting point empty (0 means empty, 1 means wall)
-    map[digger_y * config.map_width + digger_x] = 0;
+    // Make the starting point empty
+    map[digger_y * config.map_width + digger_x] = CellState::Empty;
 
     // Define possible directions to move (up, down, left, right)
     let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)];
@@ -81,8 +52,8 @@ fn carve_cave_paths(map: &mut [i32], config: &CaveConfig) {
         if is_within_bounds(new_x, new_y, config) {
             let new_index = new_y as usize * config.map_width + new_x as usize;
             // If it's a wall, make it empty
-            if map[new_index] == 1 {
-                map[new_index] = 0;
+            if map[new_index] == CellState::Filled {
+                map[new_index] = CellState::Empty;
                 empty_tile_count += 1;
             }
             // Move the digger to the new position
@@ -93,4 +64,19 @@ fn carve_cave_paths(map: &mut [i32], config: &CaveConfig) {
             dig_attempts += 1;
         }
     }
+}
+
+// Choose a random starting position for the cave digging
+fn pick_start_position(rng: &mut impl Rng, config: &CaveConfig) -> (usize, usize) {
+    let x = rng.gen_range(config.edge_thickness..config.map_width - config.edge_thickness);
+    let y = rng.gen_range(config.edge_thickness..config.map_height - config.edge_thickness);
+    (x, y)
+}
+
+// Check if a position is within the valid bounds
+fn is_within_bounds(x: isize, y: isize, config: &CaveConfig) -> bool {
+    x >= config.edge_thickness as isize
+        && x < (config.map_width - config.edge_thickness) as isize
+        && y >= config.edge_thickness as isize
+        && y < (config.map_height - config.edge_thickness) as isize
 }
