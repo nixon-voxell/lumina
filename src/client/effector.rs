@@ -1,9 +1,11 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
+use bevy_vello::vello::kurbo;
 use leafwing_input_manager::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
+use velyst::typst_vello::PostProcess;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
 use crate::shared::input::PlayerAction;
@@ -108,7 +110,7 @@ fn show_effector_popup(
     mut q_popup_style: Query<&mut Style, With<VelystSceneTag<EffectorPopupFunc>>>,
     collided_effector: Res<CollidedEffector>,
     mut func: ResMut<EffectorPopupFunc>,
-    // mut scene: ResMut<VelystScene<EffectorPopupFunc>>,
+    mut scene: ResMut<VelystScene<EffectorPopupFunc>>,
     time: Res<Time>,
     mut animation: Local<f64>,
 ) {
@@ -164,10 +166,17 @@ fn show_effector_popup(
             .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
 
             func.body = Some(stack.pack());
+            *animation = 0.0;
         }
 
         *animation = f64::min(*animation + time.delta_seconds_f64(), 1.0);
-        // scene.post_process_map.insert(TypLabel::new("body"), PostPro)
+        scene.post_process_map.insert(
+            TypLabel::new("body"),
+            PostProcess {
+                transform: Some(kurbo::Affine::scale(*animation)),
+                ..default()
+            },
+        );
     } else if func.body.is_some() {
         func.body = None;
     }

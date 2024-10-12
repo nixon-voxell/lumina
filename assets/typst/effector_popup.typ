@@ -25,6 +25,6 @@
   let size = measure(body)
 
   place(dx: -size.width * 0.5, dy: -size.height - 10pt)[
-    #body
+    #body <body>
   ]
 }
