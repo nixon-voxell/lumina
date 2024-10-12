@@ -2,10 +2,11 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use rand::Rng;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
+use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel, SeedMessage};
 use crate::shared::input::PlayerAction;
 use crate::shared::player::{
     shared_handle_player_movement, PlayerId, PlayerMovement, ReplicatePlayerBundle,
@@ -81,6 +82,14 @@ fn propagate_lobby_status(
             room_id,
             &room_manager,
         );
+
+        // Send the seed message
+        let seed: u32 = rand::thread_rng().gen();
+        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+            &SeedMessage(seed),
+            room_id,
+            &room_manager,
+        );
     }
 }
 
@@ -93,13 +102,14 @@ fn handle_matchmaking(
     >,
     mut room_manager: ResMut<RoomManager>,
     mut client_infos: ResMut<ClientInfos>,
+    mut connection_manager: ResMut<ConnectionManager>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
         // Already matchmake
         if client_infos.contains_key(&client_id) {
-            warn!("Recieved duplicated matchmake commands from {client_id:?}");
+            warn!("Received duplicated matchmake commands from {client_id:?}");
             continue;
         }
 
@@ -128,8 +138,16 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity
-            .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
+        let lobby_entity = lobby_entity.unwrap_or_else(|| {
+            let seed: u32 = rand::thread_rng().gen();
+            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
+            let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+                &SeedMessage(seed),
+                entity.room_id(),
+                &room_manager,
+            );
+            entity
+        });
 
         let player_entity = spawn_player_entity(&mut commands, client_id);
 

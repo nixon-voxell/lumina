@@ -25,6 +25,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
         app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
+        app.register_message::<SeedMessage>(ChannelDirection::ServerToClient);
 
         // Components
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
@@ -95,3 +96,8 @@ pub struct StartGame;
 /// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]
 pub struct ReliableChannel;
+
+/// SeedMessage is a simple message that contains a number.
+/// This number is used to create the game world the same way on both the server and the client.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct SeedMessage(pub u32);
