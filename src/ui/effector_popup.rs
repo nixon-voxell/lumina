@@ -25,7 +25,22 @@ fn setup_scene(mut q_scene: Query<&mut CoordinateSpace, Added<VelystSceneTag<Eff
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "effector_popup", layer = 0)]
 pub struct EffectorPopupFunc {
-    pub body: Option<Content>,
+    // pub body: Option<Content>,
+    pub message: Option<Content>,
+    pub button: Option<&'static str>,
+    pub button_progress: f64,
+}
+
+impl EffectorPopupFunc {
+    pub fn clear(&mut self) {
+        self.message = None;
+        self.button = None;
+        self.button_progress = 0.0;
+    }
+
+    pub fn has_content(&self) -> bool {
+        self.message.is_some() || self.button.is_some()
+    }
 }
 
 #[derive(TypstPath)]

@@ -17,6 +17,7 @@ pub(super) struct EffectorPlugin;
 impl Plugin for EffectorPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CollidedEffector>()
+            .add_event::<InteractedEffector>()
             .add_systems(FixedUpdate, collect_effector_collisions)
             .add_systems(Update, (show_effector_popup, interact_effector));
     }
@@ -111,48 +112,29 @@ fn show_effector_popup(
             popup_style.top =
                 Val::Px(translation.y + collider.shape_scaled().0.compute_local_aabb().maxs.y);
 
-            let mut contents = Vec::new();
-
             // Show which button to press if it's interactable.
             if is_interactable {
-                contents.push(
-                    elem::context(scope.get_func_unchecked("button_popup"), |args| {
-                        args.push("E");
-                    })
-                    .pack(),
-                );
+                func.button = Some("E");
             }
 
             // Show popup message if available.
             if let Some(popup_msg) = popup_msg {
-                contents.push(
+                func.message = Some(
                     elem::context(scope.get_func_unchecked("msg_popup"), |args| {
                         args.push(popup_msg.0.clone());
                     })
                     .pack(),
                 );
             }
-
-            // Stack ui elements together from left to right.
-            let stack = elem::stack(
-                contents
-                    .iter()
-                    .map(|c| layout::StackChild::Block(c.clone()))
-                    .collect::<Vec<_>>(),
-            )
-            .with_dir(layout::Dir::LTR)
-            .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
-
-            func.body = Some(stack.pack());
         }
     }
 
     // Do not render ui when there is no active effector and it has been hidden through animation.
     if *animation <= 0.0 && curr_effector.is_none() {
-        func.body = None;
+        func.clear();
     }
 
-    if func.body.is_some() {
+    if func.has_content() {
         let label = TypLabel::new("body");
 
         if let Some(group_index) = scene.query(label).and_then(|g| g.first()) {
@@ -164,7 +146,7 @@ fn show_effector_popup(
             scene.post_process_map.insert(
                 label,
                 typst_vello::PostProcess {
-                    transform: Some(transform.pre_scale(f64::lerp(0.5, 1.0, t as f64))),
+                    transform: Some(transform.then_scale(f64::lerp(0.8, 1.0, t as f64))),
                     layer: Some(typst_vello::Layer {
                         alpha: t,
                         ..default()
@@ -181,27 +163,41 @@ fn interact_effector(
     action: Res<ActionState<PlayerAction>>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
+    mut func: ResMut<EffectorPopupFunc>,
     mut accumulation: Local<f32>,
 ) {
     if collided_effector.is_changed() {
         *accumulation = 0.0;
     }
 
+    if func.has_content() == false {
+        return;
+    }
+
     let Some(effector) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
         return;
     };
 
-    if action.pressed(&PlayerAction::Interact) {
-        *accumulation += time.delta_seconds();
+    // Prevent division by zero.
+    let required_accumulation = f32::max(effector.required_accumulation, f32::EPSILON);
 
-        if *accumulation >= effector.required_accumulation {
-            // Perform interaction
-        }
+    if action.pressed(&PlayerAction::Interact) {
+        *accumulation = f32::min(*accumulation + time.delta_seconds(), required_accumulation);
     } else if action.released(&PlayerAction::Interact) {
-        *accumulation -= time.delta_seconds();
+        *accumulation = f32::max(*accumulation - time.delta_seconds(), 0.0);
     }
+
+    if *accumulation >= required_accumulation {
+        // Perform interaction
+    }
+
+    func.button_progress = ease::cubic::ease_in_out(*accumulation / required_accumulation) as f64;
 }
 
 /// Collided effector that is closest to the player.
 #[derive(Resource, Default, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub(super) struct CollidedEffector(pub Option<Entity>);
+
+/// Successfully interacted effector.
+#[derive(Event, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
+pub(super) struct InteractedEffector(pub Entity);
