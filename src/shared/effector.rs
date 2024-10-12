@@ -20,6 +20,7 @@ fn convert_effector(mut commands: Commands, q_effectors: Query<(&Effector, Entit
             Collider::try_from_constructor(effector.collider.clone()).unwrap(),
             Sensor,
             effector.rigidbody,
+            CollidingEntities::default(),
         ));
 
         commands.entity(entity).remove::<Effector>();

@@ -1,4 +1,6 @@
 use avian2d::prelude::*;
+use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use noisy_bevy::simplex_noise_2d_seeded;
@@ -12,7 +14,7 @@ impl Plugin for CameraPlugin {
         app.init_resource::<CameraShake>()
             .add_systems(Startup, spawn_game_camera)
             .add_systems(Update, follow_player)
-            .add_systems(PreUpdate, restore)
+            .add_systems(PreUpdate, restore_camera_shake)
             .add_systems(
                 PostUpdate,
                 camera_shake
@@ -30,10 +32,14 @@ fn spawn_game_camera(mut commands: Commands) {
         Camera2dBundle {
             camera: Camera {
                 clear_color: Color::Srgba(Srgba::hex("19181A").unwrap()).into(),
+                hdr: true,
                 ..default()
             },
+            tonemapping: Tonemapping::TonyMcMapface,
+            deband_dither: DebandDither::Enabled,
             ..default()
         },
+        BloomSettings::default(),
     ));
 }
 
@@ -67,7 +73,10 @@ fn follow_player(
     );
 }
 
-fn restore(mut q_cameras: Query<&mut Transform, With<GameCamera>>, mut shake: ResMut<CameraShake>) {
+fn restore_camera_shake(
+    mut q_cameras: Query<&mut Transform, With<GameCamera>>,
+    mut shake: ResMut<CameraShake>,
+) {
     for mut transform in q_cameras.iter_mut() {
         // Avoid change detection
         if let Some(reference_translation) = shake.reference_translation {

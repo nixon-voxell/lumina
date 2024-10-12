@@ -16,7 +16,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             VelloPlugin {
-                canvas_render_layers: RenderLayers::layer(1),
+                canvas_render_layers: RenderLayers::from_layers(&[0, 1]),
                 ..default()
             },
             VelloGraphicsPlugin,
@@ -39,6 +39,7 @@ fn spawn_ui_camera(mut commands: Commands) {
         Camera2dBundle {
             camera: Camera {
                 clear_color: Color::NONE.into(),
+                hdr: true,
                 order: 1,
                 ..default()
             },

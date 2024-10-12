@@ -1,11 +1,10 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy::utils::HashSet;
-use bevy_vello::vello::kurbo;
+use bevy_motiongfx::prelude::ease;
 use leafwing_input_manager::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
-use velyst::typst_vello::PostProcess;
+use velyst::typst_vello;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
 use crate::shared::input::PlayerAction;
@@ -25,71 +24,29 @@ impl Plugin for EffectorPlugin {
 
 /// Collect effector collision and place the closest result to [`CollidedEffector`].
 fn collect_effector_collisions(
-    q_sensors: Query<&GlobalTransform, With<Sensor>>,
-    q_my_player: Query<&GlobalTransform, With<MyPlayer>>,
-    mut started_evr: EventReader<CollisionStarted>,
-    mut ended_evr: EventReader<CollisionEnded>,
+    q_sensors: Query<(&GlobalTransform, &CollidingEntities, Entity), With<Sensor>>,
+    q_my_player: Query<(&GlobalTransform, Entity), With<MyPlayer>>,
     mut collided_effector: ResMut<CollidedEffector>,
-    mut collisions: Local<HashSet<EffectorCollision>>,
 ) {
-    let Ok(player_transform) = q_my_player.get_single() else {
+    let Ok((player_transform, player_entity)) = q_my_player.get_single() else {
         return;
     };
 
-    // Closure for filtering collisions that only occurs between player and effector.
-    let filter_collision = |collision: (Entity, Entity)| -> Option<EffectorCollision> {
-        let mut player = None;
-        let mut effector = None;
-
-        if q_my_player.contains(collision.0) {
-            player = Some(collision.0);
-        } else if q_my_player.contains(collision.1) {
-            player = Some(collision.1);
-        }
-
-        if q_sensors.contains(collision.0) {
-            effector = Some(collision.0);
-        } else if q_sensors.contains(collision.1) {
-            effector = Some(collision.1);
-        }
-
-        if let (Some(player), Some(effector)) = (player, effector) {
-            return Some(EffectorCollision { player, effector });
-        }
-
-        None
-    };
-
-    // Add and remove collisions.
-    for collision in started_evr
-        .read()
-        .filter_map(|c| filter_collision((c.0, c.1)))
-    {
-        collisions.insert(collision);
-    }
-
-    for collision in ended_evr
-        .read()
-        .filter_map(|c| filter_collision((c.0, c.1)))
-    {
-        collisions.remove(&collision);
-    }
+    let effectors = q_sensors
+        .iter()
+        .filter(|(_, colliding_entities, _)| colliding_entities.contains(&player_entity));
 
     // Find the closest effector to the player.
     let mut closest_distance = f32::MAX;
     let mut closest_effector = None;
 
-    for collision in collisions.iter() {
-        let Ok(effector_translation) = q_sensors.get(collision.effector).map(|t| t.translation())
-        else {
-            continue;
-        };
-
-        let distance = Vec3::distance_squared(effector_translation, player_transform.translation());
+    for (transform, _, entity) in effectors {
+        let distance =
+            Vec3::distance_squared(transform.translation(), player_transform.translation());
 
         if distance < closest_distance {
             closest_distance = distance;
-            closest_effector = Some(collision.effector);
+            closest_effector = Some(entity);
         }
     }
 
@@ -112,7 +69,10 @@ fn show_effector_popup(
     mut func: ResMut<EffectorPopupFunc>,
     mut scene: ResMut<VelystScene<EffectorPopupFunc>>,
     time: Res<Time>,
-    mut animation: Local<f64>,
+    // Animtion time for the ui.
+    mut animation: Local<f32>,
+    // The effector entity that ui is currently positioned at.
+    mut curr_effector: Local<Option<Entity>>,
 ) {
     let Some(scope) = context.get_scope() else {
         return;
@@ -122,15 +82,30 @@ fn show_effector_popup(
         return;
     };
 
-    if let Some(entity) = **collided_effector {
-        // let (camera, camera_transform) = q_camera.single();
+    const ANIMATION_SPEED: f32 = 4.0;
+    let animation_delta = time.delta_seconds() * ANIMATION_SPEED;
 
-        let Ok((effector_transform, collider, is_interactable, popup_msg)) = q_sensors.get(entity)
-        else {
-            return;
-        };
+    let mut effector_changed = false;
 
-        if collided_effector.is_changed() {
+    if *curr_effector != **collided_effector {
+        // Hide the effector on change.
+        *animation = f32::max(*animation - animation_delta, 0.0);
+
+        // Update target effector when successfully hidden.
+        if *animation <= 0.0 {
+            *curr_effector = **collided_effector;
+            effector_changed = true;
+        }
+    } else if curr_effector.is_some() {
+        // Show the effector.
+        *animation = f32::min(*animation + animation_delta, 1.0);
+    }
+
+    if effector_changed {
+        if let Some((effector_transform, collider, is_interactable, popup_msg)) =
+            curr_effector.and_then(|entity| q_sensors.get(entity).ok())
+        {
+            // Set translation of the ui.
             let translation = effector_transform.translation();
             popup_style.left = Val::Px(translation.x);
             popup_style.top =
@@ -138,6 +113,7 @@ fn show_effector_popup(
 
             let mut contents = Vec::new();
 
+            // Show which button to press if it's interactable.
             if is_interactable {
                 contents.push(
                     elem::context(scope.get_func_unchecked("button_popup"), |args| {
@@ -147,6 +123,7 @@ fn show_effector_popup(
                 );
             }
 
+            // Show popup message if available.
             if let Some(popup_msg) = popup_msg {
                 contents.push(
                     elem::context(scope.get_func_unchecked("msg_popup"), |args| {
@@ -156,6 +133,7 @@ fn show_effector_popup(
                 );
             }
 
+            // Stack ui elements together from left to right.
             let stack = elem::stack(
                 contents
                     .iter()
@@ -166,19 +144,35 @@ fn show_effector_popup(
             .with_spacing(Some(layout::Spacing::Rel(Abs::pt(10.0).rel())));
 
             func.body = Some(stack.pack());
-            *animation = 0.0;
         }
+    }
 
-        *animation = f64::min(*animation + time.delta_seconds_f64(), 1.0);
-        scene.post_process_map.insert(
-            TypLabel::new("body"),
-            PostProcess {
-                transform: Some(kurbo::Affine::scale(*animation)),
-                ..default()
-            },
-        );
-    } else if func.body.is_some() {
+    // Do not render ui when there is no active effector and it has been hidden through animation.
+    if *animation <= 0.0 && curr_effector.is_none() {
         func.body = None;
+    }
+
+    if func.body.is_some() {
+        let label = TypLabel::new("body");
+
+        if let Some(group_index) = scene.query(label).and_then(|g| g.first()) {
+            // Preserve original group transform.
+            let transform = scene.get_group(*group_index).transform();
+            // Ease time.
+            let t = ease::cubic::ease_in_out(*animation);
+
+            scene.post_process_map.insert(
+                label,
+                typst_vello::PostProcess {
+                    transform: Some(transform.pre_scale(f64::lerp(0.5, 1.0, t as f64))),
+                    layer: Some(typst_vello::Layer {
+                        alpha: t,
+                        ..default()
+                    }),
+                    ..default()
+                },
+            );
+        }
     }
 }
 
@@ -211,12 +205,3 @@ fn interact_effector(
 /// Collided effector that is closest to the player.
 #[derive(Resource, Default, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub(super) struct CollidedEffector(pub Option<Entity>);
-
-/// Used to store collision information betweewn [`MyPlayer`] and [`Effector`][effector].
-///
-/// [effector]: crate::shared::effector::Effector
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(super) struct EffectorCollision {
-    pub player: Entity,
-    pub effector: Entity,
-}
