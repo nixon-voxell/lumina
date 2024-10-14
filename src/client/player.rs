@@ -1,54 +1,50 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy::sprite::Mesh2dHandle;
+use bevy::utils::HashMap;
 use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use crate::shared::input::{PlayerAction, ReplicateInputBundle};
-use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement};
-use crate::shared::FixedSet;
+use crate::shared::input::{MovementSet, PlayerAction, ReplicateInputBundle};
+use crate::shared::player::{shared_handle_player_movement, PlayerId, PlayerMovement, SpaceShip};
+use crate::shared::LocalEntity;
 
-use super::lobby::LobbyState;
+use super::multiplayer_lobby::MatchmakeState;
+use super::MyClientId;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (handle_player_spawn, convert_3d_mesh_to_2d, follow_player),
-        )
-        .add_systems(Update, convert_3d_mesh_to_2d)
-        .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main))
-        .add_systems(OnEnter(LobbyState::None), despawn_input);
+        app.init_resource::<ActionState<PlayerAction>>()
+            .insert_resource(PlayerAction::input_map())
+            .init_resource::<PlayerMap>()
+            .add_systems(
+                Update,
+                (
+                    handle_player_spawn_visual,
+                    handle_player_spawn.run_if(resource_exists::<MyClientId>),
+                ),
+            )
+            .add_systems(
+                FixedUpdate,
+                (handle_player_movement, handle_local_player_movement).in_set(MovementSet::Input),
+            )
+            .add_systems(OnEnter(MatchmakeState::None), despawn_networked_inputs);
     }
 }
 
-fn convert_3d_mesh_to_2d(
+/// Add visuals for player.
+fn handle_player_spawn_visual(
     mut commands: Commands,
-    q_meshes: Query<(&Handle<Mesh>, &Handle<StandardMaterial>, &Name, Entity)>,
-    std_materials: Res<Assets<StandardMaterial>>,
-    mut color_materials: ResMut<Assets<ColorMaterial>>,
+    // Handle both networked and local players.
+    q_players: Query<Entity, (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>)>,
 ) {
-    for (mesh_handle, std_material_handle, name, entity) in q_meshes.iter() {
-        let Some(std_material) = std_materials.get(std_material_handle) else {
-            continue;
-        };
-
-        let color_material = color_materials.add(ColorMaterial {
-            color: std_material.base_color,
-            texture: std_material.base_color_texture.clone(),
-        });
-
-        commands
-            .entity(entity)
-            .remove::<Handle<Mesh>>()
-            .remove::<Handle<StandardMaterial>>()
-            .insert((Mesh2dHandle(mesh_handle.clone()), color_material));
-
-        info!("Converted {name:?} into 2d mesh.");
+    for entity in q_players.iter() {
+        commands.entity(entity).insert((
+            BlueprintInfo::from_path("blueprints/Player.glb"),
+            SpawnBlueprint,
+        ));
     }
 }
 
@@ -56,79 +52,66 @@ fn convert_3d_mesh_to_2d(
 fn handle_player_spawn(
     mut commands: Commands,
     q_predicted: Query<
-        (&PlayerId, Entity, Has<Predicted>),
-        (Or<(Added<Predicted>, Added<Interpolated>)>, With<Position>),
+        (&PlayerId, Entity),
+        (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>),
     >,
+    my_client_id: Res<MyClientId>,
+    mut player_map: ResMut<PlayerMap>,
 ) {
-    for (id, entity, is_predicted) in q_predicted.iter() {
-        info!("Spawn predicted entity.");
+    for (player_id, entity) in q_predicted.iter() {
+        info!("Spawned player {:?}.", entity);
+        let client_id = player_id.0;
 
-        // Add visuals for player.
-        commands.entity(entity).insert((
-            BlueprintInfo::from_path("blueprints/Player.glb"), // mandatory !!
-            SpawnBlueprint,
-        ));
-
-        if is_predicted {
+        if client_id == my_client_id.0 {
+            // Mark our player.
+            commands.entity(entity).insert(MyPlayer);
             // Replicate input from client to server.
-            commands.spawn(ReplicateInputBundle::new(*id));
+            commands.spawn(ReplicateInputBundle::new(*player_id));
+        }
+
+        player_map.insert(client_id, entity);
+    }
+}
+
+/// Handle player movement based on [`PlayerAction`].
+fn handle_player_movement(
+    // Handles all predicted player movements too (other clients).
+    q_actions: Query<(&PlayerId, &ActionState<PlayerAction>), With<Predicted>>,
+    mut player_movement_evw: EventWriter<PlayerMovement>,
+    player_map: Res<PlayerMap>,
+) {
+    for (id, action) in q_actions.iter() {
+        if let Some(player_entity) = player_map.get(&id.0) {
+            shared_handle_player_movement(action, *player_entity, &mut player_movement_evw);
         }
     }
 }
 
-/// Handle player movement on [`PlayerAction`].
-fn handle_player_movement(
-    q_player: Query<Entity, (With<Predicted>, With<Position>)>,
-    q_action_states: Query<
-        &ActionState<PlayerAction>,
-        (With<PrePredicted>, Changed<ActionState<PlayerAction>>),
-    >,
+fn handle_local_player_movement(
+    q_players: Query<Entity, (With<LocalEntity>, With<SpaceShip>)>,
+    action: Res<ActionState<PlayerAction>>,
     mut player_movement_evw: EventWriter<PlayerMovement>,
 ) {
-    let Ok(action_state) = q_action_states.get_single() else {
-        return;
-    };
-
-    let Ok(player_entity) = q_player.get_single() else {
-        return;
-    };
-
-    shared_handle_player_movement(action_state, player_entity, &mut player_movement_evw);
+    for entity in q_players.iter() {
+        shared_handle_player_movement(&action, entity, &mut player_movement_evw);
+    }
 }
 
-/// Despawn all player inputs.
-fn despawn_input(
+/// Despawn all networked player inputs.
+fn despawn_networked_inputs(
     mut commands: Commands,
-    q_action_states: Query<Entity, With<ActionState<PlayerAction>>>,
+    // Despawn only networked actions.
+    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, Without<LocalEntity>)>,
 ) {
-    for entity in q_action_states.iter() {
+    for entity in q_actions.iter() {
         commands.entity(entity).despawn();
     }
 }
 
-fn follow_player(
-    mut q_camera: Query<&mut Transform, (With<Camera>, Without<Predicted>)>,
-    q_player: Query<&Transform, (With<Predicted>, Without<Camera>)>,
-    time: Res<Time>,
-) {
-    const LERP_FACTOR: f32 = 4.0; // Adjust this value for more or less delay
+/// The player the the local client is controlling.
+#[derive(Component)]
+pub(super) struct MyPlayer;
 
-    // Ensure we have at least one player
-    if let Ok(player_transform) = q_player.get_single() {
-        for mut camera_transform in q_camera.iter_mut() {
-            // Calculate the target position based on player's position
-            let target_position = Vec3::new(
-                player_transform.translation.x,
-                player_transform.translation.y, // Adjust this value as needed
-                camera_transform.translation.z, // Keep the same z position
-            );
-
-            // Smoothly interpolate the camera's position towards the target position
-            camera_transform.translation = camera_transform.translation.lerp(
-                target_position,
-                // Clamp within 1.0 to prevent overshooting
-                f32::min(1.0, LERP_FACTOR * time.delta_seconds()),
-            );
-        }
-    }
-}
+/// Maps client id to player entity.
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
+pub struct PlayerMap(HashMap<ClientId, Entity>);

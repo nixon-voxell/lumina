@@ -3,14 +3,15 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use super::{input::PlayerAction, FixedSet};
+use super::{input::PlayerAction, LocalEntity, MovementSet};
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerMovement>()
-            .add_systems(FixedUpdate, player_movement.in_set(FixedSet::Main));
+            .add_systems(Update, init_players)
+            .add_systems(FixedUpdate, player_movement.in_set(MovementSet::Physics));
     }
 }
 
@@ -34,13 +35,49 @@ pub fn shared_handle_player_movement(
     }
 }
 
+fn init_players(
+    mut commands: Commands,
+    q_players: Query<
+        Entity,
+        (
+            With<SpaceShip>,
+            Without<Collider>,
+            Or<(
+                With<LocalEntity>,
+                With<client::Predicted>,
+                With<Replicating>,
+            )>,
+        ),
+    >,
+) {
+    if q_players.is_empty() {
+        return;
+    }
+
+    let collider = Collider::triangle(
+        Vec2::new(-20.0, 20.0),
+        Vec2::new(-20.0, -20.0),
+        Vec2::new(20.0, 0.0),
+    );
+
+    for entity in q_players.iter() {
+        info!("Adding collider for {entity:?}");
+        commands.entity(entity).insert((
+            MassPropertiesBundle::new_computed(&collider, 1.0),
+            collider.clone(),
+        ));
+    }
+}
+
 fn player_movement(
-    mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<PlayerId>>,
+    mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<SpaceShip>>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
-    const MOVEMENT_SPEED: f32 = 100.0;
-    const ROTATION_SPEED: f32 = 0.4;
+    const MOVEMENT_SPEED: f32 = 50.0;
+    // const ROTATION_SPEED: f32 = 0.4;
+    const ROTATION_SPEED: f32 = 1.0;
     const MAX_SPEED: f32 = 400.0;
+
     for player_movement in player_movement_evr.read() {
         if let Ok((mut linear, mut angular, rotation)) =
             q_movements.get_mut(player_movement.player_entity)
@@ -69,16 +106,37 @@ pub struct PlayerMovement {
 #[derive(Bundle)]
 pub struct ReplicatePlayerBundle {
     pub id: PlayerId,
-    pub position: Position,
-    pub physics_bundle: PhysicsBundle,
+    pub ship: SpaceShip,
+    pub physics: PhysicsBundle,
 }
 
 impl ReplicatePlayerBundle {
-    pub fn new(client_id: ClientId, position: Vec2) -> Self {
+    pub fn new(client_id: ClientId, position: Position, rotation: Rotation) -> Self {
         Self {
             id: PlayerId(client_id),
-            position: Position::new(position),
-            physics_bundle: PhysicsBundle::player(),
+            ship: SpaceShip,
+            physics: PhysicsBundle::player()
+                .with_position(position)
+                .with_rotation(rotation),
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct LocalPlayerBundle {
+    pub ship: SpaceShip,
+    pub physics: PhysicsBundle,
+    pub local: LocalEntity,
+}
+
+impl LocalPlayerBundle {
+    pub fn new(position: Position, rotation: Rotation) -> Self {
+        Self {
+            ship: SpaceShip,
+            physics: PhysicsBundle::player()
+                .with_position(position)
+                .with_rotation(rotation),
+            local: LocalEntity,
         }
     }
 }
@@ -86,10 +144,19 @@ impl ReplicatePlayerBundle {
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
 
-#[derive(Bundle)]
+#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+pub struct SpaceShip;
+
+// pub enum SpaceShipClass {
+//     Tank,
+//     Assassin,
+// }
+
+#[derive(Bundle, Default)]
 pub struct PhysicsBundle {
-    pub collider: Collider,
     pub rigidbody: RigidBody,
+    pub position: Position,
+    pub rotation: Rotation,
     pub linear_damping: LinearDamping,
     pub angular_damping: AngularDamping,
 }
@@ -97,10 +164,38 @@ pub struct PhysicsBundle {
 impl PhysicsBundle {
     pub fn player() -> Self {
         Self {
-            collider: Collider::rectangle(1.0, 1.0),
             rigidbody: RigidBody::Dynamic,
             linear_damping: LinearDamping(2.0),
             angular_damping: AngularDamping(6.0),
+            ..default()
         }
+    }
+}
+
+// Builder pattern.
+impl PhysicsBundle {
+    pub fn with_rigidbody(mut self, rigidbody: RigidBody) -> Self {
+        self.rigidbody = rigidbody;
+        self
+    }
+
+    pub fn with_position(mut self, position: Position) -> Self {
+        self.position = position;
+        self
+    }
+
+    pub fn with_rotation(mut self, rotation: Rotation) -> Self {
+        self.rotation = rotation;
+        self
+    }
+
+    pub fn with_linear_damping(mut self, linear_damping: LinearDamping) -> Self {
+        self.linear_damping = linear_damping;
+        self
+    }
+
+    pub fn with_angular_damping(mut self, angular_damping: AngularDamping) -> Self {
+        self.angular_damping = angular_damping;
+        self
     }
 }
