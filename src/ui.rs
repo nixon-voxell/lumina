@@ -85,7 +85,7 @@ pub fn interactable_func<F: InteractableFunc>(
     mut func: ResMut<F>,
     time: Res<Time>,
     mut last_hovered: Local<Option<TypLabel>>,
-    mut hovered_animation: Local<f64>,
+    mut hovered_animation: Local<f32>,
 ) {
     let mut hovered_button = None;
     for (interaction, label) in q_interactions.iter() {
@@ -99,11 +99,10 @@ pub fn interactable_func<F: InteractableFunc>(
         *last_hovered = hovered_button;
     }
 
-    const SPEED: f64 = 6.0;
+    const SPEED: f32 = 6.0;
     // Clamp at 1.0
-    *hovered_animation = f64::min(*hovered_animation + time.delta_seconds_f64() * SPEED, 1.0);
-
-    func.hovered_button(hovered_button, *hovered_animation);
+    *hovered_animation = f32::min(*hovered_animation + time.delta_seconds() * SPEED, 1.0);
+    func.hovered_button(hovered_button, *hovered_animation as f64);
 }
 
 pub trait InteractableFunc: TypstFunc {

@@ -42,7 +42,11 @@ fn init_players(
         (
             With<SpaceShip>,
             Without<Collider>,
-            Or<(With<client::Predicted>, With<LocalEntity>)>,
+            Or<(
+                With<LocalEntity>,
+                With<client::Predicted>,
+                With<Replicating>,
+            )>,
         ),
     >,
 ) {

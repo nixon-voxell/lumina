@@ -3,13 +3,10 @@ use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::client::multiplayer_lobby::MatchmakeState;
 use crate::client::Connection;
-use crate::protocol::{Matchmake, ReliableChannel};
 use crate::ui::main_window::push_to_main_window;
 use crate::ui::{interactable_func, pressed, InteractableFunc, InteractionQuery};
 
-use super::lobby::LobbyFunc;
 use super::Screen;
 
 pub(super) struct MainMenuUiPlugin;

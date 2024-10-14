@@ -17,7 +17,7 @@ pub(super) struct EffectorPlugin;
 impl Plugin for EffectorPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CollidedEffector>()
-            .add_event::<InteractedEffector>()
+            .add_event::<EffectorInteraction>()
             .add_systems(FixedUpdate, collect_effector_collisions)
             .add_systems(Update, (show_effector_popup, interact_effector));
     }
@@ -25,7 +25,10 @@ impl Plugin for EffectorPlugin {
 
 /// Collect effector collision and place the closest result to [`CollidedEffector`].
 fn collect_effector_collisions(
-    q_sensors: Query<(&GlobalTransform, &CollidingEntities, Entity), With<Sensor>>,
+    q_sensors: Query<
+        (&GlobalTransform, &CollidingEntities, Entity),
+        (With<Sensor>, Without<InteractedEffector>),
+    >,
     q_my_player: Query<(&GlobalTransform, Entity), With<MyPlayer>>,
     mut collided_effector: ResMut<CollidedEffector>,
 ) {
@@ -159,7 +162,9 @@ fn show_effector_popup(
 }
 
 fn interact_effector(
-    q_effectors: Query<&InteractableEffector>,
+    mut commands: Commands,
+    q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
+    mut effector_interaction_evw: EventWriter<EffectorInteraction>,
     action: Res<ActionState<PlayerAction>>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
@@ -174,7 +179,7 @@ fn interact_effector(
         return;
     }
 
-    let Some(effector) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
+    let Some((effector, entity)) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
         return;
     };
 
@@ -189,15 +194,50 @@ fn interact_effector(
 
     if *accumulation >= required_accumulation {
         // Perform interaction
+        effector_interaction_evw.send(EffectorInteraction(entity));
+        commands.entity(entity).insert(InteractedEffector);
     }
 
     func.button_progress = ease::cubic::ease_in_out(*accumulation / required_accumulation) as f64;
+}
+
+pub(super) fn effector_interaction<Effector: Component>(
+    q_effector: Query<Entity, With<Effector>>,
+    mut effector_interaction_evr: EventReader<EffectorInteraction>,
+) -> bool {
+    if let Ok(entity) = q_effector.get_single() {
+        for interacted_effector in effector_interaction_evr.read() {
+            if **interacted_effector == entity {
+                return true;
+            }
+        }
+    }
+
+    false
 }
 
 /// Collided effector that is closest to the player.
 #[derive(Resource, Default, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub(super) struct CollidedEffector(pub Option<Entity>);
 
-/// Successfully interacted effector.
+/// Event sent after a successful interaction with an effector.
 #[derive(Event, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
-pub(super) struct InteractedEffector(pub Entity);
+pub(super) struct EffectorInteraction(pub Entity);
+
+/// Tag component for an [`InteractableEffector`] that has been successfully interacted.
+#[derive(Component, Default)]
+pub(super) struct InteractedEffector;
+
+// #[derive(States, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+// pub(super) struct TriggeredEffector<T: Component + Debug + Eq + Hash + Clone + Copy>(
+//     PhantomData<T>,
+// );
+
+// impl<T> Default for TriggeredEffector<T>
+// where
+//     T: Component + Debug + Eq + Hash + Clone + Copy,
+// {
+//     fn default() -> Self {
+//         Self(PhantomData)
+//     }
+// }
