@@ -58,7 +58,7 @@ fn matchmake_effector(
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     next_matchmake_state.set(MatchmakeState::Joining);
-    next_screen_state.set(Screen::LoadingMultiplayer);
+    next_screen_state.set(Screen::Matchmaking);
 
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 2;

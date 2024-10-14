@@ -138,6 +138,7 @@ impl CameraShake {
         self.trauma = (self.trauma + trauma.abs()).min(1.0);
     }
 
+    #[allow(unused)]
     pub fn add_trauma_with_threshold(&mut self, trauma: f32, threshold: f32) {
         if self.trauma >= threshold {
             return;

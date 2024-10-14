@@ -26,7 +26,7 @@ pub enum Screen {
     #[default]
     MainMenu,
     LocalLobby,
-    LoadingMultiplayer,
+    Matchmaking,
     MultiplayerLobby,
     // Playing,
     // GameOver,
