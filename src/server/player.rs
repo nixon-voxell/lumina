@@ -55,14 +55,6 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
                 Rotation::radians(std::f32::consts::FRAC_PI_2),
             ),
             replicate,
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::WHITE,
-                    custom_size: Some(Vec2::splat(40.0)),
-                    ..default()
-                },
-                ..default()
-            },
         ))
         .id()
 }
@@ -114,7 +106,6 @@ fn replicate_inputs(
     mut connection: ResMut<ConnectionManager>,
     mut input_events: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
     client_infos: Res<ClientInfos>,
-    // room_manager: Res<RoomManager>,
 ) {
     for event in input_events.read() {
         let inputs = event.message();

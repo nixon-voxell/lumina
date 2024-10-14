@@ -20,27 +20,24 @@ pub fn shared_handle_player_movement(
     player_entity: Entity,
     player_movement_evw: &mut EventWriter<PlayerMovement>,
 ) {
-    if action_state.pressed(&PlayerAction::Move) {
-        let Some(movement) = action_state
+    let player_movement = PlayerMovement {
+        player_entity,
+        is_moving: action_state.pressed(&PlayerAction::Move),
+        movement: action_state
             .clamped_axis_pair(&PlayerAction::Move)
             .map(|axis| axis.xy())
-        else {
-            return;
-        };
+            .unwrap_or_default(),
+        is_braking: action_state.pressed(&PlayerAction::Brake),
+    };
 
-        player_movement_evw.send(PlayerMovement {
-            movement,
-            player_entity,
-        });
-    }
+    player_movement_evw.send(player_movement);
 }
 
 fn init_players(
     mut commands: Commands,
     q_players: Query<
-        Entity,
+        (&SpaceShip, Entity),
         (
-            With<SpaceShip>,
             Without<Collider>,
             Or<(
                 With<LocalEntity>,
@@ -60,47 +57,60 @@ fn init_players(
         Vec2::new(20.0, 0.0),
     );
 
-    for entity in q_players.iter() {
+    for (space_ship, entity) in q_players.iter() {
         info!("Adding collider for {entity:?}");
         commands.entity(entity).insert((
             MassPropertiesBundle::new_computed(&collider, 1.0),
             collider.clone(),
+            LinearDamping(space_ship.linear_damping),
+            AngularDamping(space_ship.angular_damping),
         ));
     }
 }
 
 fn player_movement(
-    mut q_movements: Query<(&mut LinearVelocity, &mut AngularVelocity, &Rotation), With<SpaceShip>>,
+    mut q_movements: Query<(
+        &mut LinearVelocity,
+        &mut AngularVelocity,
+        &mut LinearDamping,
+        &Rotation,
+        &SpaceShip,
+    )>,
     mut player_movement_evr: EventReader<PlayerMovement>,
 ) {
-    const MOVEMENT_SPEED: f32 = 50.0;
-    // const ROTATION_SPEED: f32 = 0.4;
-    const ROTATION_SPEED: f32 = 1.0;
-    const MAX_SPEED: f32 = 400.0;
-
     for player_movement in player_movement_evr.read() {
-        if let Ok((mut linear, mut angular, rotation)) =
+        if let Ok((mut linear, mut angular, mut linear_damping, rotation, space_ship)) =
             q_movements.get_mut(player_movement.player_entity)
         {
-            let movement = player_movement.movement.normalize_or_zero();
-            let desired_angle = movement.y.atan2(movement.x);
+            if player_movement.is_moving {
+                let movement = player_movement.movement.normalize_or_zero();
+                let desired_angle = movement.y.atan2(movement.x);
 
-            angular.0 += rotation.angle_between(Rotation::radians(desired_angle)) * ROTATION_SPEED;
+                angular.0 += rotation.angle_between(Rotation::radians(desired_angle))
+                    * space_ship.angular_speed;
 
-            let direction = Vec2::new(rotation.cos, rotation.sin);
+                let direction = Vec2::new(rotation.cos, rotation.sin);
 
-            linear.0 += direction * MOVEMENT_SPEED;
+                linear.0 += direction * space_ship.linear_speed;
 
-            // Clamp the speed
-            linear.0 = linear.clamp_length_max(MAX_SPEED);
+                // Clamp the speed
+                linear.0 = linear.clamp_length_max(space_ship.max_linear_speed);
+            }
+
+            match player_movement.is_braking {
+                true => *linear_damping = LinearDamping(space_ship.brake_linear_damping),
+                false => *linear_damping = LinearDamping(space_ship.linear_damping),
+            }
         }
     }
 }
 
 #[derive(Event)]
 pub struct PlayerMovement {
-    pub movement: Vec2,
     pub player_entity: Entity,
+    pub is_moving: bool,
+    pub movement: Vec2,
+    pub is_braking: bool,
 }
 
 #[derive(Bundle)]
@@ -114,7 +124,8 @@ impl ReplicatePlayerBundle {
     pub fn new(client_id: ClientId, position: Position, rotation: Rotation) -> Self {
         Self {
             id: PlayerId(client_id),
-            ship: SpaceShip,
+            // TODO: Make this a input parameter.
+            ship: SpaceShip::assassin(),
             physics: PhysicsBundle::player()
                 .with_position(position)
                 .with_rotation(rotation),
@@ -132,7 +143,8 @@ pub struct LocalPlayerBundle {
 impl LocalPlayerBundle {
     pub fn new(position: Position, rotation: Rotation) -> Self {
         Self {
-            ship: SpaceShip,
+            // TODO: Make this a input parameter.
+            ship: SpaceShip::assassin(),
             physics: PhysicsBundle::player()
                 .with_position(position)
                 .with_rotation(rotation),
@@ -145,7 +157,36 @@ impl LocalPlayerBundle {
 pub struct PlayerId(pub ClientId);
 
 #[derive(Component, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
-pub struct SpaceShip;
+pub struct SpaceShip {
+    /// Normal linear speed.
+    pub linear_speed: f32,
+    /// Normal angular speed.
+    pub angular_speed: f32,
+    /// Linear speed when boost is applied.
+    pub boost_linear_speed: f32,
+    /// Maximum magnitude of the linear velocity.
+    pub max_linear_speed: f32,
+    /// Normal linear damping.
+    pub linear_damping: f32,
+    /// Normal angular damping.
+    pub angular_damping: f32,
+    /// Linear damping when brake is applied.
+    pub brake_linear_damping: f32,
+}
+
+impl SpaceShip {
+    pub fn assassin() -> Self {
+        Self {
+            linear_speed: 50.0,
+            angular_speed: 0.8,
+            boost_linear_speed: 100.0,
+            max_linear_speed: 400.0,
+            linear_damping: 2.0,
+            angular_damping: 6.0,
+            brake_linear_damping: 10.0,
+        }
+    }
+}
 
 // pub enum SpaceShipClass {
 //     Tank,
@@ -165,8 +206,6 @@ impl PhysicsBundle {
     pub fn player() -> Self {
         Self {
             rigidbody: RigidBody::Dynamic,
-            linear_damping: LinearDamping(2.0),
-            angular_damping: AngularDamping(6.0),
             ..default()
         }
     }

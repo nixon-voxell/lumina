@@ -16,7 +16,7 @@ NetworkSettings(
         //     packet_loss: 0.02
         // )),
         conditioner: None,
-        input_delay_ticks: 6,
+        input_delay_ticks: 2,
         correction_ticks_factor: 1.0,
     ),
     shared: SharedSettings(

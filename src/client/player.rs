@@ -16,8 +16,7 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ActionState<PlayerAction>>()
-            .insert_resource(PlayerAction::input_map())
+        app.insert_resource(PlayerAction::input_map())
             .init_resource::<PlayerMap>()
             .add_systems(
                 Update,
@@ -28,7 +27,11 @@ impl Plugin for PlayerPlugin {
             )
             .add_systems(
                 FixedUpdate,
-                (handle_player_movement, handle_local_player_movement).in_set(MovementSet::Input),
+                (
+                    handle_networked_player_movement,
+                    handle_local_player_movement,
+                )
+                    .in_set(MovementSet::Input),
             )
             .add_systems(OnEnter(MatchmakeState::None), despawn_networked_inputs);
     }
@@ -73,8 +76,8 @@ fn handle_player_spawn(
     }
 }
 
-/// Handle player movement based on [`PlayerAction`].
-fn handle_player_movement(
+/// Handle networked player movement based on [`PlayerAction`].
+fn handle_networked_player_movement(
     // Handles all predicted player movements too (other clients).
     q_actions: Query<(&PlayerId, &ActionState<PlayerAction>), With<Predicted>>,
     mut player_movement_evw: EventWriter<PlayerMovement>,
@@ -87,13 +90,13 @@ fn handle_player_movement(
     }
 }
 
+/// Handle local player movement based on [`PlayerAction`].
 fn handle_local_player_movement(
-    q_players: Query<Entity, (With<LocalEntity>, With<SpaceShip>)>,
-    action: Res<ActionState<PlayerAction>>,
+    q_actions: Query<(&ActionState<PlayerAction>, Entity), (With<LocalEntity>, With<SpaceShip>)>,
     mut player_movement_evw: EventWriter<PlayerMovement>,
 ) {
-    for entity in q_players.iter() {
-        shared_handle_player_movement(&action, entity, &mut player_movement_evw);
+    for (action, entity) in q_actions.iter() {
+        shared_handle_player_movement(action, entity, &mut player_movement_evw);
     }
 }
 

@@ -164,8 +164,8 @@ fn show_effector_popup(
 fn interact_effector(
     mut commands: Commands,
     q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
+    q_action: Query<&ActionState<PlayerAction>, With<MyPlayer>>,
     mut effector_interaction_evw: EventWriter<EffectorInteraction>,
-    action: Res<ActionState<PlayerAction>>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
     mut func: ResMut<EffectorPopupFunc>,
@@ -178,6 +178,10 @@ fn interact_effector(
     if func.has_content() == false {
         return;
     }
+
+    let Ok(action) = q_action.get_single() else {
+        return;
+    };
 
     let Some((effector, entity)) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
         return;
