@@ -54,7 +54,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
         .id()
 }
 
-/// Adds input action entity to [`ClientInfos`] and replicate it back to other clients.
+/// Adds input action entity to [`PlayerInfos`] and replicate it back to other clients.
 fn handle_input_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,

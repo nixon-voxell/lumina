@@ -379,7 +379,7 @@ pub struct PlayerInfo {
 }
 
 impl PlayerInfo {
-    /// Returns the [`RoomId`] of the lobby.
+    /// Returns the [`server::RoomId`] of the lobby.
     pub fn room_id(&self) -> server::RoomId {
         self.lobby.room_id()
     }

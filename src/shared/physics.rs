@@ -42,6 +42,7 @@ impl Plugin for PhysicsPlugin {
     }
 }
 
+/// Insert [`PrevPosition`] for entities with [`Position`].
 fn init_position_sync(
     mut commands: Commands,
     q_positions: Query<(&Position, Entity), Without<PrevPosition>>,
@@ -51,6 +52,7 @@ fn init_position_sync(
     }
 }
 
+/// Insert [`PrevRotation`] for entities with [`Rotation`].
 fn init_rotation_sync(
     mut commands: Commands,
     q_rotations: Query<(&Rotation, Entity), Without<PrevRotation>>,
@@ -62,6 +64,8 @@ fn init_rotation_sync(
     }
 }
 
+/// Smoothly interpolates (via `overstep_fraction`) between [`PrevPosition`]/[`PrevRotation`]
+/// and [`Position`]/[`Rotation`], and apply the result to the [`Transform`].
 fn pos_rot_sync(
     mut q_transforms: Query<(
         &mut Transform,
@@ -70,9 +74,9 @@ fn pos_rot_sync(
         &Position,
         &Rotation,
     )>,
-    fixed_time: Res<Time<Fixed>>,
+    time: Res<Time<Fixed>>,
 ) {
-    let overstep_frac = fixed_time.overstep_fraction();
+    let overstep_frac = time.overstep_fraction();
 
     for (mut transform, mut prev_position, mut prev_rotation, position, rotation) in
         q_transforms.iter_mut()
@@ -92,11 +96,13 @@ fn pos_rot_sync(
     }
 }
 
+/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render position.
 #[derive(Component, Deref)]
-pub struct PrevPosition(Vec2);
+struct PrevPosition(Vec2);
 
+/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render rotation.
 #[derive(Component, Deref)]
-pub struct PrevRotation(f32);
+struct PrevRotation(f32);
 
 fn convert_primitive_rigidbody(
     mut commands: Commands,
