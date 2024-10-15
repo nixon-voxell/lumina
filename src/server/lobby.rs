@@ -1,17 +1,13 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
 use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
-use crate::shared::input::PlayerAction;
-use crate::shared::player::{
-    shared_handle_player_movement, PlayerId, PlayerMovement, ReplicatePlayerBundle,
-};
-use crate::shared::FixedSet;
 use crate::utils::EntityRoomId;
+
+use super::player::spawn_player_entity;
 
 pub(super) struct LobbyPlugin;
 
@@ -25,14 +21,15 @@ impl Plugin for LobbyPlugin {
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
-                    handle_matchmaking,
                     handle_disconnection,
                     handle_exit_lobby,
-                    handle_player_input_spawn,
                     execute_exit_lobby,
                 ),
             )
-            .add_systems(FixedUpdate, handle_player_movement.in_set(FixedSet::Main));
+            .add_systems(
+                PreUpdate,
+                handle_matchmaking.in_set(ServerReplicationSet::ClientReplication),
+            );
     }
 }
 
@@ -46,7 +43,6 @@ fn spawn_debug_camera(mut commands: Commands) {
             },
             ..default()
         },
-        // RenderLayers::layer(0),
     ));
 }
 
@@ -56,7 +52,7 @@ fn cleanup_empty_lobbies(
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
-            println!("Removing empty lobby: {entity:?}");
+            info!("Removing empty lobby: {entity:?}");
             commands.entity(entity).despawn();
         }
     }
@@ -105,6 +101,8 @@ fn handle_matchmaking(
 
         let lobby_size = *matchmake.message;
         let mut lobby_entity = None;
+        // Number of clients in the lobby before the client joins.
+        // let mut lobby_len = 0;
 
         // Find an available lobby to join.
         for (mut lobby, size, entity) in q_lobbies.iter_mut() {
@@ -114,6 +112,7 @@ fn handle_matchmaking(
             }
 
             if lobby.len() < **size as usize {
+                // lobby_len = lobby.len();
                 lobby.push(client_id);
                 lobby_entity = Some(entity);
 
@@ -210,76 +209,21 @@ fn execute_exit_lobby(
             room_manager.remove_client(client_id, client_info.room_id());
 
             // Player might have already been despawned if it's a disconnection.
-            if let Some(player) = commands.get_entity(client_info.player) {
-                player.despawn_recursive();
+            if let Some(player_cmd) = commands.get_entity(client_info.player) {
+                player_cmd.despawn_recursive();
                 room_manager.remove_entity(client_info.player, client_info.room_id());
             }
             // Despawn input.
             if let Some(input) = client_info.input {
-                commands.entity(input).despawn_recursive();
+                if let Some(input_cmd) = commands.get_entity(input) {
+                    input_cmd.despawn_recursive();
+                }
                 room_manager.remove_entity(input, client_info.room_id());
             }
 
             // Now that someone left, the lobby is no longer full
             commands.entity(client_info.lobby).remove::<LobbyFull>();
         }
-    }
-}
-
-/// Spawn an entity for a given client.
-fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
-    info!("Spawn player for {:?}", client_id);
-
-    let replicate = Replicate {
-        sync: SyncTarget {
-            prediction: NetworkTarget::Single(client_id),
-            interpolation: NetworkTarget::AllExceptSingle(client_id),
-        },
-        controlled_by: ControlledBy {
-            target: NetworkTarget::Single(client_id),
-            ..default()
-        },
-        relevance_mode: NetworkRelevanceMode::InterestManagement,
-        ..default()
-    };
-
-    commands
-        .spawn((ReplicatePlayerBundle::new(client_id, Vec2::ZERO), replicate))
-        .insert(SpriteBundle {
-            sprite: Sprite {
-                color: Color::WHITE,
-                rect: Some(Rect::from_center_half_size(default(), Vec2::splat(20.0))),
-                ..default()
-            },
-            ..default()
-        })
-        .id()
-}
-
-/// Adds input action entity to [`ClientInfo`].
-fn handle_player_input_spawn(
-    q_actions: Query<(&PlayerId, Entity), Added<ActionState<PlayerAction>>>,
-    mut client_infos: ResMut<ClientInfos>,
-) {
-    for (id, entity) in q_actions.iter() {
-        let client_id = id.0;
-        if let Some(info) = client_infos.get_mut(&client_id) {
-            info.input = Some(entity);
-        }
-    }
-}
-
-fn handle_player_movement(
-    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId)>,
-    client_infos: Res<ClientInfos>,
-    mut player_movement_evw: EventWriter<PlayerMovement>,
-) {
-    for (action_state, id) in q_actions.iter() {
-        let Some(player_entity) = client_infos.get(&id.0).map(|info| info.player) else {
-            continue;
-        };
-
-        shared_handle_player_movement(action_state, player_entity, &mut player_movement_evw);
     }
 }
 

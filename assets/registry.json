@@ -19136,18 +19136,175 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina::client::local_lobby::MatchmakeEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::client::local_lobby::MatchmakeEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "MatchmakeEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::client::local_lobby::TutorialEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::client::local_lobby::TutorialEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TutorialEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::effector::Effector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::effector::Effector",
+      "properties": {
+        "collider": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "collider"
+      ],
+      "short_name": "Effector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::effector::EffectorPopupMsg": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina::shared::effector::EffectorPopupMsg",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "EffectorPopupMsg",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina::shared::effector::InteractableEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::effector::InteractableEffector",
+      "properties": {
+        "required_accumulation": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "required_accumulation"
+      ],
+      "short_name": "InteractableEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina::shared::input::PlayerAction": {
       "isComponent": false,
       "isResource": false,
       "long_name": "lumina::shared::input::PlayerAction",
       "oneOf": [
         "Move",
+        "Brake",
         "Interact",
         "Attack"
       ],
       "short_name": "PlayerAction",
       "type": "string",
       "typeInfo": "Enum"
+    },
+    "lumina::shared::physics::MeshCollider": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::MeshCollider",
+      "oneOf": [
+        "ConvexHull",
+        "Trimesh"
+      ],
+      "short_name": "MeshCollider",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina::shared::physics::MeshRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::MeshRigidbody",
+      "properties": {
+        "collider_type": {
+          "type": {
+            "$ref": "#/$defs/lumina::shared::physics::MeshCollider"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_type"
+      ],
+      "short_name": "MeshRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::physics::PrimitiveRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::physics::PrimitiveRigidbody",
+      "properties": {
+        "collider_constructor": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_constructor"
+      ],
+      "short_name": "PrimitiveRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
     },
     "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
       "isComponent": false,

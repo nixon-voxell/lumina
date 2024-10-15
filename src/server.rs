@@ -8,6 +8,7 @@ use crate::settings::NetworkSettings;
 use crate::shared::{shared_config, SERVER_REPLICATION_INTERVAL};
 
 mod lobby;
+mod player;
 mod ui;
 
 pub struct ServerPlugin;
@@ -20,7 +21,7 @@ impl Plugin for ServerPlugin {
         let settings = app.world().get_resource::<NetworkSettings>().unwrap();
         app.add_plugins(ServerPlugins::new(server_config(settings)));
 
-        app.add_plugins((lobby::LobbyPlugin, ui::ServerUiPlugin))
+        app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
             .add_systems(Startup, start_server);
     }
 }
