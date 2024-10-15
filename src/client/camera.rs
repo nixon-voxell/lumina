@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use noisy_bevy::simplex_noise_2d_seeded;
 
-use super::player::MyPlayer;
+use crate::shared::player::LocalPlayer;
 
 pub(super) struct CameraPlugin;
 
@@ -45,7 +45,7 @@ fn spawn_game_camera(mut commands: Commands) {
 
 fn follow_player(
     mut q_camera: Query<&mut Transform, With<GameCamera>>,
-    q_player: Query<&Position, With<MyPlayer>>,
+    q_player: Query<&Position, With<LocalPlayer>>,
     time: Res<Time>,
 ) {
     // Adjust this value for more or less delay.

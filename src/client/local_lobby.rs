@@ -5,12 +5,11 @@ use client::*;
 use lightyear::prelude::*;
 
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::shared::input::LocalInputBundle;
+use crate::shared::input::{InputTarget, LocalInputBundle};
 use crate::shared::player::LocalPlayerBundle;
 
 use super::effector::effector_interaction;
 use super::multiplayer_lobby::MatchmakeState;
-use super::player::MyPlayer;
 use super::ui::Screen;
 
 pub(super) struct LocalLobbyPlugin;
@@ -31,18 +30,22 @@ impl Plugin for LocalLobbyPlugin {
 
 /// Spawn lobby scene with player.
 fn init_lobby(mut commands: Commands) {
+    let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
     commands
-        .spawn(LocalLobbySceneBundle::default())
-        .with_children(|children| {
-            children.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
-            children
-                .spawn(LocalPlayerBundle::new(
-                    Position::default(),
-                    Rotation::radians(std::f32::consts::FRAC_PI_2),
-                ))
-                .insert(LocalInputBundle::default())
-                .insert(MyPlayer);
-        });
+        .spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint))
+        .set_parent(lobby_scene);
+
+    let player = commands
+        .spawn(LocalPlayerBundle::new(
+            Position::default(),
+            Rotation::radians(std::f32::consts::FRAC_PI_2),
+        ))
+        .set_parent(lobby_scene)
+        .id();
+
+    commands
+        .entity(player)
+        .insert(LocalInputBundle::new(InputTarget::new(player)));
 }
 
 /// Despawn local lobby scene

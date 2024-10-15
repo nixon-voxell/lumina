@@ -19225,6 +19225,7 @@
       "oneOf": [
         "Move",
         "Brake",
+        "Boost",
         "Interact",
         "UseItem"
       ],
