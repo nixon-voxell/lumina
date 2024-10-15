@@ -8,9 +8,8 @@ use velyst::typst_vello;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
 use crate::shared::input::PlayerAction;
+use crate::shared::player::LocalPlayer;
 use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
-
-use super::player::MyPlayer;
 
 pub(super) struct EffectorPlugin;
 
@@ -29,10 +28,10 @@ fn collect_effector_collisions(
         (&GlobalTransform, &CollidingEntities, Entity),
         (With<Sensor>, Without<InteractedEffector>),
     >,
-    q_my_player: Query<(&GlobalTransform, Entity), With<MyPlayer>>,
+    q_local_player: Query<(&GlobalTransform, Entity), With<LocalPlayer>>,
     mut collided_effector: ResMut<CollidedEffector>,
 ) {
-    let Ok((player_transform, player_entity)) = q_my_player.get_single() else {
+    let Ok((player_transform, player_entity)) = q_local_player.get_single() else {
         return;
     };
 
@@ -164,8 +163,8 @@ fn show_effector_popup(
 fn interact_effector(
     mut commands: Commands,
     q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
+    q_action: Query<&ActionState<PlayerAction>, With<LocalPlayer>>,
     mut effector_interaction_evw: EventWriter<EffectorInteraction>,
-    action: Res<ActionState<PlayerAction>>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
     mut func: ResMut<EffectorPopupFunc>,
@@ -178,6 +177,10 @@ fn interact_effector(
     if func.has_content() == false {
         return;
     }
+
+    let Ok(action) = q_action.get_single() else {
+        return;
+    };
 
     let Some((effector, entity)) = collided_effector.and_then(|e| q_effectors.get(e).ok()) else {
         return;

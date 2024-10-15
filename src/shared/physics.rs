@@ -17,6 +17,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(
             PhysicsPlugins::new(FixedPostUpdate)
+                // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
         );
@@ -24,21 +25,84 @@ impl Plugin for PhysicsPlugin {
         app.insert_resource(Time::<Fixed>::from_hz(FIXED_TIMESTEP_HZ))
             .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
             .insert_resource(Gravity(Vec2::ZERO))
-            // We use Position and Rotation as primary source of truth,
-            // so no need to sync changes from Transform->Pos, just Pos->Transform.
+            // We interpolate the positions to the transforms ourselves since avian does not do that properly.
             .insert_resource(avian2d::sync::SyncConfig {
                 transform_to_position: false,
-                position_to_transform: true,
+                position_to_transform: false,
             })
             .add_systems(
                 Update,
                 (convert_primitive_rigidbody, convert_mesh_rigidbody),
-            );
+            )
+            .add_systems(PostUpdate, (init_position_sync, init_rotation_sync))
+            .add_systems(FixedLast, pos_rot_sync);
 
         app.register_type::<PrimitiveRigidbody>()
             .register_type::<MeshRigidbody>();
     }
 }
+
+/// Insert [`PrevPosition`] for entities with [`Position`].
+fn init_position_sync(
+    mut commands: Commands,
+    q_positions: Query<(&Position, Entity), Without<PrevPosition>>,
+) {
+    for (position, entity) in q_positions.iter() {
+        commands.entity(entity).insert(PrevPosition(position.0));
+    }
+}
+
+/// Insert [`PrevRotation`] for entities with [`Rotation`].
+fn init_rotation_sync(
+    mut commands: Commands,
+    q_rotations: Query<(&Rotation, Entity), Without<PrevRotation>>,
+) {
+    for (rotation, entity) in q_rotations.iter() {
+        commands
+            .entity(entity)
+            .insert(PrevRotation(rotation.as_radians()));
+    }
+}
+
+/// Smoothly interpolates (via `overstep_fraction`) between [`PrevPosition`]/[`PrevRotation`]
+/// and [`Position`]/[`Rotation`], and apply the result to the [`Transform`].
+fn pos_rot_sync(
+    mut q_transforms: Query<(
+        &mut Transform,
+        &mut PrevPosition,
+        &mut PrevRotation,
+        &Position,
+        &Rotation,
+    )>,
+    time: Res<Time<Fixed>>,
+) {
+    let overstep_frac = time.overstep_fraction();
+
+    for (mut transform, mut prev_position, mut prev_rotation, position, rotation) in
+        q_transforms.iter_mut()
+    {
+        transform.translation.x = FloatExt::lerp(prev_position.x, position.x, overstep_frac);
+        transform.translation.y = FloatExt::lerp(prev_position.y, position.y, overstep_frac);
+
+        let rotation = rotation.as_radians();
+        transform.rotation = Quat::slerp(
+            Quat::from_rotation_z(prev_rotation.0),
+            Quat::from_rotation_z(rotation),
+            overstep_frac,
+        );
+
+        prev_position.0 = position.0;
+        prev_rotation.0 = rotation;
+    }
+}
+
+/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render position.
+#[derive(Component, Deref)]
+struct PrevPosition(Vec2);
+
+/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render rotation.
+#[derive(Component, Deref)]
+struct PrevRotation(f32);
 
 fn convert_primitive_rigidbody(
     mut commands: Commands,

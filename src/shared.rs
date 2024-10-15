@@ -1,14 +1,11 @@
 //! This module contains the shared code between the client and the server.
-use bevy::{
-    prelude::*,
-    sprite::Mesh2dHandle,
-    utils::{Duration, HashMap},
-};
+use bevy::prelude::*;
+use bevy::sprite::Mesh2dHandle;
+use bevy::utils::{Duration, HashMap};
 use blenvy::BlenvyPlugin;
-use input::MovementSet;
 use lightyear::prelude::*;
 
-pub const FIXED_TIMESTEP_HZ: f64 = 60.0;
+pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
 pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(100);
 
 pub mod effector;
@@ -22,11 +19,6 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(BlenvyPlugin::default());
-
-        app.configure_sets(
-            FixedUpdate,
-            (MovementSet::Input, MovementSet::Physics).chain(),
-        );
 
         app.init_resource::<ColorMaterialMap>()
             .add_plugins((

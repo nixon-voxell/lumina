@@ -61,7 +61,7 @@ fn handle_connection(
         info!("Connected with Id: {client_id:?}");
 
         connection.set(Connection::Connected);
-        commands.insert_resource(MyClientId(client_id));
+        commands.insert_resource(LocalClientId(client_id));
     }
 }
 
@@ -130,4 +130,4 @@ enum Connection {
 }
 
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
-struct MyClientId(pub ClientId);
+struct LocalClientId(pub ClientId);
