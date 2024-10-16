@@ -12,11 +12,14 @@ use crate::shared::LocalEntity;
 use super::multiplayer_lobby::MatchmakeState;
 use super::MyClientId;
 
+mod weapon;
+
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ActionState<PlayerAction>>()
+        app.add_plugins(weapon::WeaponPlugin)
+            .init_resource::<ActionState<PlayerAction>>()
             .insert_resource(PlayerAction::input_map())
             .init_resource::<PlayerMap>()
             .add_systems(

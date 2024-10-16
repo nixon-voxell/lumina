@@ -1,23 +1,21 @@
 use avian2d::prelude::*;
 use bevy::{
-    color::palettes::css::WHITE,
-    input::mouse::MouseMotion,
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    color::palettes::css::WHITE, input::mouse::MouseMotion, prelude::*,
+    sprite::MaterialMesh2dBundle,
 };
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
-use crate::camera::GameCamera;
+use crate::client::camera::GameCamera;
 use crate::shared::input::PlayerAction;
-use crate::shared::FixedSet; // Import the GameCamera
+use crate::shared::LocalEntity;
 
-pub struct BulletPlugin;
+pub(super) struct WeaponPlugin;
 
-impl Plugin for BulletPlugin {
+impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_weapon)
-            .add_systems(Update, spawn_bullet_mesh.in_set(FixedSet::Main))
+            .add_systems(Update, spawn_bullet_mesh)
             .add_systems(Update, move_bullets)
             .add_systems(Update, mouse_motion);
     }
@@ -26,10 +24,7 @@ impl Plugin for BulletPlugin {
 fn spawn_bullet_mesh(
     time: Res<Time>,
     q_player: Query<&Position, With<client::Predicted>>,
-    q_action_states: Query<
-        &ActionState<PlayerAction>,
-        (With<PrePredicted>, Changed<ActionState<PlayerAction>>),
-    >,
+    q_action_states: Query<&ActionState<PlayerAction>, With<LocalEntity>>,
     q_camera: Query<&Transform, With<GameCamera>>, // Query the GameCamera transform
     mouse_position: Res<MousePosition>,            // Use the mouse position
     mut commands: Commands,

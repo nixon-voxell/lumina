@@ -19226,7 +19226,7 @@
         "Move",
         "Brake",
         "Interact",
-        "Attack"
+        "UseItem"
       ],
       "short_name": "PlayerAction",
       "type": "string",
