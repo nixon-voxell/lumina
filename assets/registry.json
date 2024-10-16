@@ -19227,7 +19227,8 @@
         "Brake",
         "Boost",
         "Interact",
-        "UseItem"
+        "UseItem",
+        "Aim"
       ],
       "short_name": "PlayerAction",
       "type": "string",

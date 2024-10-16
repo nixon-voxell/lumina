@@ -3,11 +3,15 @@ use bevy::{
     color::palettes::css::WHITE, input::mouse::MouseMotion, prelude::*,
     sprite::MaterialMesh2dBundle,
 };
+use leafwing_input_manager::action_state::ActionData;
+use leafwing_input_manager::axislike::DualAxisData;
+use leafwing_input_manager::buttonlike::ButtonState;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::client::camera::GameCamera;
-use crate::shared::input::PlayerAction;
+use crate::shared::input::{InputTarget, PlayerAction};
+use crate::shared::player::LocalPlayer;
 use crate::shared::LocalEntity;
 
 pub(super) struct WeaponPlugin;
@@ -23,7 +27,7 @@ impl Plugin for WeaponPlugin {
 
 fn spawn_bullet_mesh(
     time: Res<Time>,
-    q_player: Query<&Position, With<client::Predicted>>,
+    q_player: Query<&Position, With<LocalEntity>>,
     q_action_states: Query<&ActionState<PlayerAction>, With<LocalEntity>>,
     q_camera: Query<&Transform, With<GameCamera>>, // Query the GameCamera transform
     mouse_position: Res<MousePosition>,            // Use the mouse position
@@ -114,12 +118,35 @@ fn move_bullets(
 }
 
 fn mouse_motion(
-    mut evr_motion: EventReader<MouseMotion>,
-    mut mouse_position: ResMut<MousePosition>, // Mutate mouse position
+    mut q_action: Query<&mut ActionState<PlayerAction>, With<InputTarget>>,
+    q_player: Query<&Transform, With<LocalPlayer>>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+    mut cursor_evr: EventReader<CursorMoved>,
 ) {
-    for ev in evr_motion.read() {
-        mouse_position.position += ev.delta; // Update the global mouse position
-        println!("Mouse moved: X: {} px, Y: {} px", ev.delta.x, ev.delta.y);
+    let Ok(mut action) = q_action.get_single_mut() else {
+        return;
+    };
+
+    let Ok(player_transform) = q_player.get_single() else {
+        return;
+    };
+
+    let Ok((camera, camera_transform)) = q_camera.get_single() else {
+        return;
+    };
+
+    for cursor in cursor_evr.read() {
+        let cursor_world_position = camera
+            .viewport_to_world_2d(camera_transform, cursor.position)
+            .unwrap_or_default();
+
+        let direction =
+            (cursor_world_position - player_transform.translation.xy()).normalize_or_zero();
+
+        let action_data = action.action_data_mut_or_default(&PlayerAction::Aim);
+        action_data.axis_pair = Some(DualAxisData::from_xy(direction));
+
+        println!("Mouse moved: {}", direction);
     }
 }
 

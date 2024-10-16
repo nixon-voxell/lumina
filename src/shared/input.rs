@@ -62,6 +62,7 @@ pub enum PlayerAction {
     Boost,
     Interact,
     UseItem,
+    Aim,
 }
 
 impl PlayerAction {
@@ -75,6 +76,7 @@ impl PlayerAction {
         input_map.insert(Self::Boost, GamepadButtonType::LeftTrigger2);
         input_map.insert(Self::Interact, GamepadButtonType::South);
         input_map.insert(Self::UseItem, GamepadButtonType::RightTrigger2);
+        input_map.insert(Self::Aim, DualAxis::right_stick());
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
