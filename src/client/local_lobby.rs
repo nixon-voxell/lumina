@@ -6,7 +6,7 @@ use lightyear::prelude::*;
 
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::shared::input::{InputTarget, LocalInputBundle};
-use crate::shared::player::LocalPlayerBundle;
+use crate::shared::player::{LocalPlayerBundle, SpaceShip};
 
 use super::effector::effector_interaction;
 use super::multiplayer_lobby::MatchmakeState;
@@ -32,14 +32,16 @@ impl Plugin for LocalLobbyPlugin {
 fn init_lobby(mut commands: Commands) {
     let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
     commands
-        .spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint))
+        .spawn((
+            BlueprintInfo::from_path("levels/Lobby.glb"),
+            SpawnBlueprint,
+            HideUntilReady,
+        ))
         .set_parent(lobby_scene);
 
     let player = commands
-        .spawn(LocalPlayerBundle::new(
-            Position::default(),
-            Rotation::radians(std::f32::consts::FRAC_PI_2),
-        ))
+        .spawn(LocalPlayerBundle::new(SpaceShip::assassin()))
+        .insert(Rotation::radians(std::f32::consts::FRAC_PI_2))
         .set_parent(lobby_scene)
         .id();
 

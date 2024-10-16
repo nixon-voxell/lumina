@@ -1,7 +1,9 @@
 use avian2d::prelude::*;
 use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use noisy_bevy::simplex_noise_2d_seeded;
 
@@ -35,11 +37,20 @@ fn spawn_game_camera(mut commands: Commands) {
                 hdr: true,
                 ..default()
             },
+            projection: OrthographicProjection {
+                near: -1000.0,
+                scaling_mode: ScalingMode::AutoMax {
+                    max_width: 1280.0,
+                    max_height: 720.0,
+                },
+                ..default()
+            },
             tonemapping: Tonemapping::TonyMcMapface,
             deband_dither: DebandDither::Enabled,
             ..default()
         },
         BloomSettings::default(),
+        SmaaSettings::default(),
     ));
 }
 

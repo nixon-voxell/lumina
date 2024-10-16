@@ -19227,7 +19227,7 @@
         "Brake",
         "Boost",
         "Interact",
-        "UseItem",
+        "Attack",
         "Aim"
       ],
       "short_name": "PlayerAction",
@@ -19305,6 +19305,43 @@
         "collider_constructor"
       ],
       "short_name": "PrimitiveRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::weapon::WeaponConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::weapon::WeaponConfig",
+      "properties": {
+        "ammo_lifetime": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "damage": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "firing_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "magazine_size": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        }
+      },
+      "required": [
+        "firing_rate",
+        "magazine_size",
+        "ammo_lifetime",
+        "damage"
+      ],
+      "short_name": "WeaponConfig",
       "type": "object",
       "typeInfo": "Struct"
     },

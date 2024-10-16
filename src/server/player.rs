@@ -6,8 +6,8 @@ use server::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 use crate::shared::input::PlayerAction;
-use crate::shared::player::PlayerInfos;
 use crate::shared::player::{PlayerId, ReplicatePlayerBundle};
+use crate::shared::player::{PlayerInfos, SpaceShip};
 
 use super::lobby::Lobby;
 
@@ -44,11 +44,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
 
     commands
         .spawn((
-            ReplicatePlayerBundle::new(
-                client_id,
-                Position::default(),
-                Rotation::radians(std::f32::consts::FRAC_PI_2),
-            ),
+            ReplicatePlayerBundle::new(client_id, SpaceShip::assassin()),
             replicate,
         ))
         .id()

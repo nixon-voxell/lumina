@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    ecs::component::{ComponentHooks, StorageType},
+    prelude::*,
+};
 use leafwing_input_manager::prelude::*;
 
 use crate::shared::input::{InputTarget, PlayerAction};
@@ -17,9 +20,9 @@ impl Plugin for WeaponPlugin {
 
 fn init_weapon(
     mut commands: Commands,
-    q_space_ships: Query<Entity, (With<SpaceShip>, Without<WeaponTarget>)>,
+    q_spaceships: Query<Entity, (With<SpaceShip>, Without<WeaponTarget>)>,
 ) {
-    for entity in q_space_ships.iter() {
+    for entity in q_spaceships.iter() {
         // let config = WeaponConfig::default_rifle();
         let weapon_entity = commands.spawn_empty().id();
         commands.entity(entity).insert(WeaponTarget(weapon_entity));
@@ -28,7 +31,7 @@ fn init_weapon(
 
 fn attack(
     q_actions: Query<&ActionState<PlayerAction>, With<InputTarget>>,
-    mut q_space_ships: Query<&WeaponTarget, With<SpaceShip>>,
+    mut q_spaceships: Query<&WeaponTarget, With<SpaceShip>>,
     time: Res<Time>,
 ) {
     for action in q_actions.iter() {
@@ -38,15 +41,29 @@ fn attack(
     }
 }
 
-#[derive(Component, Reflect)]
+#[derive(Reflect)]
 #[reflect(Component)]
 pub struct WeaponConfig {
     /// Interval in seconds between each fire.
     firing_rate: f32,
     /// Number of bullets the player can fire before the player needs to reload.
     magazine_size: u32,
-    /// Duration the ammo stays relevant before despawning.
+    /// Duration the ammo stays relevant.
     ammo_lifetime: f32,
+    /// Damage per ammo hit.
+    damage: f32,
+}
+
+impl Component for WeaponConfig {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+
+    fn register_component_hooks(hooks: &mut ComponentHooks) {
+        hooks.on_add(|mut world, entity, _| {
+            let config = world.entity(entity).get::<Self>().unwrap();
+            let stat = WeaponStat::from_config(config);
+            world.commands().entity(entity).insert(stat);
+        });
+    }
 }
 
 // impl WeaponConfig {
@@ -69,6 +86,7 @@ pub struct WeaponStat {
 }
 
 pub struct AmmoStat {
+    /// Duration left before the ammo expires.
     pub lifetime: f32,
 }
 

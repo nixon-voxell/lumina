@@ -2,7 +2,6 @@
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
 use bevy::utils::{Duration, HashMap};
-use blenvy::BlenvyPlugin;
 use lightyear::prelude::*;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
@@ -18,8 +17,6 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(BlenvyPlugin::default());
-
         app.init_resource::<ColorMaterialMap>()
             .add_plugins((
                 crate::protocol::ProtocolPlugin,
@@ -42,12 +39,11 @@ impl Plugin for SharedPlugin {
 /// Convert all 3d [`Handle<Mesh>`] to 2d [`Mesh2dHandle`].
 fn convert_3d_to_2d_mesh(
     mut commands: Commands,
-    q_meshes: Query<(&Handle<Mesh>, Option<&Name>, Entity)>,
+    q_meshes: Query<(&Handle<Mesh>, Option<&Name>, Entity), Without<Mesh2dHandle>>,
 ) {
     for (mesh_handle, name, entity) in q_meshes.iter() {
         commands
             .entity(entity)
-            .remove::<Handle<Mesh>>()
             .insert(Mesh2dHandle(mesh_handle.clone()));
 
         if let Some(name) = name {
@@ -107,7 +103,10 @@ fn material_change_update(
     std_materials: Res<Assets<StandardMaterial>>,
 ) {
     for std_asset_event in std_asset_event_evr.read() {
-        if let AssetEvent::Modified { id } = std_asset_event {
+        if let AssetEvent::Modified { id }
+        | AssetEvent::Added { id }
+        | AssetEvent::LoadedWithDependencies { id } = std_asset_event
+        {
             let Some(std_material) = std_materials.get(*id) else {
                 return;
             };

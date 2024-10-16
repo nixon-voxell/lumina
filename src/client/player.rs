@@ -17,7 +17,7 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(aim::WeaponPlugin)
+        app.add_plugins(aim::AimPlugin)
             .insert_resource(PlayerAction::input_map())
             .add_systems(
                 Update,
@@ -38,7 +38,7 @@ fn handle_player_spawn_visual(
 ) {
     for entity in q_players.iter() {
         commands.entity(entity).insert((
-            BlueprintInfo::from_path("blueprints/Player.glb"),
+            BlueprintInfo::from_path("levels/Spaceship.glb"),
             SpawnBlueprint,
         ));
     }
