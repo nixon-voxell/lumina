@@ -11,8 +11,12 @@ use super::LocalEntity;
 
 pub(super) struct PlayerPlugin;
 
+pub mod weapon;
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(weapon::WeaponPlugin);
+
         app.init_resource::<PlayerInfos>()
             .add_systems(Update, (init_players, init_networked_inputs))
             .add_systems(FixedUpdate, player_movement);

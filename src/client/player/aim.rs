@@ -34,7 +34,7 @@ fn spawn_bullet_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut weapon_query: Query<&mut WeaponProperties>, // Query for WeaponProperties
+    mut weapon_query: Query<&mut WeaponConfig>, // Query for WeaponProperties
 ) {
     let Ok(action_state) = q_action_states.get_single() else {
         return;
@@ -57,7 +57,7 @@ fn spawn_bullet_mesh(
     weapon_properties.elapsed_time += time.delta_seconds();
 
     // Check if the attack button is pressed and if enough time has passed since the last fire
-    if action_state.pressed(&PlayerAction::UseItem)
+    if action_state.pressed(&PlayerAction::Attack)
         && weapon_properties.elapsed_time >= weapon_properties.firing_rate
     {
         // Calculate direction towards the mouse position adjusted by the camera
@@ -153,7 +153,7 @@ fn mouse_motion(
 fn setup_weapon(mut commands: Commands) {
     commands.spawn((
         Position::default(), // Ensure you have a Position component or similar
-        WeaponProperties {
+        WeaponConfig {
             firing_rate: 0.3, // Set your desired firing rate here (in seconds)
             magazine_size: 10,
             elapsed_time: 0.0,
@@ -181,7 +181,7 @@ pub struct BulletLifetime {
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct WeaponProperties {
+pub struct WeaponConfig {
     /// Interval in seconds between each fire.
     firing_rate: f32,
     /// Number of bullets the player can fire before the player needs to reload.
