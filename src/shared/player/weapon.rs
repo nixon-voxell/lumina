@@ -18,6 +18,8 @@ impl Plugin for WeaponPlugin {
     }
 }
 
+// TODO: Create mock weapon in Blender.
+// TODO: Shake camera on weapon attack.
 fn init_weapon(
     mut commands: Commands,
     q_spaceships: Query<Entity, (With<SpaceShip>, Without<WeaponTarget>)>,
@@ -52,6 +54,8 @@ pub struct WeaponConfig {
     ammo_lifetime: f32,
     /// Damage per ammo hit.
     damage: f32,
+    /// Recoil force. An impulse force that acts on the opposite of the attack direction.
+    recoil: f32,
 }
 
 impl Component for WeaponConfig {

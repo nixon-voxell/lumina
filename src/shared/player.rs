@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
@@ -21,6 +22,9 @@ impl Plugin for PlayerPlugin {
         app.init_resource::<PlayerInfos>()
             .add_systems(Update, init_networked_inputs)
             .add_systems(FixedUpdate, player_movement);
+
+        app.register_type::<SpaceShipType>()
+            .register_type::<SpaceShip>();
     }
 }
 
@@ -43,13 +47,18 @@ fn init_networked_inputs(
     mut player_infos: ResMut<PlayerInfos>,
 ) {
     for (id, entity) in q_actions.iter() {
-        if let Some(info) = player_infos.get_mut(&id.0) {
-            commands
-                .entity(entity)
-                .insert(InputTarget::new(info.player));
+        match player_infos.get_mut(&id.0) {
+            Some(info) => {
+                commands
+                    .entity(entity)
+                    .insert(InputTarget::new(info.player));
 
-            info.input = Some(entity);
-            info!("Initialized input for {:?}", id);
+                info.input = Some(entity);
+                info!("Initialized input for {:?}", id);
+            }
+            None => {
+                error!("Unable to find input for player: {:?}", id);
+            }
         }
     }
 }
@@ -165,42 +174,45 @@ fn player_movement(
     }
 }
 
-#[derive(Bundle)]
-pub struct ReplicatePlayerBundle {
-    pub spaceship: SpaceShip,
-    pub id: PlayerId,
-}
-
-impl ReplicatePlayerBundle {
-    pub fn new(client_id: ClientId, spaceship: SpaceShip) -> Self {
-        Self {
-            spaceship,
-            id: PlayerId(client_id),
-        }
-    }
-}
-
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct LocalPlayerBundle {
-    pub spaceship: SpaceShip,
     pub local_entity: LocalEntity,
     pub local_player: LocalPlayer,
-}
-
-impl LocalPlayerBundle {
-    pub fn new(spaceship: SpaceShip) -> Self {
-        Self {
-            spaceship,
-            local_entity: LocalEntity,
-            local_player: LocalPlayer,
-        }
-    }
 }
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+pub enum SpaceShipType {
+    Assassin,
+    Tank,
+    Support,
+}
+
+impl SpaceShipType {
+    pub fn model_info(&self) -> BlueprintInfo {
+        match self {
+            SpaceShipType::Assassin => {
+                BlueprintInfo::from_path("levels/AssassinSpaceshipModel.glb")
+            }
+            SpaceShipType::Tank => todo!("Tank type not supported yet."),
+            SpaceShipType::Support => todo!("Support type not supported yet."),
+        }
+    }
+
+    pub fn ship_info(&self) -> BlueprintInfo {
+        match self {
+            SpaceShipType::Assassin => BlueprintInfo::from_path("levels/AssassinSpaceship.glb"),
+            SpaceShipType::Tank => todo!("Tank type not supported yet."),
+            SpaceShipType::Support => todo!("Support type not supported yet."),
+        }
+    }
+}
+
+#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
 pub struct SpaceShip {
     /// Normal linear acceleration.
     pub linear_acceleration: f32,
@@ -220,20 +232,20 @@ pub struct SpaceShip {
     pub brake_linear_damping: f32,
 }
 
-impl SpaceShip {
-    pub fn assassin() -> Self {
-        Self {
-            linear_acceleration: 800.0,
-            angular_acceleration: 30.0,
-            boost_linear_acceleration: 4000.0,
-            brake_linear_acceleration: 600.0,
-            max_linear_speed: 1000.0,
-            linear_damping: 2.0,
-            angular_damping: 6.0,
-            brake_linear_damping: 4.0,
-        }
-    }
-}
+// impl SpaceShip {
+//     pub fn assassin() -> Self {
+//         Self {
+//             linear_acceleration: 800.0,
+//             angular_acceleration: 30.0,
+//             boost_linear_acceleration: 4000.0,
+//             brake_linear_acceleration: 600.0,
+//             max_linear_speed: 1000.0,
+//             linear_damping: 2.0,
+//             angular_damping: 6.0,
+//             brake_linear_damping: 4.0,
+//         }
+//     }
+// }
 
 impl Component for SpaceShip {
     const STORAGE_TYPE: StorageType = StorageType::Table;
@@ -242,6 +254,7 @@ impl Component for SpaceShip {
         hooks.on_add(|mut world, entity, _| {
             let entity_ref = world.entity(entity);
 
+            // Do not initialize for spaceships that are spawned remotely.
             if entity_ref.contains::<Replicated>() {
                 return;
             }
@@ -271,7 +284,7 @@ impl Component for SpaceShip {
 
             world.commands().entity(entity).insert(bundle);
 
-            info!("Initialized spaceship for {entity:?}");
+            info!("\n\n Initialized spaceship for {entity:?}");
         });
     }
 }

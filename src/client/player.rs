@@ -5,11 +5,13 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::shared::input::{PlayerAction, ReplicateInputBundle};
-use crate::shared::player::{LocalPlayer, PlayerId, PlayerInfo, PlayerInfos, SpaceShip};
+use crate::shared::player::{
+    LocalPlayer, PlayerId, PlayerInfo, PlayerInfos, SpaceShip, SpaceShipType,
+};
 use crate::shared::LocalEntity;
 
-use super::multiplayer_lobby::MatchmakeState;
-use super::LocalClientId;
+use super::ui::Screen;
+use super::{LocalClientId, PredictedOrLocal};
 
 mod aim;
 
@@ -18,39 +20,44 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(aim::AimPlugin)
-            .insert_resource(PlayerAction::input_map())
             .add_systems(
                 Update,
                 (
-                    handle_player_spawn_visual,
-                    handle_player_spawn.run_if(resource_exists::<LocalClientId>),
+                    add_spaceship_visual,
+                    add_networked_input.run_if(resource_exists::<LocalClientId>),
                 ),
             )
-            .add_systems(OnEnter(MatchmakeState::None), despawn_networked_inputs);
+            .add_systems(OnExit(Screen::Playing), despawn_networked_inputs);
     }
 }
 
 /// Add visuals for player.
-fn handle_player_spawn_visual(
+fn add_spaceship_visual(
     mut commands: Commands,
-    // Handle both networked and local players.
-    q_players: Query<Entity, (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>)>,
+    q_players: Query<
+        (&SpaceShipType, Entity),
+        (
+            PredictedOrLocal,
+            With<SpaceShip>,
+            // Haven't added visuals yet.
+            Without<SpaceShipVisualAdded>,
+        ),
+    >,
 ) {
-    for entity in q_players.iter() {
+    for (spaceship_type, entity) in q_players.iter() {
         commands.entity(entity).insert((
-            BlueprintInfo::from_path("levels/Spaceship.glb"),
+            spaceship_type.model_info(),
             SpawnBlueprint,
+            HideUntilReady,
+            SpaceShipVisualAdded,
         ));
     }
 }
 
-/// Add visuals and input for player on player spawn.
-fn handle_player_spawn(
+/// Add input for player on player spawn.
+fn add_networked_input(
     mut commands: Commands,
-    q_predicted: Query<
-        (&PlayerId, Entity),
-        (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>),
-    >,
+    q_predicted: Query<(&PlayerId, Entity), (Added<SpaceShip>, With<Predicted>)>,
     local_client_id: Res<LocalClientId>,
     mut player_infos: ResMut<PlayerInfos>,
 ) {
@@ -87,3 +94,6 @@ fn despawn_networked_inputs(
         commands.entity(entity).despawn();
     }
 }
+
+#[derive(Component)]
+struct SpaceShipVisualAdded;

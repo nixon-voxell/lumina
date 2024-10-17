@@ -19308,6 +19308,80 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina::shared::player::SpaceShip": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::SpaceShip",
+      "properties": {
+        "angular_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "boost_linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "brake_linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "brake_linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "max_linear_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "linear_acceleration",
+        "angular_acceleration",
+        "boost_linear_acceleration",
+        "brake_linear_acceleration",
+        "max_linear_speed",
+        "linear_damping",
+        "angular_damping",
+        "brake_linear_damping"
+      ],
+      "short_name": "SpaceShip",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::SpaceShipType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::SpaceShipType",
+      "oneOf": [
+        "Assassin",
+        "Tank",
+        "Support"
+      ],
+      "short_name": "SpaceShipType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
     "lumina::shared::player::weapon::WeaponConfig": {
       "additionalProperties": false,
       "isComponent": true,
@@ -19333,13 +19407,19 @@
           "type": {
             "$ref": "#/$defs/u32"
           }
+        },
+        "recoil": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
         "firing_rate",
         "magazine_size",
         "ammo_lifetime",
-        "damage"
+        "damage",
+        "recoil"
       ],
       "short_name": "WeaponConfig",
       "type": "object",

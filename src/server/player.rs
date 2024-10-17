@@ -1,13 +1,12 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
+use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use server::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 use crate::shared::input::PlayerAction;
-use crate::shared::player::{PlayerId, ReplicatePlayerBundle};
-use crate::shared::player::{PlayerInfos, SpaceShip};
+use crate::shared::player::{PlayerId, PlayerInfos, SpaceShipType};
 
 use super::lobby::Lobby;
 
@@ -18,7 +17,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
-                replicate_actions.after(MainSet::EmitEvents),
+                replicate_inputs.after(MainSet::EmitEvents),
                 handle_input_spawn.in_set(ServerReplicationSet::ClientReplication),
             ),
         );
@@ -29,25 +28,29 @@ impl Plugin for PlayerPlugin {
 pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
     info!("Spawn player for {:?}", client_id);
 
-    let replicate = Replicate {
-        sync: SyncTarget {
-            prediction: NetworkTarget::All,
-            interpolation: NetworkTarget::AllExceptSingle(client_id),
-        },
-        controlled_by: ControlledBy {
-            target: NetworkTarget::Single(client_id),
-            ..default()
-        },
-        relevance_mode: NetworkRelevanceMode::InterestManagement,
-        ..default()
-    };
+    let player_entity = commands
+        .spawn((
+            PlayerId(client_id),
+            Replicate {
+                sync: SyncTarget {
+                    prediction: NetworkTarget::All,
+                    interpolation: NetworkTarget::AllExceptSingle(client_id),
+                },
+                controlled_by: ControlledBy {
+                    target: NetworkTarget::Single(client_id),
+                    ..default()
+                },
+                relevance_mode: NetworkRelevanceMode::InterestManagement,
+                ..default()
+            },
+        ))
+        .id();
 
     commands
-        .spawn((
-            ReplicatePlayerBundle::new(client_id, SpaceShip::assassin()),
-            replicate,
-        ))
-        .id()
+        .spawn((SpaceShipType::Assassin.ship_info(), SpawnBlueprint))
+        .set_parent(player_entity);
+
+    player_entity
 }
 
 /// Adds input action entity to [`PlayerInfos`] and replicate it back to other clients.
@@ -88,9 +91,9 @@ fn handle_input_spawn(
     }
 }
 
-/// Replicate the actions (inputs) of a client to other clients
+/// Replicate the inputs (actions) of a client to other clients
 /// so that a client can predict other clients.
-fn replicate_actions(
+fn replicate_inputs(
     q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
     mut action_evr: EventReader<MessageEvent<InputMessage<PlayerAction>>>,

@@ -5,9 +5,11 @@ use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
+use bevy_motiongfx::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
 use crate::shared::player::LocalPlayer;
+use crate::ui::main_window::MainWindowFunc;
 
 pub(super) struct CameraPlugin;
 
@@ -15,7 +17,13 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CameraShake>()
             .add_systems(Startup, spawn_game_camera)
-            .add_systems(Update, follow_player)
+            .add_systems(
+                Update,
+                (
+                    camera_zoom.run_if(resource_changed::<MainWindowFunc>),
+                    follow_player,
+                ),
+            )
             .add_systems(PreUpdate, restore_camera_shake)
             .add_systems(
                 PostUpdate,
@@ -52,6 +60,23 @@ fn spawn_game_camera(mut commands: Commands) {
         BloomSettings::default(),
         SmaaSettings::default(),
     ));
+}
+
+fn camera_zoom(
+    mut q_camera: Query<&mut OrthographicProjection, With<GameCamera>>,
+    main_window_func: Res<MainWindowFunc>,
+) {
+    const ENLARGED_SCALE: f32 = 1.5;
+
+    let Ok(mut projection) = q_camera.get_single_mut() else {
+        return;
+    };
+
+    projection.scale = f32::lerp(
+        ENLARGED_SCALE,
+        1.0,
+        ease::cubic::ease_in_out(main_window_func.transparency as f32),
+    );
 }
 
 fn follow_player(

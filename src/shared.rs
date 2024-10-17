@@ -39,7 +39,7 @@ impl Plugin for SharedPlugin {
 /// Convert all 3d [`Handle<Mesh>`] to 2d [`Mesh2dHandle`].
 fn convert_3d_to_2d_mesh(
     mut commands: Commands,
-    q_meshes: Query<(&Handle<Mesh>, Option<&Name>, Entity), Without<Mesh2dHandle>>,
+    q_meshes: Query<(&Handle<Mesh>, Option<&Name>, Entity), Changed<Handle<Mesh>>>,
 ) {
     for (mesh_handle, name, entity) in q_meshes.iter() {
         commands
