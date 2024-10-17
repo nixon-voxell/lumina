@@ -1,13 +1,16 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use crate::settings::NetworkSettings;
-use crate::shared::shared_config;
-use bevy::{prelude::*, render::view::RenderLayers};
-
+use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 
-mod lobby;
+use crate::settings::NetworkSettings;
+use crate::shared::shared_config;
+
+mod camera;
+mod effector;
+mod local_lobby;
+mod multiplayer_lobby;
 mod player;
 mod ui;
 
@@ -21,20 +24,26 @@ impl Plugin for ClientPlugin {
         let settings = app.world().get_resource::<NetworkSettings>().unwrap();
         app.add_plugins(ClientPlugins::new(client_config(settings)));
 
-        app.add_plugins((lobby::LobbyPlugin, ui::UiPlugin, player::PlayerPlugin))
-            .init_state::<Connection>()
-            .enable_state_scoped_entities::<Connection>()
-            .add_systems(Startup, spawn_game_camera)
-            .add_systems(OnEnter(Connection::Connect), connect_server)
-            .add_systems(
-                PreUpdate,
-                (handle_connection, handle_disconnection).after(MainSet::Receive),
-            );
+        app.add_plugins((
+            ui::UiPlugin,
+            player::PlayerPlugin,
+            camera::CameraPlugin,
+            local_lobby::LocalLobbyPlugin,
+            multiplayer_lobby::MultiplayerLobbyPlugin,
+            effector::EffectorPlugin,
+        ))
+        .init_state::<Connection>()
+        .enable_state_scoped_entities::<Connection>()
+        .add_systems(OnEnter(Connection::Connect), connect_server)
+        .add_systems(
+            PreUpdate,
+            (handle_connection, handle_disconnection).after(MainSet::Receive),
+        );
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
         app.add_plugins(crate::dev_tools::log_transition::<Connection>)
-            .add_plugins(crate::dev_tools::log_transition::<lobby::LobbyState>);
+            .add_plugins(crate::dev_tools::log_transition::<multiplayer_lobby::MatchmakeState>);
     }
 }
 
@@ -52,7 +61,7 @@ fn handle_connection(
         info!("Connected with Id: {client_id:?}");
 
         connection.set(Connection::Connected);
-        commands.insert_resource(MyClientId(client_id));
+        commands.insert_resource(LocalClientId(client_id));
     }
 }
 
@@ -65,21 +74,6 @@ fn handle_disconnection(
 
         connection.set(Connection::Disconnected);
     }
-}
-
-/// Spawn camera for game rendering (render layer 0).
-fn spawn_game_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Game Camera"),
-        Camera2dBundle {
-            camera: Camera {
-                clear_color: Color::NONE.into(),
-                ..default()
-            },
-            ..default()
-        },
-        RenderLayers::layer(0),
-    ));
 }
 
 /// Create the lightyear [`ClientConfig`].
@@ -136,4 +130,4 @@ enum Connection {
 }
 
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
-struct MyClientId(pub ClientId);
+struct LocalClientId(pub ClientId);

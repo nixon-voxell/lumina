@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
-use serde::{Deserialize, Serialize};
 use server::RoomId;
 
-use crate::shared::{input::PlayerAction, player::PlayerId};
+use crate::shared::input::PlayerAction;
+use crate::shared::player::{PlayerId, SpaceShip};
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
@@ -32,15 +32,11 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
+        app.register_component::<SpaceShip>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
-
-        app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
-
-        app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
@@ -56,17 +52,23 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation_fn(rotation::lerp)
             .add_correction_fn(rotation::lerp);
 
-        // NOTE: interpolation/correction is only needed for components that are visually displayed!
-        // we still need prediction to be able to correctly predict the physics on the client
+        app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Full);
+
+        app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Full);
+
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation_fn(linear_velocity::lerp)
-            .add_correction_fn(linear_velocity::lerp);
+            .add_prediction(ComponentSyncMode::Full);
+        // .add_interpolation(ComponentSyncMode::Full)
+        // .add_interpolation_fn(linear_velocity::lerp)
+        // .add_correction_fn(linear_velocity::lerp);
 
         app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation_fn(angular_velocity::lerp)
-            .add_correction_fn(angular_velocity::lerp);
+            .add_prediction(ComponentSyncMode::Full);
+        // .add_interpolation(ComponentSyncMode::Full)
+        // .add_interpolation_fn(angular_velocity::lerp)
+        // .add_correction_fn(angular_velocity::lerp);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());

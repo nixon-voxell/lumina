@@ -3,14 +3,5 @@
 #import "../utils.typ": *
 
 #let splash(
-  width,
-  height,
-  hovered_button: none,
-  hovered_animation: 0.0,
-  time: 0.0,
-) = {
-  window(
-    width,
-    height,
-  )[ ]
-}
+  time,
+) = { }

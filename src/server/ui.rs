@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use velyst::prelude::*;
 
-use crate::ui::{windowed_func, WindowedFunc};
+use crate::ui::main_window::push_to_main_window;
 
 use super::lobby::Lobby;
 
@@ -9,39 +9,28 @@ pub(super) struct ServerUiPlugin;
 
 impl Plugin for ServerUiPlugin {
     fn build(&self, app: &mut App) {
-        app.register_typst_asset::<ServerUi>()
-            .compile_typst_func::<ServerUi, MainFunc>()
-            .render_typst_func::<MainFunc>()
-            .init_resource::<MainFunc>()
-            .add_systems(Update, windowed_func::<MainFunc>)
-            .add_systems(Update, lobbies);
+        app.register_typst_asset::<LobbyListUi>()
+            .compile_typst_func::<LobbyListUi, LobbyListFunc>()
+            .init_resource::<LobbyListFunc>()
+            .add_systems(Update, (lobbies, push_to_main_window::<LobbyListFunc>()));
     }
 }
 
-fn lobbies(q_lobbies: Query<&Lobby>, mut main_func: ResMut<MainFunc>) {
-    main_func.lobbies.clear();
+fn lobbies(q_lobbies: Query<&Lobby>, mut lobby_func: ResMut<LobbyListFunc>) {
+    lobby_func.lobbies.clear();
 
     for lobby in q_lobbies.iter() {
         let player_count = lobby.len();
-        main_func.lobbies.push(player_count as u32);
+        lobby_func.lobbies.push(player_count as u32);
     }
 }
 
 #[derive(TypstFunc, Resource, Default)]
-#[typst_func(name = "main", layer = 1)]
-struct MainFunc {
-    width: f64,
-    height: f64,
+#[typst_func(name = "lobby_list", layer = 1)]
+struct LobbyListFunc {
     lobbies: Vec<u32>,
 }
 
-impl WindowedFunc for MainFunc {
-    fn set_width_height(&mut self, width: f64, height: f64) {
-        self.width = width;
-        self.height = height;
-    }
-}
-
 #[derive(TypstPath)]
-#[typst_path = "typst/server/main.typ"]
-struct ServerUi;
+#[typst_path = "typst/server/lobby_list.typ"]
+struct LobbyListUi;

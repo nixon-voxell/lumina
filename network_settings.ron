@@ -8,13 +8,15 @@ NetworkSettings(
     client: ClientSettings(
         inspector: true,
         client_id: 0,
-        client_port: 0, // the OS will assign a random open port
-        conditioner: Some(Conditioner(
-            latency_ms: 75,
-            jitter_ms: 10,
-            packet_loss: 0.02
-        )),
-        input_delay_ticks: 6,
+        // The OS will assign a random open port.
+        client_port: 0, 
+        // conditioner: Some(Conditioner(
+        //     latency_ms: 75,
+        //     jitter_ms: 10,
+        //     packet_loss: 0.02
+        // )),
+        conditioner: None,
+        input_delay_ticks: 0,
         correction_ticks_factor: 1.5,
     ),
     shared: SharedSettings(
