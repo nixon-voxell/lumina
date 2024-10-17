@@ -1,6 +1,8 @@
 use avian2d::prelude::*;
+use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
@@ -11,50 +13,18 @@ use super::LocalEntity;
 
 pub(super) struct PlayerPlugin;
 
+pub mod weapon;
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(weapon::WeaponPlugin);
+
         app.init_resource::<PlayerInfos>()
-            .add_systems(Update, (init_players, init_networked_inputs))
+            .add_systems(Update, init_networked_inputs)
             .add_systems(FixedUpdate, player_movement);
-    }
-}
 
-fn init_players(
-    mut commands: Commands,
-    q_players: Query<
-        (&SpaceShip, Entity),
-        (
-            Without<Collider>,
-            Or<(
-                With<LocalEntity>,
-                With<client::Predicted>,
-                With<Replicating>,
-            )>,
-        ),
-    >,
-) {
-    if q_players.is_empty() {
-        return;
-    }
-
-    let collider = Collider::triangle(
-        Vec2::new(-20.0, 20.0),
-        Vec2::new(-20.0, -20.0),
-        Vec2::new(20.0, 0.0),
-    );
-
-    for (space_ship, entity) in q_players.iter() {
-        info!("Adding collider for {entity:?}");
-        commands.entity(entity).insert((
-            MassPropertiesBundle::new_computed(&collider, 1.0),
-            collider.clone(),
-            LinearDamping(space_ship.linear_damping),
-            AngularDamping(space_ship.angular_damping),
-            MovementStat {
-                linear_acceleration: 0.0,
-                linear_damping: space_ship.linear_damping,
-            },
-        ));
+        app.register_type::<SpaceShipType>()
+            .register_type::<SpaceShip>();
     }
 }
 
@@ -77,13 +47,18 @@ fn init_networked_inputs(
     mut player_infos: ResMut<PlayerInfos>,
 ) {
     for (id, entity) in q_actions.iter() {
-        if let Some(info) = player_infos.get_mut(&id.0) {
-            commands
-                .entity(entity)
-                .insert(InputTarget::new(info.player));
+        match player_infos.get_mut(&id.0) {
+            Some(info) => {
+                commands
+                    .entity(entity)
+                    .insert(InputTarget::new(info.player));
 
-            info.input = Some(entity);
-            info!("Initialized input for {:?}", id);
+                info.input = Some(entity);
+                info!("Initialized input for {:?}", id);
+            }
+            None => {
+                error!("Unable to find input for player: {:?}", id);
+            }
         }
     }
 }
@@ -96,7 +71,7 @@ fn init_networked_inputs(
 /// - Steer
 fn player_movement(
     q_actions: Query<(&ActionState<PlayerAction>, &InputTarget)>,
-    mut q_space_ships: Query<(
+    mut q_spaceships: Query<(
         &mut MovementStat,
         &mut LinearVelocity,
         &mut AngularVelocity,
@@ -124,8 +99,8 @@ fn player_movement(
             mut angular,
             mut linear_damping,
             rotation,
-            space_ship,
-        )) = q_space_ships.get_mut(player_entity)
+            spaceship,
+        )) = q_spaceships.get_mut(player_entity)
         else {
             continue;
         };
@@ -136,30 +111,29 @@ fn player_movement(
 
         // Linear damping
         match is_braking {
-            true => movement_stat
-                .towards_linear_damping(space_ship.brake_linear_damping, damping_factor),
-            false => {
-                movement_stat.towards_linear_damping(space_ship.linear_damping, damping_factor)
+            true => {
+                movement_stat.towards_linear_damping(spaceship.brake_linear_damping, damping_factor)
             }
+            false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
         }
 
         // Linear acceleration
         match (is_moving, is_braking, is_boosting) {
             // Moving only
             (true, false, false) => movement_stat.towards_linear_acceleration(
-                space_ship.linear_acceleration,
+                spaceship.linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
             // Moving and braking
             (true, true, _) => movement_stat.towards_linear_acceleration(
-                space_ship.brake_linear_acceleration,
+                spaceship.brake_linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
             // Moving and boosting
             (true, false, true) => movement_stat.towards_linear_acceleration(
-                space_ship.boost_linear_acceleration,
+                spaceship.boost_linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
@@ -175,7 +149,7 @@ fn player_movement(
         if is_moving {
             movement_stat.linear_acceleration = FloatExt::lerp(
                 movement_stat.linear_acceleration,
-                space_ship.linear_acceleration,
+                spaceship.linear_acceleration,
                 acceleration_factor,
             );
 
@@ -187,7 +161,7 @@ fn player_movement(
             let desired_angle = movement.y.atan2(movement.x);
 
             angular.0 += rotation.angle_between(Rotation::radians(desired_angle))
-                * space_ship.angular_acceleration
+                * spaceship.angular_acceleration
                 * time.delta_seconds();
         }
 
@@ -195,57 +169,50 @@ fn player_movement(
         linear.0 += direction * movement_stat.linear_acceleration * time.delta_seconds();
 
         // Clamp the speed
-        linear.0 = linear.clamp_length_max(space_ship.max_linear_speed);
+        linear.0 = linear.clamp_length_max(spaceship.max_linear_speed);
         linear_damping.0 = movement_stat.linear_damping;
     }
 }
 
-#[derive(Bundle)]
-pub struct ReplicatePlayerBundle {
-    pub id: PlayerId,
-    pub ship: SpaceShip,
-    pub physics: PhysicsBundle,
-}
-
-impl ReplicatePlayerBundle {
-    pub fn new(client_id: ClientId, position: Position, rotation: Rotation) -> Self {
-        Self {
-            id: PlayerId(client_id),
-            // TODO: Make this a input parameter.
-            ship: SpaceShip::assassin(),
-            physics: PhysicsBundle::player()
-                .with_position(position)
-                .with_rotation(rotation),
-        }
-    }
-}
-
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct LocalPlayerBundle {
-    pub ship: SpaceShip,
-    pub physics: PhysicsBundle,
     pub local_entity: LocalEntity,
     pub local_player: LocalPlayer,
-}
-
-impl LocalPlayerBundle {
-    pub fn new(position: Position, rotation: Rotation) -> Self {
-        Self {
-            // TODO: Make this a input parameter.
-            ship: SpaceShip::assassin(),
-            physics: PhysicsBundle::player()
-                .with_position(position)
-                .with_rotation(rotation),
-            local_entity: LocalEntity,
-            local_player: LocalPlayer,
-        }
-    }
 }
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct PlayerId(pub ClientId);
 
-#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+pub enum SpaceShipType {
+    Assassin,
+    Tank,
+    Support,
+}
+
+impl SpaceShipType {
+    pub fn model_info(&self) -> BlueprintInfo {
+        match self {
+            SpaceShipType::Assassin => {
+                BlueprintInfo::from_path("levels/AssassinSpaceshipModel.glb")
+            }
+            SpaceShipType::Tank => todo!("Tank type not supported yet."),
+            SpaceShipType::Support => todo!("Support type not supported yet."),
+        }
+    }
+
+    pub fn ship_info(&self) -> BlueprintInfo {
+        match self {
+            SpaceShipType::Assassin => BlueprintInfo::from_path("levels/AssassinSpaceship.glb"),
+            SpaceShipType::Tank => todo!("Tank type not supported yet."),
+            SpaceShipType::Support => todo!("Support type not supported yet."),
+        }
+    }
+}
+
+#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
 pub struct SpaceShip {
     /// Normal linear acceleration.
     pub linear_acceleration: f32,
@@ -265,18 +232,60 @@ pub struct SpaceShip {
     pub brake_linear_damping: f32,
 }
 
-impl SpaceShip {
-    pub fn assassin() -> Self {
-        Self {
-            linear_acceleration: 800.0,
-            angular_acceleration: 30.0,
-            boost_linear_acceleration: 4000.0,
-            brake_linear_acceleration: 600.0,
-            max_linear_speed: 1000.0,
-            linear_damping: 2.0,
-            angular_damping: 6.0,
-            brake_linear_damping: 4.0,
-        }
+// impl SpaceShip {
+//     pub fn assassin() -> Self {
+//         Self {
+//             linear_acceleration: 800.0,
+//             angular_acceleration: 30.0,
+//             boost_linear_acceleration: 4000.0,
+//             brake_linear_acceleration: 600.0,
+//             max_linear_speed: 1000.0,
+//             linear_damping: 2.0,
+//             angular_damping: 6.0,
+//             brake_linear_damping: 4.0,
+//         }
+//     }
+// }
+
+impl Component for SpaceShip {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+
+    fn register_component_hooks(hooks: &mut ComponentHooks) {
+        hooks.on_add(|mut world, entity, _| {
+            let entity_ref = world.entity(entity);
+
+            // Do not initialize for spaceships that are spawned remotely.
+            if entity_ref.contains::<Replicated>() {
+                return;
+            }
+
+            let spaceship = entity_ref.get::<Self>().unwrap();
+            // TODO: Consider using a lookup collider.
+            let collider = Collider::triangle(
+                Vec2::new(-10.0, 10.0),
+                Vec2::new(-10.0, -10.0),
+                Vec2::new(10.0, 0.0),
+            );
+
+            let bundle = (
+                MassPropertiesBundle::new_computed(&collider, 1.0),
+                collider.clone(),
+                PhysicsBundle {
+                    rigidbody: RigidBody::Dynamic,
+                    linear_damping: LinearDamping(spaceship.linear_damping),
+                    angular_damping: AngularDamping(spaceship.angular_damping),
+                    ..default()
+                },
+                MovementStat {
+                    linear_acceleration: 0.0,
+                    linear_damping: spaceship.linear_damping,
+                },
+            );
+
+            world.commands().entity(entity).insert(bundle);
+
+            info!("\n\n Initialized spaceship for {entity:?}");
+        });
     }
 }
 
@@ -306,13 +315,13 @@ impl MovementStat {
         self.linear_damping = FloatExt::lerp(self.linear_damping, target, factor);
     }
 
-    pub fn linear_acceleration(&self) -> f32 {
-        self.linear_acceleration
-    }
+    // pub fn linear_acceleration(&self) -> f32 {
+    //     self.linear_acceleration
+    // }
 
-    pub fn linear_damping(&self) -> f32 {
-        self.linear_damping
-    }
+    // pub fn linear_damping(&self) -> f32 {
+    //     self.linear_damping
+    // }
 }
 
 #[derive(Bundle, Default)]
@@ -324,44 +333,7 @@ pub struct PhysicsBundle {
     pub angular_damping: AngularDamping,
 }
 
-impl PhysicsBundle {
-    pub fn player() -> Self {
-        Self {
-            rigidbody: RigidBody::Dynamic,
-            ..default()
-        }
-    }
-}
-
-// Builder pattern.
-impl PhysicsBundle {
-    pub fn with_rigidbody(mut self, rigidbody: RigidBody) -> Self {
-        self.rigidbody = rigidbody;
-        self
-    }
-
-    pub fn with_position(mut self, position: Position) -> Self {
-        self.position = position;
-        self
-    }
-
-    pub fn with_rotation(mut self, rotation: Rotation) -> Self {
-        self.rotation = rotation;
-        self
-    }
-
-    pub fn with_linear_damping(mut self, linear_damping: LinearDamping) -> Self {
-        self.linear_damping = linear_damping;
-        self
-    }
-
-    pub fn with_angular_damping(mut self, angular_damping: AngularDamping) -> Self {
-        self.angular_damping = angular_damping;
-        self
-    }
-}
-
-/// The player the the local client is controlling.
+/// The player that the local client is controlling.
 #[derive(Component, Default)]
 pub struct LocalPlayer;
 

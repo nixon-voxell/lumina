@@ -1,11 +1,13 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
+use bevy_coroutine::prelude::*;
+use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
 
 use crate::settings::NetworkSettings;
-use crate::shared::shared_config;
+use crate::shared::{shared_config, LocalEntity};
 
 mod camera;
 mod effector;
@@ -20,9 +22,15 @@ impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
         info!("Adding `ClientPlugin`.");
 
-        // Lightyear plugins
         let settings = app.world().get_resource::<NetworkSettings>().unwrap();
-        app.add_plugins(ClientPlugins::new(client_config(settings)));
+        app.add_plugins((
+            ClientPlugins::new(client_config(settings)),
+            BlenvyPlugin {
+                export_registry: cfg!(debug_assertions),
+                ..default()
+            },
+            CoroutinePlugin,
+        ));
 
         app.add_plugins((
             ui::UiPlugin,
@@ -131,3 +139,5 @@ enum Connection {
 
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
 struct LocalClientId(pub ClientId);
+
+type PredictedOrLocal = Or<(With<Predicted>, With<LocalEntity>)>;

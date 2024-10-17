@@ -691,6 +691,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_coroutine"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acf18a91cf134da5e47d4521e36cc41757879de6ebf39fdc5ef1d993c9c57835"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_derive"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3886,6 +3895,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy_coroutine",
  "bevy_motiongfx",
  "bevy_vello",
  "bevy_vello_graphics",
