@@ -47,7 +47,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
         .id();
 
     commands
-        .spawn((SpaceShipType::Assassin.ship_info(), SpawnBlueprint))
+        .spawn((SpaceShipType::Assassin.config_info(), SpawnBlueprint))
         .set_parent(player_entity);
 
     player_entity

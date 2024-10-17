@@ -46,7 +46,7 @@ fn init_lobby(
 
     commands
         .spawn((
-            SpaceShipType::Assassin.ship_info(),
+            SpaceShipType::Assassin.config_info(),
             SpawnBlueprint,
             HideUntilReady,
         ))

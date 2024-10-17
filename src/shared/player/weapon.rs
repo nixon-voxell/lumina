@@ -1,7 +1,6 @@
-use bevy::{
-    ecs::component::{ComponentHooks, StorageType},
-    prelude::*,
-};
+use bevy::ecs::component::{ComponentHooks, StorageType};
+use bevy::prelude::*;
+use blenvy::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::shared::input::{InputTarget, PlayerAction};
@@ -18,16 +17,17 @@ impl Plugin for WeaponPlugin {
     }
 }
 
-// TODO: Create mock weapon in Blender.
 // TODO: Shake camera on weapon attack.
 fn init_weapon(
     mut commands: Commands,
     q_spaceships: Query<Entity, (With<SpaceShip>, Without<WeaponTarget>)>,
 ) {
-    for entity in q_spaceships.iter() {
+    for spaceship_entity in q_spaceships.iter() {
         // let config = WeaponConfig::default_rifle();
-        let weapon_entity = commands.spawn_empty().id();
-        commands.entity(entity).insert(WeaponTarget(weapon_entity));
+        let weapon_entity = commands.spawn_empty().set_parent(spaceship_entity).id();
+        commands
+            .entity(spaceship_entity)
+            .insert(WeaponTarget(weapon_entity));
     }
 }
 
@@ -39,6 +39,31 @@ fn attack(
     for action in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) {
             // Shoot ammos!
+        }
+    }
+}
+
+#[derive(Component, Reflect, Default, Debug)]
+#[reflect(Component)]
+pub enum WeaponType {
+    #[default]
+    Cannon,
+    Missle,
+    GattlingGun,
+}
+
+impl WeaponType {
+    pub fn visual_info(&self) -> BlueprintInfo {
+        match self {
+            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonVisual.glb"),
+            _ => todo!("{self:?} is not supported yet."),
+        }
+    }
+
+    pub fn config_info(&self) -> BlueprintInfo {
+        match self {
+            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonConfig.glb"),
+            _ => todo!("{self:?} is not supported yet."),
         }
     }
 }
@@ -69,16 +94,6 @@ impl Component for WeaponConfig {
         });
     }
 }
-
-// impl WeaponConfig {
-//     pub fn default_rifle() -> Self {
-//         Self {
-//             firing_rate: 2.0,
-//             magazine_size: 10,
-//             ammo_lifetime: 1.0,
-//         }
-//     }
-// }
 
 /// The stat of the current weapon.
 #[derive(Component)]

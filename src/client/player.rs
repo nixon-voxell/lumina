@@ -46,7 +46,7 @@ fn add_spaceship_visual(
 ) {
     for (spaceship_type, entity) in q_players.iter() {
         commands.entity(entity).insert((
-            spaceship_type.model_info(),
+            spaceship_type.visual_info(),
             SpawnBlueprint,
             HideUntilReady,
             SpaceShipVisualAdded,

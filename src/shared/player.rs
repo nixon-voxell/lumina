@@ -192,21 +192,21 @@ pub enum SpaceShipType {
 }
 
 impl SpaceShipType {
-    pub fn model_info(&self) -> BlueprintInfo {
+    pub fn visual_info(&self) -> BlueprintInfo {
         match self {
             SpaceShipType::Assassin => {
-                BlueprintInfo::from_path("levels/AssassinSpaceshipModel.glb")
+                BlueprintInfo::from_path("levels/SpaceShipAssassinVisual.glb")
             }
-            SpaceShipType::Tank => todo!("Tank type not supported yet."),
-            SpaceShipType::Support => todo!("Support type not supported yet."),
+            _ => todo!("{self:?} is not supported yet."),
         }
     }
 
-    pub fn ship_info(&self) -> BlueprintInfo {
+    pub fn config_info(&self) -> BlueprintInfo {
         match self {
-            SpaceShipType::Assassin => BlueprintInfo::from_path("levels/AssassinSpaceship.glb"),
-            SpaceShipType::Tank => todo!("Tank type not supported yet."),
-            SpaceShipType::Support => todo!("Support type not supported yet."),
+            SpaceShipType::Assassin => {
+                BlueprintInfo::from_path("levels/SpaceShipAssassinConfig.glb")
+            }
+            _ => todo!("{self:?} is not supported yet."),
         }
     }
 }
@@ -231,21 +231,6 @@ pub struct SpaceShip {
     /// Linear damping when brake is applied.
     pub brake_linear_damping: f32,
 }
-
-// impl SpaceShip {
-//     pub fn assassin() -> Self {
-//         Self {
-//             linear_acceleration: 800.0,
-//             angular_acceleration: 30.0,
-//             boost_linear_acceleration: 4000.0,
-//             brake_linear_acceleration: 600.0,
-//             max_linear_speed: 1000.0,
-//             linear_damping: 2.0,
-//             angular_damping: 6.0,
-//             brake_linear_damping: 4.0,
-//         }
-//     }
-// }
 
 impl Component for SpaceShip {
     const STORAGE_TYPE: StorageType = StorageType::Table;

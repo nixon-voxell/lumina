@@ -12,6 +12,7 @@ use crate::shared::{shared_config, LocalEntity};
 mod camera;
 mod effector;
 mod local_lobby;
+mod matchmaking;
 mod multiplayer_lobby;
 mod player;
 mod ui;
@@ -37,6 +38,7 @@ impl Plugin for ClientPlugin {
             player::PlayerPlugin,
             camera::CameraPlugin,
             local_lobby::LocalLobbyPlugin,
+            matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
             effector::EffectorPlugin,
         ))
