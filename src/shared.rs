@@ -12,6 +12,7 @@ pub mod effector;
 pub mod input;
 pub mod physics;
 pub mod player;
+pub mod procedural_map;
 
 /// Shared logic.
 pub struct SharedPlugin;
@@ -27,6 +28,7 @@ impl Plugin for SharedPlugin {
                 player::PlayerPlugin,
                 physics::PhysicsPlugin,
                 effector::EffectorPlugin,
+                procedural_map::GridMapPlugin,
             ))
             .add_systems(
                 Update,

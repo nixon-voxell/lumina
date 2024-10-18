@@ -92,9 +92,9 @@ fn handle_matchmaking(
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
-        // Already matchmake
+        // Already matched
         if player_infos.contains_key(&client_id) {
-            warn!("Recieved duplicated matchmake commands from {client_id:?}");
+            warn!("Received duplicated matchmake commands from {client_id:?}");
             continue;
         }
 
@@ -130,7 +130,6 @@ fn handle_matchmaking(
             .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
 
         let player_entity = spawn_player_entity(&mut commands, client_id);
-
         room_manager.add_client(client_id, lobby_entity.room_id());
         room_manager.add_entity(player_entity, lobby_entity.room_id());
 
