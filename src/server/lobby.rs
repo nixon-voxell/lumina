@@ -3,7 +3,7 @@ use lightyear::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
+use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel, SeedMessage};
 use crate::shared::player::{PlayerInfo, PlayerInfos};
 use crate::utils::EntityRoomId;
 
@@ -88,13 +88,14 @@ fn handle_matchmaking(
     >,
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
+    mut connection_manager: ResMut<ConnectionManager>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
-        // Already matchmake
+        // Already matched
         if player_infos.contains_key(&client_id) {
-            warn!("Recieved duplicated matchmake commands from {client_id:?}");
+            warn!("Received duplicated matchmake commands from {client_id:?}");
             continue;
         }
 
@@ -118,6 +119,15 @@ fn handle_matchmaking(
                 if lobby.len() == **size as usize {
                     // Tag lobby as full so that this lobby won't show up the
                     // next time a new client requests to join. (optimization)
+
+                    let seed = rand::random::<u32>(); // Generate a new seed for the lobby
+                                                      // Send SeedMessage to all clients in the lobby
+                    let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+                        &SeedMessage(seed),
+                        entity.room_id(), // Use entity directly
+                        &room_manager,
+                    );
+
                     commands.entity(entity).insert(LobbyFull);
                 }
 
@@ -126,19 +136,27 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity
-            .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
+        if lobby_entity.is_none() {
+            let seed = rand::random::<u32>(); // Generate a new seed for the new lobby
+            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
+            // Send SeedMessage to the new lobby
+            let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+                &SeedMessage(seed),
+                entity.room_id(), // Use entity directly
+                &room_manager,
+            );
+            lobby_entity = Some(entity);
+        }
 
         let player_entity = spawn_player_entity(&mut commands, client_id);
-
-        room_manager.add_client(client_id, lobby_entity.room_id());
-        room_manager.add_entity(player_entity, lobby_entity.room_id());
+        room_manager.add_client(client_id, lobby_entity.unwrap().room_id());
+        room_manager.add_entity(player_entity, lobby_entity.unwrap().room_id());
 
         // Cache client info
         player_infos.insert(
             client_id,
             PlayerInfo {
-                lobby: lobby_entity,
+                lobby: lobby_entity.unwrap(),
                 player: player_entity,
                 input: None,
             },

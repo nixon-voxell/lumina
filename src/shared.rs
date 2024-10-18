@@ -12,6 +12,7 @@ pub mod effector;
 pub mod input;
 pub mod physics;
 pub mod player;
+pub mod procedural_map;
 
 /// Shared logic.
 pub struct SharedPlugin;
