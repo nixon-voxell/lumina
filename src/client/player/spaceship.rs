@@ -4,11 +4,13 @@ use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
+use crate::client::LocalPlayerId;
 use crate::shared::action::{PlayerAction, ReplicateActionBundle};
 use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
 use crate::shared::player::{PlayerId, PlayerInfo, PlayerInfos};
+use crate::shared::SourceEntity;
 
-use super::{LocalClientId, PredictedOrLocal};
+use super::LocalClientId;
 
 pub(super) struct SpaceShipPlugin;
 
@@ -28,22 +30,14 @@ impl Plugin for SpaceShipPlugin {
 /// Add visuals for player.
 fn add_spaceship_visual(
     mut commands: Commands,
-    q_players: Query<
-        (&SpaceShipType, Entity),
-        (
-            PredictedOrLocal,
-            With<SpaceShip>,
-            // Haven't added visuals yet.
-            Without<SpaceShipVisualAdded>,
-        ),
-    >,
+    q_spaceships: Query<(&SpaceShipType, Entity), (With<SpaceShip>, Added<SourceEntity>)>,
+    local_player_id: Res<LocalPlayerId>,
 ) {
-    for (spaceship_type, entity) in q_players.iter() {
+    for (spaceship_type, entity) in q_spaceships.iter() {
         commands.entity(entity).insert((
             spaceship_type.visual_info(),
             SpawnBlueprint,
             HideUntilReady,
-            SpaceShipVisualAdded,
         ));
     }
 }
@@ -51,7 +45,7 @@ fn add_spaceship_visual(
 /// Add input for player on player spawn.
 fn add_networked_input(
     mut commands: Commands,
-    q_spaceships: Query<(&PlayerId, Entity), (Added<SpaceShip>, With<Predicted>)>,
+    q_spaceships: Query<(&PlayerId, Entity), (Added<SpaceShip>, With<SourceEntity>)>,
     local_client_id: Res<LocalClientId>,
     mut player_infos: ResMut<PlayerInfos>,
 ) {
@@ -85,6 +79,3 @@ fn despawn_networked_inputs(
         commands.entity(entity).despawn();
     }
 }
-
-#[derive(Component)]
-struct SpaceShipVisualAdded;

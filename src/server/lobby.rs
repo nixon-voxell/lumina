@@ -21,7 +21,7 @@ impl Plugin for LobbyPlugin {
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
-                    handle_disconnection,
+                    handle_disconnections,
                     handle_exit_lobby,
                     execute_exit_lobby,
                 ),
@@ -141,12 +141,15 @@ fn handle_matchmaking(
     }
 }
 
-fn handle_disconnection(
-    mut commands: Commands,
+// fn handle_connections(mut connect_evr: EventReader<ConnectEvent>) {
+//     for connect in connect_evr.read() {
+
+//     }
+// }
+
+fn handle_disconnections(
     mut disconnect_evr: EventReader<DisconnectEvent>,
     mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
-    mut all_player_infos: AllPlayerInfosMut,
-    mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     if disconnect_evr.is_empty() == false {
         client_exit_lobby_evw.send_batch(
@@ -154,18 +157,6 @@ fn handle_disconnection(
                 .read()
                 .map(|disconnect| ClientExitLobby(disconnect.client_id)),
         );
-    }
-
-    for event in disconnect_evr.read() {
-        let client_id = event.client_id;
-        lobby_infos.remove(&client_id);
-
-        let player_entities = all_player_infos.remove_all(&PlayerId(client_id));
-        for entity in player_entities.iter().filter_map(|e| *e) {
-            if let Some(entity_cmd) = commands.get_entity(entity) {
-                entity_cmd.despawn_recursive();
-            }
-        }
     }
 }
 

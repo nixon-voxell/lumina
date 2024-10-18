@@ -5,7 +5,7 @@ use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::protocol::{ExitLobby, ReliableChannel};
 use crate::ui::main_window::push_to_main_window;
-use crate::ui::{interactable_func, pressed, InteractableFunc, InteractionQuery};
+use crate::ui::{interactable_func, InteractableFunc, InteractionQuery};
 
 use super::Screen;
 
@@ -29,11 +29,11 @@ impl Plugin for LobbyUiPlugin {
 }
 
 fn exit_lobby_btn(
-    q_interactions: InteractionQuery,
+    interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
-    if pressed(q_interactions.iter(), "btn:exit-lobby") {
+    if interactions.pressed("btn:exit-lobby") {
         let _ = connection_manager.send_message::<ReliableChannel, _>(&ExitLobby);
 
         next_screen_state.set(Screen::MainMenu);

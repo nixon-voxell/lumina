@@ -5,6 +5,7 @@ use bevy_coroutine::prelude::*;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
+use ui::Screen;
 
 use crate::settings::NetworkSettings;
 use crate::shared::player::PlayerId;
@@ -24,9 +25,11 @@ impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
         info!("Adding `ClientPlugin`.");
 
+        let client_id = rand::random();
         let settings = app.world().get_resource::<NetworkSettings>().unwrap();
+
         app.add_plugins((
-            ClientPlugins::new(client_config(settings)),
+            ClientPlugins::new(client_config(client_id, settings)),
             BlenvyPlugin {
                 export_registry: cfg!(debug_assertions),
                 ..default()
@@ -43,6 +46,7 @@ impl Plugin for ClientPlugin {
             multiplayer_lobby::MultiplayerLobbyPlugin,
             effector::EffectorPlugin,
         ))
+        .init_resource::<LocalPlayerId>()
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
         .add_systems(OnEnter(Connection::Connect), connect_server)
@@ -65,30 +69,38 @@ fn connect_server(mut commands: Commands) {
 fn handle_connection(
     mut commands: Commands,
     mut connect_evr: EventReader<ConnectEvent>,
-    mut connection: ResMut<NextState<Connection>>,
+    mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
     for event in connect_evr.read() {
         let client_id = event.client_id();
         info!("Connected with Id: {client_id:?}");
 
-        connection.set(Connection::Connected);
+        next_connection_state.set(Connection::Connected);
         commands.insert_resource(LocalClientId(client_id));
     }
 }
 
 fn handle_disconnection(
+    mut commands: Commands,
     mut disconnect_evr: EventReader<DisconnectEvent>,
-    mut connection: ResMut<NextState<Connection>>,
+    mut next_connection_state: ResMut<NextState<Connection>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
+    mut local_player_id: ResMut<LocalPlayerId>,
 ) {
     for event in disconnect_evr.read() {
         warn!("Disconnected: {:?}", event.reason);
 
-        connection.set(Connection::Disconnected);
+        next_connection_state.set(Connection::Disconnected);
+        commands.remove_resource::<LocalClientId>();
+        // Return to main menu
+        next_screen_state.set(Screen::MainMenu);
+        // Reset player id to local only.
+        *local_player_id = LocalPlayerId::default();
     }
 }
 
 /// Create the lightyear [`ClientConfig`].
-fn client_config(settings: &NetworkSettings) -> ClientConfig {
+fn client_config(client_id: u64, settings: &NetworkSettings) -> ClientConfig {
     let server_addr = SocketAddr::new(
         IpAddr::V4(settings.shared.server_addr),
         settings.shared.server_port,
@@ -96,7 +108,7 @@ fn client_config(settings: &NetworkSettings) -> ClientConfig {
 
     let auth = Authentication::Manual {
         server_addr,
-        client_id: rand::random(),
+        client_id,
         private_key: settings.shared.private_key,
         protocol_id: settings.shared.protocol_id,
     };
@@ -140,11 +152,11 @@ enum Connection {
     Disconnected,
 }
 
-#[derive(Resource, Debug, Clone, Copy, PartialEq)]
+#[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 struct LocalClientId(pub ClientId);
 
 // Source of truth for retrieving local entities.
-#[derive(Resource, Debug, Deref, Clone, Copy, PartialEq)]
+#[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 struct LocalPlayerId(pub PlayerId);
 
 impl Default for LocalPlayerId {

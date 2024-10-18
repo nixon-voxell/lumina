@@ -21,29 +21,21 @@ impl Plugin for WeaponPlugin {
 /// Add visuals for weapon.
 fn add_weapon_visual(
     mut commands: Commands,
-    q_players: Query<
-        (&WeaponType, Entity),
-        (
-            With<SourceEntity>,
-            With<Weapon>,
-            // Haven't added visuals yet.
-            Without<WeaponVisualAdded>,
-        ),
-    >,
+    q_players: Query<(&WeaponType, Entity), (With<Weapon>, Added<SourceEntity>)>,
 ) {
     for (weapon_type, entity) in q_players.iter() {
-        commands.entity(entity).insert((
-            weapon_type.visual_info(),
-            SpawnBlueprint,
-            HideUntilReady,
-            WeaponVisualAdded,
-        ));
+        commands
+            .entity(entity)
+            .insert((weapon_type.visual_info(), SpawnBlueprint, HideUntilReady));
     }
 }
 
 fn sync_weapon_position(
     q_player: Query<&Transform, With<SpaceShip>>,
-    mut q_weapons: Query<(&mut Transform, &PlayerId), Without<SpaceShip>>,
+    mut q_weapons: Query<
+        (&mut Transform, &PlayerId),
+        (Without<SpaceShip>, With<Weapon>, With<SourceEntity>),
+    >,
     spaceship_infos: Res<SpaceShipInfos>,
 ) {
     for (mut weapon_transform, id) in q_weapons.iter_mut() {
@@ -67,6 +59,3 @@ fn despawn_networked_inputs(
         commands.entity(entity).despawn();
     }
 }
-
-#[derive(Component)]
-struct WeaponVisualAdded;
