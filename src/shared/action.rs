@@ -4,17 +4,47 @@ use lightyear::prelude::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 
-use super::{player::PlayerId, LocalEntity};
+use super::player::{ActionInfos, PlayerId};
+
+pub(super) struct ActionPlugin;
+
+impl Plugin for ActionPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, init_networked_actions);
+    }
+}
+
+/// Initialize input to [`ActionInfos`].
+fn init_networked_actions(
+    q_actions: Query<
+        (&PlayerId, Entity),
+        (
+            Added<ActionState<PlayerAction>>,
+            Or<(
+                // Client inputs
+                With<client::Predicted>,
+                // Server inputs
+                With<server::SyncTarget>,
+            )>,
+        ),
+    >,
+    mut action_infos: ResMut<ActionInfos>,
+) {
+    for (id, entity) in q_actions.iter() {
+        action_infos.insert(*id, entity);
+        info!("Initialized input for {:?}.", id);
+    }
+}
 
 #[derive(Bundle)]
-pub struct ReplicateInputBundle {
+pub struct ReplicateActionBundle {
     pub id: PlayerId,
     pub input: InputManagerBundle<PlayerAction>,
     pub replicate: client::Replicate,
     pub prepredicted: PrePredicted,
 }
 
-impl ReplicateInputBundle {
+impl ReplicateActionBundle {
     pub fn new(id: PlayerId) -> Self {
         Self {
             id,
@@ -29,29 +59,17 @@ impl ReplicateInputBundle {
 }
 
 #[derive(Bundle)]
-pub struct LocalInputBundle {
+pub struct LocalActionBundle {
     pub input: InputManagerBundle<PlayerAction>,
-    pub local: LocalEntity,
-    pub target: InputTarget,
+    pub id: PlayerId,
 }
 
-impl LocalInputBundle {
-    pub fn new(target: InputTarget) -> Self {
+impl LocalActionBundle {
+    pub fn new() -> Self {
         Self {
             input: InputManagerBundle::with_map(PlayerAction::input_map()),
-            local: LocalEntity,
-            target,
+            id: PlayerId::LOCAL,
         }
-    }
-}
-
-/// The entity that the input is targetting.
-#[derive(Component, Deref)]
-pub struct InputTarget(Entity);
-
-impl InputTarget {
-    pub fn new(entity: Entity) -> Self {
-        Self(entity)
     }
 }
 

@@ -2,41 +2,61 @@ use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
+use lightyear::prelude::*;
 
-use crate::shared::input::{InputTarget, PlayerAction};
+use crate::shared::action::PlayerAction;
+use crate::shared::LocalEntity;
 
-use super::SpaceShip;
+use super::{PlayerId, PlayerInfos, SpaceShip};
 
 pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, init_weapon);
+        app.add_systems(Update, init_networked_weapons);
 
-        app.register_type::<WeaponConfig>();
+        app.register_type::<WeaponType>().register_type::<Weapon>();
     }
 }
 
 // TODO: Shake camera on weapon attack.
-fn init_weapon(
-    mut commands: Commands,
-    q_spaceships: Query<Entity, (With<SpaceShip>, Without<WeaponTarget>)>,
+/// Initialize weapon to [`PlayerInfos`].
+fn init_networked_weapons(
+    q_weapons: Query<
+        (&PlayerId, Entity),
+        (
+            Or<(
+                // Client inputs
+                With<client::Predicted>,
+                // Server inputs
+                With<server::SyncTarget>,
+            )>,
+            Added<Weapon>,
+            Without<LocalEntity>,
+        ),
+    >,
+    mut player_infos: ResMut<PlayerInfos>,
 ) {
-    for spaceship_entity in q_spaceships.iter() {
-        // let config = WeaponConfig::default_rifle();
-        let weapon_entity = commands.spawn_empty().set_parent(spaceship_entity).id();
-        commands
-            .entity(spaceship_entity)
-            .insert(WeaponTarget(weapon_entity));
+    for (id, entity) in q_weapons.iter() {
+        match player_infos.get_mut(id) {
+            Some(info) => {
+                info.weapon = Some(entity);
+                info!("Initialized input for {:?}.", id);
+            }
+            None => {
+                error!("Unable to add input for player: {:?}", id);
+            }
+        }
     }
 }
 
 fn attack(
-    q_actions: Query<&ActionState<PlayerAction>, With<InputTarget>>,
-    mut q_spaceships: Query<&WeaponTarget, With<SpaceShip>>,
+    q_actions: Query<(&PlayerId, &ActionState<PlayerAction>)>,
+    mut q_spaceships: Query<&PlayerId, With<Weapon>>,
     time: Res<Time>,
+    player_infos: Res<PlayerInfos>,
 ) {
-    for action in q_actions.iter() {
+    for (id, action) in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) {
             // Shoot ammos!
         }
@@ -70,7 +90,7 @@ impl WeaponType {
 
 #[derive(Reflect)]
 #[reflect(Component)]
-pub struct WeaponConfig {
+pub struct Weapon {
     /// Interval in seconds between each fire.
     firing_rate: f32,
     /// Number of bullets the player can fire before the player needs to reload.
@@ -83,7 +103,7 @@ pub struct WeaponConfig {
     recoil: f32,
 }
 
-impl Component for WeaponConfig {
+impl Component for Weapon {
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
@@ -110,13 +130,10 @@ pub struct AmmoStat {
 }
 
 impl WeaponStat {
-    pub fn from_config(config: &WeaponConfig) -> Self {
+    pub fn from_config(config: &Weapon) -> Self {
         Self {
             magazine: config.magazine_size,
             recharge: config.firing_rate,
         }
     }
 }
-
-#[derive(Component, Deref)]
-pub struct WeaponTarget(Entity);

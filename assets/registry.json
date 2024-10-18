@@ -19382,11 +19382,11 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina::shared::player::weapon::WeaponConfig": {
+    "lumina::shared::player::weapon::Weapon": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::weapon::WeaponConfig",
+      "long_name": "lumina::shared::player::weapon::Weapon",
       "properties": {
         "ammo_lifetime": {
           "type": {
@@ -19421,9 +19421,22 @@
         "damage",
         "recoil"
       ],
-      "short_name": "WeaponConfig",
+      "short_name": "Weapon",
       "type": "object",
       "typeInfo": "Struct"
+    },
+    "lumina::shared::player::weapon::WeaponType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::weapon::WeaponType",
+      "oneOf": [
+        "Cannon",
+        "Missle",
+        "GattlingGun"
+      ],
+      "short_name": "WeaponType",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
       "isComponent": false,

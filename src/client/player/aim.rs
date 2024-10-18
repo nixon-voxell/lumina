@@ -4,7 +4,8 @@ use leafwing_input_manager::buttonlike::ButtonState;
 use leafwing_input_manager::prelude::*;
 
 use crate::client::camera::GameCamera;
-use crate::shared::input::{InputTarget, PlayerAction};
+use crate::client::PrePredictedOrLocal;
+use crate::shared::action::PlayerAction;
 use crate::shared::player::LocalPlayer;
 
 pub(super) struct AimPlugin;
@@ -16,7 +17,7 @@ impl Plugin for AimPlugin {
 }
 
 fn mouse_motion(
-    mut q_action: Query<&mut ActionState<PlayerAction>, With<InputTarget>>,
+    mut q_action: Query<&mut ActionState<PlayerAction>, PrePredictedOrLocal>,
     q_player: Query<&Transform, With<LocalPlayer>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
     mut cursor_evr: EventReader<CursorMoved>,

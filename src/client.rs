@@ -7,7 +7,8 @@ use client::*;
 use lightyear::prelude::*;
 
 use crate::settings::NetworkSettings;
-use crate::shared::{shared_config, LocalEntity};
+use crate::shared::player::PlayerId;
+use crate::shared::shared_config;
 
 mod camera;
 mod effector;
@@ -53,7 +54,7 @@ impl Plugin for ClientPlugin {
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
         app.add_plugins(crate::dev_tools::log_transition::<Connection>)
-            .add_plugins(crate::dev_tools::log_transition::<multiplayer_lobby::MatchmakeState>);
+            .add_plugins(crate::dev_tools::log_transition::<ui::Screen>);
     }
 }
 
@@ -142,4 +143,12 @@ enum Connection {
 #[derive(Resource, Debug, Clone, Copy, PartialEq)]
 struct LocalClientId(pub ClientId);
 
-type PredictedOrLocal = Or<(With<Predicted>, With<LocalEntity>)>;
+// Source of truth for retrieving local entities.
+#[derive(Resource, Debug, Clone, Copy, PartialEq)]
+struct LocalPlayerId(pub PlayerId);
+
+impl Default for LocalPlayerId {
+    fn default() -> Self {
+        Self(PlayerId::LOCAL)
+    }
+}

@@ -1,341 +1,115 @@
-use avian2d::prelude::*;
-use bevy::ecs::component::{ComponentHooks, StorageType};
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use blenvy::BlueprintInfo;
-use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use spaceship::SpaceShip;
+use weapon::Weapon;
 
 use crate::utils::EntityRoomId;
 
-use super::input::{InputTarget, PlayerAction};
-use super::LocalEntity;
+use super::action::PlayerAction;
 
 pub(super) struct PlayerPlugin;
 
+pub mod spaceship;
 pub mod weapon;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(weapon::WeaponPlugin);
+        app.add_plugins((spaceship::SpaceShipPlugin, weapon::WeaponPlugin));
 
-        app.init_resource::<PlayerInfos>()
-            .add_systems(Update, init_networked_inputs)
-            .add_systems(FixedUpdate, player_movement);
-
-        app.register_type::<SpaceShipType>()
-            .register_type::<SpaceShip>();
+        app.init_resource::<RootInfos>()
+            .init_resource::<ActionInfos>()
+            .init_resource::<SpaceShipInfos>()
+            .init_resource::<WeaponInfos>();
     }
 }
 
-/// Set [`InputTarget`] for networked inputs.
-fn init_networked_inputs(
-    mut commands: Commands,
-    q_actions: Query<
-        (&PlayerId, Entity),
-        (
-            Or<(
-                // Client inputs
-                With<client::Predicted>,
-                // Server inputs
-                With<server::SyncTarget>,
-            )>,
-            Added<ActionState<PlayerAction>>,
-            Without<LocalEntity>,
-        ),
-    >,
-    mut player_infos: ResMut<PlayerInfos>,
-) {
-    for (id, entity) in q_actions.iter() {
-        match player_infos.get_mut(&id.0) {
-            Some(info) => {
-                commands
-                    .entity(entity)
-                    .insert(InputTarget::new(info.player));
-
-                info.input = Some(entity);
-                info!("Initialized input for {:?}", id);
-            }
-            None => {
-                error!("Unable to find input for player: {:?}", id);
-            }
-        }
-    }
-}
-
-/// Perform player movement which includes:
-///
-/// - Acceleration
-/// - Deceleration
-/// - Brake
-/// - Steer
-fn player_movement(
-    q_actions: Query<(&ActionState<PlayerAction>, &InputTarget)>,
-    mut q_spaceships: Query<(
-        &mut MovementStat,
-        &mut LinearVelocity,
-        &mut AngularVelocity,
-        &mut LinearDamping,
-        &Rotation,
-        &SpaceShip,
-    )>,
-    time: Res<Time>,
-) {
-    // How fast the space ship accelerates/decelarates.
-    const ACCELERATION_FACTOR: f32 = 10.0;
-    const DECELERATION_FACTOR: f32 = 20.0;
-    const DAMPING_FACTOR: f32 = 16.0;
-
-    let acceleration_factor = f32::min(ACCELERATION_FACTOR * time.delta_seconds(), 1.0);
-    let deceleration_factor = f32::min(DECELERATION_FACTOR * time.delta_seconds(), 1.0);
-    let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
-
-    for (action, target) in q_actions.iter() {
-        let player_entity = **target;
-
-        let Ok((
-            mut movement_stat,
-            mut linear,
-            mut angular,
-            mut linear_damping,
-            rotation,
-            spaceship,
-        )) = q_spaceships.get_mut(player_entity)
-        else {
-            continue;
-        };
-
-        let is_moving = action.pressed(&PlayerAction::Move);
-        let is_braking = action.pressed(&PlayerAction::Brake);
-        let is_boosting = action.pressed(&PlayerAction::Boost);
-
-        // Linear damping
-        match is_braking {
-            true => {
-                movement_stat.towards_linear_damping(spaceship.brake_linear_damping, damping_factor)
-            }
-            false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
-        }
-
-        // Linear acceleration
-        match (is_moving, is_braking, is_boosting) {
-            // Moving only
-            (true, false, false) => movement_stat.towards_linear_acceleration(
-                spaceship.linear_acceleration,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-            // Moving and braking
-            (true, true, _) => movement_stat.towards_linear_acceleration(
-                spaceship.brake_linear_acceleration,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-            // Moving and boosting
-            (true, false, true) => movement_stat.towards_linear_acceleration(
-                spaceship.boost_linear_acceleration,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-            // Not even moving, reduce speed to 0.0
-            (false, ..) => movement_stat.towards_linear_acceleration(
-                0.0,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-        }
-
-        // Angular acceleration
-        if is_moving {
-            movement_stat.linear_acceleration = FloatExt::lerp(
-                movement_stat.linear_acceleration,
-                spaceship.linear_acceleration,
-                acceleration_factor,
-            );
-
-            let movement = action
-                .clamped_axis_pair(&PlayerAction::Move)
-                .map(|axis| axis.xy())
-                .unwrap_or_default()
-                .normalize_or_zero();
-            let desired_angle = movement.y.atan2(movement.x);
-
-            angular.0 += rotation.angle_between(Rotation::radians(desired_angle))
-                * spaceship.angular_acceleration
-                * time.delta_seconds();
-        }
-
-        let direction = Vec2::new(rotation.cos, rotation.sin);
-        linear.0 += direction * movement_stat.linear_acceleration * time.delta_seconds();
-
-        // Clamp the speed
-        linear.0 = linear.clamp_length_max(spaceship.max_linear_speed);
-        linear_damping.0 = movement_stat.linear_damping;
-    }
-}
-
-#[derive(Bundle, Default)]
-pub struct LocalPlayerBundle {
-    pub local_entity: LocalEntity,
-    pub local_player: LocalPlayer,
-}
-
-#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub ClientId);
 
-#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-pub enum SpaceShipType {
-    Assassin,
-    Tank,
-    Support,
+impl PlayerId {
+    pub const LOCAL: Self = Self(ClientId::Local(u64::MAX));
 }
 
-impl SpaceShipType {
-    pub fn visual_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceShipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceShipAssassinVisual.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
-
-    pub fn config_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceShipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceShipAssassinConfig.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct AllPlayerInfos<'w> {
+    pub roots: Res<'w, RootInfos>,
+    pub actions: Res<'w, ActionInfos>,
+    pub spaceships: Res<'w, SpaceShipInfos>,
+    pub weapons: Res<'w, WeaponInfos>,
 }
 
-#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-pub struct SpaceShip {
-    /// Normal linear acceleration.
-    pub linear_acceleration: f32,
-    /// Normal angular acceleration.
-    pub angular_acceleration: f32,
-    /// Linear acceleration when boost is applied.
-    pub boost_linear_acceleration: f32,
-    /// Linear acceleration when brake is applied.
-    pub brake_linear_acceleration: f32,
-    /// Maximum magnitude of the linear velocity.
-    pub max_linear_speed: f32,
-    /// Normal linear damping.
-    pub linear_damping: f32,
-    /// Normal angular damping.
-    pub angular_damping: f32,
-    /// Linear damping when brake is applied.
-    pub brake_linear_damping: f32,
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct AllPlayerInfosMut<'w> {
+    pub roots: ResMut<'w, RootInfos>,
+    pub actions: ResMut<'w, ActionInfos>,
+    pub spaceships: ResMut<'w, SpaceShipInfos>,
+    pub weapons: ResMut<'w, WeaponInfos>,
 }
 
-impl Component for SpaceShip {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, entity, _| {
-            let entity_ref = world.entity(entity);
-
-            // Do not initialize for spaceships that are spawned remotely.
-            if entity_ref.contains::<Replicated>() {
-                return;
-            }
-
-            let spaceship = entity_ref.get::<Self>().unwrap();
-            // TODO: Consider using a lookup collider.
-            let collider = Collider::triangle(
-                Vec2::new(-10.0, 10.0),
-                Vec2::new(-10.0, -10.0),
-                Vec2::new(10.0, 0.0),
-            );
-
-            let bundle = (
-                MassPropertiesBundle::new_computed(&collider, 1.0),
-                collider.clone(),
-                PhysicsBundle {
-                    rigidbody: RigidBody::Dynamic,
-                    linear_damping: LinearDamping(spaceship.linear_damping),
-                    angular_damping: AngularDamping(spaceship.angular_damping),
-                    ..default()
-                },
-                MovementStat {
-                    linear_acceleration: 0.0,
-                    linear_damping: spaceship.linear_damping,
-                },
-            );
-
-            world.commands().entity(entity).insert(bundle);
-
-            info!("\n\n Initialized spaceship for {entity:?}");
-        });
+impl AllPlayerInfosMut<'_> {
+    pub fn remove_all(&mut self, id: &PlayerId) -> [Option<Entity>; 4] {
+        [
+            self.roots.remove(id),
+            self.actions.remove(id),
+            self.spaceships.remove(id),
+            self.weapons.remove(id),
+        ]
     }
 }
 
-/// The movement stat for a spaceship.
-#[derive(Component, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
-pub struct MovementStat {
-    linear_acceleration: f32,
-    linear_damping: f32,
-}
+pub type RootInfos = PlayerInfos<PlayerRoot>;
+pub type ActionInfos = PlayerInfos<PlayerAction>;
+pub type SpaceShipInfos = PlayerInfos<SpaceShip>;
+pub type WeaponInfos = PlayerInfos<Weapon>;
 
-impl MovementStat {
-    pub fn towards_linear_acceleration(
-        &mut self,
-        target: f32,
-        acceleration_factor: f32,
-        deceleration_factor: f32,
-    ) {
-        let factor = match self.linear_acceleration.total_cmp(&target) {
-            std::cmp::Ordering::Less => acceleration_factor,
-            std::cmp::Ordering::Equal => return,
-            std::cmp::Ordering::Greater => deceleration_factor,
-        };
-        self.linear_acceleration = FloatExt::lerp(self.linear_acceleration, target, factor);
+#[derive(Default)]
+pub struct PlayerRoot;
+
+#[derive(Resource, Debug, Deref, DerefMut)]
+pub struct PlayerInfos<T>(#[deref] HashMap<PlayerId, Entity>, PhantomData<T>);
+
+impl<T> Default for PlayerInfos<T> {
+    fn default() -> Self {
+        Self(HashMap::default(), PhantomData)
     }
-
-    pub fn towards_linear_damping(&mut self, target: f32, factor: f32) {
-        self.linear_damping = FloatExt::lerp(self.linear_damping, target, factor);
-    }
-
-    // pub fn linear_acceleration(&self) -> f32 {
-    //     self.linear_acceleration
-    // }
-
-    // pub fn linear_damping(&self) -> f32 {
-    //     self.linear_damping
-    // }
 }
-
-#[derive(Bundle, Default)]
-pub struct PhysicsBundle {
-    pub rigidbody: RigidBody,
-    pub position: Position,
-    pub rotation: Rotation,
-    pub linear_damping: LinearDamping,
-    pub angular_damping: AngularDamping,
-}
-
-/// The player that the local client is controlling.
-#[derive(Component, Default)]
-pub struct LocalPlayer;
-
-#[derive(Resource, Default, Debug, Deref, DerefMut)]
-pub struct PlayerInfos(HashMap<ClientId, PlayerInfo>);
 
 #[derive(Debug)]
 pub struct PlayerInfo {
     /// The lobby entity.
     pub lobby: Entity,
-    /// The player entity ([`crate::shared::player::SpaceShip`]).
-    pub player: Entity,
-    /// The input entity that is controlling [`Self::player`].
+    /// Entity with [`PlayerAction`].
     pub input: Option<Entity>,
+    /// Entity with [`crate::shared::player::SpaceShip`].
+    pub spaceship: Option<Entity>,
+    /// Entity with [`weapon::Weapon`].
+    pub weapon: Option<Entity>,
 }
 
 impl PlayerInfo {
+    pub const LOCAL_LOBBY: Entity = Entity::PLACEHOLDER;
+
+    pub fn new(lobby: Entity) -> Self {
+        Self {
+            lobby,
+            input: None,
+            spaceship: None,
+            weapon: None,
+        }
+    }
+
+    pub fn new_local() -> Self {
+        Self {
+            lobby: Self::LOCAL_LOBBY,
+            input: None,
+            spaceship: None,
+            weapon: None,
+        }
+    }
+
     /// Returns the [`server::RoomId`] of the lobby.
     pub fn room_id(&self) -> server::RoomId {
         self.lobby.room_id()

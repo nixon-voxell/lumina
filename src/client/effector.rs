@@ -7,7 +7,7 @@ use velyst::typst_element::prelude::*;
 use velyst::typst_vello;
 
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
-use crate::shared::input::PlayerAction;
+use crate::shared::action::PlayerAction;
 use crate::shared::player::LocalPlayer;
 use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
 

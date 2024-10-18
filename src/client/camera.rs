@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::core_pipeline::bloom::BloomSettings;
-use bevy::core_pipeline::smaa::SmaaSettings;
+// use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
@@ -58,7 +58,7 @@ fn spawn_game_camera(mut commands: Commands) {
             ..default()
         },
         BloomSettings::default(),
-        SmaaSettings::default(),
+        // SmaaSettings::default(),
     ));
 }
 

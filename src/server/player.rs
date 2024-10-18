@@ -5,8 +5,9 @@ use lightyear::prelude::*;
 use server::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
-use crate::shared::input::PlayerAction;
-use crate::shared::player::{PlayerId, PlayerInfos, SpaceShipType};
+use crate::shared::action::PlayerAction;
+use crate::shared::player::spaceship::SpaceShipType;
+use crate::shared::player::{PlayerId, PlayerInfos};
 
 use super::lobby::Lobby;
 
@@ -17,8 +18,8 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
-                replicate_inputs.after(MainSet::EmitEvents),
-                handle_input_spawn.in_set(ServerReplicationSet::ClientReplication),
+                replicate_actions.after(MainSet::EmitEvents),
+                handle_action_spawn.in_set(ServerReplicationSet::ClientReplication),
             ),
         );
     }
@@ -54,7 +55,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
 }
 
 /// Adds input action entity to [`PlayerInfos`] and replicate it back to other clients.
-fn handle_input_spawn(
+fn handle_action_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
     player_infos: Res<PlayerInfos>,
@@ -64,7 +65,7 @@ fn handle_input_spawn(
         let client_id = id.0;
         info!("Received input spawn from {client_id:?}");
 
-        if let Some(info) = player_infos.get(&client_id) {
+        if let Some(info) = player_infos.get(id) {
             let replicate = Replicate {
                 sync: SyncTarget {
                     // Allow a client to predict other client's input.
@@ -93,7 +94,7 @@ fn handle_input_spawn(
 
 /// Replicate the inputs (actions) of a client to other clients
 /// so that a client can predict other clients.
-fn replicate_inputs(
+fn replicate_actions(
     q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
     mut action_evr: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
@@ -103,7 +104,7 @@ fn replicate_inputs(
         let inputs = event.message();
         let client_id = event.context();
 
-        let Some(info) = player_infos.get(client_id) else {
+        let Some(info) = player_infos.get(&PlayerId(*client_id)) else {
             continue;
         };
 

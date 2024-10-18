@@ -6,8 +6,10 @@ use client::*;
 use lightyear::prelude::*;
 
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::shared::input::{InputTarget, LocalInputBundle};
-use crate::shared::player::{LocalPlayerBundle, SpaceShip, SpaceShipType};
+use crate::shared::action::LocalActionBundle;
+use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
+use crate::shared::player::weapon::{Weapon, WeaponType};
+use crate::shared::player::{PlayerId, PlayerInfo, PlayerInfos};
 use crate::ui::main_window::{MainWindowTransparency, WINDOW_FADE_DURATION};
 
 use super::effector::effector_interaction;
@@ -17,9 +19,12 @@ pub(super) struct LocalLobbyPlugin;
 
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::LocalLobby), init_lobby)
+        app.add_systems(OnEnter(Screen::LocalLobby), spawn_lobby)
             .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-            .add_systems(Update, init_input.run_if(in_state(Screen::LocalLobby)))
+            .add_systems(
+                Update,
+                (init_spaceship, init_weapon).run_if(in_state(Screen::LocalLobby)),
+            )
             .add_systems(
                 Update,
                 matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
@@ -30,10 +35,11 @@ impl Plugin for LocalLobbyPlugin {
     }
 }
 
-/// Spawn lobby scene with player.
-fn init_lobby(
+/// Spawn lobby scene.
+fn spawn_lobby(
     mut commands: Commands,
     mut main_window_transparency: ResMut<MainWindowTransparency>,
+    mut player_infos: ResMut<PlayerInfos>,
 ) {
     let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
     commands
@@ -44,29 +50,64 @@ fn init_lobby(
         ))
         .set_parent(lobby_scene);
 
+    let spaceship = commands
+        .spawn((SpaceShipType::Assassin.config_info(), SpawnBlueprint))
+        .set_parent(lobby_scene)
+        .id();
+
     commands
-        .spawn((
-            SpaceShipType::Assassin.config_info(),
-            SpawnBlueprint,
-            HideUntilReady,
-        ))
-        .set_parent(lobby_scene);
+        .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
+        .set_parent(spaceship);
+
+    let input = commands
+        .spawn(LocalActionBundle::new())
+        .set_parent(spaceship)
+        .id();
+
+    // Reinitialize local player info.
+    let mut player_info = PlayerInfo::new_local();
+    player_info.input = Some(input);
+    player_infos.insert(PlayerId::LOCAL, player_info);
 
     **main_window_transparency = 1.0;
 }
 
-fn init_input(mut commands: Commands, q_player: Query<Entity, Added<SpaceShip>>) {
-    let Ok(player_entity) = q_player.get_single() else {
-        return;
-    };
+/// Initialize spaceship to [`PlayerInfos`].
+fn init_spaceship(
+    mut commands: Commands,
+    q_spaceship: Query<Entity, Added<SpaceShip>>,
+    mut player_infos: ResMut<PlayerInfos>,
+) {
+    for entity in q_spaceship.iter() {
+        player_infos
+            .get_mut(&PlayerId::LOCAL)
+            .expect("Local `PlayerInfo` should be initialized on load.")
+            .spaceship = Some(entity);
 
-    commands
-        .entity(player_entity)
-        .insert((
-            LocalPlayerBundle::default(),
+        commands.entity(entity).insert((
+            // Set player id to local.
+            PlayerId::LOCAL,
+            // Rotate the spaceship to face forward.
             Rotation::radians(std::f32::consts::FRAC_PI_2),
-        ))
-        .insert(LocalInputBundle::new(InputTarget::new(player_entity)));
+        ));
+    }
+}
+
+/// Initialize weapon to [`PlayerInfos`].
+fn init_weapon(
+    mut commands: Commands,
+    q_weapon: Query<Entity, Added<Weapon>>,
+    mut player_infos: ResMut<PlayerInfos>,
+) {
+    for entity in q_weapon.iter() {
+        player_infos
+            .get_mut(&PlayerId::LOCAL)
+            .expect("Local `PlayerInfo` should be initialized on load.")
+            .weapon = Some(entity);
+
+        // Set player id to local.
+        commands.entity(entity).insert(PlayerId::LOCAL);
+    }
 }
 
 /// Despawn local lobby scene

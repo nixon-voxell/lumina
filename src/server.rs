@@ -1,11 +1,13 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 use lightyear::prelude::*;
 use server::*;
 
 use crate::settings::NetworkSettings;
 use crate::shared::{shared_config, SERVER_REPLICATION_INTERVAL};
+use crate::utils::EntityRoomId;
 
 mod lobby;
 mod player;
@@ -22,6 +24,7 @@ impl Plugin for ServerPlugin {
         app.add_plugins(ServerPlugins::new(server_config(settings)));
 
         app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
+            .init_resource::<LobbyInfos>()
             .add_systems(Startup, start_server);
     }
 }
@@ -65,5 +68,14 @@ fn server_config(settings: &NetworkSettings) -> ServerConfig {
             ..default()
         },
         ..default()
+    }
+}
+
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
+pub struct LobbyInfos(HashMap<ClientId, Entity>);
+
+impl LobbyInfos {
+    pub fn get_room_id(&self, client_id: &ClientId) -> Option<RoomId> {
+        self.get(client_id).map(|e| e.room_id())
     }
 }

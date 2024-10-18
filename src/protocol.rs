@@ -5,7 +5,7 @@ use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
 use server::RoomId;
 
-use crate::shared::input::PlayerAction;
+use crate::shared::action::PlayerAction;
 use crate::shared::player::{PlayerId, SpaceShip};
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
