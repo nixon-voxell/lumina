@@ -5,10 +5,8 @@ use bevy_coroutine::prelude::*;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
-use ui::Screen;
 
 use crate::settings::NetworkSettings;
-use crate::shared::player::PlayerId;
 use crate::shared::shared_config;
 
 mod camera;
@@ -46,7 +44,6 @@ impl Plugin for ClientPlugin {
             multiplayer_lobby::MultiplayerLobbyPlugin,
             effector::EffectorPlugin,
         ))
-        .init_resource::<LocalPlayerId>()
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
         .add_systems(OnEnter(Connection::Connect), connect_server)
@@ -84,18 +81,12 @@ fn handle_disconnection(
     mut commands: Commands,
     mut disconnect_evr: EventReader<DisconnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
-    mut next_screen_state: ResMut<NextState<Screen>>,
-    mut local_player_id: ResMut<LocalPlayerId>,
 ) {
     for event in disconnect_evr.read() {
         warn!("Disconnected: {:?}", event.reason);
 
         next_connection_state.set(Connection::Disconnected);
         commands.remove_resource::<LocalClientId>();
-        // Return to main menu
-        next_screen_state.set(Screen::MainMenu);
-        // Reset player id to local only.
-        *local_player_id = LocalPlayerId::default();
     }
 }
 
@@ -154,13 +145,3 @@ enum Connection {
 
 #[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
 struct LocalClientId(pub ClientId);
-
-// Source of truth for retrieving local entities.
-#[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
-struct LocalPlayerId(pub PlayerId);
-
-impl Default for LocalPlayerId {
-    fn default() -> Self {
-        Self(PlayerId::LOCAL)
-    }
-}

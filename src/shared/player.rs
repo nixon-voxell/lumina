@@ -1,29 +1,48 @@
-use std::marker::PhantomData;
+use std::ops::{Index, IndexMut};
 
+use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use blenvy::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use spaceship::SpaceShip;
+use strum::EnumCount;
 use weapon::Weapon;
 
-use crate::utils::EntityRoomId;
-
 use super::action::PlayerAction;
-
-pub(super) struct PlayerPlugin;
+use super::{SetSourceSet, SourceEntity};
 
 pub mod spaceship;
 pub mod weapon;
+
+pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((spaceship::SpaceShipPlugin, weapon::WeaponPlugin));
 
-        app.init_resource::<RootInfos>()
-            .init_resource::<ActionInfos>()
-            .init_resource::<SpaceShipInfos>()
-            .init_resource::<WeaponInfos>();
+        app.init_resource::<PlayerInfos>().add_systems(
+            PostUpdate,
+            (
+                insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
+                insert_info::<SpaceShip>(PlayerInfoType::SpaceShip),
+                insert_info::<Weapon>(PlayerInfoType::Weapon),
+            )
+                .after(SetSourceSet),
+        );
     }
+}
+
+fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
+    let system = move |q_entities: Query<(&PlayerId, Entity), (With<C>, Added<SourceEntity>)>,
+                       mut player_infos: ResMut<PlayerInfos>| {
+        for (id, entity) in q_entities.iter() {
+            player_infos[info_type].insert(*id, entity);
+        }
+    };
+
+    system.into_configs()
 }
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -33,85 +52,63 @@ impl PlayerId {
     pub const LOCAL: Self = Self(ClientId::Local(u64::MAX));
 }
 
-#[derive(bevy::ecs::system::SystemParam)]
-pub struct AllPlayerInfos<'w> {
-    pub roots: Res<'w, RootInfos>,
-    pub actions: Res<'w, ActionInfos>,
-    pub spaceships: Res<'w, SpaceShipInfos>,
-    pub weapons: Res<'w, WeaponInfos>,
-}
-
-#[derive(bevy::ecs::system::SystemParam)]
-pub struct AllPlayerInfosMut<'w> {
-    pub roots: ResMut<'w, RootInfos>,
-    pub actions: ResMut<'w, ActionInfos>,
-    pub spaceships: ResMut<'w, SpaceShipInfos>,
-    pub weapons: ResMut<'w, WeaponInfos>,
-}
-
-impl AllPlayerInfosMut<'_> {
-    pub fn remove_all(&mut self, id: &PlayerId) -> [Option<Entity>; 4] {
-        [
-            self.roots.remove(id),
-            self.actions.remove(id),
-            self.spaceships.remove(id),
-            self.weapons.remove(id),
-        ]
-    }
-}
-
-pub type RootInfos = PlayerInfos<PlayerRoot>;
-pub type ActionInfos = PlayerInfos<PlayerAction>;
-pub type SpaceShipInfos = PlayerInfos<SpaceShip>;
-pub type WeaponInfos = PlayerInfos<Weapon>;
-
 #[derive(Default)]
 pub struct PlayerRoot;
 
+#[derive(EnumCount, Debug, Clone, Copy)]
+pub enum PlayerInfoType {
+    Root,
+    Action,
+    SpaceShip,
+    Weapon,
+}
+
+impl PlayerInfoType {
+    pub fn as_usize(self) -> usize {
+        self as usize
+    }
+}
+
+/// Maps [`PlayerId`] to it's corresponding [`Entity`].
+///
+/// Note: Number of hashmaps needs to match the number of types in [`PlayerInfoType`].
 #[derive(Resource, Debug, Deref, DerefMut)]
-pub struct PlayerInfos<T>(#[deref] HashMap<PlayerId, Entity>, PhantomData<T>);
+pub struct PlayerInfos<const COUNT: usize = { PlayerInfoType::COUNT }>(
+    [HashMap<PlayerId, Entity>; COUNT],
+);
 
-impl<T> Default for PlayerInfos<T> {
+impl<const COUNT: usize> PlayerInfos<COUNT> {
+    pub fn remove_all(&mut self, id: &PlayerId) -> [Option<Entity>; COUNT] {
+        let mut removed_entities = [None; COUNT];
+        for (i, info) in self.iter_mut().enumerate() {
+            removed_entities[i] = info.remove(id);
+        }
+
+        removed_entities
+    }
+}
+
+impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
     fn default() -> Self {
-        Self(HashMap::default(), PhantomData)
+        Self(std::array::from_fn(|_| HashMap::default()))
     }
 }
 
-#[derive(Debug)]
-pub struct PlayerInfo {
-    /// The lobby entity.
-    pub lobby: Entity,
-    /// Entity with [`PlayerAction`].
-    pub input: Option<Entity>,
-    /// Entity with [`crate::shared::player::SpaceShip`].
-    pub spaceship: Option<Entity>,
-    /// Entity with [`weapon::Weapon`].
-    pub weapon: Option<Entity>,
+impl<const COUNT: usize> Index<PlayerInfoType> for PlayerInfos<COUNT> {
+    type Output = HashMap<PlayerId, Entity>;
+
+    fn index(&self, index: PlayerInfoType) -> &Self::Output {
+        &self.0[index.as_usize()]
+    }
 }
 
-impl PlayerInfo {
-    pub const LOCAL_LOBBY: Entity = Entity::PLACEHOLDER;
-
-    pub fn new(lobby: Entity) -> Self {
-        Self {
-            lobby,
-            input: None,
-            spaceship: None,
-            weapon: None,
-        }
+impl<const COUNT: usize> IndexMut<PlayerInfoType> for PlayerInfos<COUNT> {
+    fn index_mut(&mut self, index: PlayerInfoType) -> &mut Self::Output {
+        &mut self.0[index.as_usize()]
     }
+}
 
-    pub fn new_local() -> Self {
-        Self {
-            lobby: Self::LOCAL_LOBBY,
-            input: None,
-            spaceship: None,
-            weapon: None,
-        }
-    }
-
-    /// Returns the [`server::RoomId`] of the lobby.
-    pub fn room_id(&self) -> server::RoomId {
-        self.lobby.room_id()
-    }
+pub trait BlueprintType: Component {
+    fn visual_info(&self) -> BlueprintInfo;
+    fn config_info(&self) -> BlueprintInfo;
 }

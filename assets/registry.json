@@ -14365,15 +14365,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::input::PlayerAction"
+          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, Vec<UserInput>, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -14383,15 +14383,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::input::PlayerAction"
+          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, ActionData, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -17489,15 +17489,15 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "leafwing_input_manager::action_state::ActionState<lumina::shared::input::PlayerAction>": {
+    "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::action_state::ActionState<lumina::shared::input::PlayerAction>",
+      "long_name": "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>",
       "properties": {
         "action_data": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
           }
         }
       },
@@ -17846,11 +17846,11 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "leafwing_input_manager::input_map::InputMap<lumina::shared::input::PlayerAction>": {
+    "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::input_map::InputMap<lumina::shared::input::PlayerAction>",
+      "long_name": "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>",
       "properties": {
         "associated_gamepad": {
           "type": {
@@ -17859,7 +17859,7 @@
         },
         "map": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
           }
         }
       },
@@ -19158,6 +19158,22 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina::shared::action::PlayerAction": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina::shared::action::PlayerAction",
+      "oneOf": [
+        "Move",
+        "Brake",
+        "Boost",
+        "Interact",
+        "Attack",
+        "Aim"
+      ],
+      "short_name": "PlayerAction",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
     "lumina::shared::effector::Effector": {
       "additionalProperties": false,
       "isComponent": true,
@@ -19217,22 +19233,6 @@
       "short_name": "InteractableEffector",
       "type": "object",
       "typeInfo": "Struct"
-    },
-    "lumina::shared::input::PlayerAction": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina::shared::input::PlayerAction",
-      "oneOf": [
-        "Move",
-        "Brake",
-        "Boost",
-        "Interact",
-        "Attack",
-        "Aim"
-      ],
-      "short_name": "PlayerAction",
-      "type": "string",
-      "typeInfo": "Enum"
     },
     "lumina::shared::physics::MeshCollider": {
       "isComponent": false,
@@ -19308,11 +19308,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::SpaceShip": {
+    "lumina::shared::player::spaceship::SpaceShip": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::SpaceShip",
+      "long_name": "lumina::shared::player::spaceship::SpaceShip",
       "properties": {
         "angular_acceleration": {
           "type": {
@@ -19369,10 +19369,10 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::SpaceShipType": {
+    "lumina::shared::player::spaceship::SpaceShipType": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::SpaceShipType",
+      "long_name": "lumina::shared::player::spaceship::SpaceShipType",
       "oneOf": [
         "Assassin",
         "Tank",

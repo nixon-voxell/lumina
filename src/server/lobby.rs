@@ -4,7 +4,7 @@ use server::*;
 use smallvec::SmallVec;
 
 use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
-use crate::shared::player::{AllPlayerInfosMut, PlayerId, RootInfos};
+use crate::shared::player::{PlayerId, PlayerInfoType, PlayerInfos};
 use crate::utils::EntityRoomId;
 
 use super::player::spawn_player_entity;
@@ -89,7 +89,7 @@ fn handle_matchmaking(
     >,
     mut room_manager: ResMut<RoomManager>,
     lobby_infos: Res<LobbyInfos>,
-    mut root_infos: ResMut<RootInfos>,
+    mut player_infos: ResMut<PlayerInfos>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
@@ -136,16 +136,11 @@ fn handle_matchmaking(
         room_manager.add_client(client_id, lobby_entity.room_id());
         room_manager.add_entity(player_entity, lobby_entity.room_id());
 
+        // TODO: Check if this is even useful..
         // Store player root info.
-        root_infos.insert(PlayerId(client_id), player_entity);
+        player_infos[PlayerInfoType::Root].insert(PlayerId(client_id), player_entity);
     }
 }
-
-// fn handle_connections(mut connect_evr: EventReader<ConnectEvent>) {
-//     for connect in connect_evr.read() {
-
-//     }
-// }
 
 fn handle_disconnections(
     mut disconnect_evr: EventReader<DisconnectEvent>,
@@ -178,7 +173,7 @@ fn execute_exit_lobby(
     mut client_exit_lobby_evr: EventReader<ClientExitLobby>,
     mut q_lobbies: Query<&mut Lobby>,
     mut room_manager: ResMut<RoomManager>,
-    mut all_player_infos: AllPlayerInfosMut,
+    mut player_infos: ResMut<PlayerInfos>,
     mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for exit_client in client_exit_lobby_evr.read() {
@@ -197,7 +192,7 @@ fn execute_exit_lobby(
             room_manager.remove_client(client_id, room_id);
 
             // Despawn everything from the player.
-            let player_entities = all_player_infos.remove_all(&PlayerId(client_id));
+            let player_entities = player_infos.remove_all(&PlayerId(client_id));
             for entity in player_entities.iter().filter_map(|e| *e) {
                 if let Some(entity_cmd) = commands.get_entity(entity) {
                     entity_cmd.despawn_recursive();

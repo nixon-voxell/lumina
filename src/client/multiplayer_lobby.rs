@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use blenvy::*;
+// use blenvy::*;
 
 use super::ui::Screen;
 
@@ -11,6 +11,6 @@ impl Plugin for MultiplayerLobbyPlugin {
     }
 }
 
-fn spawn_lobby(mut commands: Commands) {
-    commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
+fn spawn_lobby(mut _commands: Commands) {
+    // commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
 }

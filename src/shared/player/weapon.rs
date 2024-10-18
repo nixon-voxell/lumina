@@ -1,67 +1,31 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use blenvy::*;
-use leafwing_input_manager::prelude::*;
-use lightyear::prelude::*;
 
-use crate::shared::action::PlayerAction;
-use crate::shared::LocalEntity;
-
-use super::{PlayerId, PlayerInfos, SpaceShip};
+use super::BlueprintType;
 
 pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, init_networked_weapons);
+        // app.add_systems(Update, init_networked_weapons);
 
         app.register_type::<WeaponType>().register_type::<Weapon>();
     }
 }
 
-// TODO: Shake camera on weapon attack.
-/// Initialize weapon to [`PlayerInfos`].
-fn init_networked_weapons(
-    q_weapons: Query<
-        (&PlayerId, Entity),
-        (
-            Or<(
-                // Client inputs
-                With<client::Predicted>,
-                // Server inputs
-                With<server::SyncTarget>,
-            )>,
-            Added<Weapon>,
-            Without<LocalEntity>,
-        ),
-    >,
-    mut player_infos: ResMut<PlayerInfos>,
-) {
-    for (id, entity) in q_weapons.iter() {
-        match player_infos.get_mut(id) {
-            Some(info) => {
-                info.weapon = Some(entity);
-                info!("Initialized input for {:?}.", id);
-            }
-            None => {
-                error!("Unable to add input for player: {:?}", id);
-            }
-        }
-    }
-}
-
-fn attack(
-    q_actions: Query<(&PlayerId, &ActionState<PlayerAction>)>,
-    mut q_spaceships: Query<&PlayerId, With<Weapon>>,
-    time: Res<Time>,
-    player_infos: Res<PlayerInfos>,
-) {
-    for (id, action) in q_actions.iter() {
-        if action.pressed(&PlayerAction::Attack) {
-            // Shoot ammos!
-        }
-    }
-}
+// fn attack(
+//     q_actions: Query<(&PlayerId, &ActionState<PlayerAction>)>,
+//     mut q_spaceships: Query<&PlayerId, With<Weapon>>,
+//     time: Res<Time>,
+//     player_infos: Res<PlayerInfos>,
+// ) {
+//     for (id, action) in q_actions.iter() {
+//         if action.pressed(&PlayerAction::Attack) {
+//             // Shoot ammos!
+//         }
+//     }
+// }
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
@@ -72,15 +36,15 @@ pub enum WeaponType {
     GattlingGun,
 }
 
-impl WeaponType {
-    pub fn visual_info(&self) -> BlueprintInfo {
+impl BlueprintType for WeaponType {
+    fn visual_info(&self) -> BlueprintInfo {
         match self {
             WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonVisual.glb"),
             _ => todo!("{self:?} is not supported yet."),
         }
     }
 
-    pub fn config_info(&self) -> BlueprintInfo {
+    fn config_info(&self) -> BlueprintInfo {
         match self {
             WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonConfig.glb"),
             _ => todo!("{self:?} is not supported yet."),

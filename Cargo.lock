@@ -3908,6 +3908,8 @@ dependencies = [
  "rand",
  "serde",
  "smallvec",
+ "strum",
+ "strum_macros",
  "velyst",
 ]
 

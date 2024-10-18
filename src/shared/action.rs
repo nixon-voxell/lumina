@@ -4,37 +4,7 @@ use lightyear::prelude::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 
-use super::player::{ActionInfos, PlayerId};
-
-pub(super) struct ActionPlugin;
-
-impl Plugin for ActionPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, init_networked_actions);
-    }
-}
-
-/// Initialize input to [`ActionInfos`].
-fn init_networked_actions(
-    q_actions: Query<
-        (&PlayerId, Entity),
-        (
-            Added<ActionState<PlayerAction>>,
-            Or<(
-                // Client inputs
-                With<client::Predicted>,
-                // Server inputs
-                With<server::SyncTarget>,
-            )>,
-        ),
-    >,
-    mut action_infos: ResMut<ActionInfos>,
-) {
-    for (id, entity) in q_actions.iter() {
-        action_infos.insert(*id, entity);
-        info!("Initialized input for {:?}.", id);
-    }
-}
+use super::player::PlayerId;
 
 #[derive(Bundle)]
 pub struct ReplicateActionBundle {

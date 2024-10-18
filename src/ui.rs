@@ -112,11 +112,11 @@ impl InteractionQuery<'_, '_> {
         self.is_interacting(label_str, &Interaction::Pressed)
     }
 
-    pub fn hovered(&self, label_str: &str) -> bool {
+    pub fn _hovered(&self, label_str: &str) -> bool {
         self.is_interacting(label_str, &Interaction::Hovered)
     }
 
-    pub fn none(&self, label_str: &str) -> bool {
+    pub fn _none(&self, label_str: &str) -> bool {
         self.is_interacting(label_str, &Interaction::None)
     }
 

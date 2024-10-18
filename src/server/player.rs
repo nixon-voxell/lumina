@@ -7,9 +7,10 @@ use server::*;
 use crate::protocol::INPUT_REPLICATION_GROUP;
 use crate::shared::action::PlayerAction;
 use crate::shared::player::spaceship::SpaceShipType;
-use crate::shared::player::{PlayerId, PlayerInfos};
+use crate::shared::player::PlayerId;
 
 use super::lobby::Lobby;
+use super::LobbyInfos;
 
 pub(super) struct PlayerPlugin;
 
@@ -58,14 +59,14 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
 fn handle_action_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
-    player_infos: Res<PlayerInfos>,
+    lobby_infos: Res<LobbyInfos>,
     mut room_manager: ResMut<RoomManager>,
 ) {
     for (id, entity) in q_actions.iter() {
         let client_id = id.0;
         info!("Received input spawn from {client_id:?}");
 
-        if let Some(info) = player_infos.get(id) {
+        if let Some(room_id) = lobby_infos.get_room_id(&client_id) {
             let replicate = Replicate {
                 sync: SyncTarget {
                     // Allow a client to predict other client's input.
@@ -87,7 +88,7 @@ fn handle_action_spawn(
                 // prepredicted component back to the original client.
                 OverrideTargetComponent::<PrePredicted>::new(NetworkTarget::Single(client_id)),
             ));
-            room_manager.add_entity(entity, info.room_id());
+            room_manager.add_entity(entity, room_id);
         }
     }
 }
@@ -98,17 +99,17 @@ fn replicate_actions(
     q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
     mut action_evr: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
-    player_infos: Res<PlayerInfos>,
+    lobby_infos: Res<LobbyInfos>,
 ) {
     for event in action_evr.read() {
         let inputs = event.message();
         let client_id = event.context();
 
-        let Some(info) = player_infos.get(&PlayerId(*client_id)) else {
+        let Some(&lobby_entity) = lobby_infos.get(client_id) else {
             continue;
         };
 
-        let Ok(lobby) = q_lobbies.get(info.lobby) else {
+        let Ok(lobby) = q_lobbies.get(lobby_entity) else {
             continue;
         };
 

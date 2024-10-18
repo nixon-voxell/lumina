@@ -40,6 +40,8 @@ serde = "1"
 rand = "0.8"
 clap = { version = "4.5", features = ["derive"] }
 smallvec = "1"
+strum = "0.26"
+strum_macros = "0.26"
 
 # Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
 # In some cases they may still signal poor code quality however, so consider commenting out these lines.
@@ -79,6 +81,8 @@ serde = { workspace = true }
 rand = { workspace = true }
 clap = { workspace = true }
 smallvec = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 [features]
 default = [

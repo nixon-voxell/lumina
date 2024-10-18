@@ -6,8 +6,9 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::shared::action::PlayerAction;
+use crate::shared::SourceEntity;
 
-use super::{PlayerId, SpaceShipInfos};
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceShipPlugin;
 
@@ -27,7 +28,7 @@ impl Plugin for SpaceShipPlugin {
 /// - Brake
 /// - Steer
 fn spaceship_movement(
-    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId)>,
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_spaceships: Query<(
         &mut MovementStat,
         &mut LinearVelocity,
@@ -37,7 +38,7 @@ fn spaceship_movement(
         &SpaceShip,
     )>,
     time: Res<Time>,
-    spaceship_infos: Res<SpaceShipInfos>,
+    player_infos: Res<PlayerInfos>,
 ) {
     // How fast the space ship accelerates/decelarates.
     const ACCELERATION_FACTOR: f32 = 10.0;
@@ -49,7 +50,7 @@ fn spaceship_movement(
     let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
 
     for (action, id) in q_actions.iter() {
-        let Some(&spaceship_entity) = spaceship_infos.get(id) else {
+        let Some(&spaceship_entity) = player_infos[PlayerInfoType::SpaceShip].get(id) else {
             continue;
         };
 

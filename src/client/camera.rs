@@ -8,8 +8,11 @@ use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
-use crate::shared::player::LocalPlayer;
+use crate::shared::player::PlayerInfoType;
+use crate::shared::SourceEntity;
 use crate::ui::main_window::MainWindowFunc;
+
+use super::player::LocalPlayerInfo;
 
 pub(super) struct CameraPlugin;
 
@@ -81,14 +84,19 @@ fn camera_zoom(
 
 fn follow_player(
     mut q_camera: Query<&mut Transform, With<GameCamera>>,
-    q_player: Query<&Position, With<LocalPlayer>>,
+    q_positions: Query<&Position, With<SourceEntity>>,
     time: Res<Time>,
+    local_player_info: LocalPlayerInfo,
 ) {
     // Adjust this value for more or less delay.
     const LERP_FACTOR: f32 = 3.0;
 
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+        return;
+    };
+
     // Ensure we have at least one player.
-    let Ok(player_pos) = q_player.get_single() else {
+    let Ok(player_pos) = q_positions.get(spaceship_entity) else {
         return;
     };
 

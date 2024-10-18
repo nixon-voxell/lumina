@@ -1,8 +1,12 @@
 //! This module contains the shared code between the client and the server.
-use bevy::ecs::query::QueryFilter;
+use action::PlayerAction;
 use bevy::prelude::*;
 use bevy::utils::Duration;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use player::spaceship::SpaceShip;
+use player::weapon::Weapon;
+use player::PlayerId;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
 pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(100);
@@ -26,6 +30,16 @@ impl Plugin for SharedPlugin {
             physics::PhysicsPlugin,
             effector::EffectorPlugin,
         ));
+
+        app.add_systems(
+            PostUpdate,
+            (
+                set_source::<ActionState<PlayerAction>>,
+                set_source::<SpaceShip>,
+                set_source::<Weapon>,
+            )
+                .in_set(SetSourceSet),
+        );
     }
 }
 
@@ -41,12 +55,15 @@ pub fn shared_config() -> SharedConfig {
     }
 }
 
-fn set_source_entity<Filter: QueryFilter>(
+/// Set entity to be a source by inserting [`SourceEntity`].
+fn set_source<C: Component>(
     mut commands: Commands,
     q_entities: Query<
         Entity,
         (
-            Filter,
+            With<C>,
+            With<PlayerId>,
+            Without<SourceEntity>,
             Or<(
                 // Client
                 (With<client::Predicted>, With<client::Interpolated>),
@@ -65,6 +82,11 @@ fn set_source_entity<Filter: QueryFilter>(
 ) {
     for entity in q_entities.iter() {
         commands.entity(entity).insert(SourceEntity);
+        info!(
+            "SOURCE: {} with component {}.",
+            entity,
+            std::any::type_name::<C>()
+        );
     }
 }
 
@@ -72,11 +94,14 @@ fn set_source_entity<Filter: QueryFilter>(
 /// Source entity follows 3 rules:
 ///
 /// 1. Client source entities will always have [`client::Predicted`] or [`client::Interpolated`]
-/// (anything that is not will be controlled by the server through replication - [`Replicated`]).
+///     (anything that is not will be controlled by the server through replication - [`Replicated`]).
 ///
 /// 2. Server owned entities will always have [`server::SyncTarget`].
-/// (anything that is not is only replicated from the client (extremely rare occasion))
+///     (anything that is not is only replicated from the client (extremely rare occasion))
 ///
 /// 3. Locally owned entities must not have any of the above including [`Replicated`].
 #[derive(Component, Default)]
 pub struct SourceEntity;
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub struct SetSourceSet;

@@ -1,14 +1,13 @@
 use bevy::prelude::*;
-use blenvy::*;
+// use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 
 use crate::{protocol::LobbyStatus, shared::player::PlayerId};
 
-use super::{
-    ui::{lobby::LobbyFunc, Screen},
-    LocalClientId, LocalPlayerId,
-};
+use super::player::LocalPlayerId;
+use super::ui::{lobby::LobbyFunc, Screen};
+use super::LocalClientId;
 
 pub(super) struct MatchmakingPlugin;
 
@@ -22,8 +21,8 @@ impl Plugin for MatchmakingPlugin {
     }
 }
 
-fn spawn_lobby(mut commands: Commands) {
-    commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
+fn spawn_lobby(mut _commands: Commands) {
+    // commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
 }
 
 /// Update [`LobbyFunc`] and [`MatchmakeState`] based on [`LobbyStatus`].

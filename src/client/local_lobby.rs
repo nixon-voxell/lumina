@@ -3,13 +3,14 @@ use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
 use blenvy::*;
 use client::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::shared::action::LocalActionBundle;
+use crate::shared::action::{LocalActionBundle, PlayerAction};
 use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
 use crate::shared::player::weapon::{Weapon, WeaponType};
-use crate::shared::player::{PlayerId, PlayerInfo, PlayerInfos};
+use crate::shared::player::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 use crate::ui::main_window::{MainWindowTransparency, WINDOW_FADE_DURATION};
 
 use super::effector::effector_interaction;
@@ -23,7 +24,13 @@ impl Plugin for LocalLobbyPlugin {
             .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
             .add_systems(
                 Update,
-                (init_spaceship, init_weapon).run_if(in_state(Screen::LocalLobby)),
+                (
+                    init_spaceship,
+                    set_local::<ActionState<PlayerAction>>,
+                    set_local::<SpaceShip>,
+                    set_local::<Weapon>,
+                )
+                    .run_if(in_state(Screen::LocalLobby)),
             )
             .add_systems(
                 Update,
@@ -50,63 +57,46 @@ fn spawn_lobby(
         ))
         .set_parent(lobby_scene);
 
-    let spaceship = commands
+    let spaceship_entity = commands
         .spawn((SpaceShipType::Assassin.config_info(), SpawnBlueprint))
         .set_parent(lobby_scene)
         .id();
 
     commands
         .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
-        .set_parent(spaceship);
+        .set_parent(spaceship_entity);
 
-    let input = commands
+    commands
         .spawn(LocalActionBundle::new())
-        .set_parent(spaceship)
-        .id();
+        .set_parent(spaceship_entity);
 
-    // Reinitialize local player info.
-    let mut player_info = PlayerInfo::new_local();
-    player_info.input = Some(input);
-    player_infos.insert(PlayerId::LOCAL, player_info);
+    // TODO: Check if this is even useful or not...
+    player_infos[PlayerInfoType::Root].insert(PlayerId::LOCAL, spaceship_entity);
 
     **main_window_transparency = 1.0;
 }
 
-/// Initialize spaceship to [`PlayerInfos`].
-fn init_spaceship(
-    mut commands: Commands,
-    q_spaceship: Query<Entity, Added<SpaceShip>>,
-    mut player_infos: ResMut<PlayerInfos>,
-) {
-    for entity in q_spaceship.iter() {
-        player_infos
-            .get_mut(&PlayerId::LOCAL)
-            .expect("Local `PlayerInfo` should be initialized on load.")
-            .spaceship = Some(entity);
-
-        commands.entity(entity).insert((
-            // Set player id to local.
-            PlayerId::LOCAL,
-            // Rotate the spaceship to face forward.
-            Rotation::radians(std::f32::consts::FRAC_PI_2),
-        ));
+/// Rotate the spaceship to face forward.
+fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<SpaceShip>>) {
+    for entity in q_spaceships.iter() {
+        commands
+            .entity(entity)
+            .insert((Rotation::radians(std::f32::consts::FRAC_PI_2),));
     }
 }
 
-/// Initialize weapon to [`PlayerInfos`].
-fn init_weapon(
+/// Set entity to be a local source by inserting [`PlayerId::LOCAL`].
+fn set_local<C: Component>(
     mut commands: Commands,
-    q_weapon: Query<Entity, Added<Weapon>>,
-    mut player_infos: ResMut<PlayerInfos>,
+    q_entities: Query<Entity, (With<C>, Without<PlayerId>)>,
 ) {
-    for entity in q_weapon.iter() {
-        player_infos
-            .get_mut(&PlayerId::LOCAL)
-            .expect("Local `PlayerInfo` should be initialized on load.")
-            .weapon = Some(entity);
-
-        // Set player id to local.
+    for entity in q_entities.iter() {
         commands.entity(entity).insert(PlayerId::LOCAL);
+        info!(
+            "LOCAL: {} with component {}.",
+            entity,
+            std::any::type_name::<C>()
+        );
     }
 }
 
