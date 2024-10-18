@@ -209,7 +209,7 @@ pub fn trimesh_from_mesh(mesh: &Mesh) -> Option<Collider> {
     })
 }
 
-pub fn trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
+pub fn _trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
     extract_mesh_vertices_indices(mesh).map(|(vertices, indices)| {
         SharedShape::trimesh_with_flags(vertices, indices, flags.into()).into()
     })

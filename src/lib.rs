@@ -5,14 +5,13 @@ use bevy::{
 };
 use clap::Parser;
 
-pub mod shared;
-pub mod ui;
-pub mod utils;
-
 mod client;
 mod protocol;
 mod server;
 mod settings;
+mod shared;
+mod ui;
+mod utils;
 
 #[cfg(feature = "dev")]
 mod dev_tools;

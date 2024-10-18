@@ -1,26 +1,40 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use bevy_coroutine::prelude::*;
 use blenvy::*;
 use client::*;
+use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::protocol::{Matchmake, ReliableChannel};
-use crate::shared::input::{InputTarget, LocalInputBundle};
-use crate::shared::player::LocalPlayerBundle;
+use crate::shared::action::{LocalActionBundle, PlayerAction};
+use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
+use crate::shared::player::weapon::{Weapon, WeaponType};
+use crate::shared::player::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use crate::ui::main_window::{MainWindowTransparency, WINDOW_FADE_DURATION};
 
 use super::effector::effector_interaction;
-use super::multiplayer_lobby::MatchmakeState;
 use super::ui::Screen;
 
 pub(super) struct LocalLobbyPlugin;
 
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::LocalLobby), init_lobby)
+        app.add_systems(OnEnter(Screen::LocalLobby), spawn_lobby)
             .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
             .add_systems(
                 Update,
-                matchmake_effector.run_if(effector_interaction::<MatchmakeEffector>),
+                (
+                    init_spaceship,
+                    set_local::<ActionState<PlayerAction>>,
+                    set_local::<SpaceShip>,
+                    set_local::<Weapon>,
+                )
+                    .run_if(in_state(Screen::LocalLobby)),
+            )
+            .add_systems(
+                Update,
+                matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
             );
 
         app.register_type::<MatchmakeEffector>()
@@ -28,24 +42,62 @@ impl Plugin for LocalLobbyPlugin {
     }
 }
 
-/// Spawn lobby scene with player.
-fn init_lobby(mut commands: Commands) {
+/// Spawn lobby scene.
+fn spawn_lobby(
+    mut commands: Commands,
+    mut main_window_transparency: ResMut<MainWindowTransparency>,
+    mut player_infos: ResMut<PlayerInfos>,
+) {
     let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
     commands
-        .spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint))
+        .spawn((
+            BlueprintInfo::from_path("levels/Lobby.glb"),
+            SpawnBlueprint,
+            HideUntilReady,
+        ))
         .set_parent(lobby_scene);
 
-    let player = commands
-        .spawn(LocalPlayerBundle::new(
-            Position::default(),
-            Rotation::radians(std::f32::consts::FRAC_PI_2),
-        ))
+    let spaceship_entity = commands
+        .spawn((SpaceShipType::Assassin.config_info(), SpawnBlueprint))
         .set_parent(lobby_scene)
         .id();
 
     commands
-        .entity(player)
-        .insert(LocalInputBundle::new(InputTarget::new(player)));
+        .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
+        .set_parent(spaceship_entity);
+
+    commands
+        .spawn(LocalActionBundle::new())
+        .set_parent(spaceship_entity);
+
+    // TODO: Check if this is even useful or not...
+    player_infos[PlayerInfoType::Root].insert(PlayerId::LOCAL, spaceship_entity);
+
+    **main_window_transparency = 1.0;
+}
+
+/// Rotate the spaceship to face forward.
+fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<SpaceShip>>) {
+    for entity in q_spaceships.iter() {
+        commands
+            .entity(entity)
+            .insert((Rotation::radians(std::f32::consts::FRAC_PI_2),));
+    }
+}
+
+/// Set entity to be a local source by inserting [`PlayerId::LOCAL`].
+fn set_local<C: Component>(
+    mut commands: Commands,
+    q_entities: Query<Entity, (With<C>, Without<PlayerId>)>,
+) {
+    for entity in q_entities.iter() {
+        commands.entity(entity).insert(PlayerId::LOCAL);
+        info!(
+            "LOCAL: {} with component {}.",
+            entity,
+            std::any::type_name::<C>()
+        );
+    }
 }
 
 /// Despawn local lobby scene
@@ -55,17 +107,31 @@ fn despawn_lobby(mut commands: Commands, q_local_lobby: Query<Entity, With<Local
     commands.entity(lobby).despawn_recursive();
 }
 
-fn matchmake_effector(
-    mut connection_manager: ResMut<ConnectionManager>,
-    mut next_matchmake_state: ResMut<NextState<MatchmakeState>>,
-    mut next_screen_state: ResMut<NextState<Screen>>,
+/// Action performed after the matchmake effector is being triggered.
+fn matchmake_effector_trigger(
+    mut commands: Commands,
+    mut main_window_transparency: ResMut<MainWindowTransparency>,
 ) {
-    next_matchmake_state.set(MatchmakeState::Joining);
-    next_screen_state.set(Screen::Matchmaking);
-
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 2;
-    let _ = connection_manager.send_message::<ReliableChannel, _>(&Matchmake(PLAYER_COUNT));
+
+    commands.add(Coroutine::new(|| {
+        let mut res = co_break();
+        res.add_subroutines((
+            wait(std::time::Duration::from_secs_f32(WINDOW_FADE_DURATION)),
+            |mut connection_manager: ResMut<ConnectionManager>,
+             mut next_screen_state: ResMut<NextState<Screen>>| {
+                next_screen_state.set(Screen::Matchmaking);
+
+                let _ =
+                    connection_manager.send_message::<ReliableChannel, _>(&Matchmake(PLAYER_COUNT));
+                co_break()
+            },
+        ));
+        res
+    }));
+
+    **main_window_transparency = 0.0;
 }
 
 #[derive(Component, Reflect)]
