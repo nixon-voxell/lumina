@@ -3,7 +3,7 @@ use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 
-use crate::protocol::{LobbyStatus, SeedMessage};
+use crate::protocol::LobbyStatus;
 use crate::shared::procedural_map::grid_map::GenerateMapEvent;
 
 use super::{
@@ -20,10 +20,7 @@ impl Plugin for MultiplayerLobbyPlugin {
             .add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
             .add_systems(
                 Update,
-                (
-                    handle_lobby_status_update.run_if(in_state(Connection::Connected)),
-                    handle_seed_message.run_if(in_state(Connection::Connected)),
-                ),
+                (handle_lobby_status_update.run_if(in_state(Connection::Connected))),
             );
     }
 }
@@ -38,27 +35,19 @@ fn handle_lobby_status_update(
     mut lobby_func: ResMut<LobbyFunc>,
     matchmake_state: Res<State<MatchmakeState>>,
     mut next_matchmake_state: ResMut<NextState<MatchmakeState>>,
+    mut generate_map_event_writer: EventWriter<GenerateMapEvent>,
 ) {
     for lobby_status in lobby_status_evr.read() {
         let status = lobby_status.message();
         // Update ui
         lobby_func.curr_player_count = status.client_count;
-        lobby_func.room_id = Some(status.room_id.0);
+        lobby_func.room_id = Some(status.room_id.0); //TODO:use room id instead of seed
+        generate_map_event_writer.send(GenerateMapEvent(status.room_id.0));
 
         // Update matchmake state
         if *matchmake_state != MatchmakeState::Joined {
             next_matchmake_state.set(MatchmakeState::Joined);
         }
-    }
-}
-
-fn handle_seed_message(
-    mut seed_message_event_reader: EventReader<MessageEvent<SeedMessage>>,
-    mut generate_map_event_writer: EventWriter<GenerateMapEvent>,
-) {
-    for seed_message in seed_message_event_reader.read() {
-        let seed = seed_message.message().0;
-        generate_map_event_writer.send(GenerateMapEvent(seed));
     }
 }
 

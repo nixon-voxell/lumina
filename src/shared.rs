@@ -28,6 +28,7 @@ impl Plugin for SharedPlugin {
                 player::PlayerPlugin,
                 physics::PhysicsPlugin,
                 effector::EffectorPlugin,
+                procedural_map::GridMapPlugin,
             ))
             .add_systems(
                 Update,

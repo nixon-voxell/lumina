@@ -5,7 +5,7 @@ use rand::SeedableRng;
 pub struct CaveConfig {
     pub map_width: usize,
     pub map_height: usize,
-    pub random_seed: u32,
+    pub random_seed: u64,
     pub empty_space_percentage: f32,
     pub edge_thickness: usize,
     pub max_dig_attempts: usize,
@@ -26,7 +26,7 @@ fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
         (total_tiles as f32 * config.empty_space_percentage / 100.0).round() as usize;
 
     // Create a random number generator
-    let mut rng = rand::rngs::StdRng::seed_from_u64(config.random_seed as u64);
+    let mut rng = rand::rngs::StdRng::seed_from_u64(config.random_seed);
 
     // Choose a random starting point for digging
     let (mut digger_x, mut digger_y) = pick_start_position(&mut rng, config);

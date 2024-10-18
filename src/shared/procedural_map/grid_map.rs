@@ -10,7 +10,7 @@ pub const DEFAULT_HEIGHT: usize = 100;
 /// This event is needed to start making a new map.
 /// The number is used to make sure the map can be the same every time if we want.
 #[derive(Event, Clone, Copy, Deref, DerefMut)]
-pub struct GenerateMapEvent(pub u32);
+pub struct GenerateMapEvent(pub u64);
 
 // Tile configuration
 #[derive(Resource)]
