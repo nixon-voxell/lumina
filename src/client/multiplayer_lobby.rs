@@ -20,7 +20,7 @@ impl Plugin for MultiplayerLobbyPlugin {
             .add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
             .add_systems(
                 Update,
-                (handle_lobby_status_update.run_if(in_state(Connection::Connected))),
+                handle_lobby_status_update.run_if(in_state(Connection::Connected)),
             );
     }
 }
