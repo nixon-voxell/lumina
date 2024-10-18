@@ -144,7 +144,7 @@ enum Connection {
 struct LocalClientId(pub ClientId);
 
 // Source of truth for retrieving local entities.
-#[derive(Resource, Debug, Clone, Copy, PartialEq)]
+#[derive(Resource, Debug, Deref, Clone, Copy, PartialEq)]
 struct LocalPlayerId(pub PlayerId);
 
 impl Default for LocalPlayerId {

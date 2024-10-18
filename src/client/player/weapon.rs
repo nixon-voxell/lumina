@@ -1,30 +1,20 @@
 use bevy::prelude::*;
 use blenvy::*;
-use client::*;
 use leafwing_input_manager::prelude::*;
-use lightyear::prelude::*;
 
 use crate::client::ui::Screen;
-use crate::shared::action::{PlayerAction, ReplicateActionBundle};
-use crate::shared::player::weapon::{Weapon, WeaponTarget, WeaponType};
-use crate::shared::player::{LocalPlayer, PlayerId, PlayerInfo, PlayerInfos, SpaceShip};
-use crate::shared::LocalEntity;
-
-use super::{LocalClientId, PredictedOrLocal};
+use crate::shared::action::PlayerAction;
+use crate::shared::player::spaceship::SpaceShip;
+use crate::shared::player::weapon::{Weapon, WeaponType};
+use crate::shared::player::{PlayerId, SpaceShipInfos};
+use crate::shared::SourceEntity;
 
 pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                add_weapon_visual,
-                sync_weapon_position,
-                add_networked_weapon.run_if(resource_exists::<LocalClientId>),
-            ),
-        )
-        .add_systems(OnExit(Screen::Playing), despawn_networked_inputs);
+        app.add_systems(Update, (add_weapon_visual, sync_weapon_position))
+            .add_systems(OnExit(Screen::Playing), despawn_networked_inputs);
     }
 }
 
@@ -34,7 +24,7 @@ fn add_weapon_visual(
     q_players: Query<
         (&WeaponType, Entity),
         (
-            PredictedOrLocal,
+            With<SourceEntity>,
             With<Weapon>,
             // Haven't added visuals yet.
             Without<WeaponVisualAdded>,
@@ -53,10 +43,12 @@ fn add_weapon_visual(
 
 fn sync_weapon_position(
     q_player: Query<&Transform, With<SpaceShip>>,
-    mut q_weapons: Query<(&mut Transform, &WeaponTarget), Without<SpaceShip>>,
+    mut q_weapons: Query<(&mut Transform, &PlayerId), Without<SpaceShip>>,
+    spaceship_infos: Res<SpaceShipInfos>,
 ) {
-    for (mut weapon_transform, target) in q_weapons.iter_mut() {
-        let Ok(player_transform) = q_player.get(**target) else {
+    for (mut weapon_transform, id) in q_weapons.iter_mut() {
+        let Some(player_transform) = spaceship_infos.get(id).and_then(|e| q_player.get(*e).ok())
+        else {
             continue;
         };
 
@@ -65,41 +57,11 @@ fn sync_weapon_position(
     }
 }
 
-/// Add input for player on player spawn.
-fn add_networked_weapon(
-    mut commands: Commands,
-    q_weapons: Query<(&PlayerId, Entity), (Added<Weapon>, With<Predicted>)>,
-    local_client_id: Res<LocalClientId>,
-    mut player_infos: ResMut<PlayerInfos>,
-) {
-    for (player_id, entity) in q_weapons.iter() {
-        info!("Spawned player {:?}.", entity);
-        let client_id = player_id.0;
-
-        if client_id == local_client_id.0 {
-            // Mark our player.
-            commands.entity(entity).insert(LocalPlayer);
-            // Replicate input from client to server.
-            commands.spawn(ReplicateActionBundle::new(*player_id));
-        }
-
-        player_infos.insert(
-            client_id,
-            PlayerInfo {
-                // TODO: Add lobby entity with the correct bits from room id.
-                lobby: Entity::PLACEHOLDER,
-                spaceship: entity,
-                input: None,
-            },
-        );
-    }
-}
-
 /// Despawn all networked player inputs.
 fn despawn_networked_inputs(
     mut commands: Commands,
     // Despawn only networked actions.
-    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, Without<LocalEntity>)>,
+    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, With<SourceEntity>)>,
 ) {
     for entity in q_actions.iter() {
         commands.entity(entity).despawn();

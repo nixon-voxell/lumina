@@ -41,8 +41,6 @@ pub fn shared_config() -> SharedConfig {
     }
 }
 
-// fn set_owned_entity()
-
 fn set_source_entity<Filter: QueryFilter>(
     mut commands: Commands,
     q_entities: Query<
