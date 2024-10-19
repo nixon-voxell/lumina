@@ -93,7 +93,6 @@ pub fn setup_grid_and_spawn_tiles(
     mut generate_map_event_reader: EventReader<GenerateMapEvent>,
     tile_config: Res<TileConfig>,
 ) {
-
     for generate_map_event in generate_map_event_reader.read() {
         // Create a CaveConfig instance
         let cave_config = CaveConfig {
