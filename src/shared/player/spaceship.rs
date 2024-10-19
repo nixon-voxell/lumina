@@ -119,7 +119,7 @@ fn spaceship_movement(
                 .map(|axis| axis.xy())
                 .unwrap_or_default()
                 .normalize_or_zero();
-            let desired_angle = movement.y.atan2(movement.x);
+            let desired_angle = movement.to_angle();
 
             angular.0 += rotation.angle_between(Rotation::radians(desired_angle))
                 * spaceship.angular_acceleration
@@ -199,9 +199,9 @@ impl Component for SpaceShip {
             let spaceship = entity_ref.get::<Self>().unwrap();
             // TODO: Consider using a lookup collider.
             let collider = Collider::triangle(
-                Vec2::new(-10.0, 10.0),
-                Vec2::new(-10.0, -10.0),
-                Vec2::new(10.0, 0.0),
+                Vec2::new(-20.0, 20.0),
+                Vec2::new(-20.0, -20.0),
+                Vec2::new(20.0, 0.0),
             );
 
             let bundle = (

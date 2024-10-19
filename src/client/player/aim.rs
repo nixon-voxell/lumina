@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::axislike::DualAxisData;
 use leafwing_input_manager::buttonlike::ButtonState;
+use leafwing_input_manager::plugin::InputManagerSystem;
 use leafwing_input_manager::prelude::*;
 
 use crate::client::camera::GameCamera;
@@ -15,18 +16,24 @@ pub(super) struct AimPlugin;
 
 impl Plugin for AimPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, mouse_motion);
+        app.add_systems(
+            PreUpdate,
+            mouse_motion.in_set(InputManagerSystem::ManualControl),
+        );
     }
 }
 
 fn mouse_motion(
-    mut q_action: Query<&mut ActionState<PlayerAction>, With<SourceEntity>>,
+    mut q_actions: Query<&mut ActionState<PlayerAction>, With<SourceEntity>>,
     q_spaceship_transforms: Query<&Transform, (With<SpaceShip>, With<SourceEntity>)>,
     q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
     mut cursor_evr: EventReader<CursorMoved>,
     local_player_info: LocalPlayerInfo,
 ) {
-    let Ok(mut action) = q_action.get_single_mut() else {
+    let Some(mut action) = local_player_info
+        .get(PlayerInfoType::Action)
+        .and_then(|e| q_actions.get_mut(e).ok())
+    else {
         return;
     };
 

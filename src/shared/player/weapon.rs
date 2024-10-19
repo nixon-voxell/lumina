@@ -1,19 +1,74 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use blenvy::*;
+use leafwing_input_manager::prelude::*;
 
-use super::BlueprintType;
+use crate::shared::action::PlayerAction;
+use crate::shared::SourceEntity;
+
+use super::spaceship::SpaceShip;
+use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        // app.add_systems(Update, init_networked_weapons);
+        app.add_systems(Update, (sync_weapon_position, weapon_direction));
 
         app.register_type::<WeaponType>().register_type::<Weapon>();
     }
 }
 
+/// Sync [`Weapon`] position to [`SpaceShip`] position.
+fn sync_weapon_position(
+    q_player: Query<&Transform, (With<SpaceShip>, With<SourceEntity>)>,
+    mut q_weapons: Query<
+        (&mut Transform, &PlayerId),
+        (Without<SpaceShip>, With<Weapon>, With<SourceEntity>),
+    >,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (mut weapon_transform, id) in q_weapons.iter_mut() {
+        let Some(spaceship_transform) = player_infos[PlayerInfoType::SpaceShip]
+            .get(id)
+            .and_then(|e| q_player.get(*e).ok())
+        else {
+            continue;
+        };
+
+        weapon_transform.translation.x = spaceship_transform.translation.x;
+        weapon_transform.translation.y = spaceship_transform.translation.y;
+    }
+}
+
+fn weapon_direction(
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_weapon_transforms: Query<&mut Transform, (With<Weapon>, With<SourceEntity>)>,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (action, id) in q_actions.iter() {
+        if let Some(mut weapon_transform) = player_infos[PlayerInfoType::Weapon]
+            .get(id)
+            .and_then(|e| q_weapon_transforms.get_mut(*e).ok())
+        {
+            if action.pressed(&PlayerAction::Aim) == false {
+                continue;
+            }
+
+            if let Some(direction) = action
+                .clamped_axis_pair(&PlayerAction::Aim)
+                .map(|axis| axis.xy().normalize_or_zero())
+            {
+                // Leave the rotation as is if mouse position is exactly at the center.
+                if direction == Vec2::ZERO {
+                    continue;
+                }
+
+                weapon_transform.rotation = Quat::from_rotation_z(direction.to_angle());
+            }
+        }
+    }
+}
 // fn attack(
 //     q_actions: Query<(&PlayerId, &ActionState<PlayerAction>)>,
 //     mut q_spaceships: Query<&PlayerId, With<Weapon>>,
