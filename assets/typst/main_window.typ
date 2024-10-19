@@ -7,7 +7,7 @@
   #box(
     width: width,
     height: height,
-    // fill: base0.transparentize(100% * transparency),
+    fill: base0.transparentize(100% * transparency),
   )[
     #for content in body {
       content
