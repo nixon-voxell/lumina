@@ -4,6 +4,7 @@ use client::*;
 use lightyear::prelude::*;
 
 use crate::protocol::LobbyStatus;
+use crate::shared::procedural_map::grid_map::GenerateMapEvent;
 
 use super::{
     ui::{lobby::LobbyFunc, Screen},
@@ -15,6 +16,7 @@ pub(super) struct MultiplayerLobbyPlugin;
 impl Plugin for MultiplayerLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<MatchmakeState>()
+            .add_event::<GenerateMapEvent>()
             .add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
             .add_systems(
                 Update,
@@ -33,12 +35,14 @@ fn handle_lobby_status_update(
     mut lobby_func: ResMut<LobbyFunc>,
     matchmake_state: Res<State<MatchmakeState>>,
     mut next_matchmake_state: ResMut<NextState<MatchmakeState>>,
+    mut generate_map_event_writer: EventWriter<GenerateMapEvent>,
 ) {
     for lobby_status in lobby_status_evr.read() {
         let status = lobby_status.message();
         // Update ui
         lobby_func.curr_player_count = status.client_count;
-        lobby_func.room_id = Some(status.room_id.0);
+        lobby_func.room_id = Some(status.room_id.0); //TODO:use room id instead of seed
+        generate_map_event_writer.send(GenerateMapEvent(status.room_id.0));
 
         // Update matchmake state
         if *matchmake_state != MatchmakeState::Joined {
