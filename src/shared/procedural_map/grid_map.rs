@@ -21,7 +21,7 @@ pub struct TileConfig {
     _height: f32,
 }
 
-/// CellState shows if a cell in the grid is empty or filled.
+/// Shows if a cell in the grid is empty or filled.
 /// It is needed to know where we can place things or dig paths.
 #[derive(Default, Clone, Copy, PartialEq)]
 pub enum CellState {
@@ -93,9 +93,6 @@ pub fn setup_grid_and_spawn_tiles(
     mut generate_map_event_reader: EventReader<GenerateMapEvent>,
     tile_config: Res<TileConfig>,
 ) {
-    if generate_map_event_reader.is_empty() {
-        return;
-    }
 
     for generate_map_event in generate_map_event_reader.read() {
         // Create a CaveConfig instance
@@ -165,7 +162,7 @@ pub fn setup_grid_and_spawn_tiles(
         new_cave_map.tile_pool.append(&mut new_tiles);
 
         // Debug output for filled and empty cells
-        println!("Filled cells: {}", filled_count);
-        println!("Empty cells: {}", empty_count);
+        info!("Filled cells: {}", filled_count);
+        info!("Empty cells: {}", empty_count);
     }
 }

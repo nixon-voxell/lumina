@@ -18,7 +18,7 @@ pub fn create_cave_map(initial_grid: GridMap, config: CaveConfig) -> GridMap {
     cave_map
 }
 
-// The main function that creates the cave by digging random paths
+/// Creates the cave by digging random paths
 fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
     // Calculate how many empty tiles we need
     let total_tiles = config.map_width * config.map_height;
@@ -66,14 +66,14 @@ fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
     }
 }
 
-// Choose a random starting position for the cave digging
+/// Choose a random starting position for the cave digging
 fn pick_start_position(rng: &mut impl Rng, config: &CaveConfig) -> (usize, usize) {
     let x = rng.gen_range(config.edge_thickness..config.map_width - config.edge_thickness);
     let y = rng.gen_range(config.edge_thickness..config.map_height - config.edge_thickness);
     (x, y)
 }
 
-// Check if a position is within the valid bounds
+/// Check if a position is within the valid bounds
 fn is_within_bounds(x: isize, y: isize, config: &CaveConfig) -> bool {
     x >= config.edge_thickness as isize
         && x < (config.map_width - config.edge_thickness) as isize
