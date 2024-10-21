@@ -108,6 +108,7 @@ impl<const COUNT: usize> IndexMut<PlayerInfoType> for PlayerInfos<COUNT> {
     }
 }
 
+// TODO: Use this to initialize visuals for all BlueprintTypes
 pub trait BlueprintType: Component {
     fn visual_info(&self) -> BlueprintInfo;
     fn config_info(&self) -> BlueprintInfo;

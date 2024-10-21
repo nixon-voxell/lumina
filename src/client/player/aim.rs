@@ -25,10 +25,12 @@ impl Plugin for AimPlugin {
 
 fn mouse_motion(
     mut q_actions: Query<&mut ActionState<PlayerAction>, With<SourceEntity>>,
-    q_spaceship_transforms: Query<&Transform, (With<SpaceShip>, With<SourceEntity>)>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+    q_spaceship_transforms: Query<Ref<Transform>, (With<SpaceShip>, With<SourceEntity>)>,
+    q_camera: Query<(&Camera, Ref<GlobalTransform>), With<GameCamera>>,
     mut cursor_evr: EventReader<CursorMoved>,
     local_player_info: LocalPlayerInfo,
+    mut cursor_position: Local<Vec2>,
+    mut is_using_mouse: Local<bool>,
 ) {
     let Some(mut action) = local_player_info
         .get(PlayerInfoType::Action)
@@ -37,6 +39,7 @@ fn mouse_motion(
         return;
     };
 
+    // Get spaceship transform
     let Some(spaceship_transform) = local_player_info
         .get(PlayerInfoType::SpaceShip)
         .and_then(|e| q_spaceship_transforms.get(e).ok())
@@ -48,9 +51,20 @@ fn mouse_motion(
         return;
     };
 
+    // Actions from the controller if Aim action is used before this update.
+    if action.pressed(&PlayerAction::Aim) {
+        *is_using_mouse = false;
+    }
+
+    // When mouse is moved, we use mouse instead.
     for cursor in cursor_evr.read() {
+        *cursor_position = cursor.position;
+        *is_using_mouse = true;
+    }
+
+    if *is_using_mouse {
         let cursor_world_position = camera
-            .viewport_to_world_2d(camera_transform, cursor.position)
+            .viewport_to_world_2d(&camera_transform, *cursor_position)
             .unwrap_or_default();
 
         let direction =
