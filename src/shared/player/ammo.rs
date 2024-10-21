@@ -130,6 +130,7 @@ fn track_ammo_lifetime(
 
 #[derive(Event)]
 pub struct FireAmmo {
+    #[allow(unused)]
     pub id: PlayerId,
     pub ammo_type: AmmoType,
     pub position: Vec2,
@@ -154,6 +155,7 @@ pub struct AmmoStat {
     pub lifetime: f32,
 }
 
+#[allow(unused)]
 /// Ammo damage applied to damagable objects.
 #[derive(Component)]
 pub struct AmmoDamage(pub f32);
