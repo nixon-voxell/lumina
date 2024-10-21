@@ -7,7 +7,7 @@ use server::*;
 use crate::protocol::INPUT_REPLICATION_GROUP;
 use crate::shared::action::PlayerAction;
 use crate::shared::player::spaceship::SpaceShipType;
-use crate::shared::player::PlayerId;
+use crate::shared::player::{BlueprintType, PlayerId};
 
 use super::lobby::Lobby;
 use super::LobbyInfos;

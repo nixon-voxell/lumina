@@ -242,3 +242,12 @@ pub enum MeshCollider {
     ConvexHull,
     Trimesh,
 }
+
+#[derive(Bundle, Default)]
+pub struct PhysicsBundle {
+    pub rigidbody: RigidBody,
+    pub position: Position,
+    pub rotation: Rotation,
+    pub linear_damping: LinearDamping,
+    pub angular_damping: AngularDamping,
+}

@@ -19308,6 +19308,71 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina::shared::player::ammo::Ammo": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::Ammo",
+      "properties": {
+        "angular_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "lifetime",
+        "linear_impulse",
+        "angular_impulse",
+        "linear_damping",
+        "angular_damping"
+      ],
+      "short_name": "Ammo",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::ammo::AmmoRef": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::AmmoRef",
+      "properties": {},
+      "required": [],
+      "short_name": "AmmoRef",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::ammo::AmmoType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::AmmoType",
+      "oneOf": [
+        "LongRange"
+      ],
+      "short_name": "AmmoType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
     "lumina::shared::player::spaceship::SpaceShip": {
       "additionalProperties": false,
       "isComponent": true,
@@ -19388,12 +19453,17 @@
       "isResource": false,
       "long_name": "lumina::shared::player::weapon::Weapon",
       "properties": {
-        "ammo_lifetime": {
+        "ammo_type": {
+          "type": {
+            "$ref": "#/$defs/lumina::shared::player::ammo::AmmoType"
+          }
+        },
+        "damage": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "damage": {
+        "fire_radius": {
           "type": {
             "$ref": "#/$defs/f32"
           }
@@ -19417,9 +19487,10 @@
       "required": [
         "firing_rate",
         "magazine_size",
-        "ammo_lifetime",
+        "recoil",
+        "ammo_type",
         "damage",
-        "recoil"
+        "fire_radius"
       ],
       "short_name": "Weapon",
       "type": "object",

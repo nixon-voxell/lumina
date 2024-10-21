@@ -6,6 +6,7 @@ use leafwing_input_manager::prelude::*;
 use crate::shared::action::PlayerAction;
 use crate::shared::SourceEntity;
 
+use super::ammo::{AmmoType, FireAmmo};
 use super::spaceship::SpaceShip;
 use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
@@ -13,7 +14,8 @@ pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (sync_weapon_position, weapon_direction));
+        app.add_systems(Update, (sync_weapon_position, weapon_recharge))
+            .add_systems(FixedUpdate, (weapon_direction, weapon_attack).chain());
 
         app.register_type::<WeaponType>().register_type::<Weapon>();
     }
@@ -69,20 +71,55 @@ fn weapon_direction(
         }
     }
 }
-// fn attack(
-//     q_actions: Query<(&PlayerId, &ActionState<PlayerAction>)>,
-//     mut q_spaceships: Query<&PlayerId, With<Weapon>>,
-//     time: Res<Time>,
-//     player_infos: Res<PlayerInfos>,
-// ) {
-//     for (id, action) in q_actions.iter() {
-//         if action.pressed(&PlayerAction::Attack) {
-//             // Shoot ammos!
-//         }
-//     }
-// }
 
-#[derive(Component, Reflect, Default, Debug)]
+fn weapon_attack(
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponStat, &PlayerId), With<SourceEntity>>,
+    mut fire_ammo_evw: EventWriter<FireAmmo>,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (action, id) in q_actions.iter() {
+        if action.pressed(&PlayerAction::Attack) {
+            // Attack!
+            if let Some((weapon_transform, weapon, mut weapon_stat, id)) = player_infos
+                [PlayerInfoType::Weapon]
+                .get(id)
+                .and_then(|e| q_weapons.get_mut(*e).ok())
+            {
+                if weapon_stat.can_fire(weapon.firing_rate) == false {
+                    continue;
+                }
+                weapon_stat.fire();
+
+                let direction = weapon_transform.local_x().xy();
+                let position = weapon_transform.translation.xy() + direction * weapon.fire_radius;
+
+                // Fire!
+                fire_ammo_evw.send(FireAmmo {
+                    id: *id,
+                    ammo_type: weapon.ammo_type,
+                    position,
+                    direction,
+                    damage: weapon.damage,
+                });
+            }
+        }
+    }
+}
+
+fn weapon_recharge(
+    mut q_weapons: Query<(&mut WeaponStat, &Weapon), With<SourceEntity>>,
+    time: Res<Time>,
+) {
+    for (mut weapon_stat, weapon) in q_weapons.iter_mut() {
+        weapon_stat.recharge = f32::min(
+            weapon_stat.recharge + time.delta_seconds(),
+            weapon.firing_rate,
+        );
+    }
+}
+
+#[derive(Component, Reflect, Default, Debug, Clone, Copy)]
 #[reflect(Component)]
 pub enum WeaponType {
     #[default]
@@ -114,12 +151,14 @@ pub struct Weapon {
     firing_rate: f32,
     /// Number of bullets the player can fire before the player needs to reload.
     magazine_size: u32,
-    /// Duration the ammo stays relevant.
-    ammo_lifetime: f32,
-    /// Damage per ammo hit.
-    damage: f32,
     /// Recoil force. An impulse force that acts on the opposite of the attack direction.
     recoil: f32,
+    /// Type of ammo.
+    ammo_type: AmmoType,
+    /// Damage per ammo hit.
+    damage: f32,
+    /// Radius location where the ammo fires off.
+    fire_radius: f32,
 }
 
 impl Component for Weapon {
@@ -143,16 +182,23 @@ pub struct WeaponStat {
     pub recharge: f32,
 }
 
-pub struct AmmoStat {
-    /// Duration left before the ammo expires.
-    pub lifetime: f32,
-}
-
 impl WeaponStat {
     pub fn from_config(config: &Weapon) -> Self {
         Self {
             magazine: config.magazine_size,
             recharge: config.firing_rate,
         }
+    }
+
+    pub fn can_fire(&self, firing_rate: f32) -> bool {
+        self.magazine != 0 && self.recharge >= firing_rate
+    }
+
+    /// Perform a weapon fire action which uses up 1 ammo from [`Self::magazine`] and resets [`Self::recharge`].
+    pub fn fire(&mut self) {
+        // Use up one ammo.
+        self.magazine = self.magazine.saturating_sub(1);
+        // Reset the recharge.
+        self.recharge = 0.0;
     }
 }

@@ -6,9 +6,10 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 
 use crate::shared::action::PlayerAction;
+use crate::shared::physics::PhysicsBundle;
 use crate::shared::SourceEntity;
 
-use super::{PlayerId, PlayerInfoType, PlayerInfos};
+use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceShipPlugin;
 
@@ -143,8 +144,8 @@ pub enum SpaceShipType {
     Support,
 }
 
-impl SpaceShipType {
-    pub fn visual_info(&self) -> BlueprintInfo {
+impl BlueprintType for SpaceShipType {
+    fn visual_info(&self) -> BlueprintInfo {
         match self {
             SpaceShipType::Assassin => {
                 BlueprintInfo::from_path("levels/SpaceShipAssassinVisual.glb")
@@ -153,7 +154,7 @@ impl SpaceShipType {
         }
     }
 
-    pub fn config_info(&self) -> BlueprintInfo {
+    fn config_info(&self) -> BlueprintInfo {
         match self {
             SpaceShipType::Assassin => {
                 BlueprintInfo::from_path("levels/SpaceShipAssassinConfig.glb")
@@ -259,13 +260,4 @@ impl MovementStat {
     // pub fn linear_damping(&self) -> f32 {
     //     self.linear_damping
     // }
-}
-
-#[derive(Bundle, Default)]
-pub struct PhysicsBundle {
-    pub rigidbody: RigidBody,
-    pub position: Position,
-    pub rotation: Rotation,
-    pub linear_damping: LinearDamping,
-    pub angular_damping: AngularDamping,
 }
