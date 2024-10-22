@@ -29,3 +29,13 @@ run.bat x
 ```
 
 With `x` being the number of clients you want to spawn.
+
+### Examples
+
+To improve development time, the `examples` folder is used to create mini test cases with minimal compilation time. Run an example using the following command:
+
+```
+cargo run --example example_name
+```
+
+With `example_name` being the name of your example.
