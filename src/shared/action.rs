@@ -4,17 +4,17 @@ use lightyear::prelude::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 
-use super::{player::PlayerId, LocalEntity};
+use super::player::PlayerId;
 
 #[derive(Bundle)]
-pub struct ReplicateInputBundle {
+pub struct ReplicateActionBundle {
     pub id: PlayerId,
     pub input: InputManagerBundle<PlayerAction>,
     pub replicate: client::Replicate,
     pub prepredicted: PrePredicted,
 }
 
-impl ReplicateInputBundle {
+impl ReplicateActionBundle {
     pub fn new(id: PlayerId) -> Self {
         Self {
             id,
@@ -29,29 +29,17 @@ impl ReplicateInputBundle {
 }
 
 #[derive(Bundle)]
-pub struct LocalInputBundle {
+pub struct LocalActionBundle {
     pub input: InputManagerBundle<PlayerAction>,
-    pub local: LocalEntity,
-    pub target: InputTarget,
+    pub id: PlayerId,
 }
 
-impl LocalInputBundle {
-    pub fn new(target: InputTarget) -> Self {
+impl LocalActionBundle {
+    pub fn new() -> Self {
         Self {
             input: InputManagerBundle::with_map(PlayerAction::input_map()),
-            local: LocalEntity,
-            target,
+            id: PlayerId::LOCAL,
         }
-    }
-}
-
-/// The entity that the input is targetting.
-#[derive(Component, Deref)]
-pub struct InputTarget(Entity);
-
-impl InputTarget {
-    pub fn new(entity: Entity) -> Self {
-        Self(entity)
     }
 }
 
@@ -61,7 +49,8 @@ pub enum PlayerAction {
     Brake,
     Boost,
     Interact,
-    UseItem,
+    Attack,
+    Aim,
 }
 
 impl PlayerAction {
@@ -74,14 +63,15 @@ impl PlayerAction {
         input_map.insert(Self::Brake, GamepadButtonType::LeftTrigger);
         input_map.insert(Self::Boost, GamepadButtonType::LeftTrigger2);
         input_map.insert(Self::Interact, GamepadButtonType::South);
-        input_map.insert(Self::UseItem, GamepadButtonType::RightTrigger2);
+        input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
+        input_map.insert(Self::Aim, DualAxis::right_stick());
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
         input_map.insert(Self::Brake, KeyCode::Space);
         input_map.insert(Self::Boost, MouseButton::Right);
         input_map.insert(Self::Interact, KeyCode::KeyE);
-        input_map.insert(Self::UseItem, MouseButton::Left);
+        input_map.insert(Self::Attack, MouseButton::Left);
 
         input_map
     }

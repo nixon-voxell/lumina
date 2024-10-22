@@ -4,10 +4,11 @@ use server::*;
 use smallvec::SmallVec;
 
 use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
-use crate::shared::player::{PlayerInfo, PlayerInfos};
+use crate::shared::player::{PlayerId, PlayerInfos};
 use crate::utils::EntityRoomId;
 
 use super::player::spawn_player_entity;
+use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;
 
@@ -20,7 +21,7 @@ impl Plugin for LobbyPlugin {
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
-                    handle_disconnection,
+                    handle_disconnections,
                     handle_exit_lobby,
                     execute_exit_lobby,
                 ),
@@ -87,14 +88,14 @@ fn handle_matchmaking(
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
-    mut player_infos: ResMut<PlayerInfos>,
+    mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
-        // Already matched
-        if player_infos.contains_key(&client_id) {
-            warn!("Received duplicated matchmake commands from {client_id:?}");
+        // Already matchmake
+        if lobby_infos.contains_key(&client_id) {
+            warn!("Recieved duplicated matchmake commands from {client_id:?}");
             continue;
         }
 
@@ -129,26 +130,14 @@ fn handle_matchmaking(
         let lobby_entity = lobby_entity
             .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
 
-        let player_entity = spawn_player_entity(&mut commands, client_id);
+        spawn_player_entity(&mut commands, client_id);
         room_manager.add_client(client_id, lobby_entity.room_id());
-        room_manager.add_entity(player_entity, lobby_entity.room_id());
-
-        // Cache client info
-        player_infos.insert(
-            client_id,
-            PlayerInfo {
-                lobby: lobby_entity,
-                player: player_entity,
-                input: None,
-            },
-        );
+        lobby_infos.insert(client_id, lobby_entity);
     }
 }
 
-fn handle_disconnection(
-    mut commands: Commands,
+fn handle_disconnections(
     mut disconnect_evr: EventReader<DisconnectEvent>,
-    mut player_infos: ResMut<PlayerInfos>,
     mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
 ) {
     if disconnect_evr.is_empty() == false {
@@ -157,16 +146,6 @@ fn handle_disconnection(
                 .read()
                 .map(|disconnect| ClientExitLobby(disconnect.client_id)),
         );
-    }
-
-    for event in disconnect_evr.read() {
-        if let Some(info) = player_infos.remove(&event.client_id) {
-            if let Some(entity_cmd) = info.input.map(|e| commands.entity(e)) {
-                entity_cmd.despawn_recursive();
-            }
-
-            commands.entity(info.player).despawn_recursive();
-        }
     }
 }
 
@@ -189,35 +168,32 @@ fn execute_exit_lobby(
     mut q_lobbies: Query<&mut Lobby>,
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
+    mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for exit_client in client_exit_lobby_evr.read() {
         let client_id = exit_client.id();
-        let Some(info) = player_infos.remove(&client_id) else {
-            continue;
-        };
 
-        if let Ok(mut lobby) = q_lobbies.get_mut(info.lobby) {
-            info!("Client {client_id:?} exited lobby {:?}", info.room_id());
-
-            // Remove client from lobby and room.
-            lobby.remove_client(&client_id);
-            room_manager.remove_client(client_id, info.room_id());
-
-            // Player might have already been despawned if it's a disconnection.
-            if let Some(player_cmd) = commands.get_entity(info.player) {
-                player_cmd.despawn_recursive();
-                room_manager.remove_entity(info.player, info.room_id());
+        if let Some(lobby_entity) = lobby_infos.remove(&client_id) {
+            let room_id = lobby_entity.room_id();
+            // Remove client from the lobby.
+            if let Ok(mut lobby) = q_lobbies.get_mut(lobby_entity) {
+                lobby.remove_client(&client_id);
+                // Now that someone left, the lobby is no longer full
+                commands.entity(lobby_entity).remove::<LobbyFull>();
             }
-            // Despawn input.
-            if let Some(input) = info.input {
-                if let Some(input_cmd) = commands.get_entity(input) {
-                    input_cmd.despawn_recursive();
+
+            // Remove client from the room.
+            room_manager.remove_client(client_id, room_id);
+
+            // Despawn everything from the player.
+            let player_entities = player_infos.remove_all(&PlayerId(client_id));
+            for entity in player_entities.iter().filter_map(|e| *e) {
+                if let Some(entity_cmd) = commands.get_entity(entity) {
+                    entity_cmd.despawn_recursive();
                 }
-                room_manager.remove_entity(input, info.room_id());
-            }
 
-            // Now that someone left, the lobby is no longer full
-            commands.entity(info.lobby).remove::<LobbyFull>();
+                room_manager.remove_entity(entity, room_id);
+            }
         }
     }
 }

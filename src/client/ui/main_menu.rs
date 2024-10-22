@@ -5,7 +5,7 @@ use velyst::{prelude::*, typst_element::prelude::*};
 
 use crate::client::Connection;
 use crate::ui::main_window::push_to_main_window;
-use crate::ui::{interactable_func, pressed, InteractableFunc, InteractionQuery};
+use crate::ui::{interactable_func, InteractableFunc, InteractionQuery};
 
 use super::Screen;
 
@@ -44,36 +44,18 @@ fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
     func.connection_msg = "Disconnected...".to_string();
 }
 
-fn play_btn(
-    q_interactions: InteractionQuery,
-    // mut connection_manager: ResMut<ConnectionManager>,
-    // mut lobby_func: ResMut<LobbyFunc>,
-    // mut next_lobby_state: ResMut<NextState<MatchmakeState>>,
-    mut next_screen_state: ResMut<NextState<Screen>>,
-) {
-    // TODO: Support different player count modes.
-    // const PLAYER_COUNT: u8 = 2;
-
-    if pressed(q_interactions.iter(), "btn:play") {
-        // lobby_func.curr_player_count = 0;
-        // lobby_func.max_player_count = PLAYER_COUNT;
-
-        // let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
-        //     &Matchmake(PLAYER_COUNT),
-        //     NetworkTarget::None,
-        // );
-
-        // next_lobby_state.set(MatchmakeState::Joining);
+fn play_btn(interactions: InteractionQuery, mut next_screen_state: ResMut<NextState<Screen>>) {
+    if interactions.pressed("btn:play") {
         next_screen_state.set(Screen::LocalLobby);
     }
 }
 
 fn reconnect_btn(
-    q_interactions: InteractionQuery,
+    interactions: InteractionQuery,
     mut next_connection_state: ResMut<NextState<Connection>>,
     mut func: ResMut<MainMenuFunc>,
 ) {
-    if pressed(q_interactions.iter(), "btn:reconnect") {
+    if interactions.pressed("btn:reconnect") {
         next_connection_state.set(Connection::Connect);
         func.connection_msg = "Connecting to server...".to_string();
     }
@@ -81,10 +63,10 @@ fn reconnect_btn(
 
 fn exit_btn(
     mut commands: Commands,
-    q_interactions: InteractionQuery,
+    interactions: InteractionQuery,
     mut app_exit: EventWriter<AppExit>,
 ) {
-    if pressed(q_interactions.iter(), "btn:exit-game") {
+    if interactions.pressed("btn:exit-game") {
         commands.disconnect_client();
         app_exit.send(AppExit::Success);
     }

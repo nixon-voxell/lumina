@@ -1,11 +1,14 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use bevy::prelude::*;
+use bevy::utils::HashMap;
+use blenvy::*;
 use lightyear::prelude::*;
 use server::*;
 
 use crate::settings::NetworkSettings;
 use crate::shared::{shared_config, SERVER_REPLICATION_INTERVAL};
+use crate::utils::EntityRoomId;
 
 mod lobby;
 mod player;
@@ -19,10 +22,21 @@ impl Plugin for ServerPlugin {
 
         // Lightyear plugins
         let settings = app.world().get_resource::<NetworkSettings>().unwrap();
-        app.add_plugins(ServerPlugins::new(server_config(settings)));
+        app.add_plugins((
+            ServerPlugins::new(server_config(settings)),
+            BlenvyPlugin {
+                export_registry: false,
+                ..default()
+            },
+        ));
 
         app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
-            .add_systems(Startup, start_server);
+            .init_resource::<LobbyInfos>()
+            .add_systems(Startup, start_server)
+            .add_systems(
+                PreUpdate,
+                (server_source, server_source_hierarchy).before(MainSet::Send),
+            );
     }
 }
 
@@ -31,6 +45,38 @@ fn start_server(mut commands: Commands) {
     info!("Starting server...");
     commands.start_server();
 }
+
+/// Insert [`ServerSourceEntity`] to newly added [`SyncTarget`] entities.
+fn server_source(mut commands: Commands, q_entities: Query<Entity, Added<SyncTarget>>) {
+    for entity in q_entities.iter() {
+        commands.entity(entity).insert(ServerSourceEntity);
+    }
+}
+
+/// Propagate [`ServerSourceEntity`] to the children hierarchy.
+fn server_source_hierarchy(
+    mut commands: Commands,
+    q_children: Query<
+        &Children,
+        (
+            With<ServerSourceEntity>,
+            // Just added or the children changes.
+            Or<(Added<ServerSourceEntity>, Changed<Children>)>,
+        ),
+    >,
+) {
+    for children in q_children.iter() {
+        for entity in children.iter() {
+            commands.entity(*entity).insert(ServerSourceEntity);
+        }
+    }
+}
+
+/// Any entity with [`SyncTarget`] is a server source entity.
+///
+/// Any children that follows that will also become a server source entity.
+#[derive(Component, Default)]
+pub struct ServerSourceEntity;
 
 /// Create the lightyear [`ServerConfig`].
 fn server_config(settings: &NetworkSettings) -> ServerConfig {
@@ -65,5 +111,14 @@ fn server_config(settings: &NetworkSettings) -> ServerConfig {
             ..default()
         },
         ..default()
+    }
+}
+
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
+pub struct LobbyInfos(HashMap<ClientId, Entity>);
+
+impl LobbyInfos {
+    pub fn get_room_id(&self, client_id: &ClientId) -> Option<RoomId> {
+        self.get(client_id).map(|e| e.room_id())
     }
 }

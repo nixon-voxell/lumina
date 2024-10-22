@@ -14365,15 +14365,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::input::PlayerAction"
+          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, Vec<UserInput>, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -14383,15 +14383,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::input::PlayerAction"
+          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, ActionData, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -16946,26 +16946,26 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "f32": {
+    "core::option::Option<u64>": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "f32",
-      "short_name": "f32",
-      "type": "float",
-      "typeInfo": "Value"
-    },
-    "f64": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "f64",
-      "short_name": "f64",
-      "type": "float",
-      "typeInfo": "Value"
-    },
-    "glam::Affine2": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": fals": "array",
+      "long_name": "core::option::Option<u64>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/u64"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
           "typeInfo": "Tuple"
         }
       ],
@@ -17150,7 +17150,7 @@
       "isComponent": false,
       "isResource": false,
       "long_name": "glam::Mat4",
-      "propertie ": {
+      "properties": {
         "w_axis": {
           "type": {
             "$ref": "#/$defs/glam::Vec4"
@@ -17168,26 +17168,26 @@
         },
         "z_axis": {
           "type": {
-            "$ref": "#/$defs/glam:    "$ref": "#/$def        }
+            "$ref": "#/$defs/glam::Vec4"
+          }
+        }
       },
-      "requ        "z": {
-   x      ,t        "y_axis",
+      "required": [
+        "x_axis",
+        "y_axis",
         "z_axis",
         "w_axis"
       ],
-}
-      },
-      "required": [
-        ": "object",
-      "typeInfz": "Struc "
-    },
-    "glam  "short_{
-      "additionalProperti: "object",
+      "short_name": "Mat4",
+      "type": "object",
       "typeInfo": "Struct"
     },
-    "glam::UVec2": {
+    "glam::Quat": {
       "additionalProperties": false,
-      "isComponen
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "glam::Quat",
+      "properties": {
         "w": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -17200,20 +17200,17 @@
         },
         "y": {
           "type": {
-            "$ref":: "#/$defs/u3"
-           }
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "z": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
-     
-"req      "ty
-     
-  "x",
-        "y"
-      ],
-      "short_nam}": "UVec2",
-     },
-      "require,": [
-  "t    "x",
+      "required": [
+        "x",
         "y",
         "z",
         "w"
@@ -17230,37 +17227,40 @@
       "properties": {
         "x": {
           "type": {
-            "$ref": "#/$defs/u3,"
-          : {
-      },
+            "$ref": "#/$defs/u32"
+          }
+        },
         "y": {
           "type": {
             "$ref": "#/$defs/u32"
           }
         }
       },
-      "required :"y",
-        "z"
+      "required": [
+        "x",
+        "y"
       ],
-"
-     sh,
-      "short_name": "UVe"type": "objtype": "ob  "t",
-      "typeInfo": "St,
-    "gla},
-    "glam      "add{
-      "additionalProperties": faisC,
-      "isCompo,
-      "isResourc  "ifalse,
-      "long_name": lglam::Ve": "gla    "proper      "properti  ":":
+      "short_name": "UVec2",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "glam::UVec3": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "glam::UVec3",
+      "properties": {
         "x": {
-          "ty   : {"$ref": "#/$de$ref": "#/$d      }
-           }
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
         },
         "y": {
           "type": {
-        #/$d"$ref": "#/$def    }
-         
- }             "re    "z": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "z": {
           "type": {
             "$ref": "#/$defs/u32"
           }
@@ -17292,12 +17292,14 @@
           }
         }
       },
-      "require"y: [
+      "required": [
         "x",
         "y"
       ],
-      "short_n   ": "Vec2": "o    "type": "obtype",
-      "typeInfo": "Str  "glam  },
+      "short_name": "Vec2",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "glam::Vec3": {
       "additionalProperties": false,
       "isComponent": false,
@@ -17487,15 +17489,15 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "leafwing_input_manager::action_state::ActionState<lumina::shared::input::PlayerAction>": {
+    "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::action_state::ActionState<lumina::shared::input::PlayerAction>",
+      "long_name": "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>",
       "properties": {
         "action_data": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::input::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
           }
         }
       },
@@ -17653,7 +17655,8 @@
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::axislike::DualAxi    "lea      "properties": {
+      "long_name": "leafwing_input_manager::axislike::DualAxisData",
+      "properties": {
         "xy": {
           "type": {
             "$ref": "#/$defs/glam::Vec2"
@@ -17692,7 +17695,32 @@
       "typeInfo": "Enum"
     },
     "leafwing_input_manager::axislike::SingleAxis": {
-      "additionalsensitivit"::f{
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "leafwing_input_manager::axislike::SingleAxis",
+      "properties": {
+        "axis_type": {
+          "type": {
+            "$ref": "#/$defs/leafwing_input_manager::axislike::AxisType"
+          }
+        },
+        "inverted": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "negative_low": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "positive_low": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "sensitivity": {
           "type": {
             "$ref": "#/$defs/f32"
           }
@@ -17718,49 +17746,49 @@
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::  "type": {
-            "$ref": "#/$defs/f32"
+      "long_name": "leafwing_input_manager::axislike::VirtualAxis",
+      "properties": {
+        "negative": {
+          "type": {
+            "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
           }
         },
-        "value": {
-          "ty$r": {
-            "$ref": "#/$defs/core::option::Option<f32>"
+        "positive": {
+          "type": {
+            "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
           }
         }
       },
- p    "requir
-     
-        "axi{
-            "$ref": "#/$defs/leafwing_input_manager:",
-        "inverted",
-        "sensitivity"
+      "required": [
+        "negative",
+        "positive"
       ],
-      "short_name": "SingleAxis",
-      "type": "opositi,
- 
-     t],
-      "short_nam ": "Vi    "leafwing_input_man": "object",
+      "short_name": "VirtualAxis",
+      "type": "object",
       "typeInfo": "Struct"
     },
-    "leafwing_input_manager::axislike::Vi: false,
- : {  "is  "additionalPrope      "long_name": "l"isComponent": false,
+    "leafwing_input_manager::axislike::VirtualDPad": {
+      "additionalProperties": false,
+      "isComponent": false,
       "isResource": false,
       "long_name": "leafwing_input_manager::axislike::VirtualDPad",
       "properties": {
         "down": {
           "type": {
             "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
-           "        },
+          }
+        },
         "left": {
           "type": {
-            "$ref": "#/$defs/leafwing_input_manager::user_inp: [
-        "nega        }
+            "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
+          }
         },
         "right": {
           "type": {
-            "$ref": "#/$defs/leafwing_in"typeInfo": "Struct"
-    },
-    "leafwing_input_manager::ax        "up": {
+            "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
+          }
+        },
+        "up": {
           "type": {
             "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
           }
@@ -17779,31 +17807,7 @@
     "leafwing_input_manager::buttonlike::ButtonState": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_man},
-        "right": {
-          "type": {
-            "$ref": "#/$defs/lea      "Pressed",
-        "JustReleased",
-        "Released"
-      ],
-      "short_name": "ButtonState",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "leafwing_input_manager::buttonlike::MouseMoti      "required": [
-        "up",
-        "down",
-        "left",
-        "right"
-      ],
-      "short_name": "VirtualDPad",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "leafwing_input_manager::buttonlike::ButtonState": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "leafwing_input_manager::bu"leafwing_input_manage,
+      "long_name": "leafwing_input_manager::buttonlike::ButtonState",
       "oneOf": [
         "JustPressed",
         "Pressed",
@@ -17814,12 +17818,12 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "leafwing_input_manager::buttonlike::MouseMotio  ],
-      "short_name": "MouseWheelDirection",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "leafwing_input_manager::input_map::InputMap<lumina::shared::input::Pl,
+    "leafwing_input_manager::buttonlike::MouseMotionDirection": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "leafwing_input_manager::buttonlike::MouseMotionDirection",
+      "oneOf": [
+        "Up",
         "Down",
         "Right",
         "Left"
@@ -17842,19 +17846,39 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "leafwing_input_manager::input_map::InputMap<lumina::shared::input::PlayerAction>": {
+    "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::input_map::InputMap<lumina::shared::input::PlayerAction>",
+      "long_name": "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>",
       "properties": {
         "associated_gamepad": {
           "type": {
-            "$ref": "#/$defs/core::option::Option<bevy_input  "long_name": "leafwing_in    }
+            "$ref": "#/$defs/core::option::Option<bevy_input::gamepad::Gamepad>"
+          }
         },
         "map": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::Ha      "$ref": "#/$defs/bevy_utils::Duration"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+          }
+        }
+      },
+      "required": [
+        "map"
+      ],
+      "short_name": "InputMap<PlayerAction>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "leafwing_input_manager::timing::Timing": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "leafwing_input_manager::timing::Timing",
+      "properties": {
+        "current_duration": {
+          "type": {
+            "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
         "instant_started": {
@@ -17915,28 +17939,6 @@
           "prefixItems": [
             {
               "type": {
-                "$ref": "#/$defs/leafwing_input_manage    "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-     s    "items": false,
-          "longtype": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": f                "$ref": "#/$defs/leafwing_input_managerprefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/bevy_input::key",
-          "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": false,
-          "long_name": "DualAxis",
-          "prefixItems": [
-            {
-              "type": {
                 "$ref": "#/$defs/leafwing_input_manager::axislike::DualAxis"
               }
             }
@@ -17965,8 +17967,35 @@
           "prefixItems": [
             {
               "type": {
-                "$ref": "#/$defs/leafwing_input_manager::user_inpu            "type": {
-                "$ref": "#/$defs/leafwing_input_manager::buttonlike::MouseWheelDirecti: "
+                "$ref": "#/$defs/leafwing_input_manager::user_input::Modifier"
+              }
+            }
+          ],
+          "short_name": "Modifier",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Mouse",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_input::mouse::MouseButton"
+              }
+            }
+          ],
+          "short_name": "Mouse",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "MouseWheel",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/leafwing_input_manager::buttonlike::MouseWheelDirection"
               }
             }
           ],
@@ -17981,25 +18010,6 @@
             {
               "type": {
                 "$ref": "#/$defs/leafwing_input_manager::buttonlike::MouseMotionDirection"
-              }
-            }
-          ],
-          "short_name": "MouseMotion",
-          "type": "array",
-          "typ{
-              "type": {
-                "$ref": "#/$defs/leafwi",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "leafwing_input_manager::user_i          "short_name :  "isComponen,": fa   ,       "isResourc,": fals ,       "long_name": "leafwing_i,
-        {
-          "items": false,
-          "long_name": "MouseMotion",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/leafwing_input_manager::buttonlike::MouseMotionDileafwin"
               }
             }
           ],
@@ -18037,11 +18047,35 @@
           "prefixItems": [
             {
               "type": {
-                "$ref": "#/$defs/leafwing_input_manager::user_inp"prefixItems": [
-            {
+                "$ref": "#/$defs/leafwing_input_manager::user_input::InputKind"
+              }
             }
           ],
-          "short_n": "#/$defs/leafwing_input_manager::axislike::Vir    "typ"
+          "short_name": "Single",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Chord",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/alloc::vec::Vec<leafwing_input_manager::user_input::InputKind>"
+              }
+            }
+          ],
+          "short_name": "Chord",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "VirtualDPad",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/leafwing_input_manager::axislike::VirtualDPad"
               }
             }
           ],
@@ -18068,27 +18102,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "lightyear::client::replication::send::ReplicateToServer": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::client::replication::send::ReplicateToServer",
-      "properties": {},
-      "required": [],
-      "short_name": "ReplicateToServer",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::connection::id::,
-          "short_name": "VirtualAxis",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "UserInput",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "lightyear::client::components::Confirmed": {
       "additionalProperties": false,
       "isComponent": false,
@@ -18102,44 +18115,44 @@
         },
         "predicted": {
           "type": {
-            "$ref": "#/$defs/core::option::Opti    ],
-          "short_name": "Steam",
-          "type": "array",
-          "typeInfo": "Tup  "
-        },
-        {
-          "items": false,
-          "long_name": "Local",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/u64"
-              }
-            }
-          ],
-          "short_name": "Local",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "ClientId",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "lightyear::server::replication::send::ControlledBy": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lightyear::server::replication::send::ControlledBy",
-      "properties": {
-        "lifetime": {
-          "type": {
-            "$ref": "#/$defs/lightyear::server::replication::send::Lifetime"
+            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
           }
         },
-        "target": {
+        "tick": {
           "type": {
-            "$ref": "#/$de    "isComponent": false,
+            "$ref": "#/$defs/lightyear::shared::tick_manager::tick_module::Tick"
+          }
+        }
+      },
+      "required": [
+        "tick"
+      ],
+      "short_name": "Confirmed",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::client::interpolation::Interpolated": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::client::interpolation::Interpolated",
+      "properties": {
+        "confirmed_entity": {
+          "type": {
+            "$ref": "#/$defs/bevy_ecs::entity::Entity"
+          }
+        }
+      },
+      "required": [
+        "confirmed_entity"
+      ],
+      "short_name": "Interpolated",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::client::interpolation::plugin::InterpolationConfig": {
+      "additionalProperties": false,
+      "isComponent": false,
       "isResource": false,
       "long_name": "lightyear::client::interpolation::plugin::InterpolationConfig",
       "properties": {
@@ -18156,25 +18169,29 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::client::interpolation::plugin::InterpolationDelLifet{
- ",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lightyear::server::replication::send::Replicate": {
+    "lightyear::client::interpolation::plugin::InterpolationDelay": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::server::replication::send::Replicate",
+      "long_name": "lightyear::client::interpolation::plugin::InterpolationDelay",
       "properties": {
-        "controlled_by": {
+        "min_delay": {
           "type": {
-            "$ref": "#/$defs/lightyear::server::replication::send::ControlledBy"
+            "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "group": {
+        "send_interval_ratio": {
           "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicationG,
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "min_delay",
+        "send_interval_ratio"
+      ],
+      "short_name": "InterpolationDelay",
+      "type": "object",
       "typeInfo": "Struct"
     },
     "lightyear::client::networking::HostServerMetadata": {
@@ -18259,24 +18276,25 @@
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::client::prediction::plugin::Ptype": {
-            "$ref": "#/$defs/bevy_uti  "always_roll          }
-        },
-        "tic ": {
+      "long_name": "lightyear::client::prediction::plugin::PredictionConfig",
+      "properties": {
+        "always_rollback": {
           "type": {
-            "$ref": "#/$defs/lightyear::shared::tick_manager:{
-          "type": {
-            "$ref": "#/$defs/req"
+            "$ref": "#/$defs/bool"
           }
         },
-        "maximum_input_delay_before_prtick",
-         m      "ty  ": {
+        "correction_ticks_factor": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "maximum_input_delay_before_prediction": {
+          "type": {
             "$ref": "#/$defs/u16"
           }
         },
-        "maximum_: "Struct"
-    },
-     l      "type": {
+        "maximum_predicted_ticks": {
+          "type": {
             "$ref": "#/$defs/u16"
           }
         },
@@ -18290,33 +18308,31 @@
         "always_rollback",
         "minimum_input_delay_ticks",
         "maximum_input_delay_before_prediction",
-        "        },
-        "stats_buffer_d"correctio{
-          "type": {
-            "$ref": "#/$defs/bevy_utils::Duration"
-          }
-        }
-      },
-      "required": [
-        "ping_interval",
-        "stats_buffer_duration"
+        "maximum_predicted_ticks",
+        "correction_ticks_factor"
       ],
-      "short_name": "PingConfig",
+      "short_name": "PredictionConfig",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::shared::replication::components::Controlled": {
+    "lightyear::client::prediction::prespawn::PreSpawnedPlayerObject": {
       "additionalProperties": false,
-      "isComponent": true,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::shared::replication::com        }
+      "long_name": "lightyear::client::prediction::prespawn::PreSpawnedPlayerObject",
+      "properties": {
+        "hash": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<u64>"
+          }
         },
         "user_salt": {
           "type": {
-            "$ref": "#/$defs/core::o,
-      "type": "object",
-      "typeInf}": "Str},
-      "requir"ligh[],
+            "$ref": "#/$defs/core::option::Option<u64>"
+          }
+        }
+      },
+      "required": [],
       "short_name": "PreSpawnedPlayerObject",
       "type": "object",
       "typeInfo": "Struct"
@@ -18325,26 +18341,27 @@
       "additionalProperties": false,
       "isComponent": false,
       "isResource": true,
-      "long_name,: "li  "short_name": "NetworkRelevanceMode",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lightyear::shareRollback",
+      "long_name": "lightyear::client::prediction::rollback::Rollback",
+      "properties": {},
+      "required": [],
+      "short_name": "Rollback",
       "type": "object",
       "typeInfo": "Struct"
     },
     "lightyear::client::prediction::rollback::RollbackState": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::client::prediction::rollba"client_entity": {
-          "type": {
-            "$ref": "#/$defs/core::option::Op    },
+      "long_name": "lightyear::client::prediction::rollback::RollbackState",
+      "oneOf": [
+        {
+          "long_name": "Default"
+        },
         {
           "additionalProperties": false,
-          "long_name": "ShouldRol"short_n          "properties": {
-           o"curre,
-      "typ         S    "long  },
-    "lightyear::s,
+          "long_name": "ShouldRollback",
+          "properties": {
+            "current_tick": {
+              "long_name": "current_tick",
               "type": {
                 "$ref": "#/$defs/lightyear::shared::tick_manager::tick_module::Tick"
               }
@@ -18370,17 +18387,18 @@
       "properties": {
         "group": {
           "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::components::Replica  "type": {
-            "$ref": "#/$defs/core::option::O
+            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicationGroup"
+          }
+        },
+        "hierarchy": {
           "type": {
-            "$ref": "#/$defs/lightyear::shared::rep},
-      "required": [],
-      "short_name": "Replicated",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lightyear::shared::replication::components::Replicating": {
-      "additionalProperti
+            "$ref": "#/$defs/lightyear::shared::replication::components::ReplicateHierarchy"
+          }
+        },
+        "replicating": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::components::Replicating"
+          }
         },
         "target": {
           "type": {
@@ -18392,28 +18410,28 @@
         "target",
         "group",
         "hierarchy",
-        "replicatin":
-"Str  ],
-     ,"sh  "lightyea"Replicate",
+        "replicating"
+      ],
+      "short_name": "Replicate",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::client::replication::send::ReplicateToSerisRe: {
-      "additionalProperties": falightyear  "isComponent": false,
+    "lightyear::client::replication::send::ReplicateToServer": {
+      "additionalProperties": false,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::client::replicati: {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "id_builder": {
-          "type": {
-            "$ref": "#/$defs/lightyear::share  },
+      "long_name": "lightyear::client::replication::send::ReplicateToServer",
+      "properties": {},
+      "required": [],
+      "short_name": "ReplicateToServer",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lightyear::connection::id::ClientId": {
       "isComponent": false,
-       i"send_freq: fals: {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<: [
+      "isResource": false,
+      "long_name": "lightyear::connection::id::ClientId",
+      "oneOf": [
         {
           "items": false,
           "long_name": "Netcode",
@@ -18500,13 +18518,14 @@
         "tick",
         "mode"
       ],
-      "short_name": "SharedC},
-    "lightyetype": "object",
+      "short_name": "SharedConfig",
+      "type": "object",
       "typeInfo": "Struct"
     },
     "lightyear::shared::ping::manager::PingConfig": {
-"i    "additionalProp      "isResource": false,
-      "long_name": "lightyear::sharedfalse,
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
       "long_name": "lightyear::shared::ping::manager::PingConfig",
       "properties": {
         "ping_interval": {
@@ -18536,44 +18555,44 @@
       "properties": {},
       "required": [],
       "short_name": "Controlled",
-      "type": "object",          "items": false,
-          "long_name": "Preexisting",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/bevy_ecs::entity:": "lightye            }
-            }
-          ],
-          "short_name": "Preexisting",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "TargetEntity",
       "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::shared::replication::components::NetworkRelevanceMode": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::components::NetworkRelevanceMode",
+      "oneOf": [
+        "InterestManagement",
+        "All"
+      ],
+      "short_name": "NetworkRelevanceMode",
+      "type": "string",
       "typeInfo": "Enum"
     },
-    "lightyear::shared::replication::entity_map::EntityMap": {
-      "isComponent": false,
+    "lightyear::shared::replication::components::PrePredicted": {
+      "additionalProperties": false,
+      "isComponent": true,
       "isResource": false,
-      "items": false,
-      "long_name": "lightyear::shared::replication::entity_map::EntityMap",
-      "prefixItems": [
-        {
+      "long_name": "lightyear::shared::replication::components::PrePredicted",
+      "properties": {
+        "client_entity": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<bevy_ecs::entity::Entity, bevy_ecs::entity::Entity, bevy_ecs::entity::hash::EntityHash>"
+            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
           }
         }
-      ],
-      "short_name": "EntityMap",
-      "type": "array",
-      "typeInfo": "TupleStruct"
+      },
+      "required": [],
+      "short_name": "PrePredicted",
+      "type": "object",
+      "typeInfo": "Struct"
     },
-    "lightyear::shared::replication::entity_map::InterpolatedEntityMap": {
+    "lightyear::shared::replication::components::ReplicateHierarchy": {
       "additionalProperties": false,
-      "isComponent": false,
+      "isComponent": true,
       "isResource": false,
-      "long_name": "lightyear::shared::replication::entity_map::Inte{
+      "long_name": "lightyear::shared::replication::components::ReplicateHierarchy",
+      "properties": {
         "recursive": {
           "type": {
             "$ref": "#/$defs/bool"
@@ -18632,9 +18651,9 @@
           }
         },
         "send_frequency": {
-          "typS": {
-            "$ref": "#/$defs/core::option::Option<bevy_time::timer::Time   
-   i      }
+          "type": {
+            "$ref": "#/$defs/core::option::Option<bevy_time::timer::Timer>"
+          }
         },
         "should_send": {
           "type": {
@@ -18651,13 +18670,12 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::shared::replication::      "typeInfo": "TupleStruct"
-    },
-    "lightyear::shared,
+    "lightyear::shared::replication::components::ReplicationGroupId": {
+      "isComponent": false,
       "isResource": false,
       "items": false,
-      "long_name": "lightyear::shared::replication:,
-      "long_name": "lightyear::shared::replication::ne
+      "long_name": "lightyear::shared::replication::components::ReplicationGroupId",
+      "prefixItems": [
         {
           "type": {
             "$ref": "#/$defs/u64"
@@ -18668,23 +18686,19 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
-    "lightyea  {
-              "type": {
-                "$ref": "#/$defs/lightyear::connection::id::ClientId"
-              }
-            }
-          ],
-          "short_name": "AllExceptSingle",
-          "type": "array",
-          "typeInfo": "Tuple"
+    "lightyear::shared::replication::components::ReplicationGroupIdBuilder": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::components::ReplicationGroupIdBuilder",
+      "oneOf": [
+        {
+          "long_name": "FromEntity"
         },
         {
           "items": false,
-          "long_name": "AllExcept",
-         "lprefixIt": "Gro
-             
- p            "type : {
-     {
+          "long_name": "Group",
+          "prefixItems": [
+            {
               "type": {
                 "$ref": "#/$defs/u64"
               }
@@ -18699,72 +18713,67 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "lightyear::shared::replication::components::ReplicationTarge{
-  {
-      "additionalP{
-                "$ref": "#/$defs/alloc::vec::Vec  "isResource": false,
-      "long_name": "lightyear::shared:      }
-          ],
-          "short_name": "Only",
-          "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": false,
-          "long_name": "Single",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/lightyear::connection::id::ClientId"
-              }
-            }
-          ],
-          "short_name": "Single",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "NetworkTarget",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "lightyear::shared::replication::plugin::ReplicationConfig": {
+    "lightyear::shared::replication::components::ReplicationTarget": {
       "additionalProperties": false,
-      "isComponent": false,
+      "isComponent": true,
       "isResource": false,
-      "long_name": "lightyear::shared::replication::plugin::ReplicationConfig",
+      "long_name": "lightyear::shared::replication::components::ReplicationTarget",
       "properties": {
-        "send_interval": {
+        "target": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::Duration"
-          }
-        },
-        "send_updates_mode": {
-          "type": {
-            "$ref": "#/$defs/lightyear::shared::replication::plugin::SendUpdatesMode"
+            "$ref": "#/$defs/lightyear::shared::replication::network_target::NetworkTarget"
           }
         }
       },
       "required": [
-        "send_updates_mode",
-        "send_interval"
+        "target"
       ],
-      "short_name": "ReplicationConfig",
+      "short_name": "ReplicationTarget",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::shared::replication::plugin::SendUpdatesMode": {
-      "isComponent": false,
+    "lightyear::shared::replication::components::ShouldBeInterpolated": {
+      "additionalProperties": false,
+      "isComponent": true,
       "isResource": false,
-      "long_name": "lightyear::shared::replication::plugin::SendUpdatesMode",
+      "long_name": "lightyear::shared::replication::components::ShouldBeInterpolated",
+      "properties": {},
+      "required": [],
+      "short_name": "ShouldBeInterpolated",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::shared::replication::components::ShouldBePredicted": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::components::ShouldBePredicted",
+      "properties": {},
+      "required": [],
+      "short_name": "ShouldBePredicted",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::shared::replication::components::TargetEntity": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::components::TargetEntity",
       "oneOf": [
-        "SinceLastAck ,        {
+        {
+          "long_name": "Spawn"
+        },
+        {
+          "items": false,
+          "long_name": "Preexisting",
+          "prefixItems": [
+            {
               "type": {
-                "$ref": "#/$defs/bevy_ecs::en"type": "string",
-      "t  }
+                "$ref": "#/$defs/bevy_ecs::entity::Entity"
+              }
             }
-          ]li          "short_name": "Preexisting",
-             "addi"array",
+          ],
+          "short_name": "Preexisting",
+          "type": "array",
           "typeInfo": "Tuple"
         }
       ],
@@ -18773,126 +18782,119 @@
       "typeInfo": "Enum"
     },
     "lightyear::shared::replication::entity_map::EntityMap": {
-      "is      "$re: fa"#/$defs/  "isResource": false,
-      "items": false,       "l      "re: "lightyear::sharedtick_duration"
-      ],
-      "short_name": "TickConfig",
-      "type": "object",
-      "ty
-            "$ref": "},
-    "lightyear::transport::config::SharedIoConfig<lightyear::server::io::config::ServerTransport>": {
-      "additionalProperti     f  }
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "lightyear::shared::replication::entity_map::EntityMap",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<bevy_ecs::entity::Entity, bevy_ecs::entity::Entity, bevy_ecs::entity::hash::EntityHash>"
+          }
         }
       ],
-      "short_na  ": "EntityMap"fa   ,  "type": "array",
+      "short_name": "EntityMap",
+      "type": "array",
       "typeInfo": "TupleStruct"
     },
     "lightyear::shared::replication::entity_map::InterpolatedEntityMap": {
-      "additionalProperties":
-          "typi": {
-            "$ref": "#/$defs/lightyear::transport::middlew": "lightyear::shared::replication::entit      }
-        },
-        "conditioner": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<lightyear::transport::middleware::conditioner::LinkConditionerConfig>"
-          }
-        }
-      },
- 
-     re,
-      "r
-        "compressio""
-      ],
-      "short_name": "SharedIoConfig<ServerTransport>",
-      "type": "object",
-      "typeInfo": "St"typeI   ":,"St  "lig    },
-    "lightyear::shared::replicatio"isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::transport::io::Ifalse,
-      "isResource": false,
- C    "long_name": "lightyear::shar        "Disconnected"
-      ],
-      "short_name": "IoState",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lightyear::transport::io::IoStats": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::transport:
-      ],
-      "shor"properti"Pr: {
-        "bytes_      "type": "ob      "type": {
-            "$ref": "#/$d    "lightyea        }
-        },
-        "bytes_sent": {
+      "long_name": "lightyear::shared::replication::entity_map::InterpolatedEntityMap",
+      "properties": {
+        "confirmed_to_interpolated": {
           "type": {
-            "$ref": "#/$defs/usize"
-          }
-        },
-        "packets_received": {
-          "type": {
-            "$ref": "#/$defs/usize"
-          }
-        },
-        "packets_sent": {
-          "type": {
-            "$ref": "#/$defs/usize"
+            "$ref": "#/$defs/lightyear::shared::replication::entity_map::EntityMap"
           }
         }
       },
       "required": [
-        "bytes_sent",
-        "bytes_received",
-        "packets_sent",
-        "packets_received"
+        "confirmed_to_interpolated"
       ],
-      "short_name": "IoStats",
+      "short_name": "InterpolatedEntityMap",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::transport::middleware::compression::CompressionConfig": {
+    "lightyear::shared::replication::entity_map::PredictedEntityMap": {
+      "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::transport::middleware::compression::CompressionConfig",
+      "long_name": "lightyear::shared::replication::entity_map::PredictedEntityMap",
+      "properties": {
+        "confirmed_to_predicted": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::entity_map::EntityMap"
+          }
+        }
+      },
+      "required": [
+        "confirmed_to_predicted"
+      ],
+      "short_name": "PredictedEntityMap",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::shared::replication::entity_map::RemoteEntityMap": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::entity_map::RemoteEntityMap",
+      "properties": {
+        "local_to_remote": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::entity_map::EntityMap"
+          }
+        },
+        "remote_to_local": {
+          "type": {
+            "$ref": "#/$defs/lightyear::shared::replication::entity_map::EntityMap"
+          }
+        }
+      },
+      "required": [
+        "remote_to_local",
+        "local_to_remote"
+      ],
+      "short_name": "RemoteEntityMap",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lightyear::shared::replication::hierarchy::ParentSync": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "lightyear::shared::replication::hierarchy::ParentSync",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<bevy_ecs::entity::Entity>"
+          }
+        }
+      ],
+      "short_name": "ParentSync",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lightyear::shared::replication::network_target::NetworkTarget": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::network_target::NetworkTarget",
       "oneOf": [
-        "None"
-      ],
-      "short_name": "CompressionConfig",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lightyear::transport::middleware::conditioner::LinkConditionerConfig": {
-      "additionalProperties": false,
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lightyear::transport::middleware::conditioner::LinkConditionerConfig""a      "proper"typeInf
-": "Tupl"incomin
-    },
-    "lighty    "type": {
-            "$ref": "#/$defs/bevy_utils::Duration"
- "is      }
+        {
+          "long_name": "None"
         },
-        "incoming_lafalse,: {
-    long  "type": {
-            "$ref": "#/$defs/bevy_utils::Duration"
-          }
-        },
-        "incoming_loss": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        }
-      },
-      "required": [
-        "incoming_latency",
-        "incoming_ji     ,  "ty   :"i
-                "$ref": "#/$defs/lightye: "LinkConditionerConfig",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::effector,
+        {
+          "items": false,
+          "long_name": "AllExceptSingle",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/lightyear::connection::id::ClientId"
+              }
+            }
+          ],
+          "short_name": "AllExceptSingle",
           "type": "array",
           "typeInfo": "Tuple"
         },
@@ -18952,7 +18954,7 @@
       "isResource": false,
       "long_name": "lightyear::shared::replication::plugin::ReplicationConfig",
       "properties": {
-        "send_interStr": {
+        "send_interval": {
           "type": {
             "$ref": "#/$defs/bevy_utils::Duration"
           }
@@ -18967,33 +18969,30 @@
         "send_updates_mode",
         "send_interval"
       ],
-      "short_name": "Rep},
-    "lumina::shared:"type": "object",
+      "short_name": "ReplicationConfig",
+      "type": "object",
       "typeInfo": "Struct"
     },
-    "lightyear::shared::replicatio  "long_name": "lumina::shared:      "isComponent": false,
-      "isReso
-        "ConvexHull"lo        "Trimesh"
+    "lightyear::shared::replication::plugin::SendUpdatesMode": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::shared::replication::plugin::SendUpdatesMode",
+      "oneOf": [
+        "SinceLastAck",
+        "SinceLastSend"
       ],
-      "short_name": "MeshCollider",
+      "short_name": "SendUpdatesMode",
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina::shared::physics::MeshRigidbody": {
+    "lightyear::shared::tick_manager::TickConfig": {
       "additionalProperties": false,
-      "isComponent": true,
-    },
-    "lightyeafalse,
-      "long_name": "lumina::shared::physadditionalProperti",
-: fa  ",
-      "isComponent": fcoll,
-      "isResou        "type": {
-            "$ref": "#/$defs/lumina::shared::physics::MeshC,
-      "proper    }
-        },
- t      "density":
- 
-        "type": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lightyear::shared::tick_manager::TickConfig",
+      "properties": {
+        "tick_duration": {
+          "type": {
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         }
@@ -19009,11 +19008,10 @@
       "isComponent": false,
       "isResource": false,
       "items": false,
-      "long_n"MeshR"lightye",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::physics::Prim: {
+      "long_name": "lightyear::shared::tick_manager::tick_module::Tick",
+      "prefixItems": [
+        {
+          "type": {
             "$ref": "#/$defs/u16"
           }
         }
@@ -19022,31 +19020,31 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
-    "lightyear::transport::config::SharedIoConfig<lightyear::server::io::config::ServerTr: {
-            "$ref": "#/$defs/avian2d::collisio      "isComponent": false,
+    "lightyear::transport::config::SharedIoConfig<lightyear::server::io::config::ServerTransport>": {
+      "additionalProperties": false,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::transport::confitype": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_"properties": {
+      "long_name": "lightyear::transport::config::SharedIoConfig<lightyear::server::io::config::ServerTransport>",
+      "properties": {
         "compression": {
-         ,"ty   : {"ri          "$ref": "#/$dtype": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          "type": {
+            "$ref": "#/$defs/lightyear::transport::middleware::compression::CompressionConfig"
+          }
+        },
+        "conditioner": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<lightyear::transport::middleware::conditioner::LinkConditionerConfig>"
           }
         }
       },
       "required": [
-        "rigidbody",
-        "density",
-        "collider_constructor"
+        "compression"
       ],
-      "short_name": "PrimitiveRigidbody",
+      "short_name": "SharedIoConfig<ServerTransport>",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
-      "isComponent": false,
-  typeIisR": "Struct"
-    },
-    "lightyear::t"petgraph::graph::DiGraph
+    "lightyear::transport::io::IoState": {
       "isComponent": false,
       "isResource": false,
       "long_name": "lightyear::transport::io::IoState",
@@ -19061,8 +19059,7 @@
     },
     "lightyear::transport::io::IoStats": {
       "additionalProperties": false,
-      "isComponenV": f"
-  ,
+      "isComponent": false,
       "isResource": false,
       "long_name": "lightyear::transport::io::IoStats",
       "properties": {
@@ -19100,32 +19097,30 @@
     "lightyear::transport::middleware::compression::CompressionConfig": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "lightyear::transport::middleware::compressio"#/$defs/u64"
-        }
-      },
-      "long_name": "s
+      "long_name": "lightyear::transport::middleware::compression::CompressionConfig",
+      "oneOf": [
+        "None"
       ],
       "short_name": "CompressionConfig",
       "type": "string",
-      "typeInfo": "Enu "
+      "typeInfo": "Enum"
     },
-    "lightyear:  },
-    "smol_str::SmolStr": {
+    "lightyear::transport::middleware::conditioner::LinkConditionerConfig": {
+      "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "smol_str::SmolStr",
-      "short_name": "SmolStr",
-      "type": "object",
-      "typeInfo": "Value"
-    },
-    "std::collections::BTreeMap<petgraph::graph::NodeIndex, bevy_animation::ActiveAnimation>": {
-      "isComponent": false,
-      "isResource": false,
-      "keyType": {
-        "type": {
-          "$ref": "#/$defs/petgraph::graph::NodeIn$ref": "#    }
-      },
-      "long_name": "std::collect  },
+      "long_name": "lightyear::transport::middleware::conditioner::LinkConditionerConfig",
+      "properties": {
+        "incoming_jitter": {
+          "type": {
+            "$ref": "#/$defs/bevy_utils::Duration"
+          }
+        },
+        "incoming_latency": {
+          "type": {
+            "$ref": "#/$defs/bevy_utils::Duration"
+          }
+        },
         "incoming_loss": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -19145,10 +19140,8 @@
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_n,
-  : "lutypeInfo": "Value"
-    },
-    "std::sync::Arc<bevy_as"properties": {},
+      "long_name": "lumina::client::local_lobby::MatchmakeEffector",
+      "properties": {},
       "required": [],
       "short_name": "MatchmakeEffector",
       "type": "object",
@@ -19157,65 +19150,72 @@
     "lumina::client::local_lobby::TutorialEffector": {
       "additionalProperties": false,
       "isComponent": true,
-      "isReso    ": false,
-      "long_      "isResource": false,
-      "long_name": "u128",
-      "short_name": "u128",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u16": {
-      "isComponent": false,
       "isResource": false,
-      "long_name": "u16",
-      "short_name": "u16",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u32": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u32",
-      "short_name": "u32",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u64": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u64",
-      "short_name": "u64",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "u8": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "u8",
-      "short_name": "u8",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "usize": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "usize",
-      "short_name": "usize",
-      "type": "uint",
-      "typeInfo": "Value"
-    },
-    "uuid::Uuid": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "uuid::Uuid",
-      "short_name": "Uuid",
+      "long_name": "lumina::client::local_lobby::TutorialEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TutorialEffector",
       "type": "object",
-      "typeInfo": "Value"
-    }
-  },
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "long_name": "bevy component registry schema"
-}:effector::InteractableEffector": {
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::action::PlayerAction": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina::shared::action::PlayerAction",
+      "oneOf": [
+        "Move",
+        "Brake",
+        "Boost",
+        "Interact",
+        "Attack",
+        "Aim"
+      ],
+      "short_name": "PlayerAction",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina::shared::effector::Effector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::effector::Effector",
+      "properties": {
+        "collider": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "collider"
+      ],
+      "short_name": "Effector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::effector::EffectorPopupMsg": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina::shared::effector::EffectorPopupMsg",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "EffectorPopupMsg",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina::shared::effector::InteractableEffector": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
@@ -19233,21 +19233,6 @@
       "short_name": "InteractableEffector",
       "type": "object",
       "typeInfo": "Struct"
-    },
-    "lumina::shared::input::PlayerAction": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina::shared::input::PlayerAction",
-      "oneOf": [
-        "Move",
-        "Brake",
-        "Boost",
-        "Interact",
-        "UseItem"
-      ],
-      "short_name": "PlayerAction",
-      "type": "string",
-      "typeInfo": "Enum"
     },
     "lumina::shared::physics::MeshCollider": {
       "isComponent": false,
@@ -19322,6 +19307,207 @@
       "short_name": "PrimitiveRigidbody",
       "type": "object",
       "typeInfo": "Struct"
+    },
+    "lumina::shared::player::ammo::Ammo": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::Ammo",
+      "properties": {
+        "angular_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "lifetime",
+        "linear_impulse",
+        "angular_impulse",
+        "linear_damping",
+        "angular_damping"
+      ],
+      "short_name": "Ammo",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::ammo::AmmoRef": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::AmmoRef",
+      "properties": {},
+      "required": [],
+      "short_name": "AmmoRef",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::ammo::AmmoType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::ammo::AmmoType",
+      "oneOf": [
+        "LongRange"
+      ],
+      "short_name": "AmmoType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina::shared::player::spaceship::SpaceShip": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::spaceship::SpaceShip",
+      "properties": {
+        "angular_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "boost_linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "brake_linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "brake_linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "max_linear_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "linear_acceleration",
+        "angular_acceleration",
+        "boost_linear_acceleration",
+        "brake_linear_acceleration",
+        "max_linear_speed",
+        "linear_damping",
+        "angular_damping",
+        "brake_linear_damping"
+      ],
+      "short_name": "SpaceShip",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::spaceship::SpaceShipType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::spaceship::SpaceShipType",
+      "oneOf": [
+        "Assassin",
+        "Tank",
+        "Support"
+      ],
+      "short_name": "SpaceShipType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina::shared::player::weapon::Weapon": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::weapon::Weapon",
+      "properties": {
+        "ammo_type": {
+          "type": {
+            "$ref": "#/$defs/lumina::shared::player::ammo::AmmoType"
+          }
+        },
+        "damage": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "fire_radius": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "firing_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "magazine_size": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "recoil": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "firing_rate",
+        "magazine_size",
+        "recoil",
+        "ammo_type",
+        "damage",
+        "fire_radius"
+      ],
+      "short_name": "Weapon",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina::shared::player::weapon::WeaponType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina::shared::player::weapon::WeaponType",
+      "oneOf": [
+        "Cannon",
+        "Missle",
+        "GattlingGun"
+      ],
+      "short_name": "WeaponType",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "petgraph::graph::DiGraph<bevy_animation::graph::AnimationGraphNode, (), u32>": {
       "isComponent": false,
