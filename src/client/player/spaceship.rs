@@ -21,7 +21,7 @@ impl Plugin for SpaceShipPlugin {
 // TODO: Zoom out camera during movement/boosting (zoom level depends on velocity?)
 // TODO: Add a slight screen shake during boosting.
 
-/// Initialize spaceships into [`SpaceShipInfos`].
+/// Initialize spaceships into [`PlayerInfos`].
 fn init_spaceships(
     mut commands: Commands,
     q_spaceships: Query<(&PlayerId, Entity), (With<SpaceShip>, Added<SourceEntity>)>,

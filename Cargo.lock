@@ -692,9 +692,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_coroutine"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acf18a91cf134da5e47d4521e36cc41757879de6ebf39fdc5ef1d993c9c57835"
+version = "0.1.3"
 dependencies = [
  "bevy",
 ]

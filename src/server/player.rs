@@ -20,7 +20,7 @@ impl Plugin for PlayerPlugin {
             PreUpdate,
             (
                 replicate_actions.after(MainSet::EmitEvents),
-                handle_action_spawn.in_set(ServerReplicationSet::ClientReplication),
+                replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
             ),
         );
     }
@@ -55,8 +55,8 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
     player_entity
 }
 
-/// Adds input action entity to [`PlayerInfos`] and replicate it back to other clients.
-fn handle_action_spawn(
+/// Replicate action back to other clients.
+fn replicate_action_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
     lobby_infos: Res<LobbyInfos>,
