@@ -1,0 +1,11 @@
+[package]
+name = "shared"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

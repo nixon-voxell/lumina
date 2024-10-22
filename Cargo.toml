@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 exclude = ["external_crates/"]
-# members = ["crates/*", ]
+members = ["crates/*", ]
 
 [workspace.package]
 version = "0.1.0"
