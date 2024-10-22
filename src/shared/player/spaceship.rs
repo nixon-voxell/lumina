@@ -84,7 +84,6 @@ fn spaceship_movement(
     let deceleration_factor = f32::min(DECELERATION_FACTOR * time.delta_seconds(), 1.0);
     let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
 
-    println!("{}", q_actions.iter().len());
     for (action, id) in q_actions.iter() {
         let Some(&spaceship_entity) = player_infos[PlayerInfoType::SpaceShip].get(id) else {
             continue;

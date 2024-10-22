@@ -29,7 +29,7 @@ impl Plugin for CameraPlugin {
                 (
                     follow_spaceship,
                     camera_zoom,
-                    spaceship_velocity_zoom,
+                    spaceship_velocity_zoom_shake,
                     main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
                 ),
             )
@@ -137,12 +137,13 @@ fn follow_spaceship(
         .lerp(target_position, follow_factor);
 }
 
-fn spaceship_velocity_zoom(
+fn spaceship_velocity_zoom_shake(
     q_spaceships: Query<(&LinearVelocity, &SpaceShip), (With<SpaceShip>, With<SourceEntity>)>,
     mut camera_zoom: ResMut<CameraZoom>,
+    mut camera_shake: ResMut<CameraShake>,
     local_player_info: LocalPlayerInfo,
 ) {
-    const MAX_ZOOM: f32 = 1.2;
+    const MAX_ZOOM: f32 = 1.4;
 
     let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
         return;
