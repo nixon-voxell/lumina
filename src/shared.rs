@@ -6,7 +6,9 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use player::spaceship::SpaceShip;
 use player::weapon::Weapon;
-use player::PlayerId;
+
+use crate::client::{ClientSourceEntity, LocalSourceEntity};
+use crate::server::ServerSourceEntity;
 
 pub const FIXED_TIMESTEP_HZ: f64 = 64.0;
 pub const SERVER_REPLICATION_INTERVAL: Duration = Duration::from_millis(100);
@@ -16,6 +18,7 @@ pub mod convert_3d_to_2d;
 pub mod effector;
 pub mod physics;
 pub mod player;
+pub mod procedural_map;
 
 /// Shared logic.
 pub struct SharedPlugin;
@@ -29,6 +32,7 @@ impl Plugin for SharedPlugin {
             player::PlayerPlugin,
             physics::PhysicsPlugin,
             effector::EffectorPlugin,
+            procedural_map::GridMapPlugin,
         ));
 
         app.add_systems(
@@ -62,20 +66,15 @@ fn set_source<C: Component>(
         Entity,
         (
             With<C>,
-            With<PlayerId>,
+            // With<PlayerId>,
             Without<SourceEntity>,
             Or<(
-                // Client
-                (With<client::Predicted>, With<client::Interpolated>),
-                // Server
-                With<server::SyncTarget>,
                 // Local
-                (
-                    Without<Replicated>,
-                    Without<client::Predicted>,
-                    Without<client::Interpolated>,
-                    Without<server::SyncTarget>,
-                ),
+                With<LocalSourceEntity>,
+                // Client
+                With<ClientSourceEntity>,
+                // Server
+                With<ServerSourceEntity>,
             )>,
         ),
     >,
@@ -93,13 +92,13 @@ fn set_source<C: Component>(
 /// Entity that represents the final source of reference.
 /// Source entity follows 3 rules:
 ///
-/// 1. Client source entities will always have [`client::Predicted`] or [`client::Interpolated`]
+/// 1. Client source entities will always have [`ClientSourceEntity`]
 ///     (anything that is not will be controlled by the server through replication - [`Replicated`]).
 ///
-/// 2. Server owned entities will always have [`server::SyncTarget`].
+/// 2. Server owned entities will always have [`ServerSourceEntity`].
 ///     (anything that is not is only replicated from the client (extremely rare occasion))
 ///
-/// 3. Locally owned entities must not have any of the above including [`Replicated`].
+/// 3. Locally owned entities will always have [`LocalSourceEntity`].
 #[derive(Component, Default)]
 pub struct SourceEntity;
 

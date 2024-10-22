@@ -4,7 +4,7 @@ use server::*;
 use smallvec::SmallVec;
 
 use crate::protocol::{ExitLobby, LobbyStatus, Matchmake, ReliableChannel};
-use crate::shared::player::{PlayerId, PlayerInfoType, PlayerInfos};
+use crate::shared::player::{PlayerId, PlayerInfos};
 use crate::utils::EntityRoomId;
 
 use super::player::spawn_player_entity;
@@ -88,8 +88,7 @@ fn handle_matchmaking(
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
-    lobby_infos: Res<LobbyInfos>,
-    mut player_infos: ResMut<PlayerInfos>,
+    mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
@@ -131,14 +130,9 @@ fn handle_matchmaking(
         let lobby_entity = lobby_entity
             .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
 
-        let player_entity = spawn_player_entity(&mut commands, client_id);
-
+        spawn_player_entity(&mut commands, client_id);
         room_manager.add_client(client_id, lobby_entity.room_id());
-        room_manager.add_entity(player_entity, lobby_entity.room_id());
-
-        // TODO: Check if this is even useful..
-        // Store player root info.
-        player_infos[PlayerInfoType::Root].insert(PlayerId(client_id), player_entity);
+        lobby_infos.insert(client_id, lobby_entity);
     }
 }
 

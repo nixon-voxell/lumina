@@ -77,6 +77,7 @@ fn clear_main_window_body(mut func: ResMut<MainWindowFunc>) {
     func.body.clear();
 }
 
+/// 1.0 for full transparency and 0.0 for full opaque.
 #[derive(Resource, Default, Debug, Deref, DerefMut)]
 pub struct MainWindowTransparency(pub f32);
 

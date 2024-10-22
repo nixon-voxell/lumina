@@ -28,15 +28,17 @@ impl Plugin for PlayerPlugin {
             ammo::AmmoPlugin,
         ));
 
-        app.init_resource::<PlayerInfos>().add_systems(
-            PostUpdate,
-            (
-                insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
-                insert_info::<SpaceShip>(PlayerInfoType::SpaceShip),
-                insert_info::<Weapon>(PlayerInfoType::Weapon),
-            )
-                .after(SetSourceSet),
-        );
+        app.init_resource::<PlayerInfos>()
+            .add_systems(PreUpdate, player_id_hierarchy)
+            .add_systems(
+                PostUpdate,
+                (
+                    insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
+                    insert_info::<SpaceShip>(PlayerInfoType::SpaceShip),
+                    insert_info::<Weapon>(PlayerInfoType::Weapon),
+                )
+                    .after(SetSourceSet),
+            );
     }
 }
 
@@ -51,6 +53,22 @@ fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     system.into_configs()
 }
 
+/// Propagate [`PlayerId`] to the children hierarchy.
+fn player_id_hierarchy(
+    mut commands: Commands,
+    q_children: Query<
+        (&Children, &PlayerId),
+        // Just added or the children changes.
+        Or<(Added<PlayerId>, Changed<Children>)>,
+    >,
+) {
+    for (children, id) in q_children.iter() {
+        for entity in children.iter() {
+            commands.entity(*entity).insert(*id);
+        }
+    }
+}
+
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub ClientId);
 
@@ -63,7 +81,6 @@ pub struct PlayerRoot;
 
 #[derive(EnumCount, Debug, Clone, Copy)]
 pub enum PlayerInfoType {
-    Root,
     Action,
     SpaceShip,
     Weapon,

@@ -10,11 +10,12 @@ use crate::protocol::{Matchmake, ReliableChannel};
 use crate::shared::action::{LocalActionBundle, PlayerAction};
 use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
 use crate::shared::player::weapon::{Weapon, WeaponType};
-use crate::shared::player::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use crate::shared::player::{BlueprintType, PlayerId};
 use crate::ui::main_window::{MainWindowTransparency, WINDOW_FADE_DURATION};
 
 use super::effector::effector_interaction;
 use super::ui::Screen;
+use super::LocalSourceEntity;
 
 pub(super) struct LocalLobbyPlugin;
 
@@ -46,7 +47,6 @@ impl Plugin for LocalLobbyPlugin {
 fn spawn_lobby(
     mut commands: Commands,
     mut main_window_transparency: ResMut<MainWindowTransparency>,
-    mut player_infos: ResMut<PlayerInfos>,
 ) {
     let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
     commands
@@ -69,9 +69,6 @@ fn spawn_lobby(
     commands
         .spawn(LocalActionBundle::new())
         .set_parent(spaceship_entity);
-
-    // TODO: Check if this is even useful or not...
-    player_infos[PlayerInfoType::Root].insert(PlayerId::LOCAL, spaceship_entity);
 
     **main_window_transparency = 1.0;
 }
@@ -146,6 +143,7 @@ pub(super) struct TutorialEffector;
 pub(super) struct LocalLobbySceneBundle {
     local_lobby: LocalLobbyScene,
     spatial: SpatialBundle,
+    local_source: LocalSourceEntity,
 }
 
 #[derive(Component, Default)]

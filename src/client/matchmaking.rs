@@ -3,7 +3,9 @@ use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 
-use crate::{protocol::LobbyStatus, shared::player::PlayerId};
+use crate::protocol::LobbyStatus;
+use crate::shared::player::PlayerId;
+use crate::shared::procedural_map::grid_map::GenerateMapEvent;
 
 use super::player::LocalPlayerId;
 use super::ui::{lobby::LobbyFunc, Screen};
@@ -33,12 +35,16 @@ fn handle_lobby_status_update(
     mut next_screen_state: ResMut<NextState<Screen>>,
     local_client_id: Res<LocalClientId>,
     mut local_player_id: ResMut<LocalPlayerId>,
+    mut generate_map_evw: EventWriter<GenerateMapEvent>,
 ) {
     for lobby_status in lobby_status_evr.read() {
         let status = lobby_status.message();
-        // Update ui
+        let room_id = status.room_id.0;
+        // Update ui.
         lobby_func.curr_player_count = status.client_count;
-        lobby_func.room_id = Some(status.room_id.0);
+        lobby_func.room_id = Some(room_id);
+        // Generate map.
+        generate_map_evw.send(GenerateMapEvent(room_id));
 
         if *screen_state != Screen::MultiplayerLobby {
             // Update matchmake state

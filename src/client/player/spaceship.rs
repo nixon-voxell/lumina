@@ -18,7 +18,6 @@ impl Plugin for SpaceShipPlugin {
     }
 }
 
-// TODO: Zoom out camera during movement/boosting (zoom level depends on velocity?)
 // TODO: Add a slight screen shake during boosting.
 
 /// Initialize spaceships into [`PlayerInfos`].

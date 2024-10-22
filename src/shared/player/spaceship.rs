@@ -1,5 +1,4 @@
 use avian2d::prelude::*;
-use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
@@ -15,10 +14,42 @@ pub(super) struct SpaceShipPlugin;
 
 impl Plugin for SpaceShipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, spaceship_movement);
+        app.add_systems(PreUpdate, init_spaceships)
+            .add_systems(FixedUpdate, spaceship_movement);
 
         app.register_type::<SpaceShipType>()
             .register_type::<SpaceShip>();
+    }
+}
+
+fn init_spaceships(
+    mut commands: Commands,
+    q_spaceships: Query<(&SpaceShip, Entity), Added<SourceEntity>>,
+) {
+    // TODO: Consider using a lookup collider.
+    let collider = Collider::triangle(
+        Vec2::new(-20.0, 20.0),
+        Vec2::new(-20.0, -20.0),
+        Vec2::new(20.0, 0.0),
+    );
+
+    for (spaceship, spaceship_entity) in q_spaceships.iter() {
+        commands.entity(spaceship_entity).insert((
+            MassPropertiesBundle::new_computed(&collider, 1.0),
+            collider.clone(),
+            PhysicsBundle {
+                rigidbody: RigidBody::Dynamic,
+                linear_damping: LinearDamping(spaceship.linear_damping),
+                angular_damping: AngularDamping(spaceship.angular_damping),
+                ..default()
+            },
+            MovementStat {
+                linear_acceleration: 0.0,
+                linear_damping: spaceship.linear_damping,
+            },
+        ));
+
+        info!("Initialized SpaceShip physics for {spaceship_entity:?}");
     }
 }
 
@@ -164,7 +195,7 @@ impl BlueprintType for SpaceShipType {
     }
 }
 
-#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct SpaceShip {
     /// Normal linear acceleration.
@@ -183,48 +214,6 @@ pub struct SpaceShip {
     pub angular_damping: f32,
     /// Linear damping when brake is applied.
     pub brake_linear_damping: f32,
-}
-
-impl Component for SpaceShip {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, entity, _| {
-            let entity_ref = world.entity(entity);
-
-            // Do not initialize for spaceships that are spawned remotely.
-            if entity_ref.contains::<Replicated>() {
-                return;
-            }
-
-            let spaceship = entity_ref.get::<Self>().unwrap();
-            // TODO: Consider using a lookup collider.
-            let collider = Collider::triangle(
-                Vec2::new(-20.0, 20.0),
-                Vec2::new(-20.0, -20.0),
-                Vec2::new(20.0, 0.0),
-            );
-
-            let bundle = (
-                MassPropertiesBundle::new_computed(&collider, 1.0),
-                collider.clone(),
-                PhysicsBundle {
-                    rigidbody: RigidBody::Dynamic,
-                    linear_damping: LinearDamping(spaceship.linear_damping),
-                    angular_damping: AngularDamping(spaceship.angular_damping),
-                    ..default()
-                },
-                MovementStat {
-                    linear_acceleration: 0.0,
-                    linear_damping: spaceship.linear_damping,
-                },
-            );
-
-            world.commands().entity(entity).insert(bundle);
-
-            info!("\n\n Initialized spaceship for {entity:?}");
-        });
-    }
 }
 
 /// The movement stat for a spaceship.

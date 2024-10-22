@@ -49,7 +49,14 @@ impl Plugin for ClientPlugin {
         .add_systems(OnEnter(Connection::Connect), connect_server)
         .add_systems(
             PreUpdate,
-            (handle_connection, handle_disconnection).after(MainSet::Receive),
+            (
+                handle_connection,
+                handle_disconnection,
+                client_source,
+                client_source_hierarchy,
+                local_source_hierarchy,
+            )
+                .after(MainSet::Receive),
         );
 
         // Enable dev tools for dev builds.
@@ -70,7 +77,7 @@ fn handle_connection(
 ) {
     for event in connect_evr.read() {
         let client_id = event.client_id();
-        info!("Connected with Id: {client_id:?}");
+        info!("CLIENT: Connected with Id: {client_id:?}");
 
         next_connection_state.set(Connection::Connected);
         commands.insert_resource(LocalClientId(client_id));
@@ -89,6 +96,68 @@ fn handle_disconnection(
         commands.remove_resource::<LocalClientId>();
     }
 }
+
+/// Insert [`ClientSourceEntity`] to newly added [`Predicted`] or [`Interpolated`] entities.
+fn client_source(
+    mut commands: Commands,
+    q_entities: Query<Entity, Or<(Added<Predicted>, Added<Interpolated>)>>,
+) {
+    for entity in q_entities.iter() {
+        commands.entity(entity).insert(ClientSourceEntity);
+        println!("\n\nRoot: Set {} as ClientSourceEntity", entity);
+    }
+}
+
+/// Propagate [`ClientSourceEntity`] to the children hierarchy.
+fn client_source_hierarchy(
+    mut commands: Commands,
+    q_children: Query<
+        &Children,
+        (
+            With<ClientSourceEntity>,
+            // Just added or the children changes.
+            Or<(Added<ClientSourceEntity>, Changed<Children>)>,
+        ),
+    >,
+) {
+    for children in q_children.iter() {
+        for entity in children.iter() {
+            commands.entity(*entity).insert(ClientSourceEntity);
+            println!("\n\nHierarchy: Set {} as ClientSourceEntity", entity);
+        }
+    }
+}
+
+/// Propagate [`LocalSourceEntity`] to the children hierarchy.
+fn local_source_hierarchy(
+    mut commands: Commands,
+    q_children: Query<
+        &Children,
+        (
+            With<LocalSourceEntity>,
+            // Just added or the children changes.
+            Or<(Added<LocalSourceEntity>, Changed<Children>)>,
+        ),
+    >,
+) {
+    for children in q_children.iter() {
+        for entity in children.iter() {
+            commands.entity(*entity).insert(LocalSourceEntity);
+        }
+    }
+}
+
+/// Any client with [`Predicted`] or [`Interpolated`] is a client source entity.
+///
+/// Any children that follows that will also become a client source entity.
+#[derive(Component, Default)]
+pub struct ClientSourceEntity;
+
+/// Local source entity needs to be defined manually when spawning entities.
+///
+/// Any children that follows that will also become a local source entity.
+#[derive(Component, Default)]
+pub struct LocalSourceEntity;
 
 /// Create the lightyear [`ClientConfig`].
 fn client_config(client_id: u64, settings: &NetworkSettings) -> ClientConfig {
