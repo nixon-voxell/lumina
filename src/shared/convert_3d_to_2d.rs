@@ -27,9 +27,7 @@ fn convert_3d_to_2d_mesh(
             .entity(entity)
             .insert(Mesh2dHandle(mesh_handle.clone()));
 
-        if let Some(name) = name {
-            info!("Converted {name:?} 3d mesh into 2d mesh.");
-        }
+        info!("Converted {name:?} 3d mesh into 2d mesh.");
     }
 }
 
@@ -70,9 +68,7 @@ fn convert_std_to_color_material(
             }
         }
 
-        if let Some(name) = name {
-            info!("Converted {name:?} standard material into color material.");
-        }
+        info!("Converted {name:?} standard material into color material.");
     }
 }
 
