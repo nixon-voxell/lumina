@@ -27,7 +27,7 @@ fn convert_3d_to_2d_mesh(
             .entity(entity)
             .insert(Mesh2dHandle(mesh_handle.clone()));
 
-        info!("Converted {name:?} 3d mesh into 2d mesh.");
+        debug!("Converted {name:?} 3d mesh into 2d mesh.");
     }
 }
 
@@ -68,7 +68,7 @@ fn convert_std_to_color_material(
             }
         }
 
-        info!("Converted {name:?} standard material into color material.");
+        debug!("Converted {name:?} standard material into color material.");
     }
 }
 
@@ -95,7 +95,7 @@ fn material_change_update(
                 *color_material = std_to_color_material(std_material);
             }
 
-            info!("Updating color material: {:?}", id);
+            debug!("Updating color material: {:?}", id);
         }
     }
 }

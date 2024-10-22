@@ -98,13 +98,9 @@ fn handle_disconnection(
 }
 
 /// Insert [`ClientSourceEntity`] to newly added [`Predicted`] or [`Interpolated`] entities.
-fn client_source(
-    mut commands: Commands,
-    q_entities: Query<Entity, Or<(Added<Predicted>, Added<Interpolated>)>>,
-) {
+fn client_source(mut commands: Commands, q_entities: Query<Entity, Or<(Added<Predicted>,)>>) {
     for entity in q_entities.iter() {
         commands.entity(entity).insert(ClientSourceEntity);
-        println!("\n\nRoot: Set {} as ClientSourceEntity", entity);
     }
 }
 
@@ -123,7 +119,6 @@ fn client_source_hierarchy(
     for children in q_children.iter() {
         for entity in children.iter() {
             commands.entity(*entity).insert(ClientSourceEntity);
-            println!("\n\nHierarchy: Set {} as ClientSourceEntity", entity);
         }
     }
 }

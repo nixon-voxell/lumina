@@ -82,7 +82,7 @@ fn replicate_action_spawn(
         let client_id = id.0;
 
         if let Some(room_id) = lobby_infos.get_room_id(&client_id) {
-            info!("Received input spawn from {client_id} in room: {room_id:?}");
+            info!("SERVER: Received input spawn from {client_id} in room: {room_id:?}");
             let replicate = Replicate {
                 sync: SyncTarget {
                     // Allow a client to predict other client's input.

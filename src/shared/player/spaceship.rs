@@ -24,7 +24,7 @@ impl Plugin for SpaceShipPlugin {
 
 fn init_spaceships(
     mut commands: Commands,
-    q_spaceships: Query<(&SpaceShip, Entity), Added<SourceEntity>>,
+    q_spaceships: Query<(&SpaceShip, Option<&Name>, Entity), Added<SourceEntity>>,
 ) {
     // TODO: Consider using a lookup collider.
     let collider = Collider::triangle(
@@ -33,7 +33,7 @@ fn init_spaceships(
         Vec2::new(20.0, 0.0),
     );
 
-    for (spaceship, spaceship_entity) in q_spaceships.iter() {
+    for (spaceship, name, spaceship_entity) in q_spaceships.iter() {
         commands.entity(spaceship_entity).insert((
             MassPropertiesBundle::new_computed(&collider, 1.0),
             collider.clone(),
@@ -49,7 +49,7 @@ fn init_spaceships(
             },
         ));
 
-        info!("Initialized SpaceShip physics for {spaceship_entity:?}");
+        debug!("Initialized SpaceShip physics for {spaceship_entity:?} - ({name:?})");
     }
 }
 
@@ -61,14 +61,17 @@ fn init_spaceships(
 /// - Steer
 fn spaceship_movement(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_spaceships: Query<(
-        &mut MovementStat,
-        &mut LinearVelocity,
-        &mut AngularVelocity,
-        &mut LinearDamping,
-        &Rotation,
-        &SpaceShip,
-    )>,
+    mut q_spaceships: Query<
+        (
+            &mut MovementStat,
+            &mut LinearVelocity,
+            &mut AngularVelocity,
+            &mut LinearDamping,
+            &Rotation,
+            &SpaceShip,
+        ),
+        With<SourceEntity>,
+    >,
     time: Res<Time>,
     player_infos: Res<PlayerInfos>,
 ) {
@@ -81,6 +84,7 @@ fn spaceship_movement(
     let deceleration_factor = f32::min(DECELERATION_FACTOR * time.delta_seconds(), 1.0);
     let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
 
+    println!("{}", q_actions.iter().len());
     for (action, id) in q_actions.iter() {
         let Some(&spaceship_entity) = player_infos[PlayerInfoType::SpaceShip].get(id) else {
             continue;

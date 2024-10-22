@@ -6,6 +6,7 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use player::spaceship::SpaceShip;
 use player::weapon::Weapon;
+use player::PlayerId;
 
 use crate::client::{ClientSourceEntity, LocalSourceEntity};
 use crate::server::ServerSourceEntity;
@@ -66,7 +67,7 @@ fn set_source<C: Component>(
         Entity,
         (
             With<C>,
-            // With<PlayerId>,
+            With<PlayerId>,
             Without<SourceEntity>,
             Or<(
                 // Local

@@ -49,7 +49,7 @@ fn setup_ammmo_ref(
     mut ammo_refs: ResMut<AmmoRefEntities>,
 ) {
     for (ammo_type, ammo_entity) in q_ammo_refs.iter() {
-        println!("\n\nInitialized ammo ref {:?}.", ammo_type);
+        debug!("Initialized ammo ref {:?}.", ammo_type);
         ammo_refs.insert(*ammo_type, ammo_entity);
     }
 }

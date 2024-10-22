@@ -117,7 +117,7 @@ fn convert_primitive_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                info!("Generated primitive collider for {entity:?}.")
+                debug!("Generated primitive collider for {entity:?}.")
             }
             None => error!("Unable to convert ColliderConstructor into Collider."),
         }
@@ -162,7 +162,7 @@ fn convert_mesh_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                info!("Generated mesh collider for {entity:?}.")
+                debug!("Generated mesh collider for {entity:?}.")
             }
             None => error!("Unable to generate Collider from Mesh."),
         }
