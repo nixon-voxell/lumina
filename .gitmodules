@@ -7,6 +7,3 @@
 [submodule "external_crates/bevy_motiongfx"]
 	path = external_crates/bevy_motiongfx
 	url = https://github.com/voxell-tech/bevy_motiongfx
-[submodule "external_crates/bevy_coroutine"]
-	path = external_crates/bevy_coroutine
-	url = https://github.com/nixon-voxell/bevy_coroutine.git

@@ -14,7 +14,7 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 velyst = { path = "external_crates/velyst" }
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
-bevy_coroutine = { path = "external_crates/bevy_coroutine" }
+bevy_coroutine = { version = "0.1.3", git = "https://github.com/nixon-voxell/bevy_coroutine" }
 
 bevy = { version = "0.14", features = ["wayland"] }
 bevy_vello = "0.6"
