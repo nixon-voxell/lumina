@@ -9,7 +9,7 @@ use lightyear::prelude::*;
 use crate::protocol::{Matchmake, ReliableChannel};
 use crate::shared::action::{LocalActionBundle, PlayerAction};
 use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
-use crate::shared::player::weapon::{Weapon, WeaponType};
+use crate::shared::player::weapon::WeaponType;
 use crate::shared::player::{BlueprintType, PlayerId};
 use crate::ui::main_window::{MainWindowTransparency, WINDOW_FADE_DURATION};
 
