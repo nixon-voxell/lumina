@@ -56,30 +56,6 @@ fn spawn_ui_camera(mut commands: Commands) {
     ));
 }
 
-// Helper for typst func interactions.
-
-/// Compact query parameter for getting labeled interactions.
-pub type InteractionQuery<'a, 'w, 's> =
-    Query<'w, 's, (&'a Interaction, &'a TypstLabel), Changed<Interaction>>;
-
-pub fn pressed<'a>(
-    mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
-    label_str: &str,
-) -> bool {
-    q_interactions.any(|(interaction, label)| {
-        label.as_str() == label_str && *interaction == Interaction::Pressed
-    })
-}
-
-// pub fn hovered<'a>(
-//     mut q_interactions: impl Iterator<Item = (&'a Interaction, &'a TypstLabel)>,
-//     label_str: &str,
-// ) -> bool {
-//     q_interactions.any(|(interaction, label)| {
-//         label.as_str() == label_str && *interaction == Interaction::Hovered
-//     })
-// }
-
 pub fn interactable_func<F: InteractableFunc>(
     q_interactions: Query<(&Interaction, &TypstLabel)>,
     mut func: ResMut<F>,
@@ -121,5 +97,32 @@ pub struct CanShowContent<F: TypstFunc>(#[deref] bool, PhantomData<F>);
 impl<F: TypstFunc> Default for CanShowContent<F> {
     fn default() -> Self {
         Self(false, PhantomData)
+    }
+}
+
+/// Compact query parameter for getting labeled interactions.
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct InteractionQuery<'w, 's> {
+    pub q_interactions:
+        Query<'w, 's, (&'static Interaction, &'static TypstLabel), Changed<Interaction>>,
+}
+
+impl InteractionQuery<'_, '_> {
+    pub fn pressed(&self, label_str: &str) -> bool {
+        self.is_interacting(label_str, &Interaction::Pressed)
+    }
+
+    pub fn _hovered(&self, label_str: &str) -> bool {
+        self.is_interacting(label_str, &Interaction::Hovered)
+    }
+
+    pub fn _none(&self, label_str: &str) -> bool {
+        self.is_interacting(label_str, &Interaction::None)
+    }
+
+    pub fn is_interacting(&self, label_str: &str, target_interaction: &Interaction) -> bool {
+        self.q_interactions.iter().any(|(interaction, label)| {
+            label.as_str() == label_str && interaction == target_interaction
+        })
     }
 }

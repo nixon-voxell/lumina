@@ -5,8 +5,9 @@ use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
 use server::RoomId;
 
-use crate::shared::input::PlayerAction;
-use crate::shared::player::{PlayerId, SpaceShip};
+use crate::shared::action::PlayerAction;
+use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
+use crate::shared::player::PlayerId;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
@@ -32,6 +33,10 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation(client::ComponentSyncMode::Once);
 
         app.register_component::<SpaceShip>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<SpaceShipType>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 

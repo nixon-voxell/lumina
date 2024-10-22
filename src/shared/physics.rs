@@ -117,7 +117,7 @@ fn convert_primitive_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                info!("Generated primitive collider for {entity:?}.")
+                debug!("Generated primitive collider for {entity:?}.")
             }
             None => error!("Unable to convert ColliderConstructor into Collider."),
         }
@@ -162,7 +162,7 @@ fn convert_mesh_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                info!("Generated mesh collider for {entity:?}.")
+                debug!("Generated mesh collider for {entity:?}.")
             }
             None => error!("Unable to generate Collider from Mesh."),
         }
@@ -209,7 +209,7 @@ pub fn trimesh_from_mesh(mesh: &Mesh) -> Option<Collider> {
     })
 }
 
-pub fn trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
+pub fn _trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
     extract_mesh_vertices_indices(mesh).map(|(vertices, indices)| {
         SharedShape::trimesh_with_flags(vertices, indices, flags.into()).into()
     })
@@ -241,4 +241,13 @@ pub enum MeshCollider {
     #[default]
     ConvexHull,
     Trimesh,
+}
+
+#[derive(Bundle, Default)]
+pub struct PhysicsBundle {
+    pub rigidbody: RigidBody,
+    pub position: Position,
+    pub rotation: Rotation,
+    pub linear_damping: LinearDamping,
+    pub angular_damping: AngularDamping,
 }

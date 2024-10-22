@@ -1,19 +1,38 @@
 use avian2d::prelude::*;
 use bevy::core_pipeline::bloom::BloomSettings;
+// use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
+use bevy_motiongfx::prelude::*;
+use leafwing_input_manager::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
-use crate::shared::player::LocalPlayer;
+use crate::shared::action::PlayerAction;
+use crate::shared::player::spaceship::SpaceShip;
+use crate::shared::player::PlayerInfoType;
+use crate::shared::SourceEntity;
+use crate::ui::main_window::MainWindowFunc;
+
+use super::player::LocalPlayerInfo;
 
 pub(super) struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CameraShake>()
+        app.init_resource::<CameraZoom>()
+            .init_resource::<CameraShake>()
             .add_systems(Startup, spawn_game_camera)
-            .add_systems(Update, follow_player)
+            .add_systems(
+                Update,
+                (
+                    follow_spaceship,
+                    camera_zoom,
+                    spaceship_velocity_zoom,
+                    main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
+                ),
+            )
             .add_systems(PreUpdate, restore_camera_shake)
             .add_systems(
                 PostUpdate,
@@ -35,42 +54,139 @@ fn spawn_game_camera(mut commands: Commands) {
                 hdr: true,
                 ..default()
             },
+            projection: OrthographicProjection {
+                near: -1000.0,
+                scaling_mode: ScalingMode::AutoMax {
+                    max_width: 1280.0,
+                    max_height: 720.0,
+                },
+                ..default()
+            },
             tonemapping: Tonemapping::TonyMcMapface,
             deband_dither: DebandDither::Enabled,
             ..default()
         },
         BloomSettings::default(),
+        // SmaaSettings::default(),
     ));
 }
 
-fn follow_player(
+fn follow_spaceship(
     mut q_camera: Query<&mut Transform, With<GameCamera>>,
-    q_player: Query<&Position, With<LocalPlayer>>,
+    q_actions: Query<&ActionState<PlayerAction>, With<SourceEntity>>,
+    q_spaceship_transforms: Query<&GlobalTransform, (With<SpaceShip>, With<SourceEntity>)>,
     time: Res<Time>,
+    local_player_info: LocalPlayerInfo,
+    mut aim_offset: Local<Vec2>,
 ) {
-    // Adjust this value for more or less delay.
-    const LERP_FACTOR: f32 = 3.0;
+    const FOLLOW_FACTOR: f32 = 20.0;
+    const AIM_FACTOR: f32 = 2.0;
+    const AIM_DISTANCE: f32 = 100.0;
 
-    // Ensure we have at least one player.
-    let Ok(player_pos) = q_player.get_single() else {
+    // Clamp within 1.0 to prevent overshooting
+    let aim_factor = f32::min(1.0, AIM_FACTOR * time.delta_seconds());
+    let follow_factor = f32::min(1.0, FOLLOW_FACTOR * time.delta_seconds());
+
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+        return;
+    };
+
+    // Get local spaceship.
+    let Ok(spaceship_translation) = q_spaceship_transforms
+        .get(spaceship_entity)
+        .map(|t| t.translation())
+    else {
+        return;
+    };
+
+    // Get local action.
+    let Some(action) = local_player_info
+        .get(PlayerInfoType::Action)
+        .and_then(|e| q_actions.get(e).ok())
+    else {
         return;
     };
 
     let mut camera_transform = q_camera.single_mut();
 
     // Calculate the target position based on player's position.
-    let target_position = Vec3::new(
-        player_pos.x,
-        player_pos.y,
-        camera_transform.translation.z, // Keep the same z position
+    let mut target_position = Vec3::new(
+        spaceship_translation.x,
+        spaceship_translation.y,
+        // Keep the same z position.
+        camera_transform.translation.z,
     );
 
+    let mut target_aim_offset = Vec2::ZERO;
+    if action.pressed(&PlayerAction::Aim) {
+        let aim_direction = action
+            .clamped_axis_pair(&PlayerAction::Aim)
+            .map(|axis| axis.xy())
+            .unwrap_or_default();
+
+        target_aim_offset = aim_direction * AIM_DISTANCE;
+    }
+
+    *aim_offset = Vec2::lerp(*aim_offset, target_aim_offset, aim_factor);
+    target_position.x += aim_offset.x;
+    target_position.y += aim_offset.y;
+
     // Smoothly interpolate the camera's position towards the target position.
-    camera_transform.translation = camera_transform.translation.lerp(
-        target_position,
-        // Clamp within 1.0 to prevent overshooting
-        f32::min(1.0, LERP_FACTOR * time.delta_seconds()),
+    camera_transform.translation = camera_transform
+        .translation
+        .lerp(target_position, follow_factor);
+}
+
+fn spaceship_velocity_zoom(
+    q_spaceships: Query<(&LinearVelocity, &SpaceShip), (With<SpaceShip>, With<SourceEntity>)>,
+    mut camera_zoom: ResMut<CameraZoom>,
+    local_player_info: LocalPlayerInfo,
+) {
+    const MAX_ZOOM: f32 = 1.2;
+
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+        return;
+    };
+
+    let Ok((spaceship_velocity, spaceship)) = q_spaceships.get(spaceship_entity) else {
+        return;
+    };
+
+    // Apply ease to zoom more towards maximal velocity and vice versa.
+    let velocity_factor =
+        ease::quart::ease_in(spaceship_velocity.length() / spaceship.max_linear_speed);
+
+    camera_zoom.target_zoom = f32::lerp(1.0, MAX_ZOOM, velocity_factor);
+}
+
+fn main_window_zoom(main_window_func: Res<MainWindowFunc>, mut camera_zoom: ResMut<CameraZoom>) {
+    const SCALE_MULTIPLIER: f32 = 1.5;
+
+    camera_zoom.zoom_mutliplier = f32::lerp(
+        SCALE_MULTIPLIER,
+        1.0,
+        ease::cubic::ease_in_out(main_window_func.transparency as f32),
     );
+}
+
+fn camera_zoom(
+    mut q_camera: Query<&mut OrthographicProjection, With<GameCamera>>,
+    mut camera_zoom: ResMut<CameraZoom>,
+    time: Res<Time>,
+) {
+    const ZOOM_FACTOR: f32 = 10.0;
+
+    let Ok(mut projection) = q_camera.get_single_mut() else {
+        return;
+    };
+
+    camera_zoom.zoom = f32::lerp(
+        camera_zoom.zoom,
+        camera_zoom.target_zoom,
+        f32::min(1.0, ZOOM_FACTOR * time.delta_seconds()),
+    );
+
+    projection.scale = camera_zoom.zoom * camera_zoom.zoom_mutliplier;
 }
 
 fn restore_camera_shake(
@@ -108,7 +224,24 @@ fn camera_shake(
 }
 
 #[derive(Resource, Debug)]
-pub struct CameraShake {
+pub(super) struct CameraZoom {
+    zoom: f32,
+    zoom_mutliplier: f32,
+    target_zoom: f32,
+}
+
+impl Default for CameraZoom {
+    fn default() -> Self {
+        Self {
+            zoom: 1.0,
+            zoom_mutliplier: 1.0,
+            target_zoom: 1.0,
+        }
+    }
+}
+
+#[derive(Resource, Debug)]
+pub(super) struct CameraShake {
     trauma: f32,
     seed: f32,
     noise_strength: f32,

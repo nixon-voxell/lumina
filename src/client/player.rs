@@ -1,86 +1,54 @@
 use bevy::prelude::*;
-use blenvy::*;
-use client::*;
-use leafwing_input_manager::prelude::*;
-use lightyear::prelude::*;
 
-use crate::shared::input::{PlayerAction, ReplicateInputBundle};
-use crate::shared::player::{LocalPlayer, PlayerId, PlayerInfo, PlayerInfos, SpaceShip};
-use crate::shared::LocalEntity;
+use crate::shared::player::{PlayerId, PlayerInfoType, PlayerInfos};
 
-use super::multiplayer_lobby::MatchmakeState;
-use super::LocalClientId;
+use super::{ui::Screen, Connection};
+
+mod aim;
+mod spaceship;
+mod weapon;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(PlayerAction::input_map())
-            .add_systems(
-                Update,
-                (
-                    handle_player_spawn_visual,
-                    handle_player_spawn.run_if(resource_exists::<LocalClientId>),
-                ),
-            )
-            .add_systems(OnEnter(MatchmakeState::None), despawn_networked_inputs);
-    }
-}
-
-/// Add visuals for player.
-fn handle_player_spawn_visual(
-    mut commands: Commands,
-    // Handle both networked and local players.
-    q_players: Query<Entity, (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>)>,
-) {
-    for entity in q_players.iter() {
-        commands.entity(entity).insert((
-            BlueprintInfo::from_path("blueprints/Player.glb"),
-            SpawnBlueprint,
+        app.add_plugins((
+            aim::AimPlugin,
+            spaceship::SpaceShipPlugin,
+            weapon::WeaponPlugin,
         ));
+
+        app.init_resource::<LocalPlayerId>()
+            .add_systems(OnEnter(Connection::Disconnected), reset_local_player_id)
+            .add_systems(OnEnter(Screen::LocalLobby), reset_local_player_id);
     }
 }
 
-/// Add visuals and input for player on player spawn.
-fn handle_player_spawn(
-    mut commands: Commands,
-    q_predicted: Query<
-        (&PlayerId, Entity),
-        (Added<SpaceShip>, Or<(Added<Predicted>, Added<LocalEntity>)>),
-    >,
-    local_client_id: Res<LocalClientId>,
-    mut player_infos: ResMut<PlayerInfos>,
-) {
-    for (player_id, entity) in q_predicted.iter() {
-        info!("Spawned player {:?}.", entity);
-        let client_id = player_id.0;
+/// Reset local player id to [`PlayerId::LOCAL`].
+fn reset_local_player_id(mut local_player_id: ResMut<LocalPlayerId>) {
+    *local_player_id = LocalPlayerId::default();
+}
 
-        if client_id == local_client_id.0 {
-            // Mark our player.
-            commands.entity(entity).insert(LocalPlayer);
-            // Replicate input from client to server.
-            commands.spawn(ReplicateInputBundle::new(*player_id));
-        }
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct LocalPlayerInfo<'w> {
+    player_infos: Res<'w, PlayerInfos>,
+    local_player_id: Res<'w, LocalPlayerId>,
+}
 
-        player_infos.insert(
-            client_id,
-            PlayerInfo {
-                // TODO: Add lobby entity with the correct bits from room id.
-                lobby: Entity::PLACEHOLDER,
-                player: entity,
-                input: None,
-            },
-        );
+impl<'w> LocalPlayerInfo<'w> {
+    pub fn get(&self, info_type: PlayerInfoType) -> Option<Entity> {
+        self.player_infos[info_type]
+            .get(&**self.local_player_id)
+            .copied()
     }
 }
 
-/// Despawn all networked player inputs.
-fn despawn_networked_inputs(
-    mut commands: Commands,
-    // Despawn only networked actions.
-    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, Without<LocalEntity>)>,
-) {
-    for entity in q_actions.iter() {
-        commands.entity(entity).despawn();
+// Source of truth for retrieving local entities.
+#[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
+pub(super) struct LocalPlayerId(pub PlayerId);
+
+impl Default for LocalPlayerId {
+    fn default() -> Self {
+        Self(PlayerId::LOCAL)
     }
 }

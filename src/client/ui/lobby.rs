@@ -3,10 +3,9 @@ use client::*;
 use lightyear::prelude::*;
 use velyst::{prelude::*, typst_element::prelude::*};
 
-use crate::client::multiplayer_lobby::MatchmakeState;
 use crate::protocol::{ExitLobby, ReliableChannel};
 use crate::ui::main_window::push_to_main_window;
-use crate::ui::{interactable_func, pressed, InteractableFunc, InteractionQuery};
+use crate::ui::{interactable_func, InteractableFunc, InteractionQuery};
 
 use super::Screen;
 
@@ -30,16 +29,13 @@ impl Plugin for LobbyUiPlugin {
 }
 
 fn exit_lobby_btn(
-    q_interactions: InteractionQuery,
+    interactions: InteractionQuery,
     mut connection_manager: ResMut<ConnectionManager>,
-    mut next_lobby_state: ResMut<NextState<MatchmakeState>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
-    if pressed(q_interactions.iter(), "btn:exit-lobby") {
-        let _ = connection_manager
-            .send_message_to_target::<ReliableChannel, _>(&ExitLobby, NetworkTarget::None);
+    if interactions.pressed("btn:exit-lobby") {
+        let _ = connection_manager.send_message::<ReliableChannel, _>(&ExitLobby);
 
-        next_lobby_state.set(MatchmakeState::None);
         next_screen_state.set(Screen::MainMenu);
     }
 }
@@ -47,15 +43,10 @@ fn exit_lobby_btn(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "lobby", layer = 1)]
 pub struct LobbyFunc {
-    #[typst_func(named)]
     hovered_button: Option<TypLabel>,
-    #[typst_func(named)]
     hovered_animation: f64,
-    #[typst_func(named)]
     pub curr_player_count: u8,
-    #[typst_func(named)]
     pub max_player_count: u8,
-    #[typst_func(named)]
     pub room_id: Option<u64>,
 }
 

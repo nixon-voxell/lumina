@@ -1,15 +1,16 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
+use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use server::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
-use crate::shared::input::PlayerAction;
-use crate::shared::player::PlayerInfos;
-use crate::shared::player::{PlayerId, ReplicatePlayerBundle};
+use crate::shared::action::PlayerAction;
+use crate::shared::player::spaceship::{SpaceShip, SpaceShipType};
+use crate::shared::player::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
 use super::lobby::Lobby;
+use super::LobbyInfos;
 
 pub(super) struct PlayerPlugin;
 
@@ -19,53 +20,69 @@ impl Plugin for PlayerPlugin {
             PreUpdate,
             (
                 replicate_actions.after(MainSet::EmitEvents),
-                handle_input_spawn.in_set(ServerReplicationSet::ClientReplication),
+                replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
+                replicate_spaceship_spawn,
             ),
         );
     }
 }
 
 /// Spawn an entity for a given client.
-pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) -> Entity {
-    info!("Spawn player for {:?}", client_id);
+pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) {
+    info!("SERVER: Spawn player for {:?}", client_id);
 
-    let replicate = Replicate {
-        sync: SyncTarget {
-            prediction: NetworkTarget::All,
-            interpolation: NetworkTarget::AllExceptSingle(client_id),
-        },
-        controlled_by: ControlledBy {
-            target: NetworkTarget::Single(client_id),
-            ..default()
-        },
-        relevance_mode: NetworkRelevanceMode::InterestManagement,
-        ..default()
-    };
-
-    commands
-        .spawn((
-            ReplicatePlayerBundle::new(
-                client_id,
-                Position::default(),
-                Rotation::radians(std::f32::consts::FRAC_PI_2),
-            ),
-            replicate,
-        ))
-        .id()
+    commands.spawn((
+        PlayerId(client_id),
+        // TODO: Allow player to choose what spaceship to spawn.
+        SpaceShipType::Assassin.config_info(),
+        SpawnBlueprint,
+    ));
 }
 
-/// Adds input action entity to [`PlayerInfos`] and replicate it back to other clients.
-fn handle_input_spawn(
+fn replicate_spaceship_spawn(
+    mut commands: Commands,
+    q_spaceships: Query<(&PlayerId, Entity), (With<SpaceShip>, Without<SyncTarget>)>,
+    lobby_infos: Res<LobbyInfos>,
+    mut player_infos: ResMut<PlayerInfos>,
+    mut room_manager: ResMut<RoomManager>,
+) {
+    for (id, spaceship_entity) in q_spaceships.iter() {
+        let client_id = id.0;
+        let Some(room_id) = lobby_infos.get_room_id(&client_id) else {
+            error!("Unable to get room id for {client_id}");
+            return;
+        };
+
+        commands.entity(spaceship_entity).insert(Replicate {
+            sync: SyncTarget {
+                prediction: NetworkTarget::All,
+                interpolation: NetworkTarget::AllExceptSingle(client_id),
+            },
+            controlled_by: ControlledBy {
+                target: NetworkTarget::Single(client_id),
+                ..default()
+            },
+            relevance_mode: NetworkRelevanceMode::InterestManagement,
+            ..default()
+        });
+
+        room_manager.add_entity(spaceship_entity, room_id);
+        player_infos[PlayerInfoType::SpaceShip].insert(*id, spaceship_entity);
+    }
+}
+
+/// Replicate action back to other clients.
+fn replicate_action_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,
-    player_infos: Res<PlayerInfos>,
+    lobby_infos: Res<LobbyInfos>,
     mut room_manager: ResMut<RoomManager>,
 ) {
     for (id, entity) in q_actions.iter() {
         let client_id = id.0;
-        info!("Received input spawn from {client_id:?}");
 
-        if let Some(info) = player_infos.get(&client_id) {
+        if let Some(room_id) = lobby_infos.get_room_id(&client_id) {
+            info!("SERVER: Received input spawn from {client_id} in room: {room_id:?}");
             let replicate = Replicate {
                 sync: SyncTarget {
                     // Allow a client to predict other client's input.
@@ -87,28 +104,28 @@ fn handle_input_spawn(
                 // prepredicted component back to the original client.
                 OverrideTargetComponent::<PrePredicted>::new(NetworkTarget::Single(client_id)),
             ));
-            room_manager.add_entity(entity, info.room_id());
+            room_manager.add_entity(entity, room_id);
         }
     }
 }
 
-/// Replicate the actions (inputs) of a client to other clients
+/// Replicate the inputs (actions) of a client to other clients
 /// so that a client can predict other clients.
 fn replicate_actions(
     q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
     mut action_evr: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
-    player_infos: Res<PlayerInfos>,
+    lobby_infos: Res<LobbyInfos>,
 ) {
     for event in action_evr.read() {
         let inputs = event.message();
         let client_id = event.context();
 
-        let Some(info) = player_infos.get(client_id) else {
+        let Some(&lobby_entity) = lobby_infos.get(client_id) else {
             continue;
         };
 
-        let Ok(lobby) = q_lobbies.get(info.lobby) else {
+        let Ok(lobby) = q_lobbies.get(lobby_entity) else {
             continue;
         };
 

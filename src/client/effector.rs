@@ -6,10 +6,13 @@ use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 use velyst::typst_vello;
 
+use crate::shared::action::PlayerAction;
 use crate::shared::effector::{EffectorPopupMsg, InteractableEffector};
-use crate::shared::input::PlayerAction;
-use crate::shared::player::LocalPlayer;
+use crate::shared::player::PlayerInfoType;
+use crate::shared::SourceEntity;
 use crate::ui::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
+
+use super::player::LocalPlayerInfo;
 
 pub(super) struct EffectorPlugin;
 
@@ -28,16 +31,21 @@ fn collect_effector_collisions(
         (&GlobalTransform, &CollidingEntities, Entity),
         (With<Sensor>, Without<InteractedEffector>),
     >,
-    q_local_player: Query<(&GlobalTransform, Entity), With<LocalPlayer>>,
+    q_spaceship_transforms: Query<&GlobalTransform, With<SourceEntity>>,
     mut collided_effector: ResMut<CollidedEffector>,
+    local_player_info: LocalPlayerInfo,
 ) {
-    let Ok((player_transform, player_entity)) = q_local_player.get_single() else {
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+        return;
+    };
+
+    let Ok(player_transform) = q_spaceship_transforms.get(spaceship_entity) else {
         return;
     };
 
     let effectors = q_sensors
         .iter()
-        .filter(|(_, colliding_entities, _)| colliding_entities.contains(&player_entity));
+        .filter(|(_, colliding_entities, _)| colliding_entities.contains(&spaceship_entity));
 
     // Find the closest effector to the player.
     let mut closest_distance = f32::MAX;
@@ -163,12 +171,13 @@ fn show_effector_popup(
 fn interact_effector(
     mut commands: Commands,
     q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
-    q_action: Query<&ActionState<PlayerAction>, With<LocalPlayer>>,
+    q_actions: Query<&ActionState<PlayerAction>, With<SourceEntity>>,
     mut effector_interaction_evw: EventWriter<EffectorInteraction>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
     mut func: ResMut<EffectorPopupFunc>,
     mut accumulation: Local<f32>,
+    local_player_info: LocalPlayerInfo,
 ) {
     if collided_effector.is_changed() {
         *accumulation = 0.0;
@@ -178,7 +187,10 @@ fn interact_effector(
         return;
     }
 
-    let Ok(action) = q_action.get_single() else {
+    let Some(action) = local_player_info
+        .get(PlayerInfoType::Action)
+        .and_then(|e| q_actions.get(e).ok())
+    else {
         return;
     };
 
@@ -230,17 +242,3 @@ pub(super) struct EffectorInteraction(pub Entity);
 /// Tag component for an [`InteractableEffector`] that has been successfully interacted.
 #[derive(Component, Default)]
 pub(super) struct InteractedEffector;
-
-// #[derive(States, Debug, PartialEq, Eq, Hash, Clone, Copy)]
-// pub(super) struct TriggeredEffector<T: Component + Debug + Eq + Hash + Clone + Copy>(
-//     PhantomData<T>,
-// );
-
-// impl<T> Default for TriggeredEffector<T>
-// where
-//     T: Component + Debug + Eq + Hash + Clone + Copy,
-// {
-//     fn default() -> Self {
-//         Self(PhantomData)
-//     }
-// }
