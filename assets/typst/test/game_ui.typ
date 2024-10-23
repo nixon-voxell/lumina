@@ -7,115 +7,150 @@
   margin: 0pt,
 )
 
-#let parallelogram(
-  length: 100pt,
-  shear: 20pt,
-  height: 30pt) = {
-  polygon(
-    fill: blue.lighten(80%),
-    stroke: blue,
-    (shear, 0pt),
-    (length + shear, 0pt),
-    (length, height),
-    (0pt,  height),
+
+// Booster meter
+#let red_height = 0%
+#let boostmeter(
+  height: 400pt,
+  width: 50pt,
+) = {
+  rect(
+    width: width,
+    height: height,
+    inset: 0pt,
+    fill: white
+  )[
+    // Add red rectangle as booster overheat signal
+     #place(
+   center + bottom,
+  rect(
+    width: width,
+    height: red_height,
+    fill: red
+  ))
+  ] 
+}
+
+#let speed_and_bullets(
+  width: 400pt,
+  height: 80pt,
+) = {
+  box(
+    width: width,
+    height: height,
+    fill: white
+  )[
+    #place(left + horizon)[
+      #text(fill: black, 15pt)[= Speed: 70km/h] 
+    ]
+
+    #place(right + horizon)[
+      #text(fill:black, 15pt)[= Bullets: 30]
+    ]
+  ]
+
+  
+}
+
+#let shop(
+  width: 100pt,
+  height: 80pt,
+  x_offset: 0pt,
+  y_offset: 0pt
+) = {
+  rect(
+    width: width,
+    height: height,
+    fill: yellow
   )
 }
 
-#let main(
-  main_width: 1280pt,
-  main_height: 720pt
+#let timer() ={
+    text(fill: white, 45pt)[= 00:00]
+  
+}
+
+#let objectives(
+  radius: 140pt,
+  
 ) = {
-  set text(fill: base8)
-
-  box(
-    width: main_width,
-    height: main_height,
-    inset: (x: main_width * 6%, y: main_height * 6%),
-  )[
-    #place(left + horizon)[
-      #set text(size: 48pt)
-      #box(stroke: red, outset: 50pt)[#text(fill: yellow)[= Side Effects]]
-
-      #linebreak()
-
-      #move(dx: 2%)[
-        #set text(size: 32pt, fill: base7)
-        #text(fill: green)[= Play]
-        = Watch #text(fill: green, size: 20pt)[
-          #emoji.triangle.r 4152 Live Now
-        ]
-        = Luminators
-        = Tutorial
-
-        #linebreak()
-
-        #set text(size: 18pt, fill: red.mix((base0, 30%)))
-
-        #parallelogram()
-        = Exit Game
-      ]
-    ]
-
-    #let percent = 1.0
-    #let max_height = 300pt
-    #let spacing = 0pt
-
-    #place(horizon + right)[
-      #align(center)[#stack(
-        dir: ttb,
-        spacing: -max_height * percent - spacing * 0.5,
-        rect(height: max_height + spacing, width: 20pt + spacing, fill: white, stroke: white.transparentize(70%) + 10pt),
-        rect(height: max_height * percent, width: 20pt, fill: gradient.linear(angle: 90deg, red, green, blue))
-      )]
-    ]
-
-    #place(left + bottom)[
-      #set text(size: 18pt)
-      #emoji.gear Settings
-    ]
-
-    #let player_name = "Nixon"
-
-    #place(right + top)[
-      #parallelogram()
-      #set text(size: 24pt, font: "Inter")
-
-      #let size = 80pt
-      #align(horizon)[
-        #stack(
-          dir: ltr,
-          rect(fill: blue, width: size, height: size),
-          box(
-            width: 400pt,
-            height: size,
-            fill: base6.transparentize(80%),
-            inset: 20pt,
-          )[
-            #stack(
-              dir: ltr,
-              spacing: 1fr,
-              player_name,
-              underline[View Profile],
-            )
-          ],
-        )
-      ]
-    ]
-
-    #let fps = 60
-    #let elapsed_time = 1.23
-
-    #place(right + bottom)[
-      #set text(size: 18pt)
-
-      #align(left)[
-        = Performance Metrics
-        FPS: #fps\
-        Elapsed Time: #elapsed_time\
-      ]
-    ]
-
+  circle(radius: radius, fill: yellow)
+  
+  place(center + horizon)[
+    #text(fill: black, 25pt)[ = Objectives]
   ]
 }
 
-#main()
+// Input:
+// - Length of the entire health bar
+// - Max HP
+// - Current HP
+
+// Rule
+// - Each box represents 10 HP
+#let playerhealth(
+  rect_width: 15pt,
+  rect_height: 20pt,
+  spacing: 7pt,
+  num_rectangles: 6
+) = {
+  text(fill: green, size: 18pt, [= Health])
+  box()
+  // Stack the green rectangles horizontally
+  for i in range(num_rectangles) {
+    place(dx: i * (rect_width + spacing))[
+      #rect(
+        width: rect_width,
+        height: rect_height,
+        fill: green.saturate(80%),
+        // fill: rgb("#00ff00"),
+      )
+    ]
+  }
+}
+
+
+#let main( main_width,
+  main_height) = context {
+    let main_width = main_width * 1pt
+    let main_height = main_height * 1pt
+  box(
+    width: main_width,
+    height: main_height,
+    inset: 50pt,
+  )[
+    #place(right + horizon)[
+      #boostmeter()
+    ]
+  
+    #place(bottom + center)[
+      #speed_and_bullets()
+    ]
+  
+    #place(top + center)[
+      #timer()
+    ]
+  
+    #place(left + bottom)[
+      #objectives()
+    ]
+  
+    #place(left + top)[
+      #playerhealth()
+    ]
+
+    #let x = speed_and_bullets()
+    #let size_x = measure(x)
+    #set text(white, size: 100pt)
+    #let half_width = size_x.width / 2
+
+
+    #place(center + bottom, dx: half_width + 100pt)[
+      #grid(
+        columns: 2,
+        gutter: 10pt,
+        ..range(5).map((i) => box(fill: white, width: 50pt, height: 50pt))
+      )
+    ]
+  ]
+}
