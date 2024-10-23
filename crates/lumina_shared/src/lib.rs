@@ -47,12 +47,20 @@ impl Plugin for SharedPlugin {
         ));
 
         app.add_systems(
-            PostUpdate,
+            PreUpdate,
             (
-                set_source::<ActionState<PlayerAction>>,
-                set_source::<SpaceShip>,
-                set_source::<Weapon>,
+                (
+                    source_hierarchy::<LocalSourceEntity>,
+                    source_hierarchy::<ClientSourceEntity>,
+                    source_hierarchy::<ServerSourceEntity>,
+                ),
+                (
+                    set_source::<ActionState<PlayerAction>>,
+                    set_source::<SpaceShip>,
+                    set_source::<Weapon>,
+                ),
             )
+                .chain()
                 .in_set(SetSourceSet),
         );
     }
@@ -100,6 +108,25 @@ fn set_source<C: Component>(
     }
 }
 
+/// Propagate source component to the children hierarchy.
+fn source_hierarchy<Source: Component + Default>(
+    mut commands: Commands,
+    q_children: Query<
+        &Children,
+        (
+            With<Source>,
+            // Just added or the children changes.
+            Or<(Added<Source>, Changed<Children>)>,
+        ),
+    >,
+) {
+    for children in q_children.iter() {
+        for entity in children.iter() {
+            commands.entity(*entity).insert(Source::default());
+        }
+    }
+}
+
 /// Entity that represents the final source of reference.
 /// Source entity follows 3 rules:
 ///
@@ -113,14 +140,19 @@ fn set_source<C: Component>(
 #[derive(Component, Default)]
 pub struct SourceEntity;
 
+/// Local source entity needs to be defined manually when spawning entities.
+///
+/// Any children that follows will also become a local source entity.
+#[derive(Component, Default)]
+pub struct LocalSourceEntity;
+
+/// Any children that follows will also become a client source entity.
 #[derive(Component, Default)]
 pub struct ClientSourceEntity;
 
+/// Any children that follows will also become a server source entity.
 #[derive(Component, Default)]
 pub struct ServerSourceEntity;
-
-#[derive(Component, Default)]
-pub struct LocalSourceEntity;
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub struct SetSourceSet;

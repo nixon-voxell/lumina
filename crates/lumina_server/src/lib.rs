@@ -32,10 +32,7 @@ impl Plugin for ServerPlugin {
         app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
             .init_resource::<LobbyInfos>()
             .add_systems(Startup, start_server)
-            .add_systems(
-                PreUpdate,
-                (server_source, server_source_hierarchy).before(MainSet::Send),
-            );
+            .add_systems(PreUpdate, server_source.before(MainSet::Send));
     }
 }
 
@@ -51,31 +48,6 @@ fn server_source(mut commands: Commands, q_entities: Query<Entity, Added<SyncTar
         commands.entity(entity).insert(ServerSourceEntity);
     }
 }
-
-/// Propagate [`ServerSourceEntity`] to the children hierarchy.
-fn server_source_hierarchy(
-    mut commands: Commands,
-    q_children: Query<
-        &Children,
-        (
-            With<ServerSourceEntity>,
-            // Just added or the children changes.
-            Or<(Added<ServerSourceEntity>, Changed<Children>)>,
-        ),
-    >,
-) {
-    for children in q_children.iter() {
-        for entity in children.iter() {
-            commands.entity(*entity).insert(ServerSourceEntity);
-        }
-    }
-}
-
-/// Any entity with [`SyncTarget`] is a server source entity.
-///
-/// Any children that follows that will also become a server source entity.
-#[derive(Component, Default)]
-pub struct ServerSourceEntity;
 
 /// Create the lightyear [`ServerConfig`].
 fn server_config(settings: &NetworkSettings) -> ServerConfig {

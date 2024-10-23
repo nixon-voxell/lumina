@@ -5,6 +5,7 @@ use bevy_coroutine::prelude::*;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
+use lumina_shared::prelude::*;
 use lumina_shared::settings::NetworkSettings;
 use lumina_shared::shared_config;
 
@@ -48,14 +49,7 @@ impl Plugin for ClientPlugin {
         .add_systems(OnEnter(Connection::Connect), connect_server)
         .add_systems(
             PreUpdate,
-            (
-                handle_connection,
-                handle_disconnection,
-                client_source,
-                client_source_hierarchy,
-                local_source_hierarchy,
-            )
-                .after(MainSet::Receive),
+            (handle_connection, handle_disconnection, client_source).after(MainSet::Receive),
         );
 
         // Enable dev tools for dev builds.
@@ -102,56 +96,6 @@ fn client_source(mut commands: Commands, q_entities: Query<Entity, Added<Predict
         commands.entity(entity).insert(ClientSourceEntity);
     }
 }
-
-/// Propagate [`ClientSourceEntity`] to the children hierarchy.
-fn client_source_hierarchy(
-    mut commands: Commands,
-    q_children: Query<
-        &Children,
-        (
-            With<ClientSourceEntity>,
-            // Just added or the children changes.
-            Or<(Added<ClientSourceEntity>, Changed<Children>)>,
-        ),
-    >,
-) {
-    for children in q_children.iter() {
-        for entity in children.iter() {
-            commands.entity(*entity).insert(ClientSourceEntity);
-        }
-    }
-}
-
-/// Propagate [`LocalSourceEntity`] to the children hierarchy.
-fn local_source_hierarchy(
-    mut commands: Commands,
-    q_children: Query<
-        &Children,
-        (
-            With<LocalSourceEntity>,
-            // Just added or the children changes.
-            Or<(Added<LocalSourceEntity>, Changed<Children>)>,
-        ),
-    >,
-) {
-    for children in q_children.iter() {
-        for entity in children.iter() {
-            commands.entity(*entity).insert(LocalSourceEntity);
-        }
-    }
-}
-
-/// Any client with [`Predicted`] is a client source entity.
-///
-/// Any children that follows that will also become a client source entity.
-#[derive(Component, Default)]
-pub struct ClientSourceEntity;
-
-/// Local source entity needs to be defined manually when spawning entities.
-///
-/// Any children that follows that will also become a local source entity.
-#[derive(Component, Default)]
-pub struct LocalSourceEntity;
 
 /// Create the lightyear [`ClientConfig`].
 fn client_config(client_id: u64, settings: &NetworkSettings) -> ClientConfig {
