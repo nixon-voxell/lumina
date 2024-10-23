@@ -16,8 +16,8 @@ To run the game, you need to start the server and the client.
 You can do so manually using:
 
 ```
-cargo run -- server
-cargo run -- client
+cargo run --bin lumina_server
+cargo run --bin lumina_client
 ```
 
 For development purposes, a shell script has been created to speed things up:
@@ -30,12 +30,12 @@ run.bat x
 
 With `x` being the number of clients you want to spawn.
 
-### Examples
+### Test Bed
 
-To improve development time, the `examples` folder is used to create mini test cases with minimal compilation time. Run an example using the following command:
+To improve development time, the `crates/test_bed` folder is used to create mini test cases with minimal compilation time. Run an test binary using the following command:
 
 ```
-cargo run --example example_name
+cargo run --bin test_name
 ```
 
-With `example_name` being the name of your example.
+With `test_name` being the name of your testing binary.

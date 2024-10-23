@@ -1,0 +1,16 @@
+[package]
+name = "lumina_ui"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+velyst = { workspace = true }
+bevy_motiongfx = { workspace = true }
+
+bevy = { workspace = true }
+bevy_vello = { workspace = true }
+
+[lints]
+workspace = true
