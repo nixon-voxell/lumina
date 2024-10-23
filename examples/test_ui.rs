@@ -31,5 +31,5 @@ struct MainFunc {
 
 // Path to the Typst file that you created.
 #[derive(TypstPath)]
-#[typst_path = "typst/test/test_ui.typ"]
+#[typst_path = "assets/typst/test/game_ui.typ"]
 struct HelloWorld;
