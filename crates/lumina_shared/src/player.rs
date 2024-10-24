@@ -29,7 +29,8 @@ impl Plugin for PlayerPlugin {
         ));
 
         app.init_resource::<PlayerInfos>()
-            .add_systems(PreUpdate, player_id_hierarchy)
+            // Propagate [`PlayerId`] to the children hierarchy.
+            .add_systems(PreUpdate, propagate_component::<PlayerId>)
             .add_systems(
                 Update,
                 (
@@ -51,22 +52,6 @@ fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     };
 
     system.into_configs()
-}
-
-/// Propagate [`PlayerId`] to the children hierarchy.
-fn player_id_hierarchy(
-    mut commands: Commands,
-    q_children: Query<
-        (&Children, &PlayerId),
-        // Just added or the children changes.
-        Or<(Added<PlayerId>, Changed<Children>)>,
-    >,
-) {
-    for (children, id) in q_children.iter() {
-        for entity in children.iter() {
-            commands.entity(*entity).insert(*id);
-        }
-    }
 }
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]

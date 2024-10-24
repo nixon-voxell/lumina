@@ -14,7 +14,6 @@ leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
 blenvy = { workspace = true }
 noisy_bevy = { workspace = true }
-bevy_transform_interpolation = { workspace = true }
 serde = { workspace = true }
 rand = { workspace = true }
 smallvec = { workspace = true }

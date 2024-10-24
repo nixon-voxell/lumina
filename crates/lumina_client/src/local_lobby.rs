@@ -6,7 +6,6 @@ use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::action::LocalActionBundle;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::player::weapon::WeaponType;
 use lumina_shared::prelude::*;
@@ -52,25 +51,17 @@ fn spawn_lobby(
 
     // Spaceship
     commands
-        .spawn((
-            PlayerId::LOCAL,
-            SpaceshipType::Assassin.config_info(),
-            SpawnBlueprint,
-        ))
+        .spawn((SpaceshipType::Assassin.config_info(), SpawnBlueprint))
         .set_parent(lobby_scene);
 
     // Weapon
     commands
-        .spawn((
-            PlayerId::LOCAL,
-            WeaponType::Cannon.config_info(),
-            SpawnBlueprint,
-        ))
+        .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
         .set_parent(lobby_scene);
 
     // Action
     commands
-        .spawn(LocalActionBundle::default())
+        .spawn(InputManagerBundle::with_map(PlayerAction::input_map()))
         .set_parent(lobby_scene);
 
     **main_window_transparency = 1.0;
@@ -138,11 +129,23 @@ pub(super) struct MatchmakeEffector;
 #[reflect(Component)]
 pub(super) struct TutorialEffector;
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
+    id: PlayerId,
+}
+
+impl Default for LocalLobbyBundle {
+    fn default() -> Self {
+        Self {
+            local_lobby: LocalLobby,
+            spatial: SpatialBundle::default(),
+            source: SourceEntity,
+            id: PlayerId::LOCAL,
+        }
+    }
 }
 
 #[derive(Component, Default)]

@@ -7,6 +7,7 @@ pub(super) struct SourceEntityPlugin;
 
 impl Plugin for SourceEntityPlugin {
     fn build(&self, app: &mut App) {
+        // Propagate [`SourceEntity`] component to the children hierarchy.
         app.add_systems(PreUpdate, propagate_component::<SourceEntity>);
     }
 }
@@ -19,25 +20,6 @@ pub fn set_source<C: Component, F: QueryFilter>(
     for entity in q_entities.iter() {
         commands.entity(entity).insert(SourceEntity);
         debug!("SOURCE: {entity}.");
-    }
-}
-
-/// Propagate [`SourceEntity`] component to the children hierarchy.
-fn propagate_source_entity(
-    mut commands: Commands,
-    q_children: Query<
-        &Children,
-        (
-            With<SourceEntity>,
-            // Just added or the children changes.
-            Or<(Added<SourceEntity>, Changed<Children>)>,
-        ),
-    >,
-) {
-    for children in q_children.iter() {
-        for entity in children.iter() {
-            commands.entity(*entity).insert(SourceEntity);
-        }
     }
 }
 

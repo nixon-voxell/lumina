@@ -38,7 +38,7 @@ fn init_spaceships(
 
 fn spawn_networked_action(
     mut commands: Commands,
-    q_spaceships: Query<&PlayerId, (With<Spaceship>, Added<SourceEntity>)>,
+    q_spaceships: Query<&PlayerId, (With<Spaceship>, (Added<SourceEntity>, With<Predicted>))>,
     mut player_infos: ResMut<PlayerInfos>,
     local_player_id: Res<LocalPlayerId>,
 ) {

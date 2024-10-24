@@ -31,23 +31,6 @@ impl ReplicateActionBundle {
     }
 }
 
-#[derive(Bundle)]
-pub struct LocalActionBundle {
-    pub input: InputManagerBundle<PlayerAction>,
-    pub id: PlayerId,
-    pub source: SourceEntity,
-}
-
-impl Default for LocalActionBundle {
-    fn default() -> Self {
-        Self {
-            input: InputManagerBundle::with_map(PlayerAction::input_map()),
-            id: PlayerId::LOCAL,
-            source: SourceEntity,
-        }
-    }
-}
-
 #[derive(Actionlike, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Move,
@@ -60,7 +43,7 @@ pub enum PlayerAction {
 
 impl PlayerAction {
     /// Define the default bindings to the input
-    pub(crate) fn input_map() -> InputMap<Self> {
+    pub fn input_map() -> InputMap<Self> {
         let mut input_map = InputMap::default();
 
         // Default gamepad input bindings

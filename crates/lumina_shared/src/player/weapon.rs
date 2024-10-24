@@ -1,6 +1,5 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
-use bevy_transform_interpolation::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
@@ -15,16 +14,11 @@ pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            PostUpdate,
-            sync_weapon_translation
-                .after(TransformEasingSet)
-                .before(TransformSystem::TransformPropagate),
-        )
-        .add_systems(
-            FixedUpdate,
-            (weapon_recharge, (weapon_direction, weapon_attack).chain()),
-        );
+        app.add_systems(PostUpdate, sync_weapon_translation.in_set(TransformSyncSet))
+            .add_systems(
+                FixedUpdate,
+                (weapon_recharge, (weapon_direction, weapon_attack).chain()),
+            );
 
         app.register_type::<WeaponType>().register_type::<Weapon>();
     }
