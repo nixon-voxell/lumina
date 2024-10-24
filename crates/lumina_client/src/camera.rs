@@ -107,7 +107,7 @@ fn follow_spaceship(
     let mut camera_transform = q_camera.single_mut();
 
     // Calculate the target position based on player's position.
-    let mut target_position = Vec3::new(
+    let target_position = Vec3::new(
         spaceship_translation.x,
         spaceship_translation.y,
         // Keep the same z position.
@@ -125,8 +125,9 @@ fn follow_spaceship(
     }
 
     *aim_offset = Vec2::lerp(*aim_offset, target_aim_offset, aim_factor);
-    target_position.x += aim_offset.x;
-    target_position.y += aim_offset.y;
+    // TODO: Reconsider this behaviour.
+    // target_position.x += aim_offset.x;
+    // target_position.y += aim_offset.y;
 
     // Smoothly interpolate the camera's position towards the target position.
     camera_transform.translation = camera_transform
