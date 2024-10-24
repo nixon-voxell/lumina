@@ -33,7 +33,7 @@ fn main() {
             }),
     )
     .add_plugins((
-        lumina_shared::settings::SettingsPlugin,
+        lumina_common::CommonPlugin,
         lumina_client::ClientPlugin,
         lumina_shared::SharedPlugin,
     ));

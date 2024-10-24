@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
-use lumina_shared::player::spaceship::{SpaceShip, SpaceShipType};
+use lumina_shared::player::spaceship::{SpaceshipType, Spaceship};
 use lumina_shared::prelude::*;
 use server::*;
 
@@ -31,14 +31,14 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
     commands.spawn((
         PlayerId(client_id),
         // TODO: Allow player to choose what spaceship to spawn.
-        SpaceShipType::Assassin.config_info(),
+        SpaceshipType::Assassin.config_info(),
         SpawnBlueprint,
     ));
 }
 
 fn replicate_spaceship_spawn(
     mut commands: Commands,
-    q_spaceships: Query<(&PlayerId, Entity), (With<SpaceShip>, Without<SyncTarget>)>,
+    q_spaceships: Query<(&PlayerId, Entity), (With<Spaceship>, Without<SyncTarget>)>,
     lobby_infos: Res<LobbyInfos>,
     mut player_infos: ResMut<PlayerInfos>,
     mut room_manager: ResMut<RoomManager>,
@@ -64,7 +64,7 @@ fn replicate_spaceship_spawn(
         });
 
         room_manager.add_entity(spaceship_entity, room_id);
-        player_infos[PlayerInfoType::SpaceShip].insert(*id, spaceship_entity);
+        player_infos[PlayerInfoType::Spaceship].insert(*id, spaceship_entity);
     }
 }
 

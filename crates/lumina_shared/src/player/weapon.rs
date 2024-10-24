@@ -1,45 +1,55 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
+use bevy_transform_interpolation::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
+use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
-use crate::SourceEntity;
 
 use super::ammo::{AmmoType, FireAmmo};
-use super::spaceship::SpaceShip;
+use super::spaceship::Spaceship;
 use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (sync_weapon_position, weapon_recharge))
-            .add_systems(FixedUpdate, (weapon_direction, weapon_attack).chain());
+        app.add_systems(
+            PostUpdate,
+            sync_weapon_translation
+                .after(TransformEasingSet)
+                .before(TransformSystem::TransformPropagate),
+        )
+        .add_systems(
+            FixedUpdate,
+            (weapon_recharge, (weapon_direction, weapon_attack).chain()),
+        );
 
         app.register_type::<WeaponType>().register_type::<Weapon>();
     }
 }
 
-/// Sync [`Weapon`] position to [`SpaceShip`] position.
-fn sync_weapon_position(
-    q_player: Query<&Transform, (With<SpaceShip>, With<SourceEntity>)>,
+/// Sync [`Weapon`] translation to [`Spaceship`] translation.
+fn sync_weapon_translation(
+    q_player: Query<&Transform, (With<Spaceship>, With<SourceEntity>)>,
     mut q_weapons: Query<
         (&mut Transform, &PlayerId),
-        (Without<SpaceShip>, With<Weapon>, With<SourceEntity>),
+        (With<Weapon>, With<SourceEntity>, Without<Spaceship>),
     >,
     player_infos: Res<PlayerInfos>,
 ) {
     for (mut weapon_transform, id) in q_weapons.iter_mut() {
-        let Some(spaceship_transform) = player_infos[PlayerInfoType::SpaceShip]
+        let Some(spaceship_transform) = player_infos[PlayerInfoType::Spaceship]
             .get(id)
             .and_then(|e| q_player.get(*e).ok())
         else {
             continue;
         };
 
-        weapon_transform.translation.x = spaceship_transform.translation.x;
-        weapon_transform.translation.y = spaceship_transform.translation.y;
+        let spaceship_translation = spaceship_transform.translation;
+        weapon_transform.translation.x = spaceship_translation.x;
+        weapon_transform.translation.y = spaceship_translation.y;
     }
 }
 

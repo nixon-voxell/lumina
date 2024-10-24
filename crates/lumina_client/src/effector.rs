@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_motiongfx::prelude::ease;
 use leafwing_input_manager::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::effector::{EffectorPopupMsg, InteractableEffector};
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
@@ -32,7 +33,7 @@ fn collect_effector_collisions(
     mut collided_effector: ResMut<CollidedEffector>,
     local_player_info: LocalPlayerInfo,
 ) {
-    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::Spaceship) else {
         return;
     };
 
@@ -196,21 +197,21 @@ fn interact_effector(
     };
 
     // Prevent division by zero.
-    let required_accumulation = f32::max(effector.required_accumulation, f32::EPSILON);
+    let required_duration = f32::max(effector.interact_duration, f32::EPSILON);
 
     if action.pressed(&PlayerAction::Interact) {
-        *accumulation = f32::min(*accumulation + time.delta_seconds(), required_accumulation);
+        *accumulation = f32::min(*accumulation + time.delta_seconds(), required_duration);
     } else if action.released(&PlayerAction::Interact) {
         *accumulation = f32::max(*accumulation - time.delta_seconds(), 0.0);
     }
 
-    if *accumulation >= required_accumulation {
+    if *accumulation >= required_duration {
         // Perform interaction
         effector_interaction_evw.send(EffectorInteraction(entity));
         commands.entity(entity).insert(InteractedEffector);
     }
 
-    func.button_progress = ease::cubic::ease_in_out(*accumulation / required_accumulation) as f64;
+    func.button_progress = ease::cubic::ease_in_out(*accumulation / required_duration) as f64;
 }
 
 pub(super) fn effector_interaction<Effector: Component>(

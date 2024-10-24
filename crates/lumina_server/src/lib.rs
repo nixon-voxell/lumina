@@ -4,9 +4,9 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use blenvy::*;
 use lightyear::prelude::*;
-use lumina_shared::prelude::*;
-use lumina_shared::settings::NetworkSettings;
-use lumina_shared::{shared_config, SERVER_REPLICATION_INTERVAL};
+use lumina_common::prelude::*;
+use lumina_common::settings::LuminaSettings;
+use lumina_shared::shared_config;
 use server::*;
 
 mod lobby;
@@ -20,7 +20,7 @@ impl Plugin for ServerPlugin {
         info!("Adding `ServerPlugin`.");
 
         // Lightyear plugins
-        let settings = app.world().get_resource::<NetworkSettings>().unwrap();
+        let settings = app.world().get_resource::<LuminaSettings>().unwrap();
         app.add_plugins((
             ServerPlugins::new(server_config(settings)),
             BlenvyPlugin {
@@ -31,8 +31,8 @@ impl Plugin for ServerPlugin {
 
         app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
             .init_resource::<LobbyInfos>()
-            .add_systems(Startup, start_server)
-            .add_systems(PreUpdate, server_source.before(MainSet::Send));
+            .add_systems(Startup, start_server);
+        // .add_systems(PreUpdate, set_source::<>.before(MainSet::Send));
     }
 }
 
@@ -42,15 +42,8 @@ fn start_server(mut commands: Commands) {
     commands.start_server();
 }
 
-/// Insert [`ServerSourceEntity`] to newly added [`SyncTarget`] entities.
-fn server_source(mut commands: Commands, q_entities: Query<Entity, Added<SyncTarget>>) {
-    for entity in q_entities.iter() {
-        commands.entity(entity).insert(ServerSourceEntity);
-    }
-}
-
 /// Create the lightyear [`ServerConfig`].
-fn server_config(settings: &NetworkSettings) -> ServerConfig {
+fn server_config(settings: &LuminaSettings) -> ServerConfig {
     let transport = ServerTransport::UdpSocket(SocketAddr::V4(SocketAddrV4::new(
         Ipv4Addr::UNSPECIFIED,
         settings.shared.server_port,
@@ -72,13 +65,13 @@ fn server_config(settings: &NetworkSettings) -> ServerConfig {
             .with_protocol_id(settings.shared.protocol_id),
     };
     ServerConfig {
-        shared: shared_config(),
+        shared: shared_config(settings),
         // We can specify multiple net configs here, and the server will listen on
         // all of them at the same time. Here we will only use one.
         net: vec![net_config],
         replication: ReplicationConfig {
             // we will send updates to the clients every 100ms
-            send_interval: SERVER_REPLICATION_INTERVAL,
+            send_interval: settings.server_replication_interval(),
             ..default()
         },
         ..default()

@@ -95,7 +95,7 @@ fn material_change_update(
                 *color_material = std_to_color_material(std_material);
             }
 
-            debug!("Updating color material: {:?}", id);
+            debug!("Updating color material: {id:?}");
         }
     }
 }

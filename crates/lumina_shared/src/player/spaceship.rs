@@ -3,28 +3,27 @@ use bevy::prelude::*;
 use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
-use crate::physics::PhysicsBundle;
-use crate::SourceEntity;
 
 use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
-pub(super) struct SpaceShipPlugin;
+pub(super) struct SpaceshipPlugin;
 
-impl Plugin for SpaceShipPlugin {
+impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, init_spaceships)
             .add_systems(FixedUpdate, spaceship_movement);
 
-        app.register_type::<SpaceShipType>()
-            .register_type::<SpaceShip>();
+        app.register_type::<SpaceshipType>()
+            .register_type::<Spaceship>();
     }
 }
 
 fn init_spaceships(
     mut commands: Commands,
-    q_spaceships: Query<(&SpaceShip, Option<&Name>, Entity), Added<SourceEntity>>,
+    q_spaceships: Query<(&Spaceship, Option<&Name>, Entity), Added<SourceEntity>>,
 ) {
     // TODO: Consider using a lookup collider.
     let collider = Collider::triangle(
@@ -35,12 +34,12 @@ fn init_spaceships(
 
     for (spaceship, name, spaceship_entity) in q_spaceships.iter() {
         commands.entity(spaceship_entity).insert((
-            MassPropertiesBundle::new_computed(&collider, 1.0),
-            collider.clone(),
-            PhysicsBundle {
+            SpaceshipPhysicsBundle {
                 rigidbody: RigidBody::Dynamic,
                 linear_damping: LinearDamping(spaceship.linear_damping),
                 angular_damping: AngularDamping(spaceship.angular_damping),
+                collider: collider.clone(),
+                mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
                 ..default()
             },
             MovementStat {
@@ -49,7 +48,7 @@ fn init_spaceships(
             },
         ));
 
-        debug!("Initialized SpaceShip physics for {spaceship_entity:?} - ({name:?})");
+        debug!("Initialized Spaceship physics for {spaceship_entity:?} - ({name:?})");
     }
 }
 
@@ -68,7 +67,7 @@ fn spaceship_movement(
             &mut AngularVelocity,
             &mut LinearDamping,
             &Rotation,
-            &SpaceShip,
+            &Spaceship,
         ),
         With<SourceEntity>,
     >,
@@ -85,7 +84,7 @@ fn spaceship_movement(
     let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
 
     for (action, id) in q_actions.iter() {
-        let Some(&spaceship_entity) = player_infos[PlayerInfoType::SpaceShip].get(id) else {
+        let Some(&spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
             continue;
         };
 
@@ -172,17 +171,17 @@ fn spaceship_movement(
 
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-pub enum SpaceShipType {
+pub enum SpaceshipType {
     Assassin,
     Tank,
     Support,
 }
 
-impl BlueprintType for SpaceShipType {
+impl BlueprintType for SpaceshipType {
     fn visual_info(&self) -> BlueprintInfo {
         match self {
-            SpaceShipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceShipAssassinVisual.glb")
+            SpaceshipType::Assassin => {
+                BlueprintInfo::from_path("levels/SpaceshipAssassinVisual.glb")
             }
             _ => todo!("{self:?} is not supported yet."),
         }
@@ -190,8 +189,8 @@ impl BlueprintType for SpaceShipType {
 
     fn config_info(&self) -> BlueprintInfo {
         match self {
-            SpaceShipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceShipAssassinConfig.glb")
+            SpaceshipType::Assassin => {
+                BlueprintInfo::from_path("levels/SpaceshipAssassinConfig.glb")
             }
             _ => todo!("{self:?} is not supported yet."),
         }
@@ -200,7 +199,7 @@ impl BlueprintType for SpaceShipType {
 
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-pub struct SpaceShip {
+pub struct Spaceship {
     /// Normal linear acceleration.
     pub linear_acceleration: f32,
     /// Normal angular acceleration.
@@ -252,4 +251,15 @@ impl MovementStat {
     // pub fn linear_damping(&self) -> f32 {
     //     self.linear_damping
     // }
+}
+
+#[derive(Bundle, Default)]
+pub struct SpaceshipPhysicsBundle {
+    pub rigidbody: RigidBody,
+    pub position: Position,
+    pub rotation: Rotation,
+    pub linear_damping: LinearDamping,
+    pub angular_damping: AngularDamping,
+    pub collider: Collider,
+    pub mass_properties: MassPropertiesBundle,
 }

@@ -31,6 +31,84 @@
       "type": "array",
       "typeInfo": "Tuple"
     },
+    "(bevy_transform_interpolation::TranslationEasingState, bevy_transform_interpolation::RotationEasingState, bevy_transform_interpolation::ScaleEasingState)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::TranslationEasingState, bevy_transform_interpolation::RotationEasingState, bevy_transform_interpolation::ScaleEasingState)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::TranslationEasingState"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::RotationEasingState"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::ScaleEasingState"
+          }
+        }
+      ],
+      "short_name": "(TranslationEasingState, RotationEasingState, ScaleEasingState)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
+    "(bevy_transform_interpolation::interpolation::NoTranslationInterpolation, bevy_transform_interpolation::interpolation::NoRotationInterpolation, bevy_transform_interpolation::interpolation::NoScaleInterpolation)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::interpolation::NoTranslationInterpolation, bevy_transform_interpolation::interpolation::NoRotationInterpolation, bevy_transform_interpolation::interpolation::NoScaleInterpolation)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoTranslationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoRotationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoScaleInterpolation"
+          }
+        }
+      ],
+      "short_name": "(NoTranslationInterpolation, NoRotationInterpolation, NoScaleInterpolation)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
+    "(bevy_transform_interpolation::interpolation::TranslationInterpolation, bevy_transform_interpolation::interpolation::RotationInterpolation, bevy_transform_interpolation::interpolation::ScaleInterpolation)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::interpolation::TranslationInterpolation, bevy_transform_interpolation::interpolation::RotationInterpolation, bevy_transform_interpolation::interpolation::ScaleInterpolation)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::TranslationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::RotationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::ScaleInterpolation"
+          }
+        }
+      ],
+      "short_name": "(TranslationInterpolation, RotationInterpolation, ScaleInterpolation)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
     "(u8, u8)": {
       "isComponent": false,
       "isResource": false,
@@ -12972,6 +13050,138 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_transform_interpolation::RotationEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::RotationEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Quat>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Quat>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "RotationEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::ScaleEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::ScaleEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "ScaleEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::TranslationEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::TranslationEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "TranslationEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoRotationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoRotationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoRotationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoScaleInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoScaleInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoScaleInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoTranslationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoTranslationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoTranslationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::RotationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::RotationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "RotationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::ScaleInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::ScaleInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "ScaleInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::TranslationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::TranslationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "TranslationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_ui::UiScale": {
       "isComponent": false,
       "isResource": false,
@@ -16811,6 +17021,33 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "core::option::Option<glam::Quat>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<glam::Quat>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/glam::Quat"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<Quat>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "core::option::Option<glam::Vec2>": {
       "isComponent": false,
       "isResource": false,
@@ -16835,6 +17072,33 @@
         }
       ],
       "short_name": "Option<Vec2>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "core::option::Option<glam::Vec3>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<glam::Vec3>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/glam::Vec3"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<Vec3>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -19158,6 +19422,80 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_common::physics::MeshCollider": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_common::physics::MeshCollider",
+      "oneOf": [
+        "ConvexHull",
+        "Trimesh"
+      ],
+      "short_name": "MeshCollider",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_common::physics::MeshRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_common::physics::MeshRigidbody",
+      "properties": {
+        "collider_type": {
+          "type": {
+            "$ref": "#/$defs/lumina_common::physics::MeshCollider"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_type"
+      ],
+      "short_name": "MeshRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_common::physics::PrimitiveRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_common::physics::PrimitiveRigidbody",
+      "properties": {
+        "collider_constructor": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "collider_constructor"
+      ],
+      "short_name": "PrimitiveRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::action::PlayerAction": {
       "isComponent": false,
       "isResource": false,
@@ -19221,90 +19559,16 @@
       "isResource": false,
       "long_name": "lumina_shared::effector::InteractableEffector",
       "properties": {
-        "required_accumulation": {
+        "interact_duration": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         }
       },
       "required": [
-        "required_accumulation"
+        "interact_duration"
       ],
       "short_name": "InteractableEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::physics::MeshCollider": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina_shared::physics::MeshCollider",
-      "oneOf": [
-        "ConvexHull",
-        "Trimesh"
-      ],
-      "short_name": "MeshCollider",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina_shared::physics::MeshRigidbody": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::physics::MeshRigidbody",
-      "properties": {
-        "collider_type": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::physics::MeshCollider"
-          }
-        },
-        "density": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "density",
-        "collider_type"
-      ],
-      "short_name": "MeshRigidbody",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::physics::PrimitiveRigidbody": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::physics::PrimitiveRigidbody",
-      "properties": {
-        "collider_constructor": {
-          "type": {
-            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
-          }
-        },
-        "density": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "density",
-        "collider_constructor"
-      ],
-      "short_name": "PrimitiveRigidbody",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -19373,11 +19637,11 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina_shared::player::spaceship::SpaceShip": {
+    "lumina_shared::player::spaceship::Spaceship": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::SpaceShip",
+      "long_name": "lumina_shared::player::spaceship::Spaceship",
       "properties": {
         "angular_acceleration": {
           "type": {
@@ -19430,20 +19694,20 @@
         "angular_damping",
         "brake_linear_damping"
       ],
-      "short_name": "SpaceShip",
+      "short_name": "Spaceship",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::SpaceShipType": {
+    "lumina_shared::player::spaceship::SpaceshipType": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::SpaceShipType",
+      "long_name": "lumina_shared::player::spaceship::SpaceshipType",
       "oneOf": [
         "Assassin",
         "Tank",
         "Support"
       ],
-      "short_name": "SpaceShipType",
+      "short_name": "SpaceshipType",
       "type": "string",
       "typeInfo": "Enum"
     },

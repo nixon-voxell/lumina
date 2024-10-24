@@ -6,6 +6,7 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
+lumina_common = { workspace = true }
 lumina_ui = { workspace = true }
 lumina_shared = { workspace = true }
 lumina_dev = { workspace = true, optional = true }

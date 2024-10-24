@@ -1,0 +1,17 @@
+[package]
+name = "lumina_common"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+lightyear = { workspace = true }
+leafwing-input-manager = { workspace = true }
+avian2d = { workspace = true }
+serde = { workspace = true }
+bevy_transform_interpolation = { workspace = true }
+
+[lints]
+workspace = true

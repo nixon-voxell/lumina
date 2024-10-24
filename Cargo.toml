@@ -11,6 +11,7 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
 # Lumina
+lumina_common = { path = "crates/lumina_common" }
 lumina_ui = { path = "crates/lumina_ui" }
 lumina_shared = { path = "crates/lumina_shared" }
 lumina_dev = { path = "crates/lumina_dev" }
@@ -20,6 +21,7 @@ bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
 # Git
 bevy_coroutine = { version = "0.1.3", git = "https://github.com/nixon-voxell/bevy_coroutine" }
+bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
 # Crates.io
 bevy = { version = "0.14", features = ["wayland"] }
 bevy_vello = "0.6"
@@ -61,6 +63,9 @@ redundant_type_annotations = "warn"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
+opt-level = 1
+
+[profile.dev.package.lumina_shared]
 opt-level = 1
 
 # Enable a large amount of optimization in the dev profile for dependencies.

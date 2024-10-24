@@ -1,108 +1,61 @@
-use avian2d::{
-    math::Scalar,
-    parry::{na::Point2, shape::SharedShape},
-    prelude::*,
-};
-use bevy::{
-    prelude::*,
-    render::mesh::{Indices, VertexAttributeValues},
-    sprite::Mesh2dHandle,
-};
+use avian2d::math::Scalar;
+use avian2d::parry::na::Point2;
+use avian2d::parry::shape::SharedShape;
+use avian2d::prelude::*;
+use bevy::prelude::*;
+use bevy::render::mesh::{Indices, VertexAttributeValues};
+use bevy::sprite::Mesh2dHandle;
+use bevy_transform_interpolation::*;
 
-use super::FIXED_TIMESTEP_HZ;
+use crate::settings::LuminaSettings;
 
-pub struct PhysicsPlugin;
+pub(super) struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(
+        app.add_plugins((
             PhysicsPlugins::new(FixedPostUpdate)
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
-        );
+            TransformInterpolationPlugin::default(),
+        ));
 
-        app.insert_resource(Time::<Fixed>::from_hz(FIXED_TIMESTEP_HZ))
-            .insert_resource(Time::new_with(Physics::fixed_once_hz(FIXED_TIMESTEP_HZ)))
+        let settings = app.world().get_resource::<LuminaSettings>().unwrap();
+        let fixed_timestep_hz = settings.fixed_timestep_hz;
+
+        app.insert_resource(Time::<Fixed>::from_hz(fixed_timestep_hz))
+            .insert_resource(Time::new_with(Physics::fixed_once_hz(fixed_timestep_hz)))
             .insert_resource(Gravity(Vec2::ZERO))
-            // We interpolate the positions to the transforms ourselves since avian does not do that properly.
+            // Physics determines the transform of an entity.
             .insert_resource(avian2d::sync::SyncConfig {
                 transform_to_position: false,
-                position_to_transform: false,
+                position_to_transform: true,
             })
             .add_systems(
                 Update,
                 (convert_primitive_rigidbody, convert_mesh_rigidbody),
             )
-            .add_systems(PostUpdate, (init_position_sync, init_rotation_sync))
-            .add_systems(FixedLast, pos_rot_sync);
+            .add_systems(PostUpdate, (init_position_sync, init_rotation_sync));
 
         app.register_type::<PrimitiveRigidbody>()
             .register_type::<MeshRigidbody>();
     }
 }
 
-/// Insert [`PrevPosition`] for entities with [`Position`].
-fn init_position_sync(
-    mut commands: Commands,
-    q_positions: Query<(&Position, Entity), Without<PrevPosition>>,
-) {
-    for (position, entity) in q_positions.iter() {
-        commands.entity(entity).insert(PrevPosition(position.0));
+/// Insert [`TranslationInterpolation`] for entities with [`Position`].
+fn init_position_sync(mut commands: Commands, q_positions: Query<Entity, Added<Position>>) {
+    for entity in q_positions.iter() {
+        commands.entity(entity).insert(TranslationInterpolation);
     }
 }
 
-/// Insert [`PrevRotation`] for entities with [`Rotation`].
-fn init_rotation_sync(
-    mut commands: Commands,
-    q_rotations: Query<(&Rotation, Entity), Without<PrevRotation>>,
-) {
-    for (rotation, entity) in q_rotations.iter() {
-        commands
-            .entity(entity)
-            .insert(PrevRotation(rotation.as_radians()));
+/// Insert [`RotationInterpolation`] for entities with [`Rotation`].
+fn init_rotation_sync(mut commands: Commands, q_rotations: Query<Entity, Added<Rotation>>) {
+    for entity in q_rotations.iter() {
+        commands.entity(entity).insert(RotationInterpolation);
     }
 }
-
-/// Smoothly interpolates (via `overstep_fraction`) between [`PrevPosition`]/[`PrevRotation`]
-/// and [`Position`]/[`Rotation`], and apply the result to the [`Transform`].
-fn pos_rot_sync(
-    mut q_transforms: Query<(
-        &mut Transform,
-        &mut PrevPosition,
-        &mut PrevRotation,
-        &Position,
-        &Rotation,
-    )>,
-    time: Res<Time<Fixed>>,
-) {
-    let overstep_frac = time.overstep_fraction();
-
-    for (mut transform, mut prev_position, mut prev_rotation, position, rotation) in
-        q_transforms.iter_mut()
-    {
-        transform.translation.x = FloatExt::lerp(prev_position.x, position.x, overstep_frac);
-        transform.translation.y = FloatExt::lerp(prev_position.y, position.y, overstep_frac);
-
-        let rotation = rotation.as_radians();
-        transform.rotation = Quat::slerp(
-            Quat::from_rotation_z(prev_rotation.0),
-            Quat::from_rotation_z(rotation),
-            overstep_frac,
-        );
-
-        prev_position.0 = position.0;
-        prev_rotation.0 = rotation;
-    }
-}
-
-/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render position.
-#[derive(Component, Deref)]
-struct PrevPosition(Vec2);
-
-/// Used in [`pos_rot_sync`] to smoothly interpolates physics to render rotation.
-#[derive(Component, Deref)]
-struct PrevRotation(f32);
 
 fn convert_primitive_rigidbody(
     mut commands: Commands,
@@ -117,9 +70,9 @@ fn convert_primitive_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                debug!("Generated primitive collider for {entity:?}.")
+                debug!("Generated primitive collider for {entity}.")
             }
-            None => error!("Unable to convert ColliderConstructor into Collider."),
+            None => error!("Unable to convert ColliderConstructor into Collider for {entity}."),
         }
 
         commands.entity(entity).remove::<PrimitiveRigidbody>();
@@ -162,9 +115,9 @@ fn convert_mesh_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                debug!("Generated mesh collider for {entity:?}.")
+                debug!("Generated mesh collider for {entity}.")
             }
-            None => error!("Unable to generate Collider from Mesh."),
+            None => error!("Unable to generate Collider from Mesh for {entity}."),
         }
 
         commands.entity(entity).remove::<MeshRigidbody>();
@@ -209,7 +162,7 @@ pub fn trimesh_from_mesh(mesh: &Mesh) -> Option<Collider> {
     })
 }
 
-pub fn _trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
+pub fn trimesh_from_mesh_with_config(mesh: &Mesh, flags: TrimeshFlags) -> Option<Collider> {
     extract_mesh_vertices_indices(mesh).map(|(vertices, indices)| {
         SharedShape::trimesh_with_flags(vertices, indices, flags.into()).into()
     })
@@ -241,13 +194,4 @@ pub enum MeshCollider {
     #[default]
     ConvexHull,
     Trimesh,
-}
-
-#[derive(Bundle, Default)]
-pub struct PhysicsBundle {
-    pub rigidbody: RigidBody,
-    pub position: Position,
-    pub rotation: Rotation,
-    pub linear_damping: LinearDamping,
-    pub angular_damping: AngularDamping,
 }

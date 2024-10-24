@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use lumina_common::prelude::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 
@@ -12,6 +13,7 @@ pub struct ReplicateActionBundle {
     pub input: InputManagerBundle<PlayerAction>,
     pub replicate: client::Replicate,
     pub prepredicted: PrePredicted,
+    pub source: SourceEntity,
 }
 
 impl ReplicateActionBundle {
@@ -24,6 +26,7 @@ impl ReplicateActionBundle {
                 ..default()
             },
             prepredicted: PrePredicted::default(),
+            source: SourceEntity,
         }
     }
 }
@@ -32,6 +35,7 @@ impl ReplicateActionBundle {
 pub struct LocalActionBundle {
     pub input: InputManagerBundle<PlayerAction>,
     pub id: PlayerId,
+    pub source: SourceEntity,
 }
 
 impl Default for LocalActionBundle {
@@ -39,6 +43,7 @@ impl Default for LocalActionBundle {
         Self {
             input: InputManagerBundle::with_map(PlayerAction::input_map()),
             id: PlayerId::LOCAL,
+            source: SourceEntity,
         }
     }
 }

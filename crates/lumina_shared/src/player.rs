@@ -7,12 +7,12 @@ use bevy::utils::HashMap;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
-use spaceship::SpaceShip;
+use lumina_common::prelude::*;
+use spaceship::Spaceship;
 use strum::EnumCount;
 use weapon::Weapon;
 
 use super::action::PlayerAction;
-use super::{SetSourceSet, SourceEntity};
 
 pub mod ammo;
 pub mod spaceship;
@@ -23,7 +23,7 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            spaceship::SpaceShipPlugin,
+            spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
         ));
@@ -31,17 +31,17 @@ impl Plugin for PlayerPlugin {
         app.init_resource::<PlayerInfos>()
             .add_systems(PreUpdate, player_id_hierarchy)
             .add_systems(
-                PostUpdate,
+                Update,
                 (
                     insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
-                    insert_info::<SpaceShip>(PlayerInfoType::SpaceShip),
+                    insert_info::<Spaceship>(PlayerInfoType::Spaceship),
                     insert_info::<Weapon>(PlayerInfoType::Weapon),
-                )
-                    .after(SetSourceSet),
+                ),
             );
     }
 }
 
+/// Insert entity into [`PlayerInfos`].
 fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     let system = move |q_entities: Query<(&PlayerId, Entity), (With<C>, Added<SourceEntity>)>,
                        mut player_infos: ResMut<PlayerInfos>| {
@@ -79,7 +79,7 @@ impl PlayerId {
 #[derive(EnumCount, Debug, Clone, Copy)]
 pub enum PlayerInfoType {
     Action,
-    SpaceShip,
+    Spaceship,
     Weapon,
 }
 

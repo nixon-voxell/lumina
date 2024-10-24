@@ -5,8 +5,9 @@ use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::action::LocalActionBundle;
-use lumina_shared::player::spaceship::{SpaceShip, SpaceShipType};
+use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::player::weapon::WeaponType;
 use lumina_shared::prelude::*;
 use lumina_ui::main_window::WINDOW_FADE_DURATION;
@@ -14,7 +15,6 @@ use lumina_ui::prelude::*;
 
 use super::effector::effector_interaction;
 use super::ui::Screen;
-use super::{ClientSourceEntity, LocalSourceEntity};
 
 pub(super) struct LocalLobbyPlugin;
 
@@ -41,7 +41,7 @@ fn spawn_lobby(
     mut commands: Commands,
     mut main_window_transparency: ResMut<MainWindowTransparency>,
 ) {
-    let lobby_scene = commands.spawn(LocalLobbySceneBundle::default()).id();
+    let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
         .spawn((
             BlueprintInfo::from_path("levels/Lobby.glb"),
@@ -50,32 +50,34 @@ fn spawn_lobby(
         ))
         .set_parent(lobby_scene);
 
-    let spaceship_entity = commands
+    // Spaceship
+    commands
         .spawn((
             PlayerId::LOCAL,
-            SpaceShipType::Assassin.config_info(),
+            SpaceshipType::Assassin.config_info(),
             SpawnBlueprint,
         ))
-        .set_parent(lobby_scene)
-        .id();
+        .set_parent(lobby_scene);
 
+    // Weapon
     commands
         .spawn((
             PlayerId::LOCAL,
             WeaponType::Cannon.config_info(),
             SpawnBlueprint,
         ))
-        .set_parent(spaceship_entity);
+        .set_parent(lobby_scene);
 
+    // Action
     commands
         .spawn(LocalActionBundle::default())
-        .set_parent(spaceship_entity);
+        .set_parent(lobby_scene);
 
     **main_window_transparency = 1.0;
 }
 
 /// Rotate the spaceship to face forward.
-fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<SpaceShip>>) {
+fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<Spaceship>>) {
     for entity in q_spaceships.iter() {
         commands
             .entity(entity)
@@ -84,7 +86,7 @@ fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<Spac
 }
 
 /// Despawn local lobby scene
-fn despawn_lobby(mut commands: Commands, q_local_lobby: Query<Entity, With<LocalLobbyScene>>) {
+fn despawn_lobby(mut commands: Commands, q_local_lobby: Query<Entity, With<LocalLobby>>) {
     // Despawn local lobby.
     let lobby = q_local_lobby.single();
     commands.entity(lobby).despawn_recursive();
@@ -121,7 +123,7 @@ fn matchmake_effector_trigger(
 fn despawn_networked_inputs(
     mut commands: Commands,
     // Despawn only networked actions.
-    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, With<ClientSourceEntity>)>,
+    q_actions: Query<Entity, (With<ActionState<PlayerAction>>, With<Predicted>)>,
 ) {
     for entity in q_actions.iter() {
         commands.entity(entity).despawn();
@@ -137,12 +139,12 @@ pub(super) struct MatchmakeEffector;
 pub(super) struct TutorialEffector;
 
 #[derive(Bundle, Default)]
-pub(super) struct LocalLobbySceneBundle {
-    local_lobby: LocalLobbyScene,
+pub(super) struct LocalLobbyBundle {
+    local_lobby: LocalLobby,
     spatial: SpatialBundle,
-    local_source: LocalSourceEntity,
+    source: SourceEntity,
 }
 
 #[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
-pub(super) struct LocalLobbyScene;
+pub(super) struct LocalLobby;

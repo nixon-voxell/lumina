@@ -13,7 +13,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             aim::AimPlugin,
-            spaceship::SpaceShipPlugin,
+            spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
         ));
 

@@ -1,20 +1,24 @@
 use bevy::prelude::*;
+use client::*;
+use lightyear::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::action::ReplicateActionBundle;
-use lumina_shared::player::spaceship::{SpaceShip, SpaceShipType};
+use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
 
 use super::LocalPlayerId;
 
-pub(super) struct SpaceShipPlugin;
+pub(super) struct SpaceshipPlugin;
 
-impl Plugin for SpaceShipPlugin {
+impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
             (
                 init_spaceships,
                 spawn_networked_action,
-                spawn_blueprint_visual::<SpaceShipType, ()>,
+                set_source::<Spaceship, With<Predicted>>,
+                spawn_blueprint_visual::<SpaceshipType, ()>,
             ),
         );
     }
@@ -24,17 +28,17 @@ impl Plugin for SpaceShipPlugin {
 
 /// Initialize spaceships into [`PlayerInfos`].
 fn init_spaceships(
-    q_spaceships: Query<(&PlayerId, Entity), (With<SpaceShip>, Added<SourceEntity>)>,
+    q_spaceships: Query<(&PlayerId, Entity), (With<Spaceship>, Added<SourceEntity>)>,
     mut player_infos: ResMut<PlayerInfos>,
 ) {
     for (id, spaceship_entity) in q_spaceships.iter() {
-        player_infos[PlayerInfoType::SpaceShip].insert(*id, spaceship_entity);
+        player_infos[PlayerInfoType::Spaceship].insert(*id, spaceship_entity);
     }
 }
 
 fn spawn_networked_action(
     mut commands: Commands,
-    q_spaceships: Query<&PlayerId, (With<SpaceShip>, Added<ClientSourceEntity>)>,
+    q_spaceships: Query<&PlayerId, (With<Spaceship>, Added<SourceEntity>)>,
     mut player_infos: ResMut<PlayerInfos>,
     local_player_id: Res<LocalPlayerId>,
 ) {

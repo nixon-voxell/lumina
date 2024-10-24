@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use lightyear::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 use smallvec::SmallVec;

@@ -5,8 +5,7 @@ use bevy_coroutine::prelude::*;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
-use lumina_shared::prelude::*;
-use lumina_shared::settings::NetworkSettings;
+use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
 
 mod camera;
@@ -24,7 +23,7 @@ impl Plugin for ClientPlugin {
         info!("Adding `ClientPlugin`.");
 
         let client_id = rand::random();
-        let settings = app.world().get_resource::<NetworkSettings>().unwrap();
+        let settings = app.world().get_resource::<LuminaSettings>().unwrap();
 
         app.add_plugins((
             ClientPlugins::new(client_config(client_id, settings)),
@@ -49,7 +48,12 @@ impl Plugin for ClientPlugin {
         .add_systems(OnEnter(Connection::Connect), connect_server)
         .add_systems(
             PreUpdate,
-            (handle_connection, handle_disconnection, client_source).after(MainSet::Receive),
+            (
+                handle_connection,
+                handle_disconnection,
+                //client_source
+            )
+                .after(MainSet::Receive),
         );
 
         // Enable dev tools for dev builds.
@@ -70,7 +74,7 @@ fn handle_connection(
 ) {
     for event in connect_evr.read() {
         let client_id = event.client_id();
-        info!("CLIENT: Connected with Id: {client_id:?}");
+        info!("CLIENT: Connected with {client_id:?}");
 
         next_connection_state.set(Connection::Connected);
         commands.insert_resource(LocalClientId(client_id));
@@ -90,15 +94,15 @@ fn handle_disconnection(
     }
 }
 
-/// Insert [`ClientSourceEntity`] to newly added [`Predicted`] entities.
-fn client_source(mut commands: Commands, q_entities: Query<Entity, Added<Predicted>>) {
-    for entity in q_entities.iter() {
-        commands.entity(entity).insert(ClientSourceEntity);
-    }
-}
+// /// Insert [`ClientSourceEntity`] to newly added [`Predicted`] entities.
+// fn client_source(mut commands: Commands, q_entities: Query<Entity, Added<Predicted>>) {
+//     for entity in q_entities.iter() {
+//         commands.entity(entity).insert(ClientSourceEntity);
+//     }
+// }
 
 /// Create the lightyear [`ClientConfig`].
-fn client_config(client_id: u64, settings: &NetworkSettings) -> ClientConfig {
+fn client_config(client_id: u64, settings: &LuminaSettings) -> ClientConfig {
     let server_addr = SocketAddr::new(
         IpAddr::V4(settings.shared.server_addr),
         settings.shared.server_port,
@@ -131,7 +135,7 @@ fn client_config(client_id: u64, settings: &NetworkSettings) -> ClientConfig {
         config: NetcodeConfig::default(),
     };
     ClientConfig {
-        shared: shared_config(),
+        shared: shared_config(settings),
         net: net_config,
         prediction: PredictionConfig {
             minimum_input_delay_ticks: settings.client.input_delay_ticks,

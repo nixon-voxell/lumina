@@ -3,7 +3,8 @@ use leafwing_input_manager::axislike::DualAxisData;
 use leafwing_input_manager::buttonlike::ButtonState;
 use leafwing_input_manager::plugin::InputManagerSystem;
 use leafwing_input_manager::prelude::*;
-use lumina_shared::player::spaceship::SpaceShip;
+use lumina_common::prelude::*;
+use lumina_shared::player::spaceship::Spaceship;
 use lumina_shared::prelude::*;
 
 use crate::camera::GameCamera;
@@ -23,7 +24,7 @@ impl Plugin for AimPlugin {
 
 fn mouse_motion(
     mut q_actions: Query<&mut ActionState<PlayerAction>, With<SourceEntity>>,
-    q_spaceship_transforms: Query<Ref<Transform>, (With<SpaceShip>, With<SourceEntity>)>,
+    q_spaceship_transforms: Query<Ref<Transform>, (With<Spaceship>, With<SourceEntity>)>,
     q_camera: Query<(&Camera, Ref<GlobalTransform>), With<GameCamera>>,
     mut cursor_evr: EventReader<CursorMoved>,
     local_player_info: LocalPlayerInfo,
@@ -39,7 +40,7 @@ fn mouse_motion(
 
     // Get spaceship transform
     let Some(spaceship_transform) = local_player_info
-        .get(PlayerInfoType::SpaceShip)
+        .get(PlayerInfoType::Spaceship)
         .and_then(|e| q_spaceship_transforms.get(e).ok())
     else {
         return;

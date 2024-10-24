@@ -6,7 +6,8 @@ use bevy::render::camera::ScalingMode;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
-use lumina_shared::player::spaceship::SpaceShip;
+use lumina_common::prelude::*;
+use lumina_shared::player::spaceship::Spaceship;
 use lumina_shared::player::PlayerInfoType;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
@@ -70,7 +71,7 @@ fn spawn_game_camera(mut commands: Commands) {
 fn follow_spaceship(
     mut q_camera: Query<&mut Transform, With<GameCamera>>,
     q_actions: Query<&ActionState<PlayerAction>, With<SourceEntity>>,
-    q_spaceship_transforms: Query<&GlobalTransform, (With<SpaceShip>, With<SourceEntity>)>,
+    q_spaceship_transforms: Query<&GlobalTransform, (With<Spaceship>, With<SourceEntity>)>,
     time: Res<Time>,
     local_player_info: LocalPlayerInfo,
     mut aim_offset: Local<Vec2>,
@@ -83,7 +84,7 @@ fn follow_spaceship(
     let aim_factor = f32::min(1.0, AIM_FACTOR * time.delta_seconds());
     let follow_factor = f32::min(1.0, FOLLOW_FACTOR * time.delta_seconds());
 
-    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::Spaceship) else {
         return;
     };
 
@@ -134,13 +135,13 @@ fn follow_spaceship(
 }
 
 fn spaceship_velocity_zoom_shake(
-    q_spaceships: Query<(&LinearVelocity, &SpaceShip), (With<SpaceShip>, With<SourceEntity>)>,
+    q_spaceships: Query<(&LinearVelocity, &Spaceship), (With<Spaceship>, With<SourceEntity>)>,
     mut camera_zoom: ResMut<CameraZoom>,
     local_player_info: LocalPlayerInfo,
 ) {
     const MAX_ZOOM: f32 = 1.6;
 
-    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::SpaceShip) else {
+    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::Spaceship) else {
         return;
     };
 
@@ -150,7 +151,7 @@ fn spaceship_velocity_zoom_shake(
 
     // Apply ease to zoom more towards maximal velocity and vice versa.
     let velocity_factor =
-        ease::quart::ease_in(spaceship_velocity.length() / spaceship.max_linear_speed);
+        ease::quad::ease_in_out(spaceship_velocity.length() / spaceship.max_linear_speed);
 
     camera_zoom.target_zoom = f32::lerp(1.0, MAX_ZOOM, velocity_factor);
 }
@@ -161,7 +162,7 @@ fn main_window_zoom(main_window_func: Res<MainWindowFunc>, mut camera_zoom: ResM
     camera_zoom.zoom_mutliplier = f32::lerp(
         SCALE_MULTIPLIER,
         1.0,
-        ease::cubic::ease_in_out(main_window_func.transparency as f32),
+        ease::quad::ease_in_out(main_window_func.transparency as f32),
     );
 }
 
@@ -170,7 +171,7 @@ fn camera_zoom(
     mut camera_zoom: ResMut<CameraZoom>,
     time: Res<Time>,
 ) {
-    const ZOOM_FACTOR: f32 = 10.0;
+    const ZOOM_FACTOR: f32 = 4.0;
 
     let Ok(mut projection) = q_camera.get_single_mut() else {
         return;

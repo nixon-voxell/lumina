@@ -8,26 +8,35 @@ use lightyear::prelude::*;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-pub struct SettingsPlugin;
+pub(super) struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
-        let network_settings_str = include_str!("../network_settings.ron");
-        let network_settings = read_settings::<NetworkSettings>(network_settings_str);
-        app.insert_resource(network_settings);
+        let settings_str = include_str!("../settings.ron");
+        let settings = read_settings::<LuminaSettings>(settings_str);
+        app.insert_resource(settings);
     }
 }
 
 /// We parse the settings.ron file to read the settings
 pub fn read_settings<T: DeserializeOwned>(settings_str: &str) -> T {
-    ron::de::from_str::<T>(settings_str).expect("Could not deserialize the settings file")
+    ron::de::from_str::<T>(settings_str).expect("Could not deserialize the settings file.")
 }
 
 #[derive(Resource, Deserialize, Serialize, Debug, Clone, Copy)]
-pub struct NetworkSettings {
+pub struct LuminaSettings {
+    pub fixed_timestep_hz: f64,
+    /// In milliseconds.
+    pub server_replication_interval: u64,
     pub server: ServerSettings,
     pub client: ClientSettings,
     pub shared: SharedSettings,
+}
+
+impl LuminaSettings {
+    pub fn server_replication_interval(&self) -> Duration {
+        Duration::from_millis(self.server_replication_interval)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]

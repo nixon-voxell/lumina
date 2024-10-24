@@ -1247,6 +1247,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_transform_interpolation"
+version = "0.1.0"
+source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_ui"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3798,12 +3806,25 @@ dependencies = [
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
+ "lumina_common",
  "lumina_dev",
  "lumina_shared",
  "lumina_ui",
  "noisy_bevy",
  "rand",
  "velyst",
+]
+
+[[package]]
+name = "lumina_common"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "bevy_transform_interpolation",
+ "leafwing-input-manager",
+ "lightyear",
+ "serde",
 ]
 
 [[package]]
@@ -3822,6 +3843,7 @@ dependencies = [
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
+ "lumina_common",
  "lumina_dev",
  "lumina_shared",
  "lumina_ui",
@@ -3836,9 +3858,11 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy_transform_interpolation",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
+ "lumina_common",
  "lumina_ui",
  "noisy_bevy",
  "rand",

@@ -39,7 +39,7 @@ pub struct EffectorPopupMsg(pub String);
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
 pub struct InteractableEffector {
-    pub required_accumulation: f32,
+    pub interact_duration: f32,
 }
 
 /// A constructor for effector which will be converted into avian sensor related components:
