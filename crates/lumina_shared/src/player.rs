@@ -1,10 +1,8 @@
 use std::ops::{Index, IndexMut};
 
-use bevy::ecs::query::QueryFilter;
 use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -104,23 +102,5 @@ impl<const COUNT: usize> IndexMut<PlayerInfoType> for PlayerInfos<COUNT> {
 impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
     fn default() -> Self {
         Self(std::array::from_fn(|_| HashMap::default()))
-    }
-}
-
-pub trait BlueprintType: Component {
-    fn visual_info(&self) -> BlueprintInfo;
-    fn config_info(&self) -> BlueprintInfo;
-}
-
-pub fn spawn_blueprint_visual<T: BlueprintType, F: QueryFilter>(
-    mut commands: Commands,
-    q_blueprints: Query<(&T, Entity), (Added<SourceEntity>, F)>,
-) {
-    for (blueprint_type, entity) in q_blueprints.iter() {
-        commands.entity(entity).insert((
-            blueprint_type.visual_info(),
-            SpawnBlueprint,
-            HideUntilReady,
-        ));
     }
 }

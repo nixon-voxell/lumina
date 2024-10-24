@@ -6,10 +6,6 @@ pub struct EffectorPlugin;
 impl Plugin for EffectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, convert_effector);
-
-        app.register_type::<EffectorPopupMsg>()
-            .register_type::<InteractableEffector>()
-            .register_type::<Effector>();
     }
 }
 
@@ -53,3 +49,11 @@ pub struct Effector {
     pub rigidbody: RigidBody,
     pub collider: ColliderConstructor,
 }
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct MatchmakeEffector;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct TutorialEffector;

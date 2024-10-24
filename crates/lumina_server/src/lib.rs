@@ -11,6 +11,7 @@ use server::*;
 
 mod lobby;
 mod player;
+mod source_entity;
 mod ui;
 
 pub struct ServerPlugin;
@@ -19,7 +20,6 @@ impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
         info!("Adding `ServerPlugin`.");
 
-        // Lightyear plugins
         let settings = app.world().get_resource::<LuminaSettings>().unwrap();
         app.add_plugins((
             ServerPlugins::new(server_config(settings)),
@@ -27,12 +27,15 @@ impl Plugin for ServerPlugin {
                 export_registry: false,
                 ..default()
             },
-        ));
-
-        app.add_plugins((ui::ServerUiPlugin, lobby::LobbyPlugin, player::PlayerPlugin))
-            .init_resource::<LobbyInfos>()
-            .add_systems(Startup, start_server);
-        // .add_systems(PreUpdate, set_source::<>.before(MainSet::Send));
+        ))
+        .add_plugins((
+            ui::ServerUiPlugin,
+            source_entity::SourceEntityPlugin,
+            lobby::LobbyPlugin,
+            player::PlayerPlugin,
+        ))
+        .init_resource::<LobbyInfos>()
+        .add_systems(Startup, start_server);
     }
 }
 
