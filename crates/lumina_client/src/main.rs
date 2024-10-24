@@ -1,7 +1,6 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::audio::{AudioPlugin, Volume};
 use bevy::prelude::*;
-use bevy::winit::{UpdateMode, WinitSettings};
 
 fn main() {
     let mut app = App::new();
@@ -41,10 +40,14 @@ fn main() {
 
     // Disable this in release mode.
     #[cfg(feature = "dev")]
-    app.insert_resource(WinitSettings {
-        focused_mode: UpdateMode::Continuous,
-        unfocused_mode: UpdateMode::Continuous,
-    });
+    {
+        use bevy::winit::{UpdateMode, WinitSettings};
+
+        app.insert_resource(WinitSettings {
+            focused_mode: UpdateMode::Continuous,
+            unfocused_mode: UpdateMode::Continuous,
+        });
+    }
 
     app.run();
 }
