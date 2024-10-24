@@ -38,5 +38,16 @@ fn main() {
         lumina_shared::SharedPlugin,
     ));
 
+    // Disable this in release mode.
+    #[cfg(feature = "dev")]
+    {
+        use bevy::winit::{UpdateMode, WinitSettings};
+
+        app.insert_resource(WinitSettings {
+            focused_mode: UpdateMode::Continuous,
+            unfocused_mode: UpdateMode::Continuous,
+        });
+    }
+
     app.run();
 }

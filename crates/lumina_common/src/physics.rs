@@ -7,6 +7,7 @@ use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
 use bevy_transform_interpolation::*;
 
+use crate::prelude::SourceEntity;
 use crate::settings::LuminaSettings;
 
 pub(super) struct PhysicsPlugin;
@@ -37,21 +38,38 @@ impl Plugin for PhysicsPlugin {
                 (convert_primitive_rigidbody, convert_mesh_rigidbody),
             )
             .add_systems(PostUpdate, (init_position_sync, init_rotation_sync));
-
-        app.register_type::<PrimitiveRigidbody>()
-            .register_type::<MeshRigidbody>();
     }
 }
 
-/// Insert [`TranslationInterpolation`] for entities with [`Position`].
-fn init_position_sync(mut commands: Commands, q_positions: Query<Entity, Added<Position>>) {
+/// Insert [`TranslationInterpolation`] for entities with [`Position`] and [`SourceEntity`].
+fn init_position_sync(
+    mut commands: Commands,
+    q_positions: Query<
+        Entity,
+        (
+            With<Position>,
+            With<SourceEntity>,
+            Without<TranslationInterpolation>,
+        ),
+    >,
+) {
     for entity in q_positions.iter() {
         commands.entity(entity).insert(TranslationInterpolation);
     }
 }
 
-/// Insert [`RotationInterpolation`] for entities with [`Rotation`].
-fn init_rotation_sync(mut commands: Commands, q_rotations: Query<Entity, Added<Rotation>>) {
+/// Insert [`RotationInterpolation`] for entities with [`Rotation`] and [`SourceEntity`].
+fn init_rotation_sync(
+    mut commands: Commands,
+    q_rotations: Query<
+        Entity,
+        (
+            With<Rotation>,
+            With<SourceEntity>,
+            Without<RotationInterpolation>,
+        ),
+    >,
+) {
     for entity in q_rotations.iter() {
         commands.entity(entity).insert(RotationInterpolation);
     }

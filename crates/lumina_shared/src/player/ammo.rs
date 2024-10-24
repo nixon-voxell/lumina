@@ -9,7 +9,7 @@ use blenvy::*;
 use lumina_common::prelude::*;
 use strum::{EnumCount, EnumIter, IntoEnumIterator};
 
-use super::{spawn_blueprint_visual, BlueprintType, PlayerId};
+use super::PlayerId;
 
 pub(super) struct AmmoPlugin;
 
@@ -20,18 +20,7 @@ impl Plugin for AmmoPlugin {
             .add_event::<FireAmmo>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
-            .add_systems(
-                FixedUpdate,
-                (
-                    fire_ammo,
-                    track_ammo_lifetime,
-                    spawn_blueprint_visual::<AmmoType, Without<AmmoRef>>,
-                ),
-            );
-
-        app.register_type::<AmmoType>()
-            .register_type::<Ammo>()
-            .register_type::<AmmoRef>();
+            .add_systems(FixedUpdate, (fire_ammo, track_ammo_lifetime));
     }
 }
 

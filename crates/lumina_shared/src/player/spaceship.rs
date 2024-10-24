@@ -15,9 +15,6 @@ impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, init_spaceships)
             .add_systems(FixedUpdate, spaceship_movement);
-
-        app.register_type::<SpaceshipType>()
-            .register_type::<Spaceship>();
     }
 }
 

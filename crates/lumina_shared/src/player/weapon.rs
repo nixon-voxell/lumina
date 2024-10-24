@@ -19,8 +19,6 @@ impl Plugin for WeaponPlugin {
                 FixedUpdate,
                 (weapon_recharge, (weapon_direction, weapon_attack).chain()),
             );
-
-        app.register_type::<WeaponType>().register_type::<Weapon>();
     }
 }
 

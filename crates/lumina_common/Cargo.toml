@@ -10,6 +10,7 @@ bevy = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
+blenvy = { workspace = true }
 serde = { workspace = true }
 bevy_transform_interpolation = { workspace = true }
 

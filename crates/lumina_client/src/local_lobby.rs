@@ -6,6 +6,7 @@ use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_shared::effector::MatchmakeEffector;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::player::weapon::WeaponType;
 use lumina_shared::prelude::*;
@@ -29,9 +30,6 @@ impl Plugin for LocalLobbyPlugin {
             Update,
             matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
         );
-
-        app.register_type::<MatchmakeEffector>()
-            .register_type::<TutorialEffector>();
     }
 }
 
@@ -120,14 +118,6 @@ fn despawn_networked_inputs(
         commands.entity(entity).despawn();
     }
 }
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub(super) struct MatchmakeEffector;
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub(super) struct TutorialEffector;
 
 #[derive(Bundle)]
 pub(super) struct LocalLobbyBundle {

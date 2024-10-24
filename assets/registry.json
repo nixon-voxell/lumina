@@ -19400,28 +19400,6 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_client::local_lobby::MatchmakeEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_client::local_lobby::MatchmakeEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "MatchmakeEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_client::local_lobby::TutorialEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_client::local_lobby::TutorialEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "TutorialEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
     "lumina_common::physics::MeshCollider": {
       "isComponent": false,
       "isResource": false,
@@ -19569,6 +19547,28 @@
         "interact_duration"
       ],
       "short_name": "InteractableEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::effector::MatchmakeEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::MatchmakeEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "MatchmakeEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::effector::TutorialEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::TutorialEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TutorialEffector",
       "type": "object",
       "typeInfo": "Struct"
     },

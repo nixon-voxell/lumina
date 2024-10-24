@@ -8,12 +8,14 @@ use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
 
+mod blueprint_visual;
 mod camera;
 mod effector;
 mod local_lobby;
 mod matchmaking;
 mod multiplayer_lobby;
 mod player;
+mod source_entity;
 mod ui;
 
 pub struct ClientPlugin;
@@ -32,9 +34,10 @@ impl Plugin for ClientPlugin {
                 ..default()
             },
             CoroutinePlugin,
-        ));
-
-        app.add_plugins((
+        ))
+        .add_plugins((
+            source_entity::SourceEntityPlugin,
+            blueprint_visual::BlueprintVisualPlugin,
             ui::UiPlugin,
             player::PlayerPlugin,
             camera::CameraPlugin,

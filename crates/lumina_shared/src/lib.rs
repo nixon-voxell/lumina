@@ -10,11 +10,11 @@ pub mod player;
 pub mod procedural_map;
 pub mod protocol;
 
+mod type_registry;
+
 pub mod prelude {
     pub use crate::action::PlayerAction;
-    pub use crate::player::{
-        spawn_blueprint_visual, BlueprintType, PlayerId, PlayerInfoType, PlayerInfos,
-    };
+    pub use crate::player::{PlayerId, PlayerInfoType, PlayerInfos};
     pub use crate::protocol::*;
 }
 
@@ -24,6 +24,7 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            type_registry::TypeRegistryPlugin,
             lumina_ui::UiPlugin,
             protocol::ProtocolPlugin,
             player::PlayerPlugin,
