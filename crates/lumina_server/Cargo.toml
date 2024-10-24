@@ -1,0 +1,39 @@
+[package]
+name = "lumina_server"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+lumina_common = { workspace = true }
+lumina_ui = { workspace = true }
+lumina_shared = { workspace = true }
+lumina_dev = { workspace = true, optional = true }
+velyst = { workspace = true }
+bevy = { workspace = true }
+lightyear = { workspace = true }
+leafwing-input-manager = { workspace = true }
+avian2d = { workspace = true }
+blenvy = { workspace = true }
+rand = { workspace = true }
+smallvec = { workspace = true }
+
+[features]
+default = [
+  # Default to a native dev build.
+  "dev_native",
+]
+dev = [
+  # Improve compile times for dev builds by linking Bevy as a dynamic library.
+  "bevy/dynamic_linking",
+  "dep:lumina_dev",
+]
+dev_native = [
+  "dev",
+  # Enable asset hot reloading for native dev builds.
+  "bevy/file_watcher",
+]
+
+[lints]
+workspace = true

@@ -1,0 +1,14 @@
+[package]
+name = "test_bed"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+velyst = { workspace = true }
+bevy = { workspace = true, features = ["file_watcher"] }
+bevy_vello = { workspace = true }
+
+[lints]
+workspace = true

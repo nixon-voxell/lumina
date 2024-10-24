@@ -1,0 +1,24 @@
+[package]
+name = "lumina_shared"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+lumina_common = { workspace = true }
+lumina_ui = { workspace = true }
+bevy = { workspace = true }
+lightyear = { workspace = true }
+leafwing-input-manager = { workspace = true }
+avian2d = { workspace = true }
+blenvy = { workspace = true }
+noisy_bevy = { workspace = true }
+serde = { workspace = true }
+rand = { workspace = true }
+smallvec = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+
+[lints]
+workspace = true
