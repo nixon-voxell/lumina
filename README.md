@@ -32,7 +32,7 @@ With `x` being the number of clients you want to spawn.
 
 ### Test Bed
 
-To improve development time, the `crates/test_bed` folder is used to create mini test cases with minimal compilation time. Run an test binary using the following command:
+To improve development time, the `crates/test_bed` folder is used to create mini test cases with minimal compilation time. Run a test binary using the following command:
 
 ```
 cargo run --bin test_name
