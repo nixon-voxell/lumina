@@ -109,11 +109,9 @@ pub fn setup_grid_and_spawn_tiles(
             max_dig_attempts: 10000,
         };
 
-        // Create a new GridMap
         let mut new_cave_map = GridMap::new(MAP_WIDTH as u32, MAP_HEIGHT as u32);
         let generated_map = create_cave_map(new_cave_map.clone(), cave_config);
 
-        // Insert the GridMap resource after creating the cave map
         commands.insert_resource(new_cave_map.clone());
 
         // Precompute neighbor states
@@ -125,7 +123,9 @@ pub fn setup_grid_and_spawn_tiles(
             }
         }
 
-        // Spawn tiles using the generated cave map
+        // Spawn tiles and collect entities needing rigid bodies
+        let mut entities_to_add_rigid_body = Vec::new();
+
         for (i, &state) in generated_map.states.iter().enumerate() {
             if state == CellState::Empty {
                 continue; // Skip empty tiles
@@ -136,27 +136,30 @@ pub fn setup_grid_and_spawn_tiles(
                 (i as u32 / new_cave_map.width) as f32 * tile_config._height,
             );
 
-            // Create the entity with the ColorMesh2dBundle
-            let mut entity_builder = commands.spawn((ColorMesh2dBundle {
+            let entity_builder = commands.spawn((ColorMesh2dBundle {
                 mesh: tile_config.mesh.clone(),
                 material: tile_config.material.clone(),
                 transform: Transform::from_xyz(position.x, position.y, 0.0),
                 ..default()
             },));
 
-            // Only add RigidBody and Collider if there are empty neighbors
+            // Only collect entities that need RigidBody and Collider
             if has_empty_neighbors[i] {
-                entity_builder.insert(shared_rigid_body.0.clone()); // Add RigidBody
-                entity_builder.insert(shared_collider.0.clone()); // Add Collider
+                entities_to_add_rigid_body.push(entity_builder.id());
             }
-
-            // Get the entity ID
-            let tile_entity = entity_builder.id();
 
             // Track spawned tiles
             if new_cave_map.tile_pool.len() <= i {
-                new_cave_map.tile_pool.push(tile_entity);
+                new_cave_map.tile_pool.push(entity_builder.id());
             }
+        }
+
+        // Add RigidBody and Collider in batch
+        for entity_id in entities_to_add_rigid_body {
+            commands
+                .entity(entity_id)
+                .insert(shared_rigid_body.0.clone());
+            commands.entity(entity_id).insert(shared_collider.0.clone());
         }
     }
 }
