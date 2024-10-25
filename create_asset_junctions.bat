@@ -5,3 +5,5 @@ cd ../..
 
 cd crates\lumina_server
 mklink /J assets\ ..\..\assets\
+
+pause
