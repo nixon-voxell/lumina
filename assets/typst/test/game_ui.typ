@@ -35,6 +35,21 @@
   ] 
 }
 
+#let weapon_selector(
+  columns: int,
+  gutter: length,
+  box_width: length,
+  box_height: length,
+  num_boxes: int
+) = {
+  grid(
+    columns: columns,
+    gutter: gutter,
+    // Generate boxes dynamically based on num_boxes
+    ..range(num_boxes).map((i) => box(fill: white, width: box_width, height: box_height))
+  )
+}
+
 #let speed_and_bullets(
   width: 400pt,
   height: 80pt,
@@ -54,6 +69,21 @@
   ]
 
   
+}
+
+#let weapon_selector(
+  columns: int,
+  gutter: length,
+  box_width: length,
+  box_height: length,
+  num_boxes: int
+) = {
+  grid(
+    columns: columns,
+    gutter: gutter,
+    // Generate boxes dynamically based on num_boxes
+    ..range(num_boxes).map((i) => box(fill: red, width: box_width, height: box_height, stroke: blue))
+  )
 }
 
 #let shop(
@@ -150,11 +180,7 @@
 
 
     #place(center + bottom, dx: half_width + 100pt)[
-      #grid(
-        columns: 2,
-        gutter: 10pt,
-        ..range(5).map((i) => box(fill: white, width: 50pt, height: 50pt))
-      )
+      #weapon_selector(columns: 2, gutter: 10pt, box_width: 50pt, box_height: 50pt, num_boxes: 2)
     ]
   ]
 }
