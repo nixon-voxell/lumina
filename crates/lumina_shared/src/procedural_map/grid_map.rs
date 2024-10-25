@@ -94,12 +94,14 @@ pub fn setup_resources(mut commands: Commands) {
 
 pub fn setup_grid_and_spawn_tiles(
     mut commands: Commands,
-    mut generate_map_event_reader: EventReader<GenerateMapEvent>,
+    mut generate_map_evr: EventReader<GenerateMapEvent>,
     tile_config: Res<TileConfig>,
     shared_rigid_body: Res<SharedRigidBody>,
     shared_collider: Res<SharedCollider>,
 ) {
-    for generate_map_event in generate_map_event_reader.read() {
+    for generate_map_event in generate_map_evr.read() {
+        println!("\n\nGenerate grid with seed: {}", generate_map_event.0);
+
         let cave_config = CaveConfig {
             map_width: MAP_WIDTH,
             map_height: MAP_HEIGHT,
@@ -156,9 +158,7 @@ pub fn setup_grid_and_spawn_tiles(
 
         // Add RigidBody and Collider in batch
         for entity_id in entities_to_add_rigid_body {
-            commands
-                .entity(entity_id)
-                .insert(shared_rigid_body.0.clone());
+            commands.entity(entity_id).insert(shared_rigid_body.0);
             commands.entity(entity_id).insert(shared_collider.0.clone());
         }
     }

@@ -122,8 +122,10 @@ fn handle_matchmaking(
                     commands.entity(entity).insert(LobbyFull);
 
                     // Send GenerateMapEvent when the lobby is full
-                    let room_id = server::RoomId(entity.room_id().0);
-                    generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
+
+                    // TODO: Move up here in the future
+                    // let room_id = entity.room_id();
+                    // generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
                 }
 
                 break;
@@ -131,8 +133,14 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity
-            .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
+        let lobby_entity = lobby_entity.unwrap_or_else(|| {
+            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
+
+            let room_id = entity.room_id();
+            generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
+
+            entity
+        });
 
         spawn_player_entity(&mut commands, client_id);
         room_manager.add_client(client_id, lobby_entity.room_id());
