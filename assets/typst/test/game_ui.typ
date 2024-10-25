@@ -9,11 +9,15 @@
 
 
 // Booster meter
-#let red_height = 0%
+
 #let boostmeter(
-  height: 400pt,
-  width: 50pt,
+  height,
+  width,
+  red_height
 ) = {
+
+  let width = 50pt
+  let height = 400pt
   rect(
     width: width,
     height: height,
@@ -25,7 +29,7 @@
    center + bottom,
   rect(
     width: width,
-    height: red_height,
+    height: red_height * 100%,
     fill: red
   ))
   ] 
