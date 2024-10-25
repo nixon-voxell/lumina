@@ -9,21 +9,14 @@ if "%~1"=="" (
 
 set count=%~1
 
-echo Building the project...
-cargo build
-if %errorlevel% neq 0 (
-    echo Build failed!
-    exit /b
-)
-
 echo Starting the server...
-start /B cargo run -- server
+start /B cargo run --bin lumina_server
 timeout 1
 
 echo Starting %count% client instances...
 for /L %%i in (1,1,%count%) do (
     echo Starting client instance %%i...
-    start /B cargo run -- client
+    start /B cargo run --bin lumina_client
     timeout 1
 )
 

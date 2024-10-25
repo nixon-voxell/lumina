@@ -1,0 +1,12 @@
+[package]
+name = "lumina_dev"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_dev_tools"] }
+
+[lints]
+workspace = true

@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 exclude = ["external_crates/"]
-# members = ["crates/*", ]
+members = ["crates/*", ]
 
 [workspace.package]
 version = "0.1.0"
@@ -10,12 +10,19 @@ readme = "README.md"
 authors = ["Nixon <voxell.technologies@gmail.com>"]
 
 [workspace.dependencies]
-# Local dependencies
+# Lumina
+lumina_common = { path = "crates/lumina_common" }
+lumina_ui = { path = "crates/lumina_ui" }
+lumina_shared = { path = "crates/lumina_shared" }
+lumina_dev = { path = "crates/lumina_dev" }
+# Local
 velyst = { path = "external_crates/velyst" }
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
+# Git
 bevy_coroutine = { version = "0.1.3", git = "https://github.com/nixon-voxell/bevy_coroutine" }
-
+bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
+# Crates.io
 bevy = { version = "0.14", features = ["wayland"] }
 bevy_vello = "0.6"
 lightyear = { version = "0.16", features = [
@@ -35,16 +42,12 @@ avian2d = { version = "0.1", default-features = false, features = [
 ] }
 blenvy = "0.1.0-alpha.1"
 noisy_bevy = "0.7"
-bincode = "1.3"
 serde = "1"
 rand = "0.8"
-clap = { version = "4.5", features = ["derive"] }
 smallvec = "1"
 strum = "0.26"
 strum_macros = "0.26"
 
-# Idiomatic Bevy code often triggers these lints, and the CI workflow treats them as errors.
-# In some cases they may still signal poor code quality however, so consider commenting out these lines.
 [workspace.lints.clippy]
 # Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
 # request more than 7 arguments -- which triggers this lint.
@@ -55,59 +58,14 @@ type_complexity = "allow"
 bool_comparison = "allow"
 redundant_type_annotations = "warn"
 
-[package]
-name = "lumina"
-version.workspace = true
-edition.workspace = true
-readme.workspace = true
-authors.workspace = true
-
-[dependencies]
-# Local dependencies
-velyst = { workspace = true }
-bevy_vello_graphics = { workspace = true }
-bevy_motiongfx = { workspace = true }
-
-bevy = { workspace = true }
-bevy_vello = { workspace = true }
-lightyear = { workspace = true }
-leafwing-input-manager = { workspace = true }
-avian2d = { workspace = true }
-blenvy = { workspace = true }
-bevy_coroutine = { workspace = true }
-noisy_bevy = { workspace = true }
-bincode = { workspace = true }
-serde = { workspace = true }
-rand = { workspace = true }
-clap = { workspace = true }
-smallvec = { workspace = true }
-strum = { workspace = true }
-strum_macros = { workspace = true }
-
-[features]
-default = [
-    # Default to a native dev build.
-    "dev_native",
-]
-dev = [
-    # Improve compile times for dev builds by linking Bevy as a dynamic library.
-    "bevy/dynamic_linking",
-    "bevy/bevy_dev_tools",
-]
-dev_native = [
-    "dev",
-    # Enable asset hot reloading for native dev builds.
-    "bevy/file_watcher",
-    # Enable embedded asset hot reloading for native dev builds.
-    # Disabled due to slow startup time.
-    # "bevy/embedded_watcher",
-]
-
 # Compile with Performance Optimizations:
 # https://bevyengine.org/learn/quick-start/getting-started/setup/#compile-with-performance-optimizations
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
+opt-level = 1
+
+[profile.dev.package.lumina_shared]
 opt-level = 1
 
 # Enable a large amount of optimization in the dev profile for dependencies.
@@ -142,6 +100,3 @@ inherits = "release"
 opt-level = 3
 # Keep debug information in the binary.
 strip = "none"
-
-[lints]
-workspace = true
