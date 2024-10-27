@@ -115,6 +115,10 @@
   ]
 }
 
+#let countdown_timer(minutes, seconds) = {
+    text(fill: white, size: 45pt)[#minutes:#seconds]
+}
+
 // Input:
 // - Length of the entire health bar
 // - Max HP
@@ -145,7 +149,7 @@
 
 
 #let main( main_width,
-  main_height) = context {
+  main_height, boostmeter, timer) = context {
     let main_width = main_width * 1pt
     let main_height = main_height * 1pt
   box(
@@ -154,15 +158,19 @@
     inset: 50pt,
   )[
     #place(right + horizon)[
-      #boostmeter()
+      #for b in boostmeter{
+        b
+      }
     ]
   
     #place(bottom + center)[
       #speed_and_bullets()
     ]
-  
+
     #place(top + center)[
-      #timer()
+      #for t in timer {
+        t
+      }
     ]
   
     #place(left + bottom)[
