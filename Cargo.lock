@@ -6200,6 +6200,7 @@ dependencies = [
  "bevy_enoki",
  "bevy_shader_utils",
  "bevy_vello",
+ "rand",
  "velyst",
 ]
 

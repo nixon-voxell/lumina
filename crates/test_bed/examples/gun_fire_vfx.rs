@@ -59,12 +59,20 @@ fn setup(
 }
 
 fn spawn_spark(
-    mut q_particle_states: Query<&mut ParticleSpawnerState>,
+    mut q_particle_states: Query<(
+        &mut ParticleSpawnerState,
+        Option<&Handle<MuzzleFlashParticleMaterial>>,
+    )>,
+    mut materials: ResMut<Assets<MuzzleFlashParticleMaterial>>,
     button: Res<ButtonInput<MouseButton>>,
 ) {
     if button.just_pressed(MouseButton::Left) {
-        for mut particle_states in q_particle_states.iter_mut() {
+        for (mut particle_states, material) in q_particle_states.iter_mut() {
             particle_states.active = true;
+
+            if let Some(material) = material.and_then(|handle| materials.get_mut(handle)) {
+                material.variation = rand::random();
+            }
         }
     }
 }
@@ -74,6 +82,8 @@ pub struct MuzzleFlashParticleMaterial {
     #[texture(0)]
     #[sampler(1)]
     texture: Handle<Image>,
+    #[uniform(2)]
+    variation: f32,
 }
 
 impl Particle2dMaterial for MuzzleFlashParticleMaterial {
