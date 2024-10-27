@@ -71,7 +71,7 @@ fn spawn_spark(
             particle_states.active = true;
 
             if let Some(material) = material.and_then(|handle| materials.get_mut(handle)) {
-                material.variation = rand::random();
+                material.variation = rand::random::<f32>() * 1000.0;
             }
         }
     }

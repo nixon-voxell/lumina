@@ -19,7 +19,7 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var x_angle = atan2(diff.y, diff.x) / 3.142;
     var angle = atan2(diff.y, diff.x) / 3.142;
-    let noise = perlinNoise2(vec2<f32>(x_angle * 20.0, variation));
+    let noise = perlinNoise2(vec2<f32>(x_angle * 20.0, variation + in.lifetime_frac));
     angle = 1.0 - abs(angle);
     angle = saturate(angle - 0.8) / 0.2;
 
