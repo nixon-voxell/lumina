@@ -116,30 +116,34 @@
 
 // Rule
 // - Each box represents 10 HP
-#let playerhealth(
-  rect_width: 15pt,
-  rect_height: 20pt,
-  spacing: 7pt,
-  num_rectangles: 6
-) = {
-  text(fill: green, size: 18pt, [= Health])
-  box()
-  // Stack the green rectangles horizontally
-  for i in range(num_rectangles) {
-    place(dx: i * (rect_width + spacing))[
-      #rect(
-        width: rect_width,
-        height: rect_height,
-        fill: green.saturate(80%),
-        // fill: rgb("#00ff00"),
-      )
+#let playerhealth(current_hp, max_hp, rect_width: 15pt, rect_height: 20pt, spacing: 7pt) = {
+    // Calculate the ratio of current HP to max HP
+    let hp_ratio = current_hp / max_hp
+
+    // Determine the total number of blocks and how many blocks to display based on HP ratio
+    let max_blocks = 10  // Adjust this value for more or fewer blocks
+    let num_blocks = hp_ratio * max_blocks
+
+    text(fill: green, size: 18pt)[= Health]
+
+    box()[
+        // Display the fractional blocks based on the HP ratio
+        #for i in range(max_blocks) {
+            let fill_color = if(i < num_blocks) { green.saturate(80%) } else { green.transparentize(80%) }
+            place(dx: i * (rect_width + spacing))[
+                #rect(
+                    width: rect_width,
+                    height: rect_height,
+                    fill: fill_color,
+                )
+            ]
+        }
     ]
-  }
 }
 
 
 #let main( main_width,
-  main_height, boostmeter, timer) = context {
+  main_height, boostmeter, timer, health) = context {
     let main_width = main_width * 1pt
     let main_height = main_height * 1pt
   box(
@@ -168,7 +172,9 @@
     ]
   
     #place(left + top)[
-      #playerhealth()
+      #for h in health {
+          h
+      }
     ]
 
     #let x = speed_and_bullets()

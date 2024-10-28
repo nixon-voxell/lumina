@@ -11,6 +11,7 @@ fn main() {
         .compile_typst_func::<HelloWorld, MainFunc>()
         .compile_typst_func::<HelloWorld, CountdownTimerFunc>()
         .compile_typst_func::<HelloWorld, BoostmeterFunc>()
+        .compile_typst_func::<HelloWorld, HealthFunc>()
         .render_typst_func::<MainFunc>()
         .init_resource::<CountdownTimerFunc>()
         .init_resource::<BoostmeterFunc>()
@@ -24,14 +25,20 @@ fn main() {
             height: 720.0,
             boostmeter: Vec::new(),
             timer: Vec::new(),
+            health: Vec::new(),
         })
         .insert_resource(BoostmeterFunc {
             height: 400.0,
             width: 50.0,
             red_height: 0.0,
         }) // Set initial boostmeter values
+        .insert_resource(HealthFunc {
+            current_hp: 100.0,  // Set initial HP
+            max_hp: 100.0,      // Set max HP
+        })
         .add_systems(Startup, setup)
         .add_systems(Update, update_timer)
+        .add_systems(Update, simulate_health_change) // Simulation of hp changes
         .add_systems(
             Update,
             update_timer_ui.run_if(resource_changed::<TypstContent<CountdownTimerFunc>>),
@@ -41,6 +48,10 @@ fn main() {
             update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>),
         )
         .add_systems(Update, update_boost_meter)
+        .add_systems(
+            Update,
+            update_health_ui.run_if(resource_changed::<TypstContent<HealthFunc>>), // Simulation of health ui
+        )        
         .run();
 }
 
@@ -69,6 +80,15 @@ fn update_boost_meter_ui(
     func.boostmeter.clear();
     func.boostmeter.push(boostmeter.clone());
 }
+
+fn update_health_ui(
+    mut func: ResMut<MainFunc>,
+    health_content: Res<TypstContent<HealthFunc>>,
+) {
+    func.health.clear();
+    func.health.push(health_content.clone());
+}
+
 
 // Update the booster fill state
 fn update_boost_meter(
@@ -134,6 +154,20 @@ fn update_timer(
     }
 }
 
+// Testing: Simulate Health Changes
+fn simulate_health_change(
+    time: Res<Time>,
+    mut health_func: ResMut<HealthFunc>,
+) {
+    // Decrease HP by a small amount over time, down to a minimum of 0.0
+    if health_func.current_hp > 0.0 {
+        health_func.current_hp -= 5.0 * time.delta_seconds() as f64; 
+        health_func.current_hp = health_func.current_hp.max(0.0); // Ensure HP does not go below 0.0
+        println!("Simulating health decrease: current HP = {:.2}", health_func.current_hp);
+    }
+}
+
+
 // `main` function in Typst with their respective values.
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main")] // name of function in the Typst file
@@ -142,6 +176,7 @@ struct MainFunc {
     height: f64,
     boostmeter: Vec<Content>,
     timer: Vec<Content>,
+    health: Vec<Content>,
 }
 
 #[derive(TypstFunc, Resource, Default)]
@@ -158,6 +193,14 @@ struct BoostmeterFunc {
     width: f64,
     red_height: f64,
 }
+
+#[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "playerhealth")]
+struct HealthFunc {
+    current_hp: f64,
+    max_hp: f64,
+}
+
 
 // Path to the Typst file that you created.
 #[derive(TypstPath)]
