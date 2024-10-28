@@ -53,22 +53,50 @@ impl GridMap {
         &mut self.states
     }
 
-    pub fn _get(&self, x: usize, y: usize) -> CellState {
-        self.states[y * self.width as usize + x]
+    /// Returns the state of a cell at (x, y).
+    fn get(&self, x: u32, y: u32) -> Option<CellState> {
+        if x < self.width && y < self._height {
+            Some(self.states[(y * self.width + x) as usize])
+        } else {
+            None
+        }
     }
 
-    pub fn _set(&mut self, x: usize, y: usize, value: CellState) {
-        self.states[y * self.width as usize + x] = value;
+    /// Check if a given empty cell has at least one adjacent filled tile.
+    pub fn is_valid_spawn_point(&self, x: u32, y: u32) -> bool {
+        if self.get(x, y) != Some(CellState::Empty) {
+            return false; // If the cell itself is not empty, it's not valid.
+        }
+
+        // Check if at least one neighbor is filled.
+        let neighbors = [
+            self.get(x.wrapping_sub(1), y), // Left
+            self.get(x + 1, y),             // Right
+            self.get(x, y.wrapping_sub(1)), // Up
+            self.get(x, y + 1),             // Down
+        ];
+
+        neighbors
+            .iter()
+            .any(|&cell| cell == Some(CellState::Filled))
     }
 
-    pub fn _width(&self) -> u32 {
-        self.width
-    }
-
-    pub fn _height(&self) -> u32 {
-        self._height
+    /// Collect all valid spawn points.
+    pub fn collect_spawn_points(&self) -> Vec<(u32, u32)> {
+        let mut spawn_points = Vec::new();
+        for y in 0..self._height {
+            for x in 0..self.width {
+                if self.get(x, y) == Some(CellState::Empty) && self.is_valid_spawn_point(x, y) {
+                    spawn_points.push((x, y));
+                }
+            }
+        }
+        spawn_points
     }
 }
+
+#[derive(Resource)]
+pub struct ValidSpawnPoints(pub Vec<(u32, u32)>);
 
 /// This function sets up the tile mesh and material needed to draw the grid.
 /// It helps performance by creating these resources once at the start, so we don't
@@ -164,4 +192,13 @@ pub fn setup_grid_and_spawn_tiles(
         info!("Filled cells: {}", filled_count);
         info!("Empty cells: {}", empty_count);
     }
+}
+
+/// System to detect valid spawn points after the grid map is generated.
+pub fn find_valid_spawn_points(grid_map: Res<GridMap>, mut commands: Commands) {
+    let spawn_points = grid_map.collect_spawn_points();
+    info!("Found {} valid spawn points", spawn_points.len());
+
+    // Store spawn points in a resource or use them directly for player spawning
+    commands.insert_resource(ValidSpawnPoints(spawn_points));
 }

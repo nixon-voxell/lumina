@@ -17,6 +17,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
+                detect_new_spaceships,
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                 replicate_spaceship_spawn,
@@ -35,6 +36,23 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
         SpaceshipType::Assassin.config_info(),
         SpawnBlueprint,
     ));
+}
+
+/// System to detect new spaceship spawns and add position and rotation.
+pub fn detect_new_spaceships(
+    mut query: Query<(Entity, &mut Transform), (With<Spaceship>, Added<SourceEntity>)>,
+    mut commands: Commands,
+) {
+    for (entity, mut transform) in query.iter_mut() {
+        // Example: Setting default position and rotation.
+        transform.translation = Vec3::new(0.0, 1.0, 0.0); // Example position
+        transform.rotation = Quat::from_rotation_y(0.5); // Example rotation
+
+        info!("Assigned position and rotation to spaceship: {:?}", entity);
+
+        // Optional: Modify entity with further components or commands.
+        commands.entity(entity).insert(GlobalTransform::default());
+    }
 }
 
 fn replicate_spaceship_spawn(
