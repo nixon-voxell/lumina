@@ -109,6 +109,27 @@
       "type": "array",
       "typeInfo": "Tuple"
     },
+    "(glam::Vec3, f32)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(glam::Vec3, f32)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/glam::Vec3"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      ],
+      "short_name": "(Vec3, f32)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
     "(u8, u8)": {
       "isComponent": false,
       "isResource": false,
@@ -260,6 +281,19 @@
       },
       "long_name": "alloc::vec::Vec<bevy_ecs::entity::Entity>",
       "short_name": "Vec<Entity>",
+      "type": "array",
+      "typeInfo": "List"
+    },
+    "alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>": {
+      "isComponent": false,
+      "isResource": false,
+      "items": {
+        "type": {
+          "$ref": "#/$defs/bevy_enoki::particles_2d::update::Particle"
+        }
+      },
+      "long_name": "alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>",
+      "short_name": "Vec<Particle>",
       "type": "array",
       "typeInfo": "List"
     },
@@ -3510,6 +3544,120 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<ColorParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::loader::Particle2dEffect>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::loader::Particle2dEffect>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<Particle2dEffect>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<SpriteParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_asset::handle::Handle<bevy_gizmos::LineGizmo>": {
       "isComponent": true,
       "isResource": false,
@@ -4232,6 +4380,44 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<MuzzleFlashMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_asset::handle::Handle<velyst::asset::TypstAsset>": {
       "isComponent": true,
       "isResource": false,
@@ -4589,6 +4775,144 @@
         }
       ],
       "short_name": "AssetId<Pitch>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<ColorParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<Particle2dEffect>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<SpriteParticle2dMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -5463,6 +5787,52 @@
         }
       ],
       "short_name": "AssetId<BlueprintPreloadAssets>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<MuzzleFlashMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -6601,6 +6971,132 @@
       "short_name": "Entity",
       "type": "object",
       "typeInfo": "Value"
+    },
+    "bevy_enoki::particles_2d::update::Particle": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_enoki::particles_2d::update::Particle",
+      "properties": {
+        "angular_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_damp": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "color": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        },
+        "frame": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "gravity_direction": {
+          "type": {
+            "$ref": "#/$defs/glam::Vec3"
+          }
+        },
+        "gravity_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/bevy_time::timer::Timer"
+          }
+        },
+        "linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damp": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "transform": {
+          "type": {
+            "$ref": "#/$defs/bevy_transform::components::transform::Transform"
+          }
+        },
+        "velocity": {
+          "type": {
+            "$ref": "#/$defs/(glam::Vec3, f32)"
+          }
+        }
+      },
+      "required": [
+        "transform",
+        "lifetime",
+        "velocity",
+        "color",
+        "frame",
+        "linear_acceleration",
+        "linear_damp",
+        "angular_acceleration",
+        "angular_damp",
+        "gravity_speed",
+        "gravity_direction"
+      ],
+      "short_name": "Particle",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_enoki::particles_2d::update::ParticleSpawnerState": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_enoki::particles_2d::update::ParticleSpawnerState",
+      "properties": {
+        "active": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "max_particles": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "timer": {
+          "type": {
+            "$ref": "#/$defs/bevy_time::timer::Timer"
+          }
+        }
+      },
+      "required": [
+        "max_particles",
+        "active",
+        "timer"
+      ],
+      "short_name": "ParticleSpawnerState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_enoki::particles_2d::update::ParticleStore": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_enoki::particles_2d::update::ParticleStore",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>"
+          }
+        }
+      ],
+      "short_name": "ParticleStore",
+      "type": "array",
+      "typeInfo": "TupleStruct"
     },
     "bevy_gizmos::aabb::AabbGizmoConfigGroup": {
       "additionalProperties": false,

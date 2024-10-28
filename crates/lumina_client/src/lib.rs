@@ -2,6 +2,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
+use bevy_enoki::prelude::*;
+use bevy_shader_utils::ShaderUtilsPlugin;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
@@ -34,6 +36,8 @@ impl Plugin for ClientPlugin {
                 ..default()
             },
             CoroutinePlugin,
+            ShaderUtilsPlugin,
+            EnokiPlugin,
         ))
         .add_plugins((
             source_entity::SourceEntityPlugin,

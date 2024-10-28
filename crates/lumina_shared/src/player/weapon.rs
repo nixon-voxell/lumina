@@ -163,6 +163,12 @@ pub struct Weapon {
     fire_radius: f32,
 }
 
+impl Weapon {
+    pub fn fire_radius(&self) -> f32 {
+        self.fire_radius
+    }
+}
+
 impl Component for Weapon {
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
