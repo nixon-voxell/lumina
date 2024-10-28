@@ -36,17 +36,22 @@
 }
 
 #let weapon_selector(
-  columns: int,
-  gutter: length,
-  box_width: length,
-  box_height: length,
-  num_boxes: int
+  width: 60pt,
+  height: 60pt,
 ) = {
-  grid(
-    columns: columns,
-    gutter: gutter,
-    // Generate boxes dynamically based on num_boxes
-    ..range(num_boxes).map((i) => box(fill: white, width: box_width, height: box_height))
+  // Place two boxes side by side
+  
+  box(
+    width: width,
+    height: height,
+    fill: red,
+    stroke: blue,
+  )
+  h(2%)
+  box(
+    width: width,
+    height: height,
+    fill: red,
   )
 }
 
@@ -69,21 +74,6 @@
   ]
 
   
-}
-
-#let weapon_selector(
-  columns: int,
-  gutter: length,
-  box_width: length,
-  box_height: length,
-  num_boxes: int
-) = {
-  grid(
-    columns: columns,
-    gutter: gutter,
-    // Generate boxes dynamically based on num_boxes
-    ..range(num_boxes).map((i) => box(fill: red, width: box_width, height: box_height, stroke: blue))
-  )
 }
 
 #let shop(
@@ -188,7 +178,7 @@
 
 
     #place(center + bottom, dx: half_width + 100pt)[
-      #weapon_selector(columns: 2, gutter: 10pt, box_width: 50pt, box_height: 50pt, num_boxes: 2)
+      #weapon_selector()
     ]
   ]
 }

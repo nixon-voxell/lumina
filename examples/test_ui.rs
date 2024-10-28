@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_vello::VelloPlugin;
-use velyst::{prelude::*, VelystPlugin};
 use velyst::typst_element::prelude::*;
+use velyst::{prelude::*, VelystPlugin};
 
 fn main() {
     App::new()
@@ -15,18 +15,31 @@ fn main() {
         .init_resource::<CountdownTimerFunc>()
         .init_resource::<BoostmeterFunc>()
         .insert_resource(TimerAccumulator::default())
-        .insert_resource(CountdownTimerFunc { minutes: "01".to_string(), seconds: "30".to_string() }) // Set initial time as strings
+        .insert_resource(CountdownTimerFunc {
+            minutes: "01".to_string(),
+            seconds: "30".to_string(),
+        }) // Set initial time as strings
         .insert_resource(MainFunc {
             width: 1280.0,
             height: 720.0,
             boostmeter: Vec::new(),
             timer: Vec::new(),
         })
-        .insert_resource(BoostmeterFunc { height: 400.0, width: 50.0, red_height: 0.0 }) // Set initial boostmeter values
+        .insert_resource(BoostmeterFunc {
+            height: 400.0,
+            width: 50.0,
+            red_height: 0.0,
+        }) // Set initial boostmeter values
         .add_systems(Startup, setup)
         .add_systems(Update, update_timer)
-        .add_systems(Update, update_timer_ui.run_if(resource_changed::<TypstContent<CountdownTimerFunc>>))
-        .add_systems(Update, update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>))
+        .add_systems(
+            Update,
+            update_timer_ui.run_if(resource_changed::<TypstContent<CountdownTimerFunc>>),
+        )
+        .add_systems(
+            Update,
+            update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>),
+        )
         .add_systems(Update, update_boost_meter)
         .run();
 }
@@ -41,12 +54,18 @@ struct TimerAccumulator {
     elapsed: f32, // Accumulated time in seconds
 }
 
-fn update_timer_ui(mut func: ResMut<MainFunc>, timer_countdown: Res<TypstContent<CountdownTimerFunc>>) {
+fn update_timer_ui(
+    mut func: ResMut<MainFunc>,
+    timer_countdown: Res<TypstContent<CountdownTimerFunc>>,
+) {
     func.timer.clear();
     func.timer.push(timer_countdown.clone());
 }
 
-fn update_boost_meter_ui(mut func: ResMut<MainFunc>, boostmeter: Res<TypstContent<BoostmeterFunc>>) {
+fn update_boost_meter_ui(
+    mut func: ResMut<MainFunc>,
+    boostmeter: Res<TypstContent<BoostmeterFunc>>,
+) {
     func.boostmeter.clear();
     func.boostmeter.push(boostmeter.clone());
 }
@@ -60,14 +79,12 @@ fn update_boost_meter(
     // If space is pressed, increase the boost bar's height
     if keys.pressed(KeyCode::Space) {
         boostmeter_func.red_height += 0.5 * time.delta_seconds() as f64;
-        println!("Pressed!");
         if boostmeter_func.red_height > 1.0 {
             boostmeter_func.red_height = 1.0; // Cap it at 100%
         }
     } else {
         // If space is released, reduce the height
         boostmeter_func.red_height -= 0.5 * time.delta_seconds() as f64;
-        println!("Released!");
         if boostmeter_func.red_height < 0.0 {
             boostmeter_func.red_height = 0.0; // Min is 0%
         }
@@ -110,7 +127,10 @@ fn update_timer(
         accumulator.elapsed -= 1.0;
 
         // Add a debug log
-        println!("Timer Updated: {}:{}", timer_func.minutes, timer_func.seconds);
+        println!(
+            "Timer Updated: {}:{}",
+            timer_func.minutes, timer_func.seconds
+        );
     }
 }
 
