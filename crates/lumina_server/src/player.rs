@@ -38,20 +38,40 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
     ));
 }
 
-/// System to detect new spaceship spawns and add position and rotation.
+/// System to detect new spaceship spawns and assign them to valid positions.
 pub fn detect_new_spaceships(
-    mut query: Query<(Entity, &mut Transform), (With<Spaceship>, Added<SourceEntity>)>,
+    mut query: Query<Entity, (With<Spaceship>, Added<SourceEntity>)>,
+    valid_spawn_points: Res<ValidSpawnPoints>,
     mut commands: Commands,
 ) {
-    for (entity, mut transform) in query.iter_mut() {
-        // Example: Setting default position and rotation.
-        transform.translation = Vec3::new(0.0, 1.0, 0.0); // Example position
-        transform.rotation = Quat::from_rotation_y(0.5); // Example rotation
+    // Ensure we have available spawn points.
+    if valid_spawn_points.0.is_empty() {
+        warn!("No valid spawn points available!");
+        return;
+    }
 
-        info!("Assigned position and rotation to spaceship: {:?}", entity);
+    let mut spawn_points_iter = valid_spawn_points.0.iter().cycle(); // Cycle through spawn points.
 
-        // Optional: Modify entity with further components or commands.
-        commands.entity(entity).insert(GlobalTransform::default());
+    for entity in query.iter_mut() {
+        if let Some(&(x, y)) = spawn_points_iter.next() {
+            // Convert (x, y) to a Vec3 position.
+            let position = Vec3::new(x as f32, y as f32, 0.0);
+            let rotation = Quat::IDENTITY; // Default rotation.
+
+            // Insert transform components into the entity.
+            commands.entity(entity).insert_bundle((
+                Transform {
+                    translation: position,
+                    rotation,
+                    ..Default::default()
+                },
+                GlobalTransform::default(),
+            ));
+
+            info!("Spawned spaceship at position: ({}, {})", x, y);
+        } else {
+            warn!("Ran out of spawn points!");
+        }
     }
 }
 
