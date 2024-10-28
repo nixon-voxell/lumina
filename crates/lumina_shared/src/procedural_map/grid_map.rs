@@ -1,18 +1,18 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
 
 use crate::procedural_map::random_walk_cave::{create_cave_map, CaveConfig};
 
 // Constants for default values
-pub const DEFAULT_WIDTH: usize = 100;
-pub const DEFAULT_HEIGHT: usize = 100;
+pub const MAP_WIDTH: usize = 100;
+pub const MAP_HEIGHT: usize = 100;
+const TILE_WIDTH: f32 = 100.0;
+const TILE_HEIGHT: f32 = 100.0;
 
-/// This event is needed to start making a new map.
-/// The number is used to make sure the map can be the same every time if we want.
 #[derive(Event, Clone, Copy, Deref, DerefMut)]
 pub struct GenerateMapEvent(pub u64);
 
-// Tile configuration
 #[derive(Resource)]
 pub struct TileConfig {
     mesh: Mesh2dHandle,
@@ -21,13 +21,11 @@ pub struct TileConfig {
     _height: f32,
 }
 
-/// Shows if a cell in the grid is empty or filled.
-/// It is needed to know where we can place things or dig paths.
 #[derive(Default, Clone, Copy, PartialEq)]
 pub enum CellState {
     #[default]
-    Filled, // The cell is filled
-    Empty, // The cell is empty
+    Filled,
+    Empty,
 }
 
 #[derive(Resource, Clone)]
@@ -70,16 +68,17 @@ impl GridMap {
     }
 }
 
-/// This function sets up the tile mesh and material needed to draw the grid.
-/// It helps performance by creating these resources once at the start, so we don't
-/// have to make new ones every time we draw a tile.
+#[derive(Resource)]
+pub struct SharedRigidBody(RigidBody);
+
+#[derive(Resource)]
+pub struct SharedCollider(Collider);
+
 pub fn initialize_tile_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    const TILE_WIDTH: f32 = 100.0;
-    const TILE_HEIGHT: f32 = 100.0;
     commands.insert_resource(TileConfig {
         mesh: Mesh2dHandle(meshes.add(Rectangle::new(TILE_WIDTH, TILE_HEIGHT))),
         material: materials.add(Color::srgb(0.0, 0.0, 1.0)),
@@ -88,80 +87,107 @@ pub fn initialize_tile_mesh(
     });
 }
 
+pub fn setup_resources(mut commands: Commands) {
+    commands.insert_resource(SharedRigidBody(RigidBody::Static));
+    commands.insert_resource(SharedCollider(Collider::rectangle(TILE_WIDTH, TILE_HEIGHT)));
+}
+
 pub fn setup_grid_and_spawn_tiles(
     mut commands: Commands,
-    mut generate_map_event_reader: EventReader<GenerateMapEvent>,
+    mut generate_map_evr: EventReader<GenerateMapEvent>,
     tile_config: Res<TileConfig>,
+    shared_rigid_body: Res<SharedRigidBody>,
+    shared_collider: Res<SharedCollider>,
 ) {
-    for generate_map_event in generate_map_event_reader.read() {
-        // Create a CaveConfig instance
+    for generate_map_event in generate_map_evr.read() {
+        println!("\n\nGenerate grid with seed: {}", generate_map_event.0);
+
         let cave_config = CaveConfig {
-            map_width: DEFAULT_WIDTH,
-            map_height: DEFAULT_HEIGHT,
+            map_width: MAP_WIDTH,
+            map_height: MAP_HEIGHT,
             random_seed: generate_map_event.0,
             empty_space_percentage: 40.0,
             edge_thickness: 1,
             max_dig_attempts: 10000,
         };
 
-        // Generate the cave map
-        let mut new_cave_map = create_cave_map(
-            GridMap::new(DEFAULT_WIDTH as u32, DEFAULT_HEIGHT as u32),
-            cave_config,
-        );
+        let mut new_cave_map = GridMap::new(MAP_WIDTH as u32, MAP_HEIGHT as u32);
+        let generated_map = create_cave_map(new_cave_map.clone(), cave_config);
 
-        // Insert the new GridMap resource
         commands.insert_resource(new_cave_map.clone());
 
-        // Spawn tiles in filled cells
-        let mut tile_pool_index = 0;
-        let mut new_tiles = Vec::new();
-        let mut filled_count = 0;
-        let mut empty_count = 0;
+        // Precompute neighbor states
+        let mut has_empty_neighbors = vec![false; generated_map.states.len()];
 
-        for (i, state) in new_cave_map.states.iter().enumerate() {
-            let position = match state {
-                CellState::Empty => {
-                    empty_count += 1;
-                    continue;
-                }
-                CellState::Filled => {
-                    filled_count += 1;
-                    Vec2::new(
-                        (i as u32 % new_cave_map.width) as f32 * new_cave_map.width as f32,
-                        (i as u32 / new_cave_map.width) as f32 * new_cave_map.width as f32,
-                    )
-                }
-            };
-
-            match new_cave_map.tile_pool.get(tile_pool_index) {
-                // Reuse tile pool.
-                Some(entity) => {
-                    commands
-                        .entity(*entity)
-                        .insert(Transform::from_xyz(position.x, position.y, 0.0));
-                }
-                // If not enough in tile pool, spawn batch.
-                None => {
-                    new_tiles.push(
-                        commands
-                            .spawn(ColorMesh2dBundle {
-                                mesh: tile_config.mesh.clone(),
-                                material: tile_config.material.clone(),
-                                transform: Transform::from_xyz(position.x, position.y, 0.0),
-                                ..default()
-                            })
-                            .id(),
-                    );
-                }
-            };
-            tile_pool_index += 1;
+        for (i, &state) in generated_map.states.iter().enumerate() {
+            if state == CellState::Filled {
+                has_empty_neighbors[i] = check_empty_neighbors(&generated_map, i);
+            }
         }
 
-        new_cave_map.tile_pool.append(&mut new_tiles);
+        // Spawn tiles and collect entities needing rigid bodies
+        let mut entities_to_add_rigid_body = Vec::new();
 
-        // Debug output for filled and empty cells
-        info!("Filled cells: {}", filled_count);
-        info!("Empty cells: {}", empty_count);
+        for (i, &state) in generated_map.states.iter().enumerate() {
+            if state == CellState::Empty {
+                continue; // Skip empty tiles
+            }
+
+            let position = Vec2::new(
+                (i as u32 % new_cave_map.width) as f32 * tile_config._width,
+                (i as u32 / new_cave_map.width) as f32 * tile_config._height,
+            );
+
+            let entity_builder = commands.spawn((ColorMesh2dBundle {
+                mesh: tile_config.mesh.clone(),
+                material: tile_config.material.clone(),
+                transform: Transform::from_xyz(position.x, position.y, 0.0),
+                ..default()
+            },));
+
+            // Only collect entities that need RigidBody and Collider
+            if has_empty_neighbors[i] {
+                entities_to_add_rigid_body.push(entity_builder.id());
+            }
+
+            // Track spawned tiles
+            if new_cave_map.tile_pool.len() <= i {
+                new_cave_map.tile_pool.push(entity_builder.id());
+            }
+        }
+
+        // Add RigidBody and Collider in batch
+        for entity_id in entities_to_add_rigid_body {
+            commands.entity(entity_id).insert(shared_rigid_body.0);
+            commands.entity(entity_id).insert(shared_collider.0.clone());
+        }
     }
+}
+
+fn check_empty_neighbors(grid_map: &GridMap, index: usize) -> bool {
+    let width = grid_map.width as usize;
+    let height = grid_map._height as usize;
+    let x = index % width;
+    let y = index / width;
+
+    let neighbors = [
+        (0, 1),  // Down
+        (0, -1), // Up
+        (1, 0),  // Right
+        (-1, 0), // Left
+    ];
+
+    for (dx, dy) in &neighbors {
+        let new_x = x as isize + dx;
+        let new_y = y as isize + dy;
+
+        if new_x >= 0 && new_x < width as isize && new_y >= 0 && new_y < height as isize {
+            let neighbor_index = new_y as usize * width + new_x as usize;
+            if grid_map.states[neighbor_index] == CellState::Empty {
+                return true; // Found an empty neighbor
+            }
+        }
+    }
+
+    false // No empty neighbors found
 }

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_shared::procedural_map::grid_map::GenerateMapEvent;
 use server::*;
 use smallvec::SmallVec;
 
@@ -87,6 +88,7 @@ fn handle_matchmaking(
     >,
     mut room_manager: ResMut<RoomManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
+    mut generate_map_evw: EventWriter<GenerateMapEvent>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
@@ -118,6 +120,12 @@ fn handle_matchmaking(
                     // Tag lobby as full so that this lobby won't show up the
                     // next time a new client requests to join. (optimization)
                     commands.entity(entity).insert(LobbyFull);
+
+                    // Send GenerateMapEvent when the lobby is full
+
+                    // TODO: Move up here in the future
+                    // let room_id = entity.room_id();
+                    // generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
                 }
 
                 break;
@@ -125,8 +133,14 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity
-            .unwrap_or_else(|| commands.spawn(LobbyBundle::new(lobby_size, client_id)).id());
+        let lobby_entity = lobby_entity.unwrap_or_else(|| {
+            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
+
+            let room_id = entity.room_id();
+            generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
+
+            entity
+        });
 
         spawn_player_entity(&mut commands, client_id);
         room_manager.add_client(client_id, lobby_entity.room_id());
