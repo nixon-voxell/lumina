@@ -34,7 +34,7 @@ fn attack_cam_shake(
 fn attack_vfx(
     mut fire_ammo_evr: EventReader<FireAmmo>,
     q_weapon_vfx: Query<&WeaponVfx>,
-    mut q_particles: Query<(&mut ParticleSpawnerState, &mut Transform)>,
+    mut q_particles: Query<&mut ParticleSpawnerState>,
     q_muzzle_flash_mats: Query<&Handle<MuzzleFlashMaterial>>,
     mut materials: ResMut<Assets<MuzzleFlashMaterial>>,
     player_infos: Res<PlayerInfos>,
@@ -47,12 +47,7 @@ fn attack_vfx(
             continue;
         };
 
-        weapon_vfx.activate(
-            fire_ammo,
-            &mut q_particles,
-            &q_muzzle_flash_mats,
-            &mut materials,
-        );
+        weapon_vfx.activate(&mut q_particles, &q_muzzle_flash_mats, &mut materials);
     }
 }
 
@@ -113,20 +108,14 @@ struct WeaponVfx {
 impl WeaponVfx {
     pub fn activate(
         &self,
-        fire_ammo: &FireAmmo,
-        q_particles: &mut Query<(&mut ParticleSpawnerState, &mut Transform)>,
+        q_particles: &mut Query<&mut ParticleSpawnerState>,
         q_muzzle_flash_mats: &Query<&Handle<MuzzleFlashMaterial>>,
         materials: &mut Assets<MuzzleFlashMaterial>,
     ) {
         let entities = [self.muzzle_flash, self.gun_sparks];
         for entity in entities {
-            if let Ok((mut particle, mut transform)) = q_particles.get_mut(entity) {
+            if let Ok(mut particle) = q_particles.get_mut(entity) {
                 particle.active = true;
-
-                // transform.translation.x = fire_ammo.position.x;
-                // transform.translation.y = fire_ammo.position.y;
-                // transform.rotation =
-                //     Quat::from_rotation_z(f32::atan2(fire_ammo.direction.y, fire_ammo.direction.x));
             }
         }
 
