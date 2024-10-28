@@ -35,25 +35,30 @@
   ] 
 }
 
-#let weapon_selector(
-  width: 60pt,
-  height: 60pt,
+#let weaponselector(
+  width,
+  height,
+  box1,
+  box2,
 ) = {
-  // Place two boxes side by side
-  
+  let width = 60pt
+  let height = 60pt
+
   box(
     width: width,
     height: height,
     fill: red,
-    stroke: blue,
+    stroke: if box1 { blue } else { none }, // Apply stroke based on state
   )
   h(2%)
   box(
     width: width,
     height: height,
     fill: red,
+    stroke: if box2 { blue } else { none }, // Apply stroke based on state
   )
 }
+
 
 #let speed_and_bullets(
   width: 400pt,
@@ -142,49 +147,44 @@
 }
 
 
-#let main( main_width,
-  main_height, boostmeter, timer, health) = context {
+#let main(main_width, main_height, boostmeter, timer,health, weapon_selector) = context {
     let main_width = main_width * 1pt
     let main_height = main_height * 1pt
-  box(
-    width: main_width,
-    height: main_height,
-    inset: 50pt,
-  )[
-    #place(right + horizon)[
-      #for b in boostmeter{
-        b
+    box(
+        width: main_width,
+        height: main_height,
+        inset: 50pt,
+    )[ 
+        #place(right + horizon)[
+            #for b in boostmeter {
+                b
+            }
+        ]
+      
+        #place(bottom + center)[
+            #speed_and_bullets()
+        ]
+
+        #place(top + center)[
+            #for t in timer {
+                t
+            }
+        ]
+      
+        #place(left + bottom)[
+            #objectives()
+        ]
+      
+        #place(left + top)[
+          #for h in health {
+             h
       }
     ]
-  
-    #place(bottom + center)[
-      #speed_and_bullets()
-    ]
 
-    #place(top + center)[
-      #for t in timer {
-        t
-      }
+        // Directly access the weapon_selector fields without iterating
+        #place(center + bottom, dx: 100pt)[
+            #weaponselector(60pt, 60pt, false, true)
     ]
-  
-    #place(left + bottom)[
-      #objectives()
     ]
-  
-    #place(left + top)[
-      #for h in health {
-          h
-      }
-    ]
-
-    #let x = speed_and_bullets()
-    #let size_x = measure(x)
-    #set text(white, size: 100pt)
-    #let half_width = size_x.width / 2
-
-
-    #place(center + bottom, dx: half_width + 100pt)[
-      #weapon_selector()
-    ]
-  ]
 }
+

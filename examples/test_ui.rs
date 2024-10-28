@@ -12,9 +12,11 @@ fn main() {
         .compile_typst_func::<HelloWorld, CountdownTimerFunc>()
         .compile_typst_func::<HelloWorld, BoostmeterFunc>()
         .compile_typst_func::<HelloWorld, HealthFunc>()
+        .compile_typst_func::<HelloWorld, WeaponSelectorFunc>()
         .render_typst_func::<MainFunc>()
         .init_resource::<CountdownTimerFunc>()
         .init_resource::<BoostmeterFunc>()
+        .init_resource::<WeaponSelectorFunc>()
         .insert_resource(TimerAccumulator::default())
         .insert_resource(CountdownTimerFunc {
             minutes: "01".to_string(),
@@ -26,6 +28,7 @@ fn main() {
             boostmeter: Vec::new(),
             timer: Vec::new(),
             health: Vec::new(),
+            weapon_selector: Vec::new(),
         })
         .insert_resource(BoostmeterFunc {
             height: 400.0,
@@ -33,8 +36,12 @@ fn main() {
             red_height: 0.0,
         }) // Set initial boostmeter values
         .insert_resource(HealthFunc {
-            current_hp: 100.0,  // Set initial HP
-            max_hp: 100.0,      // Set max HP
+            current_hp: 100.0, // Set initial HP
+            max_hp: 100.0,     // Set max HP
+        })
+        .insert_resource(WeaponSelectorFunc {
+            box1: false,
+            box2: false,
         })
         .add_systems(Startup, setup)
         .add_systems(Update, update_timer)
@@ -47,11 +54,16 @@ fn main() {
             Update,
             update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>),
         )
+        .add_systems(
+            Update,
+            update_weapon_selector_ui.run_if(resource_changed::<TypstContent<WeaponSelectorFunc>>),
+        )
         .add_systems(Update, update_boost_meter)
         .add_systems(
             Update,
             update_health_ui.run_if(resource_changed::<TypstContent<HealthFunc>>), // Simulation of health ui
-        )        
+        )
+        .add_systems(Update, handle_weapon_selection)
         .run();
 }
 
@@ -81,14 +93,18 @@ fn update_boost_meter_ui(
     func.boostmeter.push(boostmeter.clone());
 }
 
-fn update_health_ui(
+fn update_weapon_selector_ui(
     mut func: ResMut<MainFunc>,
-    health_content: Res<TypstContent<HealthFunc>>,
+    weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
 ) {
+    func.weapon_selector.clear();
+    func.weapon_selector.push(weapon_selector.clone());
+}
+
+fn update_health_ui(mut func: ResMut<MainFunc>, health_content: Res<TypstContent<HealthFunc>>) {
     func.health.clear();
     func.health.push(health_content.clone());
 }
-
 
 // Update the booster fill state
 fn update_boost_meter(
@@ -155,18 +171,33 @@ fn update_timer(
 }
 
 // Testing: Simulate Health Changes
-fn simulate_health_change(
-    time: Res<Time>,
-    mut health_func: ResMut<HealthFunc>,
-) {
+fn simulate_health_change(time: Res<Time>, mut health_func: ResMut<HealthFunc>) {
     // Decrease HP by a small amount over time, down to a minimum of 0.0
     if health_func.current_hp > 0.0 {
-        health_func.current_hp -= 5.0 * time.delta_seconds() as f64; 
+        health_func.current_hp -= 5.0 * time.delta_seconds() as f64;
         health_func.current_hp = health_func.current_hp.max(0.0); // Ensure HP does not go below 0.0
-        println!("Simulating health decrease: current HP = {:.2}", health_func.current_hp);
+        println!(
+            "Simulating health decrease: current HP = {:.2}",
+            health_func.current_hp
+        );
     }
 }
 
+fn handle_weapon_selection(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut weapon_selector: ResMut<WeaponSelectorFunc>,
+) {
+    // If Q is pressed, toggle the first box stroke
+    if keys.just_pressed(KeyCode::KeyQ) {
+        println!("Q Key Pressed!");
+        weapon_selector.box1 = !weapon_selector.box1;
+    }
+    // If E is pressed, toggle the second box stroke
+    if keys.just_pressed(KeyCode::KeyE) {
+        println!("E Key Pressed!");
+        weapon_selector.box2 = !weapon_selector.box2;
+    }
+}
 
 // `main` function in Typst with their respective values.
 #[derive(TypstFunc, Resource, Default)]
@@ -177,6 +208,7 @@ struct MainFunc {
     boostmeter: Vec<Content>,
     timer: Vec<Content>,
     health: Vec<Content>,
+    weapon_selector: Vec<Content>,
 }
 
 #[derive(TypstFunc, Resource, Default)]
@@ -195,12 +227,18 @@ struct BoostmeterFunc {
 }
 
 #[derive(TypstFunc, Resource, Default)]
+#[typst_func(name = "weaponselector")]
+struct WeaponSelectorFunc {
+    box1: bool,
+    box2: bool,
+}
+
+#[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "playerhealth")]
 struct HealthFunc {
     current_hp: f64,
     max_hp: f64,
 }
-
 
 // Path to the Typst file that you created.
 #[derive(TypstPath)]
