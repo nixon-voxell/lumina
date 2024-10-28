@@ -6,9 +6,14 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
+
+[dev-dependencies]
+bevy_shader_utils = { workspace = true }
 velyst = { workspace = true }
 bevy = { workspace = true, features = ["file_watcher"] }
 bevy_vello = { workspace = true }
+bevy_enoki = { workspace = true }
+rand = { workspace = true }
 
 [lints]
 workspace = true

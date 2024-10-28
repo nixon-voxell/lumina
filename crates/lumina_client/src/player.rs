@@ -30,8 +30,8 @@ fn reset_local_player_id(mut local_player_id: ResMut<LocalPlayerId>) {
 
 #[derive(bevy::ecs::system::SystemParam)]
 pub struct LocalPlayerInfo<'w> {
-    player_infos: Res<'w, PlayerInfos>,
-    local_player_id: Res<'w, LocalPlayerId>,
+    pub player_infos: Res<'w, PlayerInfos>,
+    pub local_player_id: Res<'w, LocalPlayerId>,
 }
 
 impl<'w> LocalPlayerInfo<'w> {

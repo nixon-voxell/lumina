@@ -757,6 +757,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_enoki"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67ab2fd33e9db281ba54fd548a4d6a2234d5db07f7ca9f8da961880631e798d9"
+dependencies = [
+ "bevy",
+ "interpolation",
+ "rand",
+ "ron",
+ "serde",
+]
+
+[[package]]
 name = "bevy_gilrs"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1126,6 +1139,13 @@ dependencies = [
  "serde",
  "thiserror",
  "uuid",
+]
+
+[[package]]
+name = "bevy_shader_utils"
+version = "0.3.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
@@ -3434,6 +3454,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "interpolation"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9c13ae9d91148fcb4aab6654c4c2a7d02a15395ea9e23f65170f175f8b269ce"
+
+[[package]]
 name = "io-kit-sys"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3802,7 +3828,9 @@ dependencies = [
  "avian2d",
  "bevy",
  "bevy_coroutine",
+ "bevy_enoki",
  "bevy_motiongfx",
+ "bevy_shader_utils",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
@@ -6171,7 +6199,10 @@ name = "test_bed"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_enoki",
+ "bevy_shader_utils",
  "bevy_vello",
+ "rand",
  "velyst",
 ]
 

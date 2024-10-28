@@ -1,4 +1,4 @@
-//! This module parses the network_settings.ron file and builds a lightyear configuration from it
+//! This module parses the settings.ron file and builds a lumina configuration from it.
 use std::net::Ipv4Addr;
 
 use bevy::asset::ron;

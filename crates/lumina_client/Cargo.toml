@@ -10,6 +10,7 @@ lumina_common = { workspace = true }
 lumina_ui = { workspace = true }
 lumina_shared = { workspace = true }
 lumina_dev = { workspace = true, optional = true }
+bevy_shader_utils = { workspace = true }
 velyst = { workspace = true }
 bevy = { workspace = true }
 lightyear = { workspace = true }
@@ -17,6 +18,7 @@ leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
 blenvy = { workspace = true }
 noisy_bevy = { workspace = true }
+bevy_enoki = { workspace = true }
 bevy_motiongfx = { workspace = true }
 bevy_coroutine = { workspace = true }
 rand = { workspace = true }
