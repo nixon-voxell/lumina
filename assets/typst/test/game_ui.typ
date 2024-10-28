@@ -182,8 +182,8 @@
     ]
 
         // Directly access the weapon_selector fields without iterating
-        #place(center + bottom, dx: 100pt)[
-            #weaponselector(60pt, 60pt, false, true)
+        #place(center + bottom, dx: 350pt)[
+            #weaponselector(60pt, 60pt, false, false)
     ]
     ]
 }

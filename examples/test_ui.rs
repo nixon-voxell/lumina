@@ -190,12 +190,14 @@ fn handle_weapon_selection(
     // If Q is pressed, toggle the first box stroke
     if keys.just_pressed(KeyCode::KeyQ) {
         println!("Q Key Pressed!");
-        weapon_selector.box1 = !weapon_selector.box1;
+        weapon_selector.box1 = true;
+        weapon_selector.box2 = false;
     }
     // If E is pressed, toggle the second box stroke
     if keys.just_pressed(KeyCode::KeyE) {
         println!("E Key Pressed!");
-        weapon_selector.box2 = !weapon_selector.box2;
+        weapon_selector.box1 = false;
+        weapon_selector.box2 = true;
     }
 }
 
