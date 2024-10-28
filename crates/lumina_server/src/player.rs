@@ -5,7 +5,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::ValidSpawnPoints;
+use lumina_shared::procedural_map::grid_map::{find_valid_spawn_points, ValidSpawnPoints};
 use server::*;
 
 use super::lobby::Lobby;
@@ -18,11 +18,15 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
-                detect_new_spaceships,
+                //detect_new_spaceships.after(find_valid_spawn_points),
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                 replicate_spaceship_spawn,
             ),
+        );
+        app.add_systems(
+            Update,
+            (detect_new_spaceships.after(find_valid_spawn_points),),
         );
     }
 }
@@ -40,7 +44,7 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
 }
 
 /// System to detect new spaceship spawns and assign them to valid positions.
-pub fn detect_new_spaceships(
+fn detect_new_spaceships(
     mut query: Query<Entity, (With<Spaceship>, Added<SourceEntity>)>,
     valid_spawn_points: Res<ValidSpawnPoints>,
     mut commands: Commands,

@@ -94,13 +94,16 @@ impl GridMap {
 }
 
 #[derive(Resource)]
-pub struct ValidSpawnPoints(pub Vec<(u32, u32)>);
-
-#[derive(Resource)]
 pub struct SharedRigidBody(RigidBody);
 
 #[derive(Resource)]
 pub struct SharedCollider(Collider);
+
+#[derive(Resource)]
+pub struct ValidSpawnPoints(pub Vec<(u32, u32)>);
+
+#[derive(Event)]
+pub struct SpawnPointsReadyEvent;
 
 pub fn initialize_tile_mesh(
     mut commands: Commands,
@@ -221,10 +224,21 @@ fn check_empty_neighbors(grid_map: &GridMap, index: usize) -> bool {
 }
 
 /// System to detect valid spawn points after the grid map is generated.
-pub fn find_valid_spawn_points(grid_map: Res<GridMap>, mut commands: Commands) {
+pub fn find_valid_spawn_points(
+    grid_map: Res<GridMap>,
+    mut commands: Commands,
+    mut event_writer: EventWriter<SpawnPointsReadyEvent>,
+) {
     let spawn_points = grid_map.collect_spawn_points();
-    info!("Found {} valid spawn points", spawn_points.len());
 
-    // Store spawn points in a resource or use them directly for player spawning
+    if spawn_points.is_empty() {
+        error!("No valid spawn points found!");
+        return;
+    }
+
+    info!("Found {} valid spawn points", spawn_points.len());
     commands.insert_resource(ValidSpawnPoints(spawn_points));
+
+    // Emit event to signal that spawn points are ready
+    event_writer.send(SpawnPointsReadyEvent);
 }
