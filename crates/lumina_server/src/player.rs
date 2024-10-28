@@ -5,6 +5,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
+use lumina_shared::procedural_map::grid_map::ValidSpawnPoints;
 use server::*;
 
 use super::lobby::Lobby;
@@ -59,7 +60,7 @@ pub fn detect_new_spaceships(
             let rotation = Quat::IDENTITY; // Default rotation.
 
             // Insert transform components into the entity.
-            commands.entity(entity).insert_bundle((
+            commands.entity(entity).insert((
                 Transform {
                     translation: position,
                     rotation,
