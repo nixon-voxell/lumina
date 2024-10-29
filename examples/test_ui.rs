@@ -28,7 +28,7 @@ fn main() {
             boostmeter: Vec::new(),
             timer: Vec::new(),
             health: Vec::new(),
-            weapon_selector: Vec::new(),
+            weapon_selector: Content::empty(),
         })
         .insert_resource(BoostmeterFunc {
             height: 400.0,
@@ -40,7 +40,7 @@ fn main() {
             max_hp: 100.0,     // Set max HP
         })
         .insert_resource(WeaponSelectorFunc {
-            box1: false,
+            box1: true,
             box2: false,
         })
         .add_systems(Startup, setup)
@@ -97,8 +97,7 @@ fn update_weapon_selector_ui(
     mut func: ResMut<MainFunc>,
     weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
 ) {
-    func.weapon_selector.clear();
-    func.weapon_selector.push(weapon_selector.clone());
+    func.weapon_selector = weapon_selector.clone();
 }
 
 fn update_health_ui(mut func: ResMut<MainFunc>, health_content: Res<TypstContent<HealthFunc>>) {
@@ -210,7 +209,7 @@ struct MainFunc {
     boostmeter: Vec<Content>,
     timer: Vec<Content>,
     health: Vec<Content>,
-    weapon_selector: Vec<Content>,
+    weapon_selector: Content,
 }
 
 #[derive(TypstFunc, Resource, Default)]

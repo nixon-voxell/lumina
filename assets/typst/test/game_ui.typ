@@ -36,13 +36,11 @@
 }
 
 #let weaponselector(
-  width,
-  height,
+  width: 60pt,
+  height: 60pt,
   box1,
   box2,
 ) = {
-  let width = 60pt
-  let height = 60pt
 
   box(
     width: width,
@@ -183,7 +181,8 @@
 
         // Directly access the weapon_selector fields without iterating
         #place(center + bottom, dx: 350pt)[
-            #weaponselector(60pt, 60pt, false, false)
+          #weapon_selector
+            //#weaponselector(60pt, 60pt, weapon_selector.box1,weapon_selector.box2)
     ]
     ]
 }
