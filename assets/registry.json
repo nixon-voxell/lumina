@@ -31,6 +31,105 @@
       "type": "array",
       "typeInfo": "Tuple"
     },
+    "(bevy_transform_interpolation::TranslationEasingState, bevy_transform_interpolation::RotationEasingState, bevy_transform_interpolation::ScaleEasingState)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::TranslationEasingState, bevy_transform_interpolation::RotationEasingState, bevy_transform_interpolation::ScaleEasingState)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::TranslationEasingState"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::RotationEasingState"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::ScaleEasingState"
+          }
+        }
+      ],
+      "short_name": "(TranslationEasingState, RotationEasingState, ScaleEasingState)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
+    "(bevy_transform_interpolation::interpolation::NoTranslationInterpolation, bevy_transform_interpolation::interpolation::NoRotationInterpolation, bevy_transform_interpolation::interpolation::NoScaleInterpolation)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::interpolation::NoTranslationInterpolation, bevy_transform_interpolation::interpolation::NoRotationInterpolation, bevy_transform_interpolation::interpolation::NoScaleInterpolation)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoTranslationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoRotationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::NoScaleInterpolation"
+          }
+        }
+      ],
+      "short_name": "(NoTranslationInterpolation, NoRotationInterpolation, NoScaleInterpolation)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
+    "(bevy_transform_interpolation::interpolation::TranslationInterpolation, bevy_transform_interpolation::interpolation::RotationInterpolation, bevy_transform_interpolation::interpolation::ScaleInterpolation)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(bevy_transform_interpolation::interpolation::TranslationInterpolation, bevy_transform_interpolation::interpolation::RotationInterpolation, bevy_transform_interpolation::interpolation::ScaleInterpolation)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::TranslationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::RotationInterpolation"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/bevy_transform_interpolation::interpolation::ScaleInterpolation"
+          }
+        }
+      ],
+      "short_name": "(TranslationInterpolation, RotationInterpolation, ScaleInterpolation)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
+    "(glam::Vec3, f32)": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "(glam::Vec3, f32)",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/glam::Vec3"
+          }
+        },
+        {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      ],
+      "short_name": "(Vec3, f32)",
+      "type": "array",
+      "typeInfo": "Tuple"
+    },
     "(u8, u8)": {
       "isComponent": false,
       "isResource": false,
@@ -182,6 +281,19 @@
       },
       "long_name": "alloc::vec::Vec<bevy_ecs::entity::Entity>",
       "short_name": "Vec<Entity>",
+      "type": "array",
+      "typeInfo": "List"
+    },
+    "alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>": {
+      "isComponent": false,
+      "isResource": false,
+      "items": {
+        "type": {
+          "$ref": "#/$defs/bevy_enoki::particles_2d::update::Particle"
+        }
+      },
+      "long_name": "alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>",
+      "short_name": "Vec<Particle>",
       "type": "array",
       "typeInfo": "List"
     },
@@ -3432,6 +3544,120 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<ColorParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::loader::Particle2dEffect>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::loader::Particle2dEffect>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<Particle2dEffect>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<SpriteParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_asset::handle::Handle<bevy_gizmos::LineGizmo>": {
       "isComponent": true,
       "isResource": false,
@@ -4154,6 +4380,44 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<MuzzleFlashMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_asset::handle::Handle<velyst::asset::TypstAsset>": {
       "isComponent": true,
       "isResource": false,
@@ -4511,6 +4775,144 @@
         }
       ],
       "short_name": "AssetId<Pitch>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::color::ColorParticle2dMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<ColorParticle2dMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::loader::Particle2dEffect>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<Particle2dEffect>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<bevy_enoki::particles_2d::sprite::SpriteParticle2dMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<SpriteParticle2dMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -5385,6 +5787,52 @@
         }
       ],
       "short_name": "AssetId<BlueprintPreloadAssets>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<MuzzleFlashMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -6523,6 +6971,132 @@
       "short_name": "Entity",
       "type": "object",
       "typeInfo": "Value"
+    },
+    "bevy_enoki::particles_2d::update::Particle": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_enoki::particles_2d::update::Particle",
+      "properties": {
+        "angular_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "angular_damp": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "color": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        },
+        "frame": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "gravity_direction": {
+          "type": {
+            "$ref": "#/$defs/glam::Vec3"
+          }
+        },
+        "gravity_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/bevy_time::timer::Timer"
+          }
+        },
+        "linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "linear_damp": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "transform": {
+          "type": {
+            "$ref": "#/$defs/bevy_transform::components::transform::Transform"
+          }
+        },
+        "velocity": {
+          "type": {
+            "$ref": "#/$defs/(glam::Vec3, f32)"
+          }
+        }
+      },
+      "required": [
+        "transform",
+        "lifetime",
+        "velocity",
+        "color",
+        "frame",
+        "linear_acceleration",
+        "linear_damp",
+        "angular_acceleration",
+        "angular_damp",
+        "gravity_speed",
+        "gravity_direction"
+      ],
+      "short_name": "Particle",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_enoki::particles_2d::update::ParticleSpawnerState": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_enoki::particles_2d::update::ParticleSpawnerState",
+      "properties": {
+        "active": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "max_particles": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
+        "timer": {
+          "type": {
+            "$ref": "#/$defs/bevy_time::timer::Timer"
+          }
+        }
+      },
+      "required": [
+        "max_particles",
+        "active",
+        "timer"
+      ],
+      "short_name": "ParticleSpawnerState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_enoki::particles_2d::update::ParticleStore": {
+      "isComponent": false,
+      "isResource": false,
+      "items": false,
+      "long_name": "bevy_enoki::particles_2d::update::ParticleStore",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::vec::Vec<bevy_enoki::particles_2d::update::Particle>"
+          }
+        }
+      ],
+      "short_name": "ParticleStore",
+      "type": "array",
+      "typeInfo": "TupleStruct"
     },
     "bevy_gizmos::aabb::AabbGizmoConfigGroup": {
       "additionalProperties": false,
@@ -12972,6 +13546,138 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_transform_interpolation::RotationEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::RotationEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Quat>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Quat>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "RotationEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::ScaleEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::ScaleEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "ScaleEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::TranslationEasingState": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::TranslationEasingState",
+      "properties": {
+        "end": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        },
+        "start": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<glam::Vec3>"
+          }
+        }
+      },
+      "required": [],
+      "short_name": "TranslationEasingState",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoRotationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoRotationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoRotationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoScaleInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoScaleInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoScaleInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::NoTranslationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::NoTranslationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "NoTranslationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::RotationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::RotationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "RotationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::ScaleInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::ScaleInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "ScaleInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_transform_interpolation::interpolation::TranslationInterpolation": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_transform_interpolation::interpolation::TranslationInterpolation",
+      "properties": {},
+      "required": [],
+      "short_name": "TranslationInterpolation",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_ui::UiScale": {
       "isComponent": false,
       "isResource": false,
@@ -14365,15 +15071,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
+          "$ref": "#/$defs/lumina_shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, Vec<UserInput>, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -14383,15 +15089,15 @@
         }
       }
     },
-    "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
+    "bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>": {
       "isComponent": false,
       "isResource": false,
       "keyType": {
         "type": {
-          "$ref": "#/$defs/lumina::shared::action::PlayerAction"
+          "$ref": "#/$defs/lumina_shared::action::PlayerAction"
         }
       },
-      "long_name": "bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
+      "long_name": "bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>",
       "short_name": "HashMap<PlayerAction, ActionData, DefaultHashBuilder>",
       "type": "object",
       "typeInfo": "Map",
@@ -16811,6 +17517,33 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "core::option::Option<glam::Quat>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<glam::Quat>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/glam::Quat"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<Quat>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "core::option::Option<glam::Vec2>": {
       "isComponent": false,
       "isResource": false,
@@ -16835,6 +17568,33 @@
         }
       ],
       "short_name": "Option<Vec2>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "core::option::Option<glam::Vec3>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<glam::Vec3>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/glam::Vec3"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<Vec3>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -17489,15 +18249,15 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>": {
+    "leafwing_input_manager::action_state::ActionState<lumina_shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::action_state::ActionState<lumina::shared::action::PlayerAction>",
+      "long_name": "leafwing_input_manager::action_state::ActionState<lumina_shared::action::PlayerAction>",
       "properties": {
         "action_data": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, leafwing_input_manager::action_state::ActionData, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
           }
         }
       },
@@ -17846,11 +18606,11 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>": {
+    "leafwing_input_manager::input_map::InputMap<lumina_shared::action::PlayerAction>": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "leafwing_input_manager::input_map::InputMap<lumina::shared::action::PlayerAction>",
+      "long_name": "leafwing_input_manager::input_map::InputMap<lumina_shared::action::PlayerAction>",
       "properties": {
         "associated_gamepad": {
           "type": {
@@ -17859,7 +18619,7 @@
         },
         "map": {
           "type": {
-            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina::shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
+            "$ref": "#/$defs/bevy_utils::hashbrown::HashMap<lumina_shared::action::PlayerAction, alloc::vec::Vec<leafwing_input_manager::user_input::UserInput>, bevy_utils::hashbrown::hash_map::DefaultHashBuilder>"
           }
         }
       },
@@ -19136,108 +19896,10 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::client::local_lobby::MatchmakeEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::client::local_lobby::MatchmakeEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "MatchmakeEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::client::local_lobby::TutorialEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::client::local_lobby::TutorialEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "TutorialEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::action::PlayerAction": {
+    "lumina_common::physics::MeshCollider": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina::shared::action::PlayerAction",
-      "oneOf": [
-        "Move",
-        "Brake",
-        "Boost",
-        "Interact",
-        "Attack",
-        "Aim"
-      ],
-      "short_name": "PlayerAction",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina::shared::effector::Effector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::shared::effector::Effector",
-      "properties": {
-        "collider": {
-          "type": {
-            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "collider"
-      ],
-      "short_name": "Effector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::effector::EffectorPopupMsg": {
-      "isComponent": true,
-      "isResource": false,
-      "items": false,
-      "long_name": "lumina::shared::effector::EffectorPopupMsg",
-      "prefixItems": [
-        {
-          "type": {
-            "$ref": "#/$defs/alloc::string::String"
-          }
-        }
-      ],
-      "short_name": "EffectorPopupMsg",
-      "type": "array",
-      "typeInfo": "TupleStruct"
-    },
-    "lumina::shared::effector::InteractableEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina::shared::effector::InteractableEffector",
-      "properties": {
-        "required_accumulation": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        }
-      },
-      "required": [
-        "required_accumulation"
-      ],
-      "short_name": "InteractableEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina::shared::physics::MeshCollider": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina::shared::physics::MeshCollider",
+      "long_name": "lumina_common::physics::MeshCollider",
       "oneOf": [
         "ConvexHull",
         "Trimesh"
@@ -19246,15 +19908,15 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina::shared::physics::MeshRigidbody": {
+    "lumina_common::physics::MeshRigidbody": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::physics::MeshRigidbody",
+      "long_name": "lumina_common::physics::MeshRigidbody",
       "properties": {
         "collider_type": {
           "type": {
-            "$ref": "#/$defs/lumina::shared::physics::MeshCollider"
+            "$ref": "#/$defs/lumina_common::physics::MeshCollider"
           }
         },
         "density": {
@@ -19277,11 +19939,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::physics::PrimitiveRigidbody": {
+    "lumina_common::physics::PrimitiveRigidbody": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::physics::PrimitiveRigidbody",
+      "long_name": "lumina_common::physics::PrimitiveRigidbody",
       "properties": {
         "collider_constructor": {
           "type": {
@@ -19308,11 +19970,109 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::ammo::Ammo": {
+    "lumina_shared::action::PlayerAction": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::action::PlayerAction",
+      "oneOf": [
+        "Move",
+        "Brake",
+        "Boost",
+        "Interact",
+        "Attack",
+        "Aim"
+      ],
+      "short_name": "PlayerAction",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_shared::effector::Effector": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::ammo::Ammo",
+      "long_name": "lumina_shared::effector::Effector",
+      "properties": {
+        "collider": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "collider"
+      ],
+      "short_name": "Effector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::effector::EffectorPopupMsg": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_shared::effector::EffectorPopupMsg",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "EffectorPopupMsg",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_shared::effector::InteractableEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::InteractableEffector",
+      "properties": {
+        "interact_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "interact_duration"
+      ],
+      "short_name": "InteractableEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::effector::MatchmakeEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::MatchmakeEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "MatchmakeEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::effector::TutorialEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::TutorialEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TutorialEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::ammo::Ammo": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::ammo::Ammo",
       "properties": {
         "angular_damping": {
           "type": {
@@ -19351,21 +20111,21 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::ammo::AmmoRef": {
+    "lumina_shared::player::ammo::AmmoRef": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::ammo::AmmoRef",
+      "long_name": "lumina_shared::player::ammo::AmmoRef",
       "properties": {},
       "required": [],
       "short_name": "AmmoRef",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::ammo::AmmoType": {
+    "lumina_shared::player::ammo::AmmoType": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::ammo::AmmoType",
+      "long_name": "lumina_shared::player::ammo::AmmoType",
       "oneOf": [
         "LongRange"
       ],
@@ -19373,11 +20133,11 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina::shared::player::spaceship::SpaceShip": {
+    "lumina_shared::player::spaceship::Spaceship": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::spaceship::SpaceShip",
+      "long_name": "lumina_shared::player::spaceship::Spaceship",
       "properties": {
         "angular_acceleration": {
           "type": {
@@ -19430,32 +20190,32 @@
         "angular_damping",
         "brake_linear_damping"
       ],
-      "short_name": "SpaceShip",
+      "short_name": "Spaceship",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::spaceship::SpaceShipType": {
+    "lumina_shared::player::spaceship::SpaceshipType": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::spaceship::SpaceShipType",
+      "long_name": "lumina_shared::player::spaceship::SpaceshipType",
       "oneOf": [
         "Assassin",
         "Tank",
         "Support"
       ],
-      "short_name": "SpaceShipType",
+      "short_name": "SpaceshipType",
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina::shared::player::weapon::Weapon": {
+    "lumina_shared::player::weapon::Weapon": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::weapon::Weapon",
+      "long_name": "lumina_shared::player::weapon::Weapon",
       "properties": {
         "ammo_type": {
           "type": {
-            "$ref": "#/$defs/lumina::shared::player::ammo::AmmoType"
+            "$ref": "#/$defs/lumina_shared::player::ammo::AmmoType"
           }
         },
         "damage": {
@@ -19496,10 +20256,10 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina::shared::player::weapon::WeaponType": {
+    "lumina_shared::player::weapon::WeaponType": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina::shared::player::weapon::WeaponType",
+      "long_name": "lumina_shared::player::weapon::WeaponType",
       "oneOf": [
         "Cannon",
         "Missle",
