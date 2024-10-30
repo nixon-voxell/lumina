@@ -10,9 +10,11 @@ pub const MAP_HEIGHT: usize = 100;
 const TILE_WIDTH: f32 = 100.0;
 const TILE_HEIGHT: f32 = 100.0;
 
+// Events
 #[derive(Event, Clone, Copy, Deref, DerefMut)]
 pub struct GenerateMapEvent(pub u64);
 
+// Resources
 #[derive(Resource)]
 pub struct TileConfig {
     mesh: Mesh2dHandle,
@@ -21,6 +23,13 @@ pub struct TileConfig {
     _height: f32,
 }
 
+#[derive(Resource)]
+pub struct SharedRigidBody(RigidBody);
+
+#[derive(Resource)]
+pub struct SharedCollider(Collider);
+
+// Cell State Definition
 #[derive(Default, Clone, Copy, PartialEq)]
 pub enum CellState {
     #[default]
@@ -28,6 +37,7 @@ pub enum CellState {
     Empty,
 }
 
+// Grid Map Definition
 #[derive(Resource, Clone)]
 pub struct GridMap {
     states: Vec<CellState>,
@@ -51,7 +61,6 @@ impl GridMap {
         &mut self.states
     }
 
-    /// Returns the state of a cell at (x, y).
     fn get(&self, x: u32, y: u32) -> Option<CellState> {
         if x < self.width && y < self._height {
             Some(self.states[(y * self.width + x) as usize])
@@ -60,13 +69,11 @@ impl GridMap {
         }
     }
 
-    /// Check if a given empty cell has at least one adjacent filled tile.
     pub fn is_valid_spawn_point(&self, x: u32, y: u32) -> bool {
         if self.get(x, y) != Some(CellState::Empty) {
-            return false; // If the cell itself is not empty, it's not valid.
+            return false;
         }
 
-        // Check if at least one neighbor is filled.
         let neighbors = [
             self.get(x.wrapping_sub(1), y), // Left
             self.get(x + 1, y),             // Right
@@ -79,33 +86,23 @@ impl GridMap {
             .any(|&cell| cell == Some(CellState::Filled))
     }
 
-    /// Collect all valid spawn points.
     pub fn collect_spawn_points(&self) -> Vec<(u32, u32)> {
-        let mut spawn_points = Vec::new();
-        for y in 0..self._height {
-            for x in 0..self.width {
-                if self.get(x, y) == Some(CellState::Empty) && self.is_valid_spawn_point(x, y) {
-                    spawn_points.push((x, y));
-                }
-            }
-        }
-        spawn_points
+        (0..self._height)
+            .flat_map(|y| {
+                (0..self.width).filter_map(move |x| {
+                    if self.get(x, y) == Some(CellState::Empty) && self.is_valid_spawn_point(x, y) {
+                        Some((x, y))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect()
     }
 }
 
-#[derive(Resource)]
-pub struct SharedRigidBody(RigidBody);
-
-#[derive(Resource)]
-pub struct SharedCollider(Collider);
-
-#[derive(Resource)]
-pub struct ValidSpawnPoints(pub Vec<(u32, u32)>);
-
-#[derive(Event)]
-pub struct SpawnPointsReadyEvent;
-
-pub fn initialize_tile_mesh(
+// Setup Functions
+pub fn setup_tile_resources(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -116,13 +113,12 @@ pub fn initialize_tile_mesh(
         _width: TILE_WIDTH,
         _height: TILE_HEIGHT,
     });
-}
 
-pub fn setup_resources(mut commands: Commands) {
     commands.insert_resource(SharedRigidBody(RigidBody::Static));
     commands.insert_resource(SharedCollider(Collider::rectangle(TILE_WIDTH, TILE_HEIGHT)));
 }
 
+// Map Generation System
 pub fn setup_grid_and_spawn_tiles(
     mut commands: Commands,
     mut generate_map_evr: EventReader<GenerateMapEvent>,
@@ -148,13 +144,7 @@ pub fn setup_grid_and_spawn_tiles(
         commands.insert_resource(new_cave_map.clone());
 
         // Precompute neighbor states
-        let mut has_empty_neighbors = vec![false; generated_map.states.len()];
-
-        for (i, &state) in generated_map.states.iter().enumerate() {
-            if state == CellState::Filled {
-                has_empty_neighbors[i] = check_empty_neighbors(&generated_map, i);
-            }
-        }
+        let has_empty_neighbors = precompute_empty_neighbors(&generated_map);
 
         // Spawn tiles and collect entities needing rigid bodies
         let mut entities_to_add_rigid_body = Vec::new();
@@ -195,6 +185,22 @@ pub fn setup_grid_and_spawn_tiles(
     }
 }
 
+// Neighbor Checking Functions
+fn precompute_empty_neighbors(grid_map: &GridMap) -> Vec<bool> {
+    grid_map
+        .states
+        .iter()
+        .enumerate()
+        .map(|(i, &state)| {
+            if state == CellState::Filled {
+                check_empty_neighbors(grid_map, i)
+            } else {
+                false
+            }
+        })
+        .collect()
+}
+
 fn check_empty_neighbors(grid_map: &GridMap, index: usize) -> bool {
     let width = grid_map.width as usize;
     let height = grid_map._height as usize;
@@ -221,24 +227,4 @@ fn check_empty_neighbors(grid_map: &GridMap, index: usize) -> bool {
     }
 
     false // No empty neighbors found
-}
-
-/// System to detect valid spawn points after the grid map is generated.
-pub fn find_valid_spawn_points(
-    grid_map: Res<GridMap>,
-    mut commands: Commands,
-    mut event_writer: EventWriter<SpawnPointsReadyEvent>,
-) {
-    let spawn_points = grid_map.collect_spawn_points();
-
-    if spawn_points.is_empty() {
-        error!("No valid spawn points found!");
-        return;
-    }
-
-    info!("Found {} valid spawn points", spawn_points.len());
-    commands.insert_resource(ValidSpawnPoints(spawn_points));
-
-    // Emit event to signal that spawn points are ready
-    event_writer.send(SpawnPointsReadyEvent);
 }

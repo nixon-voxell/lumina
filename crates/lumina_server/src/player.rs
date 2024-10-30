@@ -5,7 +5,6 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::{find_valid_spawn_points, ValidSpawnPoints};
 use server::*;
 
 use super::lobby::Lobby;
@@ -18,15 +17,10 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
-                //detect_new_spaceships.after(find_valid_spawn_points),
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                 replicate_spaceship_spawn,
             ),
-        );
-        app.add_systems(
-            Update,
-            (detect_new_spaceships.after(find_valid_spawn_points),),
         );
     }
 }
@@ -35,49 +29,21 @@ impl Plugin for PlayerPlugin {
 pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) {
     info!("SERVER: Spawn player for {:?}", client_id);
 
-    commands.spawn((
-        PlayerId(client_id),
-        // TODO: Allow player to choose what spaceship to spawn.
-        SpaceshipType::Assassin.config_info(),
-        SpawnBlueprint,
-    ));
-}
+    // Spawn spaceship entity
+    let spaceship_entity = commands
+        .spawn((
+            PlayerId(client_id),
+            // TODO: Allow player to choose what spaceship to spawn.
+            SpaceshipType::Assassin.config_info(),
+            SpawnBlueprint,
+        ))
+        .id(); // Capture the spawned entity ID
 
-/// System to detect new spaceship spawns and assign them to valid positions.
-fn detect_new_spaceships(
-    mut query: Query<Entity, (With<Spaceship>, Added<SourceEntity>)>,
-    valid_spawn_points: Res<ValidSpawnPoints>,
-    mut commands: Commands,
-) {
-    // Ensure we have available spawn points.
-    if valid_spawn_points.0.is_empty() {
-        warn!("No valid spawn points available!");
-        return;
-    }
-
-    let mut spawn_points_iter = valid_spawn_points.0.iter().cycle(); // Cycle through spawn points.
-
-    for entity in query.iter_mut() {
-        if let Some(&(x, y)) = spawn_points_iter.next() {
-            // Convert (x, y) to a Vec3 position.
-            let position = Vec3::new(x as f32, y as f32, 0.0);
-            let rotation = Quat::IDENTITY; // Default rotation.
-
-            // Insert transform components into the entity.
-            commands.entity(entity).insert((
-                Transform {
-                    translation: position,
-                    rotation,
-                    ..Default::default()
-                },
-                GlobalTransform::default(),
-            ));
-
-            info!("Spawned spaceship at position: ({}, {})", x, y);
-        } else {
-            warn!("Ran out of spawn points!");
-        }
-    }
+    // Debugging: Log that the spaceship was spawned
+    info!(
+        "SERVER: Spawned spaceship for player {:?} with entity ID: {:?}",
+        client_id, spaceship_entity
+    );
 }
 
 fn replicate_spaceship_spawn(
@@ -93,6 +59,12 @@ fn replicate_spaceship_spawn(
             error!("Unable to get room id for {client_id}");
             return;
         };
+
+        // Debugging: Log spaceship entity before replication
+        info!(
+            "SERVER: Replicating spaceship entity {:?} for player {:?}",
+            spaceship_entity, client_id
+        );
 
         commands.entity(spaceship_entity).insert(Replicate {
             sync: SyncTarget {
