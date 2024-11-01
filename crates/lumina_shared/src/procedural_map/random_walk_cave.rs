@@ -11,15 +11,8 @@ pub struct CaveConfig {
     pub max_dig_attempts: usize,
 }
 
-// This function creates a cave-like map using a random walk algorithm
-pub fn create_cave_map(initial_grid: GridMap, config: CaveConfig) -> GridMap {
-    let mut cave_map = initial_grid.clone();
-    carve_cave_paths(cave_map.states_mut(), &config);
-    cave_map
-}
-
 /// Creates the cave by digging random paths
-fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
+pub fn carve_cave_paths(map: &mut [CellState], config: &CaveConfig) {
     // Calculate how many empty tiles we need
     let total_tiles = config.map_width * config.map_height;
     let required_empty_tiles =

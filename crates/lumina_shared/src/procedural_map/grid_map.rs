@@ -1,8 +1,8 @@
+use crate::procedural_map::random_walk_cave::{carve_cave_paths, CaveConfig};
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
-
-use crate::procedural_map::random_walk_cave::{create_cave_map, CaveConfig};
+use rand::seq::SliceRandom;
 
 // Constants for default values
 pub const MAP_WIDTH: usize = 100;
@@ -44,6 +44,7 @@ pub struct GridMap {
     width: u32,
     _height: u32,
     tile_pool: Vec<Entity>,
+    is_ready: bool,
 }
 
 impl GridMap {
@@ -54,6 +55,7 @@ impl GridMap {
             width,
             _height: height,
             tile_pool: Vec::new(),
+            is_ready: false,
         }
     }
 
@@ -69,7 +71,11 @@ impl GridMap {
         }
     }
 
-    pub fn is_valid_spawn_point(&self, x: u32, y: u32) -> bool {
+    pub fn is_ready(&self) -> bool {
+        self.is_ready
+    }
+
+    fn is_valid_spawn_point(&self, x: u32, y: u32) -> bool {
         if self.get(x, y) != Some(CellState::Empty) {
             return false;
         }
@@ -86,18 +92,26 @@ impl GridMap {
             .any(|&cell| cell == Some(CellState::Filled))
     }
 
-    pub fn collect_spawn_points(&self) -> Vec<(u32, u32)> {
-        (0..self._height)
-            .flat_map(|y| {
-                (0..self.width).filter_map(move |x| {
-                    if self.get(x, y) == Some(CellState::Empty) && self.is_valid_spawn_point(x, y) {
-                        Some((x, y))
-                    } else {
-                        None
-                    }
-                })
-            })
-            .collect()
+    // New function to return a random empty cell position
+    pub fn get_random_empty_cell_position(&self) -> Vec2 {
+        let mut empty_cells: Vec<Vec2> = Vec::new();
+
+        for y in 0..self._height {
+            for x in 0..self.width {
+                if self.is_valid_spawn_point(x, y) {
+                    empty_cells.push(Vec2::new(x as f32, y as f32));
+                }
+            }
+        }
+
+        //println!("\n\n\n Count of empty cells: {}", empty_cells.len());
+        // Choose a random position if there are any empty cells,
+        // otherwise return Vec2(0.0, 0.0)
+        let mut rng = rand::thread_rng();
+        empty_cells
+            .choose(&mut rng)
+            .copied()
+            .unwrap_or(Vec2::new(0.0, 0.0))
     }
 }
 
@@ -116,6 +130,8 @@ pub fn setup_tile_resources(
 
     commands.insert_resource(SharedRigidBody(RigidBody::Static));
     commands.insert_resource(SharedCollider(Collider::rectangle(TILE_WIDTH, TILE_HEIGHT)));
+
+    commands.insert_resource(GridMap::new(MAP_WIDTH as u32, MAP_HEIGHT as u32));
 }
 
 // Map Generation System
@@ -125,6 +141,7 @@ pub fn setup_grid_and_spawn_tiles(
     tile_config: Res<TileConfig>,
     shared_rigid_body: Res<SharedRigidBody>,
     shared_collider: Res<SharedCollider>,
+    mut grid_map: ResMut<GridMap>,
 ) {
     for generate_map_event in generate_map_evr.read() {
         println!("\n\nGenerate grid with seed: {}", generate_map_event.0);
@@ -138,25 +155,25 @@ pub fn setup_grid_and_spawn_tiles(
             max_dig_attempts: 10000,
         };
 
-        let mut new_cave_map = GridMap::new(MAP_WIDTH as u32, MAP_HEIGHT as u32);
-        let generated_map = create_cave_map(new_cave_map.clone(), cave_config);
-
-        commands.insert_resource(new_cave_map.clone());
+        carve_cave_paths(grid_map.states_mut(), &cave_config);
+        grid_map.is_ready = true;
 
         // Precompute neighbor states
-        let has_empty_neighbors = precompute_empty_neighbors(&generated_map);
+        let has_empty_neighbors = precompute_empty_neighbors(&grid_map);
 
         // Spawn tiles and collect entities needing rigid bodies
         let mut entities_to_add_rigid_body = Vec::new();
 
-        for (i, &state) in generated_map.states.iter().enumerate() {
+        let mut new_tiles = Vec::new();
+
+        for (i, &state) in grid_map.states.iter().enumerate() {
             if state == CellState::Empty {
                 continue; // Skip empty tiles
             }
 
             let position = Vec2::new(
-                (i as u32 % new_cave_map.width) as f32 * tile_config._width,
-                (i as u32 / new_cave_map.width) as f32 * tile_config._height,
+                (i as u32 % grid_map.width) as f32 * tile_config._width,
+                (i as u32 / grid_map.width) as f32 * tile_config._height,
             );
 
             let entity_builder = commands.spawn((ColorMesh2dBundle {
@@ -172,10 +189,12 @@ pub fn setup_grid_and_spawn_tiles(
             }
 
             // Track spawned tiles
-            if new_cave_map.tile_pool.len() <= i {
-                new_cave_map.tile_pool.push(entity_builder.id());
+            if grid_map.tile_pool.len() <= i {
+                new_tiles.push(entity_builder.id());
             }
         }
+
+        grid_map.tile_pool.extend(new_tiles);
 
         // Add RigidBody and Collider in batch
         for entity_id in entities_to_add_rigid_body {

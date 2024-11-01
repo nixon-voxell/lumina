@@ -8,6 +8,7 @@ pub(super) struct MultiplayerLobbyPlugin;
 impl Plugin for MultiplayerLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby);
+        //app.add_systems(OnExit(Screen::MultiplayerLobby), despawn_grid)   //TODO
     }
 }
 

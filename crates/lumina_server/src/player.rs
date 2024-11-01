@@ -1,3 +1,4 @@
+use avian2d::{position, prelude::*};
 use bevy::prelude::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
@@ -5,6 +6,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
+use lumina_shared::procedural_map::grid_map::GridMap;
 use server::*;
 
 use super::lobby::Lobby;
@@ -17,6 +19,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             PreUpdate,
             (
+                init_spaceship_position,
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                 replicate_spaceship_spawn,
@@ -44,6 +47,40 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
         "SERVER: Spawned spaceship for player {:?} with entity ID: {:?}",
         client_id, spaceship_entity
     );
+}
+
+#[derive(Component)]
+pub struct PositionInitialized;
+
+/// This function updates the position of newly spawned spaceships
+fn init_spaceship_position(
+    mut commands: Commands, // Need Commands to add Position if missing
+    mut q_spaceships: Query<
+        (Entity, &mut Position),
+        (
+            With<Spaceship>,
+            With<SourceEntity>,
+            Without<PositionInitialized>,
+        ),
+    >,
+    grid_map: Res<GridMap>,
+) {
+    if grid_map.is_ready() == false {
+        return;
+    }
+
+    //let desired_position = Vec2::new(200.0, 200.0); // Define the desired position
+    let desired_position = grid_map.get_random_empty_cell_position();
+
+    for (spaceship_entity, mut position) in q_spaceships.iter_mut() {
+        // Check if the Position component exists
+        *position = Position(desired_position);
+        println!("\n\n\n\nSpaceship position: {:?}", position);
+        // If it doesn't exist, add the Position component
+        commands
+            .entity(spaceship_entity)
+            .insert(PositionInitialized);
+    }
 }
 
 fn replicate_spaceship_spawn(
