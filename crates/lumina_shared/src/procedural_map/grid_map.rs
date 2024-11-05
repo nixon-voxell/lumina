@@ -3,12 +3,13 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 // Constants for default values
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 100;
-const TILE_WIDTH: f32 = 100.0;
-const TILE_HEIGHT: f32 = 100.0;
+pub const TILE_WIDTH: f32 = 100.0;
+pub const TILE_HEIGHT: f32 = 100.0;
 
 // Events
 #[derive(Event, Clone, Copy, Deref, DerefMut)]
@@ -35,6 +36,12 @@ pub enum CellState {
     #[default]
     Filled,
     Empty,
+}
+
+impl CellState {
+    fn is_empty(&self) -> bool {
+        matches!(self, CellState::Empty)
+    }
 }
 
 // Grid Map Definition
@@ -75,43 +82,36 @@ impl GridMap {
         self.is_ready
     }
 
-    fn is_valid_spawn_point(&self, x: u32, y: u32) -> bool {
-        if self.get(x, y) != Some(CellState::Empty) {
-            return false;
-        }
-
-        let neighbors = [
-            self.get(x.wrapping_sub(1), y), // Left
-            self.get(x + 1, y),             // Right
-            self.get(x, y.wrapping_sub(1)), // Up
-            self.get(x, y + 1),             // Down
-        ];
-
-        neighbors
-            .iter()
-            .any(|&cell| cell == Some(CellState::Filled))
-    }
-
     // New function to return a random empty cell position
-    pub fn get_random_empty_cell_position(&self) -> Vec2 {
-        let mut empty_cells: Vec<Vec2> = Vec::new();
+    pub fn get_random_empty_cell_position(&self, tile_width: f32, tile_height: f32) -> Vec2 {
+        let mut rng = rand::thread_rng();
 
-        for y in 0..self._height {
-            for x in 0..self.width {
-                if self.is_valid_spawn_point(x, y) {
-                    empty_cells.push(Vec2::new(x as f32, y as f32));
-                }
-            }
+        // Collect indices of empty cells
+        let empty_cells: Vec<u32> = self
+            .states
+            .iter()
+            .enumerate()
+            .filter(|(_, state)| state.is_empty()) // Only keep empty cells
+            .map(|(idx, _)| idx as u32)
+            .collect();
+
+        if empty_cells.is_empty() {
+            // Return origin position if no empty cells are found
+            return Vec2::new(0.0, 0.0);
         }
 
-        //println!("\n\n\n Count of empty cells: {}", empty_cells.len());
-        // Choose a random position if there are any empty cells,
-        // otherwise return Vec2(0.0, 0.0)
-        let mut rng = rand::thread_rng();
-        empty_cells
-            .choose(&mut rng)
-            .copied()
-            .unwrap_or(Vec2::new(0.0, 0.0))
+        // Select a random empty cell by its index in the states vector
+        let cell_index = empty_cells[rng.gen_range(0..empty_cells.len())];
+
+        // Convert 1D index to 2D grid coordinates
+        let row = cell_index / self.width;
+        let col = cell_index % self.width;
+
+        // Calculate midpoint of the cell based on its size
+        let mid_x = col as f32 * tile_width + tile_width / 2.0;
+        let mid_y = row as f32 * tile_height + tile_height / 2.0;
+
+        Vec2::new(mid_x, mid_y)
     }
 }
 

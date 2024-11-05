@@ -6,7 +6,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::GridMap;
+use lumina_shared::procedural_map::grid_map::{GridMap, TILE_HEIGHT, TILE_WIDTH};
 use server::*;
 
 use super::lobby::Lobby;
@@ -70,7 +70,7 @@ fn init_spaceship_position(
     }
 
     //let desired_position = Vec2::new(200.0, 200.0); // Define the desired position
-    let desired_position = grid_map.get_random_empty_cell_position();
+    let desired_position = grid_map.get_random_empty_cell_position(TILE_WIDTH, TILE_HEIGHT);
 
     for (spaceship_entity, mut position) in q_spaceships.iter_mut() {
         // Check if the Position component exists
