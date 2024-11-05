@@ -123,7 +123,7 @@ pub fn setup_tile_resources(
 ) {
     commands.insert_resource(TileConfig {
         mesh: Mesh2dHandle(meshes.add(Rectangle::new(TILE_WIDTH, TILE_HEIGHT))),
-        material: materials.add(Color::srgb(0.0, 0.0, 1.0)),
+        material: materials.add(Color::srgb(0.133, 0.121, 0.133)),
         _width: TILE_WIDTH,
         _height: TILE_HEIGHT,
     });
