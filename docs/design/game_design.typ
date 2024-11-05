@@ -1,10 +1,44 @@
-#set text(size: 12pt)
-#set heading(numbering: "1.")
-#show link: set text(style: "italic", fill: gray.mix((black, 50%)))
+// Talk about the approaches that we will take on making the game rather than the details of the game.
+// Discuss about stuff that will influence the gameplay.
+// Always start with the general items and then move to the specifics.
+// Treat it as a working document and leave it open to change.
 
+#import "monokai_pro.typ": *
+
+#set page(fill: base0)
+#set text(size: 11pt, fill: base7)
+#set table(stroke: base6)
+#set heading(numbering: "1.")
+
+#show link: set text(style: "italic", fill: base8.mix(blue))
 #show outline.entry.where(level: 1): it => {
-  v(12pt, weak: true)
+  v(14pt, weak: true)
   strong(it)
+}
+#show heading: it => {
+  if it.level > 2 {
+    emph(it.body)
+  } else {
+    it
+  }
+}
+
+#let lumina = [*Lumina*]
+#let luminara = [*Luminara*]
+#let tesseract = [*Tesseract*]
+#let dauntless = [*Dauntless*]
+
+#let info(body) = {
+  text(fill: blue, body)
+}
+#let warn(body) = {
+  text(fill: yellow, body)
+}
+#let danger(body) = {
+  text(fill: red, body)
+}
+#let game_ref(body) = {
+  text(fill: base8.mix(green), emph(body))
 }
 
 #align(center)[
@@ -14,8 +48,292 @@
 
 = Quick Summary
 
-Lumina is a top down fast paced objective based PvPvE game.
-Players in a team of 3 will be tasked to control a spaceship to fight mobs, collect motes, and gain domninance over the opposing team.
+#lumina is a top down fast paced objective based PvPvE game.
+Players in a team of 3 will be tasked to control a spaceship to fight mobs, collect motes, and gain domninance over the opposing team in a fully procedurally-generated world.
+This game blends the idea from #game_ref[Destiny 2's Gambit] game mode and fast paced top down games like #game_ref[Astro Duel 2], #game_ref[Intravenous 2], and #game_ref[Ruiner].
+
+== Game Inspirations
+
+#[
+  #set image(width: 80%)
+  #set text(size: 10pt)
+
+  #link("https://www.youtube.com/watch?v=TSBdw668c4I")[
+    #figure(
+      image("inspirations/destiny 2 gambit.jpg"),
+      caption: "Destiny 2 gambit mode",
+    )
+  ]
+
+  #link("https://www.youtube.com/watch?v=FhqtwLV4iX8")[
+    #figure(image("inspirations/astro duel 2.jpg"), caption: "Astro Duel 2")
+  ]
+
+  #link("https://youtu.be/-oTUZz_BGy4?si=E-nqoIJl26iZyxPC&t=78")[
+    #figure(image("inspirations/ruiner.jpg"), caption: "Ruiner")
+  ]
+
+  #link("https://www.youtube.com/watch?v=dlVUqgFn4Ew")[
+    #figure(image("inspirations/intravenous 2.jpg"), caption: "Intravenous 2")
+  ]
+
+  #link("https://www.youtube.com/watch?v=dH6hCAK24Ok")[
+    #figure(image("inspirations/ape out.jpg"), caption: "Ape Out")
+  ]
+
+  #link("https://www.youtube.com/watch?v=puhw1bEVtro")[
+    #figure(image("inspirations/neon chrome.png"), caption: "Neon Chrome")
+  ]
+]
+
+
+#pagebreak()
+
+#outline()
+
+#pagebreak()
+
+= Design Pillars
+
+We use design pillars to focus design choices as we move through the project.
+
+#link("https://www.gamedeveloper.com/design/fourteen-forms-of-fun")[Types of fun or enjoyment] which are key to the user experience:
+
+#table(
+  columns: (1fr, 1fr),
+  [*Competition*], [*Power*],
+  [_An activity where the goal is to show one's superiority._],
+  [_Capacity of having a strong effect, of acting with strength._],
+
+  [
+    Players will feel the urge to gain an advantage over their opponents.
+    They must compete with each other on limited resources and avoid death penalties.
+  ],
+  [
+    As players gain more #lumina, they can use it to their advantage by combo depositing to receive temporary buffs or purchasing better weapons.
+  ],
+)
+
+
+= Audience & Market
+
+// Figure out your audience.
+// If you don't know your audience, start by excluding audience who will not play your game.
+
+This game will target gamers who loves fast paced multipalyer games like #game_ref[Apex Legends] and #game_ref[Astro Duel 2].
+It will particularly appeal to gamers who love the mix of competitive PvP and PvE like #game_ref[Destiny 2's Gambit] game mode and #game_ref[World War Z].
+
+
+// #pagebreak()
+
+= Core Gameplay
+
+// What's actually happening when the player plays this game?
+// Set out a MVP version of the base game.
+// Playtest your game early on.
+// Learn how to justify something, come up with reasons why xxx.
+// Say as much as you can in as few words as possible.
+
+This is the core gameplay loop and mechanics that the game will have.
+Each mechanic should positively impact the player experience towards our design pillars.
+
+#figure(image("game loop.png"), caption: "Game Loop")
+
+As a player, your goal is to gain dominance of the #tesseract.
+This is achieved by moving the effect meter towards the opposite side.
+
+== Game Loop
+
++ Start the game with a team of 3.
++ #danger[Eliminate] #dauntless (mobs) to obtain #lumina (currency).
++ With #lumina:
+  - Feed the it into the #tesseract (depositor) to #info[increase your team's dominance].
+  #align(center)[_or..._]
+  - #info[Purchase better equipments] (weapons for this prototype) from the shop.
++ Team with #warn[total dominance] *win!*
++ If timer runs out (approx. 15mins) and no team manages to gain total dominance, the team with #warn[most dominance] wins (this is subject to change into something like a sudden death post prototype phase).
+
+=== Death
+
++ Players can be eliminated by #info[mobs / opponents].
++ Get a #danger[death penalty] (This includes losing all your #lumina, a time delay before respawn, and losing your purchased weapon).
++ Respawn at a death location with a 5 secs immunity.
+
+== Game Mechanics
+
+=== Controls
+
+#table(
+  columns: (auto, 1fr, 1fr),
+  table.header(
+    [*Movement*],
+    [*PC*],
+    [*Console*],
+  ),
+
+  [Move], [WASD], [Left Stick],
+  [Brake], [Space], [L],
+  [Boost], [Right Mouse], [L2],
+  [Interact], [E], [South],
+  [Attack], [Left Mouse], [R2],
+  [Aim], [Mouse Cursor], [Right Stick],
+)
+
+=== Player
+
+#table(
+  columns: (auto, 1fr),
+  [*Spaceship*],
+  [
+    - Physics simulated.
+    - Thrusters only pushes spaceships from behind.
+    - Direction controlled by _Move_ controls.
+  ],
+
+  [*Weapon*],
+  [
+    - Direction of weapon will snap to _Aim_ controls.
+    - Apart from the default weapon, each weapon when purchased will have a limited amount of ammos.
+    - All weapons will have a magazine size where players will need to reload to replenish it.
+    - Types of weapon (non-exhaustive, but good amount for the prototype):
+      - Cannon (default) (moderate firing rate, moderate damage)
+      - Gattling gun (high firing rate, large mag)
+      - Missle (slow firing rate, area damage, no honing)
+  ],
+)
+
+=== Environment (Light vs Dark)
+
+#figure(image("light vs dark.png"), caption: "Light vs Dark")
+
+The default environment background will be completely dark.
+#info[Ally] spaceships will help #info[*_illuminate_*] the scene while #danger[enemy] spaceships will #danger[*_consume_*] light.
+Some important props around the world will also illuminate the scene (e.g. #tesseract, #lumina).
+While the other normal props and obstacles will just block lights.
+
+// #pagebreak()
+
+= Gameplay Balance & Pacing
+
+// Balancing in multiplayer: make sure players don't feel that they get bullied by other players.
+// Be careful when using words like (should, could, will). Be precise on the degree of promise that you are putting in the technical document.
+
+#pagebreak()
+
+= Visual Style & Aesthetics
+
+#let palette_box(cols, darken) = {
+  for col in cols {
+    box(fill: col.darken(darken), width: 40pt, height: 20pt)
+    h(0.65em)
+  }
+}
+
+#align(center)[
+  #palette_box((purple, blue, green, yellow, orange, red), 80%)\
+  #palette_box((purple, blue, green, yellow, orange, red), 50%)\
+  #palette_box((purple, blue, green, yellow, orange, red), 0%)\
+]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 8pt,
+  row-gutter: 8pt,
+  image("visual style/minions assemble.png"),
+  image("visual style/minions tunnel.png"),
+
+  image("visual style/evil minion.png"),
+  image("visual style/el macho lair.jpg"),
+
+  image("visual style/light cycle ally.png"),
+  image("visual style/light cycle enemy.png"),
+
+  image("visual style/uprising enemy.png"),
+  image("visual style/bullet echo.png"),
+)
+
+// Color palette(?)
+// Reference visual styles, movies, games, etc.
+
+== Environment Design
+
+== Spaceship Design
+
+Aim for #info[futuristic, modern, and clean] design.
+Spaceships will be view from the above (top down), and it won't be filling much screen space.
+Make it simple and easy to recognize without too much details.
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 8pt,
+  row-gutter: 8pt,
+  image("spaceship/large light jet full.png"),
+  image("spaceship/small light jet.png"),
+
+  image("spaceship/scifi0.jpg"), image("spaceship/scifi1.jpg"),
+  image("spaceship/2d spaceship pack.png"),
+  image("spaceship/2d spaceship pack2.jpg"),
+)
+
+// How are they presented in the game?
+// How do players differentiate other players in the game? (colors? shapes?)
+// Why should they be the way they are? (justify)
+
+== Character Design
+
+Characters are aimed to represent the form of a light bulb / luminance source.
+The idea is to merge the art aesthetic of #game_ref[Tron] like feel into the mischievous, playful world of #game_ref[minions].
+
+#align(center)[
+  #stack(
+    dir: ltr,
+    spacing: 10pt,
+    image("character/quorra.png", width: 40%),
+    align(horizon)[#text(size: 2em)[$+$]],
+    image("character/minion lightbulb.png", width: 40%),
+  )
+
+  #text(size: 2em)[$arrow.b$]
+  #align(horizon)[
+    #stack(
+      dir: ltr,
+      spacing: 20pt,
+      box(width: 30pt),
+      image("character/minion evil edit.png", width: 30%),
+      text(size: 2em)[... ?],
+    )
+  ]
+]
+
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 8pt,
+  row-gutter: 8pt,
+)
+
+
+= Setting
+
+Set on #luminara, a planet that is currently in the middle of an energy crisis war.
+The inhabitants of the planet (_Luminites_ and _Luminids_) ventures into the void to fight for resources (#lumina).
+
+== Tone
+
+The world of #luminara strikes a balance between whimsical and serious, blending playful mischief with an undertone of cunning ambition.
+While the characters, _Luminites_ and _Luminids_, have a lighthearted, almost impish charm, their actions are driven by a calculated desire to outwit and outperform each other.
+This creates an atmosphere reminiscent of _"Despicable Me"_, filled with sly humor and mischievous antics, but layered with stakes that emphasize clever strategies and resourceful thinking.
+
+== Character Traits & Motivations
+
+Even though the _Luminites_ and _Luminids_ are in a war, they were actually once the same species, living in harmony.
+Not all _Luminites_ and _Luminids_ harbor genuine hatred for one another, many are driven to battle by the ambitions and orders of their leaders and politicians..
+This struggle mirrors our own world, where chaos and conflict are often incited by those in power.
+The never-ending war rages on, even as their home planet, #luminara, cries out in agony...
+
+// = Business Model
+
+= Misc
 
 - *Platform*: PC Native (Windows/Mac/Linux)
 - *Tech Stack*:
@@ -34,83 +352,3 @@ Players in a team of 3 will be tasked to control a spaceship to fight mobs, coll
     [Multiplayer], [Lightyear],
   )
 - *Genre*: 2D, Co-op, PvP, PvE, Top-down, Objective-based PvPvE
-
-= Setting
-
-Set on Luminara, a planet that is currently in the middle of an energy crisis war.
-The inhabitants of the planet (_Luminites_ and _Luminids_) ventures into the void to fight for resources (_Lumina_).
-
-== Tone
-
-The world of _Luminara_ strikes a balance between whimsical and serious, blending playful mischief with an undertone of cunning ambition.
-While the characters, _Luminites_ and _Luminids_, have a lighthearted, almost impish charm, their actions are driven by a calculated desire to outwit and outperform each other.
-This creates an atmosphere reminiscent of _"Despicable Me"_, filled with sly humor and mischievous antics, but layered with stakes that emphasize clever strategies and resourceful thinking.
-
-== Character Traits and Motivations
-
-Even though the _Luminites_ and _Luminids_ are in a war, they were actually once the same species, living in harmony.
-Not all _Luminites_ and _Luminids_ harbor genuine hatred for one another, many are driven to battle by the ambitions and orders of their leaders and politicians..
-This struggle mirrors our own world, where chaos and conflict are often incited by those in power.
-The never-ending war rages on, even as their home planet, _Luminara_, cries out in agony...
-
-#pagebreak()
-
-#outline()
-
-#pagebreak()
-
-= Game Loop
-
-#figure(image("game loop.png"), caption: "Game Loop")
-
-*From a player's perspective:*
-
-As a player, your goal is to gain dominance of the *_Tesseract_*.
-This is achieved by moving the effect bar towards the opposite side.
-
-== Core Loop
-
-+ Start the game with a team of 3.
-+ Kill *_Dauntless_* (mobs) to obtain *_Lumina_* (currency).
-+ Feed the *_Lumina_* into the *_Tesseract_* (depositor) to increase your team's dominance.
-+ Team with total dominance win, get the *_Lumina_* resource, and head back to *_Luminara_* (home planet).
-
-== Death Loop
-
-+ Get killed by mobs / opponents.
-+ Get a death waiting penalty (increased gradually as game duration increases).
-+ Respawn at a random location with a 5 secs immunity.
-
-#pagebreak()
-
-= Game Mechanics
-
-#pagebreak()
-
-= Environment Design
-
-== Character Design
-
-Characters are aimed to represent the form of a light bulb / luminance source.
-
-#pagebreak()
-
-= Inspirations
-
-== Destiny 2 (Gambit game mode)
-
-#figure(
-  image("inspirations/destiny 2 gambit.jpg"),
-  caption: "Destiny 2 gambit mode",
-)
-#link("https://www.youtube.com/watch?v=TSBdw668c4I")
-
-== Neon Chrome
-
-#figure(image("inspirations/neon chrome.png"), caption: "Neon Chrome")
-#link("https://www.youtube.com/watch?v=puhw1bEVtro")
-
-== Intravenous 2
-
-#figure(image("inspirations/intravenous 2.jpg"), caption: "Intravenous 2")
-#link("https://store.steampowered.com/app/2608270/Intravenous_2/")
