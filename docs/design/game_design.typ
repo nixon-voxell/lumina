@@ -230,7 +230,9 @@ The combo deposition is meant to reward players who takes risks to gather large 
   [60 seconds of alternate dimension time + 7 #lumina chain reaction.],
 )
 
-=== Environment (Light vs Dark)
+#text(size: 0.8em)[_Alternate dimension is when players are given the ability to see enemies as light instead of darkness. (See @light-vs-dark)_]
+
+=== Environment (Light vs Dark) <light-vs-dark>
 
 #figure(image("light vs dark.png"), caption: "Light vs Dark")
 
