@@ -144,7 +144,7 @@ It will particularly appeal to gamers who love the mix of competitive PvP and Pv
 This is the core gameplay loop and mechanics that the game will have.
 Each mechanic should positively impact the player experience towards our design pillars.
 
-#figure(image("game loop.png"), caption: "Game Loop")
+#figure(image("game loop.png", width: 90%), caption: "Game Loop")
 
 As a player, your goal is to gain dominance of the #tesseract.
 This is achieved by moving the effect meter towards the opposite side.
@@ -232,9 +232,11 @@ The combo deposition is meant to reward players who takes risks to gather large 
 
 #text(size: 0.8em)[_Alternate dimension is when players are given the ability to see enemies as light instead of darkness. (See @light-vs-dark)_]
 
+#pagebreak()
+
 === Environment (Light vs Dark) <light-vs-dark>
 
-#figure(image("light vs dark.png"), caption: "Light vs Dark")
+#figure(image("light vs dark.png", width: 90%), caption: "Light vs Dark")
 
 The default environment background will be completely dark.
 #info[Ally] spaceships will help #info[*_illuminate_*] the scene while #danger[enemy] spaceships will #danger[*_consume_*] light.
@@ -250,6 +252,9 @@ While the other normal props and obstacles will just block lights.
 #pagebreak()
 
 = Visual Style & Aesthetics
+
+// Color palette(?)
+// Reference visual styles, movies, games, etc.
 
 #let palette_box(cols, darken) = {
   for col in cols {
@@ -281,14 +286,37 @@ While the other normal props and obstacles will just block lights.
   image("visual style/bullet echo.png"),
 )
 
-// Color palette(?)
-// Reference visual styles, movies, games, etc.
+#pagebreak()
 
 == Environment Design
 
-// TODO
+The environment design should be based on the void.
+The void is the remains of a past civilization or intelligent being that was destroyed by #dauntless who thrives on #lumina.
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 8pt,
+  row-gutter: 8pt,
+  image("environment/dreaming city.png"),
+  image("environment/dreaming city future.png"),
+
+  image("environment/stormy destiny2.png"),
+  image("environment/stormy1 destiny2.png"),
+)
+
+It will contain:
+
+- Dark space with structures floating around.
+- Destroyable small metal structures detached from the main boundary.
+- Portal for teleporting.
+
+#pagebreak()
 
 == Spaceship Design
+
+// How are they presented in the game?
+// How do players differentiate other players in the game? (colors? shapes?)
+// Why should they be the way they are? (justify)
 
 Aim for #info[futuristic, modern, and clean] design.
 Spaceships will be view from the above (top down), and it won't be filling much screen space.
@@ -301,14 +329,13 @@ Make it simple and easy to recognize without too much details.
   image("spaceship/large light jet full.png"),
   image("spaceship/small light jet.png"),
 
-  image("spaceship/scifi0.jpg"), image("spaceship/scifi1.jpg"),
+  image("spaceship/destiny 2 spaceship.png"),
   image("spaceship/2d spaceship pack.png"),
+
   image("spaceship/2d spaceship pack2.jpg"),
 )
 
-// How are they presented in the game?
-// How do players differentiate other players in the game? (colors? shapes?)
-// Why should they be the way they are? (justify)
+#pagebreak()
 
 == Character Design
 
@@ -340,6 +367,15 @@ The idea is to merge the art aesthetic of #game_ref[Tron] like feel into the mis
 
 Set on #luminara, a planet that is currently in the middle of an energy crisis war.
 The inhabitants of the planet (_Luminites_ and _Luminids_) ventures into the void to fight for resources (#lumina).
+
+#table(
+  columns: (auto, 1fr),
+  [*Luminites*],
+  [Luminarian who wants to exploit #lumina in hope of a technology breakthrough which will make them independant of #lumina.],
+
+  [*Luminids*],
+  [Luminarian who wants to conserve #lumina and save the planet (they think the technology breakthrough is infeasible).],
+)
 
 == Tone
 
