@@ -1,6 +1,7 @@
 // Talk about the approaches that we will take on making the game rather than the details of the game.
 // Discuss about stuff that will influence the gameplay.
 // Always start with the general items and then move to the specifics.
+// Be careful when using words like (should, could, will). Be precise on the degree of promise that you are putting in the technical document.
 // Treat it as a working document and leave it open to change.
 
 #import "monokai_pro.typ": *
@@ -123,8 +124,14 @@ We use design pillars to focus design choices as we move through the project.
 This game will target gamers who loves fast paced multipalyer games like #game_ref[Apex Legends] and #game_ref[Astro Duel 2].
 It will particularly appeal to gamers who love the mix of competitive PvP and PvE like #game_ref[Destiny 2's Gambit] game mode and #game_ref[World War Z].
 
+#table(
+  columns: (auto, auto),
+  inset: 8pt,
+  [*Platform*], [PC Native (Windows/Mac/Linux)],
+  [*Genre*], [2D, Co-op, PvP, PvE, Top-down],
+)
 
-// #pagebreak()
+#pagebreak()
 
 = Core Gameplay
 
@@ -146,18 +153,12 @@ This is achieved by moving the effect meter towards the opposite side.
 
 + Start the game with a team of 3.
 + #danger[Eliminate] #dauntless (mobs) to obtain #lumina (currency).
-+ With #lumina:
-  - Feed the it into the #tesseract (depositor) to #info[increase your team's dominance].
++ Players can use #lumina to:
+  - Feed it into the #tesseract (depositor) to #info[increase your team's dominance].
   #align(center)[_or..._]
   - #info[Purchase better equipments] (weapons for this prototype) from the shop.
 + Team with #warn[total dominance] *win!*
 + If timer runs out (approx. 15mins) and no team manages to gain total dominance, the team with #warn[most dominance] wins (this is subject to change into something like a sudden death post prototype phase).
-
-=== Death
-
-+ Players can be eliminated by #info[mobs / opponents].
-+ Get a #danger[death penalty] (This includes losing all your #lumina, a time delay before respawn, and losing your purchased weapon).
-+ Respawn at a death location with a 5 secs immunity.
 
 == Game Mechanics
 
@@ -166,7 +167,7 @@ This is achieved by moving the effect meter towards the opposite side.
 #table(
   columns: (auto, 1fr, 1fr),
   table.header(
-    [*Movement*],
+    [*Control*],
     [*PC*],
     [*Console*],
   ),
@@ -194,12 +195,39 @@ This is achieved by moving the effect meter towards the opposite side.
   [
     - Direction of weapon will snap to _Aim_ controls.
     - Apart from the default weapon, each weapon when purchased will have a limited amount of ammos.
-    - All weapons will have a magazine size where players will need to reload to replenish it.
-    - Types of weapon (non-exhaustive, but good amount for the prototype):
-      - Cannon (default) (moderate firing rate, moderate damage)
-      - Gattling gun (high firing rate, large mag)
-      - Missle (slow firing rate, area damage, no honing)
+    - All weapons will have a magazine size (reload to replenish).
+    - Weapons can be used to attack mobs and opponents.
+    #table(
+      columns: (auto, 1fr),
+      table.header([*Weapon*], [*Characteristics*]),
+      [Cannon (default)], [moderate firing rate, moderate damage],
+      [Gattling gun], [high firing rate, large mag],
+      [Missle], [slow firing rate, area damage, no honing],
+    )
+    #text(size: 0.8em)[_Types of weapon, non-exhaustive, but good amount for the prototype._]
   ],
+)
+
+=== Death
+
+When players get eliminated by #info[mobs / opponents]:
+- Get a #danger[death penalty] (This includes dropping all your #lumina, a time delay before respawn, and dropping your purchased weapon).
+- Respawn at spawn location with a 5 secs immunity.
+
+=== Combo Deposition
+
+The combo deposition is meant to reward players who takes risks to gather large amount of #lumina and deposit them in one go.
+(+ive feedback loop)
+
+#table(
+  columns: (auto, 1fr),
+  table.header([*Risk*], [*Reward*]),
+  [10 #lumina], [30 seconds of alternate dimension time.],
+  [20 #lumina],
+  [40 seconds of alternate dimension time + 5 #lumina chain reaction.],
+
+  [30 #lumina],
+  [60 seconds of alternate dimension time + 7 #lumina chain reaction.],
 )
 
 === Environment (Light vs Dark)
@@ -213,10 +241,9 @@ While the other normal props and obstacles will just block lights.
 
 // #pagebreak()
 
-= Gameplay Balance & Pacing
+// = Gameplay Balance & Pacing
 
 // Balancing in multiplayer: make sure players don't feel that they get bullied by other players.
-// Be careful when using words like (should, could, will). Be precise on the degree of promise that you are putting in the technical document.
 
 #pagebreak()
 
@@ -257,6 +284,8 @@ While the other normal props and obstacles will just block lights.
 
 == Environment Design
 
+// TODO
+
 == Spaceship Design
 
 Aim for #info[futuristic, modern, and clean] design.
@@ -294,24 +323,16 @@ The idea is to merge the art aesthetic of #game_ref[Tron] like feel into the mis
   )
 
   #text(size: 2em)[$arrow.b$]
-  #align(horizon)[
-    #stack(
-      dir: ltr,
-      spacing: 20pt,
-      box(width: 30pt),
-      image("character/minion evil edit.png", width: 30%),
-      text(size: 2em)[... ?],
-    )
-  ]
+  #stack(
+    dir: ltr,
+    spacing: 20pt,
+    box(width: 30pt),
+    image("character/minion evil edit.png", width: 30%),
+    align(horizon)[#text(size: 2em)[... ?]],
+  )
 ]
 
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 8pt,
-  row-gutter: 8pt,
-)
-
+#pagebreak()
 
 = Setting
 
@@ -333,9 +354,10 @@ The never-ending war rages on, even as their home planet, #luminara, cries out i
 
 // = Business Model
 
+#pagebreak()
+
 = Misc
 
-- *Platform*: PC Native (Windows/Mac/Linux)
 - *Tech Stack*:
   #table(
     columns: (auto, auto),
@@ -351,4 +373,3 @@ The never-ending war rages on, even as their home planet, #luminara, cries out i
     [Vector graphics], [Velyst (Vello + Typst)],
     [Multiplayer], [Lightyear],
   )
-- *Genre*: 2D, Co-op, PvP, PvE, Top-down, Objective-based PvPvE
