@@ -23,14 +23,15 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            type_registry::TypeRegistryPlugin,
-            lumina_ui::UiPlugin,
-            protocol::ProtocolPlugin,
-            player::PlayerPlugin,
-            effector::EffectorPlugin,
-            procedural_map::GridMapPlugin,
-        ));
+        app.add_plugins(bevy_framepace::FramepacePlugin)
+            .add_plugins((
+                type_registry::TypeRegistryPlugin,
+                lumina_ui::UiPlugin,
+                protocol::ProtocolPlugin,
+                player::PlayerPlugin,
+                effector::EffectorPlugin,
+                procedural_map::GridMapPlugin,
+            ));
     }
 }
 

@@ -7098,6 +7098,55 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
+    "bevy_framepace::FramepaceSettings": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": true,
+      "long_name": "bevy_framepace::FramepaceSettings",
+      "properties": {
+        "limiter": {
+          "type": {
+            "$ref": "#/$defs/bevy_framepace::Limiter"
+          }
+        }
+      },
+      "required": [
+        "limiter"
+      ],
+      "short_name": "FramepaceSettings",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_framepace::Limiter": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_framepace::Limiter",
+      "oneOf": [
+        {
+          "long_name": "Auto"
+        },
+        {
+          "items": false,
+          "long_name": "Manual",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_utils::Duration"
+              }
+            }
+          ],
+          "short_name": "Manual",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "long_name": "Off"
+        }
+      ],
+      "short_name": "Limiter",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_gizmos::aabb::AabbGizmoConfigGroup": {
       "additionalProperties": false,
       "isComponent": false,
