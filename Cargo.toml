@@ -25,6 +25,7 @@ bevy_coroutine = { version = "0.1.3", git = "https://github.com/nixon-voxell/bev
 bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
 # Crates.io
 bevy = { version = "0.14", features = ["wayland"] }
+bevy_framepace = "0.17.1"
 bevy_vello = "0.6"
 lightyear = { version = "0.16", features = [
   "webtransport",
