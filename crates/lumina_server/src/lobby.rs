@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::GenerateMapEvent;
+use lumina_shared::procedural_map::grid_map::{GenerateMapEvent, GridMap, Tile, TileConfig};
 use server::*;
 use smallvec::SmallVec;
 
@@ -181,6 +181,8 @@ fn execute_exit_lobby(
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
     mut lobby_infos: ResMut<LobbyInfos>,
+    mut grid_map: ResMut<GridMap>,      // Add this line
+    q_tiles: Query<Entity, With<Tile>>, // Query to get all tile entities
 ) {
     for exit_client in client_exit_lobby_evr.read() {
         let client_id = exit_client.id();
@@ -188,10 +190,18 @@ fn execute_exit_lobby(
         if let Some(lobby_entity) = lobby_infos.remove(&client_id) {
             let room_id = lobby_entity.room_id();
             // Remove client from the lobby.
-            if let Ok(mut lobby) = q_lobbies.get_mut(lobby_entity) {
-                lobby.remove_client(&client_id);
+            if let Ok(mut lobby_ref) = q_lobbies.get_mut(lobby_entity) {
+                // Use `lobby_ref` instead of `lobby`
+                lobby_ref.remove_client(&client_id);
                 // Now that someone left, the lobby is no longer full
                 commands.entity(lobby_entity).remove::<LobbyFull>();
+
+                // Move all tiles back to the pool when the last player leaves
+                if lobby_ref.is_empty() {
+                    // Check if the lobby is empty
+                    let tile_entities: Vec<Entity> = q_tiles.iter().collect(); // Collect all tile entities
+                    grid_map.move_tiles_to_pool(&mut commands, tile_entities); // Move tiles back to pool
+                }
             }
 
             // Remove client from the room.

@@ -15,6 +15,9 @@ pub const TILE_HEIGHT: f32 = 100.0;
 #[derive(Event, Clone, Copy, Deref, DerefMut)]
 pub struct GenerateMapEvent(pub u64);
 
+#[derive(Component)]
+pub struct Tile; // Simple marker component for tile entities
+
 // Resources
 #[derive(Resource)]
 pub struct TileConfig {
@@ -70,11 +73,35 @@ impl GridMap {
         &mut self.states
     }
 
-    fn get(&self, x: u32, y: u32) -> Option<CellState> {
-        if x < self.width && y < self._height {
-            Some(self.states[(y * self.width + x) as usize])
-        } else {
-            None
+    pub fn initialize_tiles(
+        &mut self,
+        commands: &mut Commands,
+        count: usize,
+        tile_config: &TileConfig,
+    ) {
+        // Check if the pool has enough entities
+        while self.tile_pool.len() < count {
+            let new_tile = commands
+                .spawn((
+                    ColorMesh2dBundle {
+                        mesh: tile_config.mesh.clone(),
+                        material: tile_config.material.clone(),
+                        transform: Transform::default(), // Set appropriate transform
+                        ..default()
+                    },
+                    Tile,
+                ))
+                .id(); // Add Tile component here
+
+            self.tile_pool.push(new_tile); // Add the new tile to the pool
+        }
+    }
+
+    pub fn move_tiles_to_pool(&mut self, commands: &mut Commands, tile_entities: Vec<Entity>) {
+        // Move the specified entities back to the pool
+        for entity in tile_entities {
+            commands.entity(entity).despawn(); // Despawn the entity
+            self.tile_pool.push(entity); // Add back to tile pool
         }
     }
 
@@ -161,45 +188,41 @@ pub fn setup_grid_and_spawn_tiles(
         // Precompute neighbor states
         let has_empty_neighbors = precompute_empty_neighbors(&grid_map);
 
-        // Spawn tiles and collect entities needing rigid bodies
-        let mut entities_to_add_rigid_body = Vec::new();
+        // Count filled tiles
+        let tile_count = grid_map
+            .states
+            .iter()
+            .filter(|&&state| state == CellState::Filled)
+            .count();
 
-        let mut new_tiles = Vec::new();
+        // Initialize tiles in the grid map
+        grid_map.initialize_tiles(&mut commands, tile_count, &tile_config);
 
+        // Add RigidBody and Collider based on neighbors
         for (i, &state) in grid_map.states.iter().enumerate() {
-            if state == CellState::Empty {
-                continue; // Skip empty tiles
+            if state == CellState::Filled {
+                let position = Vec2::new(
+                    (i as u32 % grid_map.width) as f32 * tile_config._width,
+                    (i as u32 / grid_map.width) as f32 * tile_config._height,
+                );
+
+                // Get the tile entity from the pool
+                if let Some(entity_id) = grid_map.tile_pool.get(i) {
+                    commands
+                        .entity(*entity_id)
+                        .insert(Transform::from_translation(Vec3::new(
+                            position.x, position.y, 0.0,
+                        )));
+
+                    // Add RigidBody and Collider only if this tile has empty neighbors
+                    if has_empty_neighbors[i] {
+                        commands.entity(*entity_id).insert(shared_rigid_body.0);
+                        commands
+                            .entity(*entity_id)
+                            .insert(shared_collider.0.clone());
+                    }
+                }
             }
-
-            let position = Vec2::new(
-                (i as u32 % grid_map.width) as f32 * tile_config._width,
-                (i as u32 / grid_map.width) as f32 * tile_config._height,
-            );
-
-            let entity_builder = commands.spawn((ColorMesh2dBundle {
-                mesh: tile_config.mesh.clone(),
-                material: tile_config.material.clone(),
-                transform: Transform::from_xyz(position.x, position.y, 0.0),
-                ..default()
-            },));
-
-            // Only collect entities that need RigidBody and Collider
-            if has_empty_neighbors[i] {
-                entities_to_add_rigid_body.push(entity_builder.id());
-            }
-
-            // Track spawned tiles
-            if grid_map.tile_pool.len() <= i {
-                new_tiles.push(entity_builder.id());
-            }
-        }
-
-        grid_map.tile_pool.extend(new_tiles);
-
-        // Add RigidBody and Collider in batch
-        for entity_id in entities_to_add_rigid_body {
-            commands.entity(entity_id).insert(shared_rigid_body.0);
-            commands.entity(entity_id).insert(shared_collider.0.clone());
         }
     }
 }
