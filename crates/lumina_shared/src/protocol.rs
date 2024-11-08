@@ -7,6 +7,7 @@ use server::RoomId;
 
 use crate::action::PlayerAction;
 use crate::player::spaceship::{Spaceship, SpaceshipType};
+use crate::player::weapon::{Weapon, WeaponType};
 use crate::player::PlayerId;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
@@ -33,6 +34,18 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation(client::ComponentSyncMode::Once);
 
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<Weapon>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 

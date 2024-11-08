@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::action::ReplicateActionBundle;
@@ -20,7 +19,7 @@ impl Plugin for SpaceshipPlugin {
 
 fn spawn_networked_action(
     mut commands: Commands,
-    q_spaceships: Query<&PlayerId, (With<Spaceship>, (Added<SourceEntity>, With<Predicted>))>,
+    q_spaceships: Query<&PlayerId, (With<Spaceship>, Added<SourceEntity>)>,
     mut player_infos: ResMut<PlayerInfos>,
     local_player_id: Res<LocalPlayerId>,
 ) {

@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::action::PlayerAction;
 
@@ -121,7 +122,9 @@ fn weapon_recharge(
     }
 }
 
-#[derive(Component, Reflect, Default, Debug, Clone, Copy)]
+#[derive(
+    Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq,
+)]
 #[reflect(Component)]
 pub enum WeaponType {
     #[default]
@@ -146,7 +149,7 @@ impl BlueprintType for WeaponType {
     }
 }
 
-#[derive(Reflect)]
+#[derive(Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct Weapon {
     /// Interval in seconds between each fire.

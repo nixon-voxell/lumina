@@ -57,6 +57,9 @@ pub struct GridMap {
     is_ready: bool,
 }
 
+// #[derive(Resource, Deref, DerefMut)]
+// pub struct GridMaps(Vec<GridMap>);
+
 impl GridMap {
     pub fn new(width: u32, height: u32) -> Self {
         let states = vec![CellState::default(); (height * width) as usize];

@@ -5,6 +5,7 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
+use lumina_shared::player::weapon::{Weapon, WeaponType};
 use lumina_shared::prelude::*;
 use lumina_shared::procedural_map::grid_map::{GridMap, TILE_HEIGHT, TILE_WIDTH};
 use server::*;
@@ -22,7 +23,8 @@ impl Plugin for PlayerPlugin {
                 init_spaceship_position,
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
-                replicate_spaceship_spawn,
+                replicate_spawn::<Spaceship>,
+                replicate_spawn::<Weapon>,
             ),
         );
     }
@@ -41,6 +43,13 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
             SpawnBlueprint,
         ))
         .id(); // Capture the spawned entity ID
+
+    commands.spawn((
+        PlayerId(client_id),
+        // TODO: Allow player to choose what weapon to spawn.
+        WeaponType::Cannon.config_info(),
+        SpawnBlueprint,
+    ));
 
     // Debugging: Log that the spaceship was spawned
     info!(
@@ -83,27 +92,21 @@ fn init_spaceship_position(
     }
 }
 
-fn replicate_spaceship_spawn(
+fn replicate_spawn<T: Component>(
     mut commands: Commands,
-    q_spaceships: Query<(&PlayerId, Entity), (With<Spaceship>, Without<SyncTarget>)>,
+    q_entities: Query<(&PlayerId, Entity), (With<T>, Without<SyncTarget>)>,
     lobby_infos: Res<LobbyInfos>,
     mut player_infos: ResMut<PlayerInfos>,
     mut room_manager: ResMut<RoomManager>,
 ) {
-    for (id, spaceship_entity) in q_spaceships.iter() {
+    for (id, entity) in q_entities.iter() {
         let client_id = id.0;
         let Some(room_id) = lobby_infos.get_room_id(&client_id) else {
             error!("Unable to get room id for {client_id}");
             return;
         };
 
-        // Debugging: Log spaceship entity before replication
-        info!(
-            "SERVER: Replicating spaceship entity {:?} for player {:?}",
-            spaceship_entity, client_id
-        );
-
-        commands.entity(spaceship_entity).insert(Replicate {
+        commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
                 prediction: NetworkTarget::All,
                 interpolation: NetworkTarget::AllExceptSingle(client_id),
@@ -116,8 +119,8 @@ fn replicate_spaceship_spawn(
             ..default()
         });
 
-        room_manager.add_entity(spaceship_entity, room_id);
-        player_infos[PlayerInfoType::Spaceship].insert(*id, spaceship_entity);
+        room_manager.add_entity(entity, room_id);
+        player_infos[PlayerInfoType::Spaceship].insert(*id, entity);
     }
 }
 

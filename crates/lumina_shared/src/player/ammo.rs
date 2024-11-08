@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use blenvy::*;
 use lumina_common::prelude::*;
+use serde::{Deserialize, Serialize};
 use strum::{EnumCount, EnumIter, IntoEnumIterator};
 
 use super::PlayerId;
@@ -242,7 +243,20 @@ pub struct AmmoRefEntities(HashMap<AmmoType, Entity>);
 #[reflect(Component)]
 pub struct AmmoRef;
 
-#[derive(Component, Reflect, EnumCount, EnumIter, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(
+    Component,
+    Reflect,
+    EnumCount,
+    EnumIter,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+)]
 #[reflect(Component)]
 pub enum AmmoType {
     LongRange,
