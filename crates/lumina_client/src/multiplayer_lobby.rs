@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lumina_ui::prelude::*;
 
 use super::ui::Screen;
-use lumina_shared::procedural_map::grid_map::{GridMap, Tile, TileConfig};
+use lumina_shared::procedural_map::grid_map::{GridMap, Tile};
 
 pub(super) struct MultiplayerLobbyPlugin;
 
@@ -23,9 +23,7 @@ fn spawn_lobby(
 
 fn despawn_grid(
     mut commands: Commands,
-    mut grid_map: ResMut<GridMap>,      // Add this line
-    q_tiles: Query<Entity, With<Tile>>, // Query to get all tile entities
+    grid_map: Res<GridMap>, // Add this line
 ) {
-    let tile_entities: Vec<Entity> = q_tiles.iter().collect(); // Collect all tile entities
-    grid_map.move_tiles_to_pool(&mut commands, tile_entities);
+    grid_map.deinitialize_tiles(&mut commands);
 }

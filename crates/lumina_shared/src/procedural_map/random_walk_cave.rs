@@ -1,6 +1,6 @@
 use rand::{Rng, SeedableRng};
 
-use crate::procedural_map::grid_map::{CellState, GridMap};
+use crate::procedural_map::grid_map::CellState;
 
 pub struct CaveConfig {
     pub map_width: usize,

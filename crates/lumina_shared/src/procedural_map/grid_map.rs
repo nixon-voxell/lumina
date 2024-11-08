@@ -1,8 +1,8 @@
 use crate::procedural_map::random_walk_cave::{carve_cave_paths, CaveConfig};
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use bevy::render::view::visibility;
 use bevy::sprite::Mesh2dHandle;
-use rand::seq::SliceRandom;
 use rand::Rng;
 
 // Constants for default values
@@ -91,17 +91,21 @@ impl GridMap {
                     },
                     Tile,
                 ))
+                .insert(Visibility::Visible)
                 .id(); // Add Tile component here
 
             self.tile_pool.push(new_tile); // Add the new tile to the pool
         }
     }
 
-    pub fn move_tiles_to_pool(&mut self, commands: &mut Commands, tile_entities: Vec<Entity>) {
+    // TODO:set with tile pool instead
+    pub fn deinitialize_tiles(&self, commands: &mut Commands) {
         // Move the specified entities back to the pool
-        for entity in tile_entities {
-            commands.entity(entity).despawn(); // Despawn the entity
-            self.tile_pool.push(entity); // Add back to tile pool
+        for entity in self.tile_pool.iter() {
+            commands
+                .entity(*entity)
+                .insert(Visibility::Hidden)
+                .remove::<RigidBody>(); // Despawn the entity    //
         }
     }
 

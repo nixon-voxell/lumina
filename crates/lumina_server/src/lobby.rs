@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::{GenerateMapEvent, GridMap, Tile, TileConfig};
+use lumina_shared::procedural_map::grid_map::{GenerateMapEvent, GridMap, Tile};
 use server::*;
 use smallvec::SmallVec;
 
@@ -181,8 +181,7 @@ fn execute_exit_lobby(
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
     mut lobby_infos: ResMut<LobbyInfos>,
-    mut grid_map: ResMut<GridMap>,      // Add this line
-    q_tiles: Query<Entity, With<Tile>>, // Query to get all tile entities
+    grid_map: Res<GridMap>, // Add this line
 ) {
     for exit_client in client_exit_lobby_evr.read() {
         let client_id = exit_client.id();
@@ -199,8 +198,7 @@ fn execute_exit_lobby(
                 // Move all tiles back to the pool when the last player leaves
                 if lobby_ref.is_empty() {
                     // Check if the lobby is empty
-                    let tile_entities: Vec<Entity> = q_tiles.iter().collect(); // Collect all tile entities
-                    grid_map.move_tiles_to_pool(&mut commands, tile_entities); // Move tiles back to pool
+                    grid_map.deinitialize_tiles(&mut commands); // Move tiles back to pool
                 }
             }
 
