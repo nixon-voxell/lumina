@@ -13,8 +13,10 @@ pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, init_spaceships)
-            .add_systems(FixedUpdate, spaceship_movement);
+        app.add_event::<DamageEvent>()
+            .add_systems(PreUpdate, init_spaceships)
+            .add_systems(FixedUpdate, spaceship_movement)
+            .add_systems(Update, apply_damage_to_spaceships);
     }
 }
 
@@ -42,6 +44,10 @@ fn init_spaceships(
             MovementStat {
                 linear_acceleration: 0.0,
                 linear_damping: spaceship.linear_damping,
+            },
+            Health {
+                current: 100.0,
+                max: 100.0,
             },
         ));
 
@@ -259,4 +265,36 @@ pub struct SpaceshipPhysicsBundle {
     pub angular_damping: AngularDamping,
     pub collider: Collider,
     pub mass_properties: MassPropertiesBundle,
+}
+
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Default)]
+#[reflect(Component)]
+pub struct Health {
+    pub current: f32,
+    pub max: f32,
+}
+
+/// Represents an event where a specific entity (target) takes damage.
+#[derive(Event)]
+pub struct DamageEvent {
+    pub target: Entity, // The entity that will receive the damage
+    pub damage: f32,    // The amount of damage to apply
+}
+
+/// Applies damage to the targeted spaceship entities based on received DamageEvents.
+fn apply_damage_to_spaceships(
+    mut commands: Commands,
+    mut damage_evr: EventReader<DamageEvent>,
+    mut q_spaceship_health: Query<(Entity, &mut Health), With<Spaceship>>,
+) {
+    for event in damage_evr.read() {
+        if let Ok((entity, mut health)) = q_spaceship_health.get_mut(event.target) {
+            health.current -= event.damage;
+
+            if health.current <= 0.0 {
+                // Handle spaceship destruction
+                commands.entity(entity).despawn();
+            }
+        }
+    }
 }

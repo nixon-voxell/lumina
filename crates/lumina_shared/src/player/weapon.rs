@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::action::PlayerAction;
 
 use super::ammo::{AmmoType, FireAmmo};
-use super::spaceship::Spaceship;
+use super::spaceship::{DamageEvent, Spaceship};
 use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
@@ -80,6 +80,7 @@ fn weapon_attack(
     mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponStat, &PlayerId), With<SourceEntity>>,
     mut fire_ammo_evw: EventWriter<FireAmmo>,
     player_infos: Res<PlayerInfos>,
+    mut damage_events: EventWriter<DamageEvent>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) {
@@ -105,6 +106,15 @@ fn weapon_attack(
                     direction,
                     damage: weapon.damage,
                 });
+
+                // Get the spaceship entity
+                if let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(id) {
+                    // When ammo collides with the spaceship:
+                    damage_events.send(DamageEvent {
+                        target: *spaceship_entity, // The spaceship entity
+                        damage: weapon.damage,
+                    });
+                }
             }
         }
     }
