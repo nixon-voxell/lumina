@@ -4,6 +4,7 @@ use avian2d::prelude::*;
 use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use bevy_transform_interpolation::*;
 use blenvy::*;
 use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -75,15 +76,13 @@ fn fire_ammo(
         // Initialize fire ammo components.
         commands
             .entity(ammo_entity)
-            // Enable ammo
-            .remove::<AmmoDisabled>()
             .insert(FireAmmoBundle::new(fire_ammo, ammo));
     }
 }
 
 fn track_ammo_lifetime(
     mut commands: Commands,
-    mut q_ammos: Query<(&mut AmmoStat, &AmmoType, Entity), Without<AmmoDisabled>>,
+    mut q_ammos: Query<(&mut AmmoStat, &AmmoType, Entity), With<RigidBody>>,
     mut ammo_pools: ResMut<AmmoPools>,
     time: Res<Time>,
 ) {
@@ -93,7 +92,8 @@ fn track_ammo_lifetime(
         if ammo.lifetime <= 0.0 {
             commands
                 .entity(ammo_entity)
-                .insert(DisableAmmoBundle::default());
+                .insert(Visibility::Hidden)
+                .remove::<RigidBody>();
             ammo_pools[*ammo_type].set_unused(ammo_entity);
         }
     }
@@ -101,7 +101,6 @@ fn track_ammo_lifetime(
 
 #[derive(Event)]
 pub struct FireAmmo {
-    #[allow(unused)]
     pub id: PlayerId,
     pub ammo_type: AmmoType,
     pub position: Vec2,
@@ -117,6 +116,7 @@ pub struct InitAmmoBundle {
     pub rigidbody: RigidBody,
     pub sensor: Sensor,
     pub spatial: SpatialBundle,
+    pub no_translation_interp: NoTranslationInterpolation,
     pub source: SourceEntity,
 }
 
@@ -129,6 +129,7 @@ impl InitAmmoBundle {
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
             spatial: SpatialBundle::default(),
+            no_translation_interp: NoTranslationInterpolation,
             source: SourceEntity,
         }
     }
@@ -136,6 +137,7 @@ impl InitAmmoBundle {
 
 #[derive(Bundle)]
 pub struct FireAmmoBundle {
+    pub id: PlayerId,
     pub stat: AmmoStat,
     pub damage: AmmoDamage,
     pub position: Position,
@@ -149,6 +151,7 @@ pub struct FireAmmoBundle {
 impl FireAmmoBundle {
     pub fn new(fire_ammo: &FireAmmo, ammo: &Ammo) -> Self {
         Self {
+            id: fire_ammo.id,
             stat: AmmoStat {
                 lifetime: ammo.lifetime,
             },
@@ -163,21 +166,6 @@ impl FireAmmoBundle {
     }
 }
 
-#[derive(Bundle)]
-pub struct DisableAmmoBundle {
-    pub disabled: AmmoDisabled,
-    pub visibility: Visibility,
-}
-
-impl Default for DisableAmmoBundle {
-    fn default() -> Self {
-        Self {
-            disabled: AmmoDisabled,
-            visibility: Visibility::Hidden,
-        }
-    }
-}
-
 #[derive(Component)]
 pub struct AmmoStat {
     /// Duration left before the ammo expires.
@@ -188,10 +176,6 @@ pub struct AmmoStat {
 /// Ammo damage applied to damagable objects.
 #[derive(Component)]
 pub struct AmmoDamage(pub f32);
-
-/// Tag component to notify that an ammo has been disabled and therefore rendered useless.
-#[derive(Component)]
-pub struct AmmoDisabled;
 
 #[derive(Resource, Deref, DerefMut)]
 pub struct AmmoPools<const COUNT: usize = { AmmoType::COUNT }>([AmmoPool; COUNT]);
