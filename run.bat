@@ -7,6 +7,9 @@ if "%~1"=="" (
     exit /b
 )
 
+echo Building...
+cargo build
+
 set count=%~1
 
 echo Starting the server...

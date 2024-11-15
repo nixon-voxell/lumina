@@ -1,7 +1,6 @@
 use std::ops::{Index, IndexMut};
 
 use avian2d::prelude::*;
-use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -57,6 +56,7 @@ fn fire_ammo(
         else {
             continue;
         };
+
         // Get ammo pool for the particular ammo type.
         let ammo_pool = &mut ammo_pools[fire_ammo.ammo_type];
 
@@ -64,15 +64,7 @@ fn fire_ammo(
             Some(ammo_entity) => ammo_entity,
             None => {
                 let ammo_entity = commands
-                    .spawn(FireAmmoBundle {
-                        ammo_type: fire_ammo.ammo_type,
-                        rigidbody: RigidBody::Dynamic,
-                        sensor: Sensor,
-                        mass_properties: MassPropertiesBundle::new_computed(collider, 1.0),
-                        collider: collider.clone(),
-                        spatial: SpatialBundle::default(),
-                        source: SourceEntity,
-                    })
+                    .spawn(InitAmmoBundle::new(fire_ammo.ammo_type, collider.clone()))
                     .id();
                 ammo_pool.used.insert(ammo_entity);
 
@@ -80,24 +72,12 @@ fn fire_ammo(
             }
         };
 
-        let rotation = fire_ammo.direction.to_angle();
-        // Initialize the ammo position and rotation.
+        // Initialize fire ammo components.
         commands
             .entity(ammo_entity)
             // Enable ammo
             .remove::<AmmoDisabled>()
-            .insert((
-                AmmoStat {
-                    lifetime: ammo.lifetime,
-                },
-                Position(fire_ammo.position),
-                Rotation::radians(rotation),
-                LinearVelocity(fire_ammo.direction * ammo.linear_impulse),
-                AngularVelocity(ammo.angular_impulse),
-                AmmoDamage(fire_ammo.damage),
-                Transform::from_xyz(fire_ammo.position.x, fire_ammo.position.y, -10.0)
-                    .with_rotation(Quat::from_rotation_z(rotation)),
-            ));
+            .insert(FireAmmoBundle::new(fire_ammo, ammo));
     }
 }
 
@@ -111,7 +91,9 @@ fn track_ammo_lifetime(
         ammo.lifetime -= time.delta_seconds();
 
         if ammo.lifetime <= 0.0 {
-            commands.entity(ammo_entity).insert(AmmoDisabled);
+            commands
+                .entity(ammo_entity)
+                .insert(DisableAmmoBundle::default());
             ammo_pools[*ammo_type].set_unused(ammo_entity);
         }
     }
@@ -128,14 +110,72 @@ pub struct FireAmmo {
 }
 
 #[derive(Bundle)]
-pub struct FireAmmoBundle {
+pub struct InitAmmoBundle {
     pub ammo_type: AmmoType,
-    pub rigidbody: RigidBody,
-    pub sensor: Sensor,
     pub mass_properties: MassPropertiesBundle,
     pub collider: Collider,
+    pub rigidbody: RigidBody,
+    pub sensor: Sensor,
     pub spatial: SpatialBundle,
     pub source: SourceEntity,
+}
+
+impl InitAmmoBundle {
+    pub fn new(ammo_type: AmmoType, collider: Collider) -> Self {
+        Self {
+            ammo_type,
+            mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
+            collider,
+            rigidbody: RigidBody::Dynamic,
+            sensor: Sensor,
+            spatial: SpatialBundle::default(),
+            source: SourceEntity,
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct FireAmmoBundle {
+    pub stat: AmmoStat,
+    pub damage: AmmoDamage,
+    pub position: Position,
+    pub rotation: Rotation,
+    pub linear_velocity: LinearVelocity,
+    pub angular_velocity: AngularVelocity,
+    pub rigidbody: RigidBody,
+    pub visibility: Visibility,
+}
+
+impl FireAmmoBundle {
+    pub fn new(fire_ammo: &FireAmmo, ammo: &Ammo) -> Self {
+        Self {
+            stat: AmmoStat {
+                lifetime: ammo.lifetime,
+            },
+            damage: AmmoDamage(fire_ammo.damage),
+            position: Position(fire_ammo.position),
+            rotation: Rotation::radians(fire_ammo.direction.to_angle()),
+            linear_velocity: LinearVelocity(fire_ammo.direction * ammo.linear_impulse),
+            angular_velocity: AngularVelocity(ammo.angular_impulse),
+            rigidbody: RigidBody::Dynamic,
+            visibility: Visibility::Inherited,
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct DisableAmmoBundle {
+    pub disabled: AmmoDisabled,
+    pub visibility: Visibility,
+}
+
+impl Default for DisableAmmoBundle {
+    fn default() -> Self {
+        Self {
+            disabled: AmmoDisabled,
+            visibility: Visibility::Hidden,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -150,35 +190,8 @@ pub struct AmmoStat {
 pub struct AmmoDamage(pub f32);
 
 /// Tag component to notify that an ammo has been disabled and therefore rendered useless.
+#[derive(Component)]
 pub struct AmmoDisabled;
-
-impl Component for AmmoDisabled {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_insert(|mut world, entity, _| {
-            world
-                .commands()
-                .entity(entity)
-                // Hide ammo.
-                .insert(Visibility::Hidden)
-                // Stop any physics acting on the ammo.
-                .remove::<RigidBody>();
-        });
-
-        hooks.on_remove(|mut world, entity, _| {
-            // Entity might have been despawned...
-            if let Some(mut entity_cmds) = world.commands().get_entity(entity) {
-                entity_cmds.insert((
-                    // Show ammo.
-                    Visibility::Inherited,
-                    // Enable physics.
-                    RigidBody::Dynamic,
-                ));
-            }
-        });
-    }
-}
 
 #[derive(Resource, Deref, DerefMut)]
 pub struct AmmoPools<const COUNT: usize = { AmmoType::COUNT }>([AmmoPool; COUNT]);

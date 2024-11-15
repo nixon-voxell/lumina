@@ -1,13 +1,12 @@
 use crate::procedural_map::random_walk_cave::{carve_cave_paths, CaveConfig};
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy::render::view::visibility;
 use bevy::sprite::Mesh2dHandle;
 use rand::Rng;
 
 // Constants for default values
-pub const MAP_WIDTH: usize = 100;
-pub const MAP_HEIGHT: usize = 100;
+pub const MAP_WIDTH: usize = 40;
+pub const MAP_HEIGHT: usize = 40;
 pub const TILE_WIDTH: f32 = 100.0;
 pub const TILE_HEIGHT: f32 = 100.0;
 
