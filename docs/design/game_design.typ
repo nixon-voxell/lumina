@@ -243,12 +243,6 @@ The default environment background will be completely dark.
 Some important props around the world will also illuminate the scene (e.g. #tesseract, #lumina).
 While the other normal props and obstacles will just block lights.
 
-// #pagebreak()
-
-// = Gameplay Balance & Pacing
-
-// Balancing in multiplayer: make sure players don't feel that they get bullied by other players.
-
 #pagebreak()
 
 = Visual Style & Aesthetics
@@ -302,6 +296,12 @@ The void is the remains of a past civilization or intelligent being that was des
 
   image("environment/stormy destiny2.png"),
   image("environment/stormy1 destiny2.png"),
+
+  image("environment/tangled-shore-closeup.png"),
+  image("environment/tangled-shore.png"),
+
+  image("environment/tangled-shore.jpeg"),
+  image("environment/tangled-shore3.png"),
 )
 
 It will contain:
