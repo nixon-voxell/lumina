@@ -16,6 +16,7 @@ lumina_ui = { path = "crates/lumina_ui" }
 lumina_shared = { path = "crates/lumina_shared" }
 lumina_dev = { path = "crates/lumina_dev" }
 bevy_shader_utils = { path = "crates/bevy_shader_utils" }
+bevy_radiance_cascades = { path = "crates/bevy_radiance_cascades" }
 # Local
 velyst = { path = "external_crates/velyst" }
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }

@@ -1,0 +1,12 @@
+[package]
+name = "bevy_radiance_cascades"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+
+[lints]
+workspace = true

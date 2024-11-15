@@ -12,6 +12,13 @@ git clone --recursive https://github.com/nixon-voxell/lumina.git
 
 ### Run the game
 
+Before running the game, the `assets` folder needs to be linked correctly to all the binary crates.
+You can do so by running:
+
+```
+create_asset_junctions.bat
+```
+
 To run the game, you need to start the server and the client.
 You can do so manually using:
 
