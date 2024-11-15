@@ -49,7 +49,7 @@
 
 = Quick Summary
 
-#lumina is a top down fast paced objective based PvPvE game.
+#underline[*#lumina is a 2D top down fast paced objective based PvPvE game.*]
 Players in a team of 3 will be tasked to control a spaceship to fight mobs, collect motes, and gain domninance over the opposing team in a fully procedurally-generated world.
 This game blends the idea from #game_ref[Destiny 2's Gambit] game mode and fast paced top down games like #game_ref[Astro Duel 2], #game_ref[Intravenous 2], and #game_ref[Ruiner].
 
