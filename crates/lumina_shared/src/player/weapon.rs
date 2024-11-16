@@ -50,7 +50,10 @@ fn weapon_direction(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_weapon_transforms: Query<&mut Transform, (With<Weapon>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
+    time: Res<Time>,
 ) {
+    const ROTATION_SPEED: f32 = 20.0;
+
     for (action, id) in q_actions.iter() {
         if let Some(mut weapon_transform) = player_infos[PlayerInfoType::Weapon]
             .get(id)
@@ -69,7 +72,12 @@ fn weapon_direction(
                     continue;
                 }
 
-                weapon_transform.rotation = Quat::from_rotation_z(direction.to_angle());
+                let target_rotation = Quat::from_rotation_z(direction.to_angle());
+                weapon_transform.rotation = Quat::slerp(
+                    weapon_transform.rotation,
+                    target_rotation,
+                    time.delta_seconds() * ROTATION_SPEED,
+                );
             }
         }
     }

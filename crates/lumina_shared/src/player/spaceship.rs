@@ -293,7 +293,7 @@ fn apply_damage_to_spaceships(
 
             if health.current <= 0.0 {
                 // Handle spaceship destruction
-                commands.entity(entity).despawn();
+                // TODO: Death
             }
         }
     }
