@@ -68,7 +68,7 @@ pub enum PlayerInfoType {
 
 /// Maps [`PlayerId`] to it's corresponding [`Entity`].
 ///
-/// Note: Number of hashmaps needs to match the number of types in [`PlayerInfoType`].
+/// Note: Number of hashmaps needs to match the number of variants in [`PlayerInfoType`].
 #[derive(Resource, Debug, Deref, DerefMut)]
 pub struct PlayerInfos<const COUNT: usize = { PlayerInfoType::COUNT }>(
     [HashMap<PlayerId, Entity>; COUNT],

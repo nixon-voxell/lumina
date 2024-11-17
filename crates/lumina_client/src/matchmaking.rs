@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
+use lumina_shared::terrain::grid_map::GenerateMapEvent;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::GenerateMapEvent;
 
 use super::player::LocalPlayerId;
 use super::ui::{lobby::LobbyFunc, Screen};

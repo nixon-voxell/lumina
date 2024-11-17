@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use lumina_common::physics::{MeshRigidbody, PrimitiveRigidbody};
 
+use crate::blueprints::{AmmoType, SpaceshipType, WeaponType};
 use crate::effector::{
     Effector, EffectorPopupMsg, InteractableEffector, MatchmakeEffector, TutorialEffector,
 };
-use crate::player::ammo::{Ammo, AmmoRef, AmmoType};
-use crate::player::spaceship::{Spaceship, SpaceshipType};
-use crate::player::weapon::{Weapon, WeaponType};
+use crate::player::ammo::{Ammo, AmmoRef};
+use crate::player::spaceship::Spaceship;
+use crate::player::weapon::Weapon;
 
 pub(super) struct TypeRegistryPlugin;
 

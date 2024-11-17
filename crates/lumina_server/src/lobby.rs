@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::{GenerateMapEvent, GridMap, Tile};
+use lumina_shared::terrain::grid_map::{GenerateMapEvent, GridMap, Tile};
 use server::*;
 use smallvec::SmallVec;
 

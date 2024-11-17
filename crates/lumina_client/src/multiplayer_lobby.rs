@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lumina_ui::prelude::*;
 
 use super::ui::Screen;
-use lumina_shared::procedural_map::grid_map::{GridMap, Tile};
+use lumina_shared::terrain::grid_map::{GridMap, Tile};
 
 pub(super) struct MultiplayerLobbyPlugin;
 

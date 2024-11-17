@@ -21,6 +21,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 bevy_framepace = { workspace = true }
 bevy_transform_interpolation = { workspace = true }
+thiserror = { workspace = true }
 
 [lints]
 workspace = true

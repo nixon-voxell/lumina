@@ -5,15 +5,17 @@ use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 
 pub mod action;
+pub mod blueprints;
 pub mod effector;
 pub mod player;
-pub mod procedural_map;
 pub mod protocol;
+pub mod terrain;
 
 mod type_registry;
 
 pub mod prelude {
     pub use crate::action::PlayerAction;
+    pub use crate::blueprints::*;
     pub use crate::player::{PlayerId, PlayerInfoType, PlayerInfos};
     pub use crate::protocol::*;
 }
@@ -30,7 +32,7 @@ impl Plugin for SharedPlugin {
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 effector::EffectorPlugin,
-                procedural_map::GridMapPlugin,
+                terrain::GridMapPlugin,
             ));
     }
 }

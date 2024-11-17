@@ -4,10 +4,10 @@ use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
-use lumina_shared::player::weapon::{Weapon, WeaponType};
+use lumina_shared::player::spaceship::Spaceship;
+use lumina_shared::player::weapon::Weapon;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::{GridMap, TILE_HEIGHT, TILE_WIDTH};
+use lumina_shared::terrain::grid_map::{GridMap, TILE_HEIGHT, TILE_WIDTH};
 use server::*;
 
 use super::lobby::Lobby;

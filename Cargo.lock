@@ -3873,6 +3873,7 @@ dependencies = [
  "leafwing-input-manager",
  "lightyear",
  "serde",
+ "strum",
 ]
 
 [[package]]
@@ -3919,6 +3920,21 @@ dependencies = [
  "smallvec",
  "strum",
  "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "lumina_terrain"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "blenvy",
+ "lumina_common",
+ "noisy_bevy",
+ "serde",
+ "strum",
+ "thiserror",
 ]
 
 [[package]]
@@ -6228,10 +6244,13 @@ dependencies = [
 name = "test_bed"
 version = "0.1.0"
 dependencies = [
+ "avian2d",
  "bevy",
  "bevy_enoki",
  "bevy_shader_utils",
  "bevy_vello",
+ "lumina_shared",
+ "noisy_bevy",
  "rand",
  "velyst",
 ]

@@ -4,11 +4,6 @@ use blenvy::*;
 
 use crate::prelude::SourceEntity;
 
-pub trait BlueprintType: Component {
-    fn visual_info(&self) -> BlueprintInfo;
-    fn config_info(&self) -> BlueprintInfo;
-}
-
 pub trait SpawnBlueprintVisualAppExt {
     fn spawn_blueprint_visual<T: BlueprintType, F: QueryFilter + 'static>(&mut self) -> &mut Self;
 }
@@ -29,5 +24,24 @@ fn spawn_blueprint_visual_impl<T: BlueprintType, F: QueryFilter>(
             SpawnBlueprint,
             HideUntilReady,
         ));
+    }
+}
+
+pub trait BlueprintType: Component {
+    fn visual_info(&self) -> BlueprintInfo;
+    fn config_info(&self) -> BlueprintInfo;
+}
+
+impl<T: AsRef<str> + Component> BlueprintType for T {
+    fn visual_info(&self) -> BlueprintInfo {
+        let mut name = self.as_ref().to_string();
+        name += "Visual.glb";
+        BlueprintInfo::from_path(&name)
+    }
+
+    fn config_info(&self) -> BlueprintInfo {
+        let mut name = self.as_ref().to_string();
+        name += "Config.glb";
+        BlueprintInfo::from_path(&name)
     }
 }

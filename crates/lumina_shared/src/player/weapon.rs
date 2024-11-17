@@ -6,8 +6,9 @@ use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::action::PlayerAction;
+use crate::blueprints::AmmoType;
 
-use super::ammo::{AmmoType, FireAmmo};
+use super::ammo::FireAmmo;
 use super::spaceship::{DamageEvent, Spaceship};
 use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
 
@@ -137,33 +138,6 @@ fn weapon_recharge(
             weapon_stat.recharge + time.delta_seconds(),
             weapon.firing_rate,
         );
-    }
-}
-
-#[derive(
-    Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq,
-)]
-#[reflect(Component)]
-pub enum WeaponType {
-    #[default]
-    Cannon,
-    Missle,
-    GattlingGun,
-}
-
-impl BlueprintType for WeaponType {
-    fn visual_info(&self) -> BlueprintInfo {
-        match self {
-            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonVisual.glb"),
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
-
-    fn config_info(&self) -> BlueprintInfo {
-        match self {
-            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonConfig.glb"),
-            _ => todo!("{self:?} is not supported yet."),
-        }
     }
 }
 

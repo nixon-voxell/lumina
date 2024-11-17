@@ -6,8 +6,9 @@ use lightyear::utils::avian2d::*;
 use server::RoomId;
 
 use crate::action::PlayerAction;
-use crate::player::spaceship::{Spaceship, SpaceshipType};
-use crate::player::weapon::{Weapon, WeaponType};
+use crate::blueprints::{SpaceshipType, WeaponType};
+use crate::player::spaceship::Spaceship;
+use crate::player::weapon::Weapon;
 use crate::player::PlayerId;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);

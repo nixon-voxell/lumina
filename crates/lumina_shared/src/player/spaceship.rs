@@ -1,13 +1,12 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
 
-use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceshipPlugin;
 
@@ -169,34 +168,6 @@ fn spaceship_movement(
         // Clamp the speed
         linear.0 = linear.clamp_length_max(spaceship.max_linear_speed);
         linear_damping.0 = movement_stat.linear_damping;
-    }
-}
-
-#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-pub enum SpaceshipType {
-    Assassin,
-    Tank,
-    Support,
-}
-
-impl BlueprintType for SpaceshipType {
-    fn visual_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceshipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceshipAssassinVisual.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
-
-    fn config_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceshipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceshipAssassinConfig.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
-        }
     }
 }
 
