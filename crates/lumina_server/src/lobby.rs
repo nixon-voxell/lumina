@@ -1,10 +1,13 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::terrain::grid_map::{GenerateMapEvent, GridMap, Tile};
+use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
+
+use crate::player::SpawnPlayer;
 
 use super::player::spawn_player_entity;
 use super::LobbyInfos;
@@ -48,10 +51,12 @@ fn spawn_debug_camera(mut commands: Commands) {
 fn cleanup_empty_lobbies(
     mut commands: Commands,
     q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>)>,
+    mut clear_terrain_evw: EventWriter<ClearTerrain>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
+            clear_terrain_evw.send(ClearTerrain(entity));
             commands.entity(entity).despawn();
         }
     }
@@ -83,49 +88,49 @@ fn handle_matchmaking(
     mut commands: Commands,
     mut matchmake_evr: EventReader<MessageEvent<Matchmake>>,
     mut q_lobbies: Query<
-        (&mut Lobby, &LobbySize, Entity),
+        (&mut Lobby, &LobbySize, &LobbySeed, Entity),
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
-    mut generate_map_evw: EventWriter<GenerateMapEvent>,
+    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
+    mut spawn_player_evw: EventWriter<SpawnPlayer>,
 ) {
+    struct LobbyStat {
+        entity: Entity,
+        seed: u32,
+    }
+
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
-        // Already matchmake
+        // Already matchmake, something is wrong...
         if lobby_infos.contains_key(&client_id) {
             warn!("Recieved duplicated matchmake commands from {client_id:?}");
             continue;
         }
 
         let lobby_size = *matchmake.message;
-        let mut lobby_entity = None;
-        // Number of clients in the lobby before the client joins.
-        // let mut lobby_len = 0;
+        let mut lobby_stat = None;
 
         // Find an available lobby to join.
-        for (mut lobby, size, entity) in q_lobbies.iter_mut() {
+        for (mut lobby, size, seed, entity) in q_lobbies.iter_mut() {
             // Only find lobbies with the correct size.
             if lobby_size != **size {
                 continue;
             }
 
             if lobby.len() < **size as usize {
-                // lobby_len = lobby.len();
                 lobby.push(client_id);
-                lobby_entity = Some(entity);
+                lobby_stat = Some(LobbyStat {
+                    entity,
+                    seed: **seed,
+                });
 
                 if lobby.len() == **size as usize {
                     // Tag lobby as full so that this lobby won't show up the
                     // next time a new client requests to join. (optimization)
                     commands.entity(entity).insert(LobbyFull);
-
-                    // Send GenerateMapEvent when the lobby is full
-
-                    // TODO: Move up here in the future
-                    // let room_id = entity.room_id();
-                    // generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
                 }
 
                 break;
@@ -133,18 +138,32 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity.unwrap_or_else(|| {
-            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
+        let lobby_stat = lobby_stat.unwrap_or_else(|| {
+            let seed = rand::random();
+            let entity = commands
+                .spawn(LobbyBundle::new(client_id, lobby_size, seed))
+                .id();
+            let seed = entity.room_id().0 as u32;
 
-            let room_id = entity.room_id();
-            generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
+            generate_terrain_evw.send(GenerateTerrain {
+                seed,
+                entity,
+                layers: CollisionLayers {
+                    memberships: LayerMask(seed),
+                    filters: LayerMask::ALL,
+                },
+            });
 
-            entity
+            LobbyStat { entity, seed }
         });
 
+        // spawn_player_evw.send(SpawnPlayer {
+        //     client_id,
+        //     seed: lobby_stat.seed,
+        // });
         spawn_player_entity(&mut commands, client_id);
-        room_manager.add_client(client_id, lobby_entity.room_id());
-        lobby_infos.insert(client_id, lobby_entity);
+        room_manager.add_client(client_id, lobby_stat.entity.room_id());
+        lobby_infos.insert(client_id, lobby_stat.entity);
     }
 }
 
@@ -181,7 +200,6 @@ fn execute_exit_lobby(
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
     mut lobby_infos: ResMut<LobbyInfos>,
-    grid_map: Res<GridMap>, // Add this line
 ) {
     for exit_client in client_exit_lobby_evr.read() {
         let client_id = exit_client.id();
@@ -189,17 +207,10 @@ fn execute_exit_lobby(
         if let Some(lobby_entity) = lobby_infos.remove(&client_id) {
             let room_id = lobby_entity.room_id();
             // Remove client from the lobby.
-            if let Ok(mut lobby_ref) = q_lobbies.get_mut(lobby_entity) {
-                // Use `lobby_ref` instead of `lobby`
-                lobby_ref.remove_client(&client_id);
+            if let Ok(mut lobby) = q_lobbies.get_mut(lobby_entity) {
+                lobby.remove_client(&client_id);
                 // Now that someone left, the lobby is no longer full
                 commands.entity(lobby_entity).remove::<LobbyFull>();
-
-                // Move all tiles back to the pool when the last player leaves
-                if lobby_ref.is_empty() {
-                    // Check if the lobby is empty
-                    grid_map.deinitialize_tiles(&mut commands); // Move tiles back to pool
-                }
             }
 
             // Remove client from the room.
@@ -218,17 +229,24 @@ fn execute_exit_lobby(
     }
 }
 
-#[derive(Bundle, Default)]
+pub struct LobbyClient {
+    pub client_id: ClientId,
+    pub lobby_entity: Entity,
+}
+
+#[derive(Bundle)]
 pub(super) struct LobbyBundle {
     pub lobby: Lobby,
     pub size: LobbySize,
+    pub seed: LobbySeed,
 }
 
 impl LobbyBundle {
-    pub fn new(size: u8, initial_client: ClientId) -> Self {
+    pub fn new(initial_client: ClientId, size: u8, seed: u32) -> Self {
         Self {
             size: LobbySize(size),
             lobby: Lobby(SmallVec::from_slice(&[initial_client])),
+            seed: LobbySeed(seed),
         }
     }
 }
@@ -245,17 +263,10 @@ impl Lobby {
     }
 }
 
-#[derive(Event)]
-pub(super) struct ClientExitLobby(ClientId);
+#[derive(Component, Debug, Deref, DerefMut)]
+pub(super) struct LobbySeed(u32);
 
-impl ClientExitLobby {
-    pub fn id(&self) -> ClientId {
-        self.0
-    }
-}
-
-/// Size of lobby, indicating the max number of players in the lobby.
-#[derive(Component, Default, Debug, Deref, DerefMut)]
+#[derive(Component, Debug, Deref, DerefMut)]
 pub(super) struct LobbySize(u8);
 
 /// Tag for specifying a lobby is currently in game.
@@ -265,3 +276,12 @@ pub(super) struct LobbyInGame;
 /// Tag for specifying a lobby is currently full.
 #[derive(Component, Default)]
 pub(super) struct LobbyFull;
+
+#[derive(Event)]
+pub(super) struct ClientExitLobby(ClientId);
+
+impl ClientExitLobby {
+    pub fn id(&self) -> ClientId {
+        self.0
+    }
+}

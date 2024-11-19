@@ -1,15 +1,29 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use config::TerrainConfig;
 use lumina_common::prelude::*;
+use map::{Terrain, TileRef};
+use strum::EnumCount;
 
 pub mod config;
+pub mod map;
+
+pub mod prelude {
+    pub use crate::config::TerrainConfig;
+    pub use crate::map::{Terrain, TerrainStates, TerrainTiles, TileRef};
+    pub use crate::{ClearTerrain, GenerateTerrain};
+}
 
 pub struct TerrainPlugin;
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((config::TerrainConfigPlugin))
-            .add_systems(Startup, setup);
+        app.init_resource::<EntityPools<TerrainType>>()
+            .add_event::<GenerateTerrain>()
+            .add_event::<ClearTerrain>()
+            .add_plugins(config::TerrainConfigPlugin)
+            .add_systems(Startup, setup)
+            .add_systems(Update, (clear_terrain, generate_terrain).chain());
     }
 }
 
@@ -26,9 +40,46 @@ fn setup(
     })
 }
 
-#[derive(Resource)]
-pub struct TileRef {
-    pub mesh: Handle<Mesh>,
-    pub material: Handle<ColorMaterial>,
-    pub collider: Collider,
+fn clear_terrain(mut terrain: Terrain, mut clear_evr: EventReader<ClearTerrain>) {
+    for clear in clear_evr.read() {
+        terrain.clear_terrain(**clear);
+    }
 }
+
+fn generate_terrain(
+    mut terrain: Terrain,
+    config: TerrainConfig,
+    mut generate_evr: EventReader<GenerateTerrain>,
+    mut queue: Local<Vec<GenerateTerrain>>,
+) {
+    // Use a queuing system so that we don't miss any events if the below assets is not ready yet.
+    for gen in generate_evr.read() {
+        queue.push(*gen);
+    }
+
+    let Some(config) = config.get() else {
+        return;
+    };
+
+    for gen in queue.drain(..) {
+        terrain.clear_terrain(gen.entity);
+        terrain.generate_terrain(gen.entity, config, &gen);
+    }
+}
+
+#[derive(Event, Debug, Clone, Copy)]
+pub struct GenerateTerrain {
+    pub seed: u32,
+    /// The entity that is supposed to hold the [`TerrainMap`].
+    pub entity: Entity,
+    pub layers: CollisionLayers,
+}
+
+#[derive(Event, Debug, Deref, Clone, Copy)]
+pub struct ClearTerrain(pub Entity);
+
+#[derive(EnumCount)]
+pub enum TerrainType {
+    Tile,
+}
+enum_as_usize!(TerrainType);

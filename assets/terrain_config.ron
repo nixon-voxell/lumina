@@ -1,6 +1,6 @@
-TerrainConfig (
+TerrainConfigAsset (
     size: UVec2(50, 30),
-    tile_size: 20.0,
+    tile_size: 50.0,
     noise_surr_width: 5,
     base_size: UVec2(5, 5),
     noise_scale: 0.03,

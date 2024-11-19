@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-pub struct TerrainConfigPlugin;
+pub(super) struct TerrainConfigPlugin;
 
 impl Plugin for TerrainConfigPlugin {
     fn build(&self, app: &mut App) {

@@ -1,4 +1,5 @@
 //! This module contains the shared code between the client and the server.
+
 use bevy::prelude::*;
 use bevy::utils::Duration;
 use lightyear::prelude::*;
@@ -9,7 +10,6 @@ pub mod blueprints;
 pub mod effector;
 pub mod player;
 pub mod protocol;
-pub mod terrain;
 
 mod type_registry;
 
@@ -29,10 +29,10 @@ impl Plugin for SharedPlugin {
             .add_plugins((
                 type_registry::TypeRegistryPlugin,
                 lumina_ui::UiPlugin,
+                lumina_terrain::TerrainPlugin,
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 effector::EffectorPlugin,
-                terrain::GridMapPlugin,
             ));
     }
 }

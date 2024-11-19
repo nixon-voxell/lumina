@@ -8,8 +8,8 @@ pub struct TerrainConfigPlugin;
 
 impl Plugin for TerrainConfigPlugin {
     fn build(&self, app: &mut App) {
-        app.init_asset::<TerrainConfig>()
-            .init_asset_loader::<TerrainConfigLoader>()
+        app.init_asset::<TerrainConfigAsset>()
+            .init_asset_loader::<TerrainConfigAssetLoader>()
             .add_systems(PreStartup, load_config);
     }
 }
@@ -20,23 +20,23 @@ fn load_config(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 #[derive(bevy::ecs::system::SystemParam)]
-pub struct Terrain<'w> {
-    pub assets: Res<'w, Assets<TerrainConfig>>,
+pub struct TerrainConfig<'w> {
+    pub assets: Res<'w, Assets<TerrainConfigAsset>>,
     pub handle: Res<'w, TerrainHandle>,
 }
 
-impl Terrain<'_> {
-    pub fn config(&self) -> Option<&TerrainConfig> {
+impl TerrainConfig<'_> {
+    pub fn get(&self) -> Option<&TerrainConfigAsset> {
         self.assets.get(&**self.handle)
     }
 }
 
 #[derive(Resource, Deref, Debug)]
-pub struct TerrainHandle(Handle<TerrainConfig>);
+pub struct TerrainHandle(Handle<TerrainConfigAsset>);
 
 /// Configuration to generate the terrain procedurally.
 #[derive(Asset, TypePath, Deserialize, Serialize, Debug)]
-pub struct TerrainConfig {
+pub struct TerrainConfigAsset {
     /// The size of the terrain (in tile number).
     pub size: UVec2,
     /// Size of a single tile.
@@ -54,10 +54,10 @@ pub struct TerrainConfig {
     pub gradient_pow: f32,
 }
 
-impl AssetLoader for TerrainConfigLoader {
-    type Asset = TerrainConfig;
+impl AssetLoader for TerrainConfigAssetLoader {
+    type Asset = TerrainConfigAsset;
     type Settings = ();
-    type Error = TerrainConfigLoaderError;
+    type Error = TerrainConfigAssetLoaderError;
 
     async fn load<'a>(
         &'a self,
@@ -75,11 +75,11 @@ impl AssetLoader for TerrainConfigLoader {
 }
 
 #[derive(Default)]
-pub struct TerrainConfigLoader;
+pub struct TerrainConfigAssetLoader;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum TerrainConfigLoaderError {
+pub enum TerrainConfigAssetLoaderError {
     #[error("Could not load json file: {0}")]
     Io(#[from] std::io::Error),
     #[error("Could not deserialize ron: {0}")]

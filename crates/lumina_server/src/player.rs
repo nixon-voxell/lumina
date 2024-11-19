@@ -7,7 +7,7 @@ use lumina_common::prelude::*;
 use lumina_shared::player::spaceship::Spaceship;
 use lumina_shared::player::weapon::Weapon;
 use lumina_shared::prelude::*;
-use lumina_shared::terrain::grid_map::{GridMap, TILE_HEIGHT, TILE_WIDTH};
+use lumina_terrain::prelude::*;
 use server::*;
 
 use super::lobby::Lobby;
@@ -17,7 +17,7 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<SpawnPlayer>().add_systems(
             PreUpdate,
             (
                 init_spaceship_position,
@@ -58,8 +58,29 @@ pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) 
     );
 }
 
-#[derive(Component)]
-pub struct PositionInitialized;
+fn spawn_player(mut commands: Commands, mut spawn_player_evr: EventReader<SpawnPlayer>) {
+    for SpawnPlayer { client_id, seed } in spawn_player_evr.read() {
+        // Spawn spaceship.
+        commands.spawn((
+            PlayerId(*client_id),
+            // TODO: Allow player to choose what spaceship to spawn.
+            SpaceshipType::Assassin.config_info(),
+            SpawnBlueprint,
+            CollisionLayers {
+                memberships: LayerMask(*seed),
+                ..Default::default()
+            },
+        ));
+
+        // Spawn weapon.
+        commands.spawn((
+            PlayerId(*client_id),
+            // TODO: Allow player to choose what weapon to spawn.
+            WeaponType::Cannon.config_info(),
+            SpawnBlueprint,
+        ));
+    }
+}
 
 /// This function updates the position of newly spawned spaceships
 fn init_spaceship_position(
@@ -72,14 +93,15 @@ fn init_spaceship_position(
             Without<PositionInitialized>,
         ),
     >,
-    grid_map: Res<GridMap>,
+    terrain_config: TerrainConfig,
 ) {
-    if grid_map.is_ready() == false {
+    let Some(terrain_config) = terrain_config.get() else {
         return;
-    }
+    };
 
-    //let desired_position = Vec2::new(200.0, 200.0); // Define the desired position
-    let desired_position = grid_map.get_random_empty_cell_position(TILE_WIDTH, TILE_HEIGHT);
+    // TODO: Use different positions for different ships based on their team id.
+    let width = terrain_config.tile_size * terrain_config.noise_surr_width as f32;
+    let desired_position = Vec2::splat(width);
 
     for (spaceship_entity, mut position) in q_spaceships.iter_mut() {
         // Check if the Position component exists
@@ -190,3 +212,12 @@ fn replicate_actions(
         }
     }
 }
+
+#[derive(Event)]
+pub struct SpawnPlayer {
+    pub client_id: ClientId,
+    pub seed: u32,
+}
+
+#[derive(Component)]
+pub struct PositionInitialized;

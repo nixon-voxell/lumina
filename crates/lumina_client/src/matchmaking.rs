@@ -1,8 +1,9 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
-use lumina_shared::terrain::grid_map::GenerateMapEvent;
 use lumina_shared::prelude::*;
+use lumina_terrain::prelude::*;
 
 use super::player::LocalPlayerId;
 use super::ui::{lobby::LobbyFunc, Screen};
@@ -26,13 +27,14 @@ fn spawn_lobby(mut _commands: Commands) {
 
 /// Update [`LobbyFunc`] and [`Screen`] based on [`LobbyStatus`].
 fn handle_lobby_status_update(
+    mut commands: Commands,
     mut lobby_status_evr: EventReader<MessageEvent<LobbyStatus>>,
     mut lobby_func: ResMut<LobbyFunc>,
     screen_state: Res<State<Screen>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
     local_client_id: Res<LocalClientId>,
     mut local_player_id: ResMut<LocalPlayerId>,
-    mut generate_map_evw: EventWriter<GenerateMapEvent>,
+    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
 ) {
     for lobby_status in lobby_status_evr.read() {
         let status = lobby_status.message();
@@ -40,8 +42,14 @@ fn handle_lobby_status_update(
         // Update ui.
         lobby_func.curr_player_count = status.client_count;
         lobby_func.room_id = Some(room_id);
+
         // Generate map.
-        generate_map_evw.send(GenerateMapEvent(room_id));
+        // TODO: Reuse terrain entity!
+        generate_terrain_evw.send(GenerateTerrain {
+            seed: room_id as u32,
+            entity: commands.spawn_empty().id(),
+            layers: CollisionLayers::ALL,
+        });
 
         if *screen_state != Screen::MultiplayerLobby {
             // Update matchmake state

@@ -101,13 +101,6 @@ fn handle_disconnection(
     }
 }
 
-// /// Insert [`ClientSourceEntity`] to newly added [`Predicted`] entities.
-// fn client_source(mut commands: Commands, q_entities: Query<Entity, Added<Predicted>>) {
-//     for entity in q_entities.iter() {
-//         commands.entity(entity).insert(ClientSourceEntity);
-//     }
-// }
-
 /// Create the lightyear [`ClientConfig`].
 fn client_config(client_id: u64, settings: &LuminaSettings) -> ClientConfig {
     let server_addr = SocketAddr::new(

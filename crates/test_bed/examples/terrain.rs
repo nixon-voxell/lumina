@@ -1,130 +1,61 @@
 use avian2d::prelude::*;
-use bevy::{prelude::*, sprite::Mesh2dHandle};
-use lumina_shared::terrain::config::{Terrain, TerrainConfigPlugin};
-use noisy_bevy::*;
+use bevy::prelude::*;
+use lumina_terrain::prelude::*;
 
 fn main() -> AppExit {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(TerrainConfigPlugin)
+        .add_plugins((lumina_terrain::TerrainPlugin, lumina_common::CommonPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, generate_terrain)
         .run()
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
+fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.insert_resource(TileRef {
-        mesh: meshes.add(Rectangle::new(1.0, 1.0)),
-        material: materials.add(Color::BLACK),
-        collider: Collider::rectangle(1.0, 1.0),
-    })
 }
 
 fn generate_terrain(
     mut commands: Commands,
     mut q_camera: Query<&mut Transform, With<Camera2d>>,
-    terrain: Terrain,
-    tile_ref: Res<TileRef>,
+    config: TerrainConfig,
     key_input: Res<ButtonInput<KeyCode>>,
-    mut pool: Local<Vec<Entity>>,
+    mut generate_evw: EventWriter<GenerateTerrain>,
+    mut clear_evw: EventWriter<ClearTerrain>,
+    mut terrain_entity: Local<Option<Entity>>,
 ) {
-    let Some(terrain) = terrain.config() else {
-        return;
-    };
-
     if key_input.just_pressed(KeyCode::Space) == false {
         return;
     }
 
-    for e in pool.drain(..) {
-        commands.entity(e).despawn();
-    }
+    let entity = match *terrain_entity {
+        Some(entity) => entity,
+        None => {
+            let entity = commands.spawn_empty().id();
+            *terrain_entity = Some(entity);
 
-    let half_size = terrain.tile_size * 0.5;
-    q_camera.single_mut().translation.x = half_size * terrain.size.x as f32 - half_size;
-    q_camera.single_mut().translation.y = half_size * terrain.size.y as f32 - half_size;
-
-    let top_seed = rand::random();
-    let bottom_seed = rand::random();
-    let left_seed = rand::random();
-    let right_seed = rand::random();
-
-    for y in 0..terrain.size.y {
-        for x in 0..terrain.size.x {
-            fn remaped_noise(v: Vec2) -> f32 {
-                // Remap from -1.0 -> 1.0 to 0.0 -> 1.0
-                // gradient_noise(v) * 0.5 + 0.5
-                simplex_noise_2d(v) * 0.5 + 0.5
-            }
-
-            let left_dist = u32::abs_diff(x + 1, 0);
-            let right_dist = u32::abs_diff(x, terrain.size.x);
-            let bottom_dist = u32::abs_diff(y + 1, 0);
-            let top_dist = u32::abs_diff(y, terrain.size.y);
-
-            let surr_width = terrain.noise_surr_width as f32;
-
-            // Convert absolute distance to relative distance (may go out of 1.0)
-            let gradient = |abs_dist: u32| -> f32 {
-                f32::powf(abs_dist as f32 / surr_width, terrain.gradient_pow)
-            };
-
-            // Calculate absolute distances to the terrain edges.
-            let left_grad = gradient(left_dist);
-            let right_grad = gradient(right_dist);
-            let bottom_grad = gradient(bottom_dist);
-            let top_grad = gradient(top_dist);
-
-            let calc_noise = |scalar: u32, seed: f32, gradient: f32| -> f32 {
-                f32::min(
-                    1.0,
-                    remaped_noise(Vec2::new(terrain.noise_scale * scalar as f32, seed)) * gradient,
-                )
-            };
-
-            let left_noise = calc_noise(y, left_seed, left_grad);
-            let right_noise = calc_noise(y, right_seed, right_grad);
-            let bottom_noise = calc_noise(x, bottom_seed, bottom_grad);
-            let top_noise = calc_noise(x, top_seed, top_grad);
-
-            // let noise = left_noise * right_noise * bottom_noise * top_noise;
-            let noise = left_noise.min(right_noise).min(bottom_noise).min(top_noise);
-            let edge_dist = left_dist.min(right_dist).min(bottom_dist).min(top_dist);
-            println!("{edge_dist}");
-
-            if noise > terrain.noise_threshold || edge_dist > terrain.noise_surr_width {
-                continue;
-            }
-
-            let tile = commands
-                .spawn(ColorMesh2dBundle {
-                    mesh: Mesh2dHandle(tile_ref.mesh.clone()),
-                    material: tile_ref.material.clone(),
-                    transform: Transform::from_xyz(
-                        terrain.tile_size * x as f32,
-                        terrain.tile_size * y as f32,
-                        0.0,
-                    )
-                    .with_scale(Vec3::splat(terrain.tile_size)),
-                    ..default()
-                })
-                .id();
-
-            pool.push(tile);
+            entity
         }
-    }
-}
+    };
 
-#[derive(Resource)]
-pub struct TileRef {
-    pub mesh: Handle<Mesh>,
-    pub material: Handle<ColorMaterial>,
-    pub collider: Collider,
+    if key_input.pressed(KeyCode::ControlLeft) {
+        clear_evw.send(ClearTerrain(entity));
+        return;
+    }
+
+    let Some(config) = config.get() else {
+        return;
+    };
+
+    let half_size = config.tile_size * 0.5;
+    q_camera.single_mut().translation.x = half_size * config.size.x as f32 - half_size;
+    q_camera.single_mut().translation.y = half_size * config.size.y as f32 - half_size;
+
+    generate_evw.send(GenerateTerrain {
+        seed: rand::random(),
+        entity,
+        layers: CollisionLayers::ALL,
+    });
 }
 
 // fn gradient_noise_dir(mut p: Vec2) -> Vec2 {

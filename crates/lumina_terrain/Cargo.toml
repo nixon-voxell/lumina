@@ -11,8 +11,10 @@ bevy = { workspace = true }
 noisy_bevy = { workspace = true }
 avian2d = { workspace = true }
 blenvy = { workspace = true }
+bevy_transform_interpolation = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
+rand = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

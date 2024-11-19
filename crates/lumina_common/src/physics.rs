@@ -7,7 +7,7 @@ use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
 use bevy_transform_interpolation::*;
 
-use crate::prelude::SourceEntity;
+use crate::prelude::{propagate_component, SourceEntity};
 use crate::settings::LuminaSettings;
 
 pub(super) struct PhysicsPlugin;
@@ -35,7 +35,11 @@ impl Plugin for PhysicsPlugin {
             })
             .add_systems(
                 Update,
-                (convert_primitive_rigidbody, convert_mesh_rigidbody),
+                (
+                    convert_primitive_rigidbody,
+                    convert_mesh_rigidbody,
+                    propagate_component::<CollisionLayers>,
+                ),
             )
             .add_systems(PostUpdate, (init_position_sync, init_rotation_sync));
     }

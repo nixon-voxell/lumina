@@ -57,6 +57,19 @@ impl EntityPool {
         Some(entity)
     }
 
+    /// Get an unused entity from the entity pool or spawn a new one
+    /// and move it from unused to used.
+    pub fn get_unused_or_spawn(&mut self, commands: &mut Commands) -> Entity {
+        match self.get_unused() {
+            Some(entity) => entity,
+            None => {
+                let entity = commands.spawn_empty().id();
+                self.insert_new_used(entity);
+                entity
+            }
+        }
+    }
+
     /// Set ammo as unused (normally used when ammo becomes irrelevant).
     ///
     /// # Returns
@@ -64,7 +77,7 @@ impl EntityPool {
     /// True if successful, false if unsuccessful.
     pub fn set_unused(&mut self, entity: Entity) {
         if self.used.remove(&entity) == false {
-            error!("Ammo entity was not from the ammo pool!");
+            error!("{entity} was not from the pool!");
         }
 
         self.unused.insert(entity);

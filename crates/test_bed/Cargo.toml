@@ -8,7 +8,8 @@ authors.workspace = true
 [dependencies]
 
 [dev-dependencies]
-lumina_shared = { workspace = true }
+lumina_common = { workspace = true }
+lumina_terrain = { workspace = true }
 bevy_shader_utils = { workspace = true }
 velyst = { workspace = true }
 bevy = { workspace = true, features = ["file_watcher"] }

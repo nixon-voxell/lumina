@@ -8,6 +8,7 @@ authors.workspace = true
 [dependencies]
 lumina_common = { workspace = true }
 lumina_ui = { workspace = true }
+lumina_terrain = { workspace = true }
 bevy = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }

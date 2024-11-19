@@ -4418,10 +4418,10 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "bevy_asset::handle::Handle<lumina_shared::terrain::config::TerrainConfig>": {
+    "bevy_asset::handle::Handle<lumina_terrain::config::TerrainConfigAsset>": {
       "isComponent": true,
       "isResource": false,
-      "long_name": "bevy_asset::handle::Handle<lumina_shared::terrain::config::TerrainConfig>",
+      "long_name": "bevy_asset::handle::Handle<lumina_terrain::config::TerrainConfigAsset>",
       "oneOf": [
         {
           "items": false,
@@ -4443,7 +4443,7 @@
           "prefixItems": [
             {
               "type": {
-                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_shared::terrain::config::TerrainConfig>"
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>"
               }
             }
           ],
@@ -4452,7 +4452,7 @@
           "typeInfo": "Tuple"
         }
       ],
-      "short_name": "Handle<TerrainConfig>",
+      "short_name": "Handle<TerrainConfigAsset>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -5874,10 +5874,10 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "bevy_asset::id::AssetId<lumina_shared::terrain::config::TerrainConfig>": {
+    "bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>": {
       "isComponent": false,
       "isResource": false,
-      "long_name": "bevy_asset::id::AssetId<lumina_shared::terrain::config::TerrainConfig>",
+      "long_name": "bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -5916,7 +5916,7 @@
           "typeInfo": "Struct"
         }
       ],
-      "short_name": "AssetId<TerrainConfig>",
+      "short_name": "AssetId<TerrainConfigAsset>",
       "type": "object",
       "typeInfo": "Enum"
     },
