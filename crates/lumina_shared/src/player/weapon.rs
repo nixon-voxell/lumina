@@ -1,6 +1,5 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
-use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -10,7 +9,7 @@ use crate::blueprints::AmmoType;
 
 use super::ammo::FireAmmo;
 use super::spaceship::{DamageEvent, Spaceship};
-use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
 

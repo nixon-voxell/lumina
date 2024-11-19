@@ -26,7 +26,8 @@ impl Plugin for ProtocolPlugin {
         // Messages
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
-        app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
+        app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
+        app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
 
         // Components
@@ -100,9 +101,15 @@ pub struct Matchmake(pub u8);
 
 /// Update on lobby status sent from server to client.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct LobbyStatus {
-    pub room_id: RoomId,
+pub struct LobbyUpdate {
     pub client_count: u8,
+}
+
+/// Data required from the clients when they joined a lobby.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct LobbyData {
+    pub room_id: RoomId,
+    pub seed: u32,
 }
 
 /// Exit lobby command sent from client to server when already inside a lobby.

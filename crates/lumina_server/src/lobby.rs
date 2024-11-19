@@ -7,9 +7,8 @@ use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::player::SpawnPlayer;
+use crate::player::PlayerClient;
 
-use super::player::spawn_player_entity;
 use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;
@@ -74,10 +73,7 @@ fn propagate_lobby_status(
 
         // Send message to clients to notify about the changes.
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &LobbyStatus {
-                room_id,
-                client_count,
-            },
+            &LobbyUpdate { client_count },
             room_id,
             &room_manager,
         );
@@ -88,19 +84,13 @@ fn handle_matchmaking(
     mut commands: Commands,
     mut matchmake_evr: EventReader<MessageEvent<Matchmake>>,
     mut q_lobbies: Query<
-        (&mut Lobby, &LobbySize, &LobbySeed, Entity),
+        (&mut Lobby, &LobbySize, Entity),
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
     mut generate_terrain_evw: EventWriter<GenerateTerrain>,
-    mut spawn_player_evw: EventWriter<SpawnPlayer>,
 ) {
-    struct LobbyStat {
-        entity: Entity,
-        seed: u32,
-    }
-
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
 
@@ -111,10 +101,10 @@ fn handle_matchmaking(
         }
 
         let lobby_size = *matchmake.message;
-        let mut lobby_stat = None;
+        let mut lobby_entity = None;
 
         // Find an available lobby to join.
-        for (mut lobby, size, seed, entity) in q_lobbies.iter_mut() {
+        for (mut lobby, size, entity) in q_lobbies.iter_mut() {
             // Only find lobbies with the correct size.
             if lobby_size != **size {
                 continue;
@@ -122,10 +112,7 @@ fn handle_matchmaking(
 
             if lobby.len() < **size as usize {
                 lobby.push(client_id);
-                lobby_stat = Some(LobbyStat {
-                    entity,
-                    seed: **seed,
-                });
+                lobby_entity = Some(entity);
 
                 if lobby.len() == **size as usize {
                     // Tag lobby as full so that this lobby won't show up the
@@ -138,12 +125,11 @@ fn handle_matchmaking(
         }
 
         // If there is no available lobby to join, create a new one.
-        let lobby_stat = lobby_stat.unwrap_or_else(|| {
+        let lobby_entity = lobby_entity.unwrap_or_else(|| {
             let seed = rand::random();
             let entity = commands
                 .spawn(LobbyBundle::new(client_id, lobby_size, seed))
                 .id();
-            let seed = entity.room_id().0 as u32;
 
             generate_terrain_evw.send(GenerateTerrain {
                 seed,
@@ -154,16 +140,16 @@ fn handle_matchmaking(
                 },
             });
 
-            LobbyStat { entity, seed }
+            entity
         });
 
-        // spawn_player_evw.send(SpawnPlayer {
-        //     client_id,
-        //     seed: lobby_stat.seed,
-        // });
-        spawn_player_entity(&mut commands, client_id);
-        room_manager.add_client(client_id, lobby_stat.entity.room_id());
-        lobby_infos.insert(client_id, lobby_stat.entity);
+        // Spawn player.
+        commands.spawn(PlayerClient {
+            client_id,
+            lobby_entity,
+        });
+        room_manager.add_client(client_id, lobby_entity.room_id());
+        lobby_infos.insert(client_id, lobby_entity);
     }
 }
 
@@ -229,11 +215,6 @@ fn execute_exit_lobby(
     }
 }
 
-pub struct LobbyClient {
-    pub client_id: ClientId,
-    pub lobby_entity: Entity,
-}
-
 #[derive(Bundle)]
 pub(super) struct LobbyBundle {
     pub lobby: Lobby,
@@ -264,10 +245,10 @@ impl Lobby {
 }
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySeed(u32);
+pub(super) struct LobbySeed(pub u32);
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySize(u8);
+pub(super) struct LobbySize(pub u8);
 
 /// Tag for specifying a lobby is currently in game.
 #[derive(Component, Default)]

@@ -23,7 +23,8 @@ impl Plugin for LobbyUiPlugin {
                     exit_lobby_btn,
                 )
                     .run_if(in_state(Screen::MultiplayerLobby)),
-            );
+            )
+            .add_systems(Update, handle_lobby_update);
     }
 }
 
@@ -36,6 +37,16 @@ fn exit_lobby_btn(
         let _ = connection_manager.send_message::<ReliableChannel, _>(&ExitLobby);
 
         next_screen_state.set(Screen::MainMenu);
+    }
+}
+
+/// Digest data from [`LobbyUpdate`].
+fn handle_lobby_update(
+    mut lobby_update_evr: EventReader<MessageEvent<LobbyUpdate>>,
+    mut lobby_func: ResMut<LobbyFunc>,
+) {
+    for lobby_status in lobby_update_evr.read() {
+        lobby_func.curr_player_count = lobby_status.message().client_count;
     }
 }
 

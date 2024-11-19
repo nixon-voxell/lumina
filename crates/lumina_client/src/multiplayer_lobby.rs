@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use lumina_terrain::prelude::*;
 use lumina_ui::prelude::*;
 
+use crate::matchmaking::TerrainEntity;
+
 use super::ui::Screen;
 
 pub(super) struct MultiplayerLobbyPlugin;
@@ -21,6 +23,10 @@ fn spawn_lobby(
     **main_window_transparency = 1.0;
 }
 
-fn despawn_terrain(mut commands: Commands) {
-    // grid_map.deinitialize_tiles(&mut commands);
+// TODO: Move this to InGame.
+fn despawn_terrain(
+    mut clear_terrain_evw: EventWriter<ClearTerrain>,
+    terrain_entity: Res<TerrainEntity>,
+) {
+    clear_terrain_evw.send(ClearTerrain(**terrain_entity));
 }

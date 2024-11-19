@@ -10,6 +10,8 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 use server::*;
 
+use crate::lobby::LobbySeed;
+
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
@@ -17,9 +19,10 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnPlayer>().add_systems(
+        app.add_systems(
             PreUpdate,
             (
+                spawn_players,
                 init_spaceship_position,
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
@@ -30,36 +33,26 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-/// Spawn an entity for a given client.
-pub(super) fn spawn_player_entity(commands: &mut Commands, client_id: ClientId) {
-    info!("SERVER: Spawn player for {:?}", client_id);
+fn spawn_players(
+    mut commands: Commands,
+    q_new_players: Query<(&PlayerClient, Entity), Added<PlayerClient>>,
+    q_lobby_seeds: Query<&LobbySeed>,
+    mut connection_manager: ResMut<ConnectionManager>,
+    room_manager: Res<RoomManager>,
+) {
+    for (
+        PlayerClient {
+            client_id,
+            lobby_entity,
+        },
+        entity,
+    ) in q_new_players.iter()
+    {
+        let Ok(&LobbySeed(seed)) = q_lobby_seeds.get(*lobby_entity) else {
+            error!("Unable to find lobby for {client_id}.");
+            continue;
+        };
 
-    // Spawn spaceship entity
-    let spaceship_entity = commands
-        .spawn((
-            PlayerId(client_id),
-            // TODO: Allow player to choose what spaceship to spawn.
-            SpaceshipType::Assassin.config_info(),
-            SpawnBlueprint,
-        ))
-        .id(); // Capture the spawned entity ID
-
-    commands.spawn((
-        PlayerId(client_id),
-        // TODO: Allow player to choose what weapon to spawn.
-        WeaponType::Cannon.config_info(),
-        SpawnBlueprint,
-    ));
-
-    // Debugging: Log that the spaceship was spawned
-    info!(
-        "SERVER: Spawned spaceship for player {:?} with entity ID: {:?}",
-        client_id, spaceship_entity
-    );
-}
-
-fn spawn_player(mut commands: Commands, mut spawn_player_evr: EventReader<SpawnPlayer>) {
-    for SpawnPlayer { client_id, seed } in spawn_player_evr.read() {
         // Spawn spaceship.
         commands.spawn((
             PlayerId(*client_id),
@@ -67,7 +60,7 @@ fn spawn_player(mut commands: Commands, mut spawn_player_evr: EventReader<SpawnP
             SpaceshipType::Assassin.config_info(),
             SpawnBlueprint,
             CollisionLayers {
-                memberships: LayerMask(*seed),
+                memberships: LayerMask(seed),
                 ..Default::default()
             },
         ));
@@ -79,6 +72,17 @@ fn spawn_player(mut commands: Commands, mut spawn_player_evr: EventReader<SpawnP
             WeaponType::Cannon.config_info(),
             SpawnBlueprint,
         ));
+
+        let room_id = lobby_entity.room_id();
+        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+            &LobbyData { room_id, seed },
+            room_id,
+            &room_manager,
+        );
+
+        info!("SERVER: Spawned player for {client_id}");
+
+        commands.entity(entity).despawn();
     }
 }
 
@@ -213,11 +217,11 @@ fn replicate_actions(
     }
 }
 
-#[derive(Event)]
-pub struct SpawnPlayer {
-    pub client_id: ClientId,
-    pub seed: u32,
-}
-
 #[derive(Component)]
 pub struct PositionInitialized;
+
+#[derive(Component)]
+pub struct PlayerClient {
+    pub client_id: ClientId,
+    pub lobby_entity: Entity,
+}
