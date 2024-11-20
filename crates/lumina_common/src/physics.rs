@@ -19,6 +19,8 @@ impl Plugin for PhysicsPlugin {
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
             TransformInterpolationPlugin::default(),
         ));
 
@@ -35,13 +37,16 @@ impl Plugin for PhysicsPlugin {
             })
             .add_systems(
                 Update,
+                (convert_primitive_rigidbody, convert_mesh_rigidbody),
+            )
+            .add_systems(
+                PostUpdate,
                 (
-                    convert_primitive_rigidbody,
-                    convert_mesh_rigidbody,
+                    init_position_sync,
+                    init_rotation_sync,
                     propagate_component::<CollisionLayers>,
                 ),
-            )
-            .add_systems(PostUpdate, (init_position_sync, init_rotation_sync));
+            );
     }
 }
 

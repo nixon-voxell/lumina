@@ -59,10 +59,8 @@ fn spawn_players(
             // TODO: Allow player to choose what spaceship to spawn.
             SpaceshipType::Assassin.config_info(),
             SpawnBlueprint,
-            CollisionLayers {
-                memberships: LayerMask(seed),
-                ..Default::default()
-            },
+            // TODO: Use 1 -> 32 layers lol.
+            CollisionLayers::ALL,
         ));
 
         // Spawn weapon.

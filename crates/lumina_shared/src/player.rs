@@ -27,8 +27,7 @@ impl Plugin for PlayerPlugin {
         ));
 
         app.init_resource::<PlayerInfos>()
-            // Propagate [`PlayerId`] to the children hierarchy.
-            .add_systems(PreUpdate, propagate_component::<PlayerId>)
+            .add_systems(PostUpdate, propagate_component::<PlayerId>)
             .add_systems(
                 Update,
                 (

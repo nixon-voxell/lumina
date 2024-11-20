@@ -17,3 +17,6 @@ strum = { workspace = true }
 
 [lints]
 workspace = true
+
+[features]
+dev = ["avian2d/debug-plugin"]

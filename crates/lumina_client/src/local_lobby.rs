@@ -41,11 +41,7 @@ fn spawn_lobby(
 ) {
     let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
-        .spawn((
-            BlueprintInfo::from_path("levels/Lobby.glb"),
-            SpawnBlueprint,
-            HideUntilReady,
-        ))
+        .spawn((LobbyType::Local.info(), SpawnBlueprint))
         .set_parent(lobby_scene);
 
     // Spaceship
@@ -75,10 +71,9 @@ fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<Spac
     }
 }
 
-/// Despawn local lobby scene
-fn despawn_lobby(mut commands: Commands, q_local_lobby: Query<Entity, With<LocalLobby>>) {
-    // Despawn local lobby.
-    let lobby = q_local_lobby.single();
+/// Despawn lobby scene.
+fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>>) {
+    let lobby = q_lobby.single();
     commands.entity(lobby).despawn_recursive();
 }
 

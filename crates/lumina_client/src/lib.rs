@@ -13,6 +13,7 @@ use lumina_shared::shared_config;
 mod blueprint_visual;
 mod camera;
 mod effector;
+mod in_game;
 mod local_lobby;
 mod matchmaking;
 mod multiplayer_lobby;
@@ -45,22 +46,18 @@ impl Plugin for ClientPlugin {
             ui::UiPlugin,
             player::PlayerPlugin,
             camera::CameraPlugin,
+            effector::EffectorPlugin,
             local_lobby::LocalLobbyPlugin,
             matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
-            effector::EffectorPlugin,
+            in_game::InGamePlugin,
         ))
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
         .add_systems(OnEnter(Connection::Connect), connect_server)
         .add_systems(
             PreUpdate,
-            (
-                handle_connection,
-                handle_disconnection,
-                //client_source
-            )
-                .after(MainSet::Receive),
+            (handle_connection, handle_disconnection).after(MainSet::Receive),
         );
 
         // Enable dev tools for dev builds.

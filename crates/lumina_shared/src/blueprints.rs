@@ -5,6 +5,14 @@ use strum::{AsRefStr, EnumCount, EnumIter};
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
+#[strum(prefix = "levels/lobbies/")]
+pub enum LobbyType {
+    Local,
+    Multiplayer,
+}
+
+#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
 #[strum(prefix = "levels/spaceships/")]
 pub enum SpaceshipType {
     Assassin,

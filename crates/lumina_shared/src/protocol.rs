@@ -100,24 +100,24 @@ impl Plugin for ProtocolPlugin {
 pub struct Matchmake(pub u8);
 
 /// Update on lobby status sent from server to client.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct LobbyUpdate {
     pub client_count: u8,
 }
 
 /// Data required from the clients when they joined a lobby.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct LobbyData {
     pub room_id: RoomId,
     pub seed: u32,
 }
 
 /// Exit lobby command sent from client to server when already inside a lobby.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct ExitLobby;
 
 /// Start game command sent from server to client when the lobby room is full.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct StartGame;
 
 /// A simple reliable channel for sending messages through the network reliably.

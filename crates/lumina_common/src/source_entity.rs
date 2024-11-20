@@ -8,7 +8,7 @@ pub(super) struct SourceEntityPlugin;
 impl Plugin for SourceEntityPlugin {
     fn build(&self, app: &mut App) {
         // Propagate [`SourceEntity`] component to the children hierarchy.
-        app.add_systems(PreUpdate, propagate_component::<SourceEntity>);
+        app.add_systems(PostUpdate, propagate_component::<SourceEntity>);
     }
 }
 

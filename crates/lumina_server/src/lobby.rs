@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
@@ -22,6 +23,8 @@ impl Plugin for LobbyPlugin {
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
+                    spawn_multiplayer_lobby,
+                    start_game,
                     handle_disconnections,
                     handle_exit_lobby,
                     execute_exit_lobby,
@@ -49,14 +52,14 @@ fn spawn_debug_camera(mut commands: Commands) {
 
 fn cleanup_empty_lobbies(
     mut commands: Commands,
-    q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>)>,
+    q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
     mut clear_terrain_evw: EventWriter<ClearTerrain>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
             clear_terrain_evw.send(ClearTerrain(entity));
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -67,16 +70,50 @@ fn propagate_lobby_status(
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
-    for (lobby, lobby_entity) in q_lobbies.iter() {
+    for (lobby, entity) in q_lobbies.iter() {
         let client_count = lobby.len() as u8;
-        let room_id = lobby_entity.room_id();
 
         // Send message to clients to notify about the changes.
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
             &LobbyUpdate { client_count },
-            room_id,
+            entity.room_id(),
             &room_manager,
         );
+    }
+}
+
+fn spawn_multiplayer_lobby(mut commands: Commands, q_lobbies: Query<Entity, Added<Lobby>>) {
+    for entity in q_lobbies.iter() {
+        commands
+            .spawn((LobbyType::Multiplayer.info(), SpawnBlueprint))
+            .set_parent(entity);
+    }
+}
+
+/// Generate terain and start the game when lobby is full.
+fn start_game(
+    mut commands: Commands,
+    q_lobbies: Query<(&LobbySeed, Entity), Added<LobbyFull>>,
+    mut connection_manager: ResMut<ConnectionManager>,
+    room_manager: Res<RoomManager>,
+    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
+) {
+    for (&LobbySeed(seed), entity) in q_lobbies.iter() {
+        generate_terrain_evw.send(GenerateTerrain {
+            seed,
+            entity,
+            // TODO: Use 1 -> 32 layers lol.
+            layers: CollisionLayers::ALL,
+        });
+
+        // Send message to clients to notify that the game has started.
+        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+            &StartGame,
+            entity.room_id(),
+            &room_manager,
+        );
+
+        commands.entity(entity).insert(LobbyInGame);
     }
 }
 
@@ -89,7 +126,6 @@ fn handle_matchmaking(
     >,
     mut room_manager: ResMut<RoomManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
-    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
 ) {
     for matchmake in matchmake_evr.read() {
         let client_id = matchmake.context;
@@ -130,15 +166,6 @@ fn handle_matchmaking(
             let entity = commands
                 .spawn(LobbyBundle::new(client_id, lobby_size, seed))
                 .id();
-
-            generate_terrain_evw.send(GenerateTerrain {
-                seed,
-                entity,
-                layers: CollisionLayers {
-                    memberships: LayerMask(seed),
-                    filters: LayerMask::ALL,
-                },
-            });
 
             entity
         });

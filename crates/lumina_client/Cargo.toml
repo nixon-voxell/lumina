@@ -33,6 +33,7 @@ dev = [
   # Improve compile times for dev builds by linking Bevy as a dynamic library.
   "bevy/dynamic_linking",
   "dep:lumina_dev",
+  "lumina_common/dev"
 ]
 dev_native = [
   "dev",

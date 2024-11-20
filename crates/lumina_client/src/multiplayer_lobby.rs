@@ -1,8 +1,10 @@
 use bevy::prelude::*;
-use lumina_terrain::prelude::*;
+use blenvy::*;
+use client::*;
+use lightyear::prelude::*;
+use lumina_common::prelude::*;
+use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
-
-use crate::matchmaking::TerrainEntity;
 
 use super::ui::Screen;
 
@@ -10,23 +12,44 @@ pub(super) struct MultiplayerLobbyPlugin;
 
 impl Plugin for MultiplayerLobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby);
-        app.add_systems(OnExit(Screen::MultiplayerLobby), despawn_terrain);
+        app.add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
+            .add_systems(OnExit(Screen::MultiplayerLobby), despawn_lobby)
+            .add_systems(Update, start_game);
     }
 }
 
+/// Wait for [`StartGame`] command from server.
+fn start_game(
+    mut start_game_evr: EventReader<MessageEvent<StartGame>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
+) {
+    if start_game_evr.is_empty() {
+        return;
+    }
+    start_game_evr.clear();
+
+    next_screen_state.set(Screen::InGame);
+}
+
+/// Spawn lobby scene.
 fn spawn_lobby(
-    mut _commands: Commands,
+    mut commands: Commands,
     mut main_window_transparency: ResMut<MainWindowTransparency>,
 ) {
-    // commands.spawn((BlueprintInfo::from_path("levels/Lobby.glb"), SpawnBlueprint));
+    commands.spawn((
+        LobbyType::Multiplayer.info(),
+        SpawnBlueprint,
+        MultiplayerLobby,
+    ));
     **main_window_transparency = 1.0;
 }
 
-// TODO: Move this to InGame.
-fn despawn_terrain(
-    mut clear_terrain_evw: EventWriter<ClearTerrain>,
-    terrain_entity: Res<TerrainEntity>,
-) {
-    clear_terrain_evw.send(ClearTerrain(**terrain_entity));
+/// Despawn lobby scene.
+fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<MultiplayerLobby>>) {
+    let lobby = q_lobby.single();
+    commands.entity(lobby).despawn_recursive();
 }
+
+#[derive(Component, Default)]
+/// Tag for the parent entity of the lobby scene.
+pub(super) struct MultiplayerLobby;

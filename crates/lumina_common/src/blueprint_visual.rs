@@ -28,11 +28,18 @@ fn spawn_blueprint_visual_impl<T: BlueprintType, F: QueryFilter>(
 }
 
 pub trait BlueprintType: Component {
+    fn info(&self) -> BlueprintInfo;
     fn visual_info(&self) -> BlueprintInfo;
     fn config_info(&self) -> BlueprintInfo;
 }
 
 impl<T: AsRef<str> + Component> BlueprintType for T {
+    fn info(&self) -> BlueprintInfo {
+        let mut name = self.as_ref().to_string();
+        name += ".glb";
+        BlueprintInfo::from_path(&name)
+    }
+
     fn visual_info(&self) -> BlueprintInfo {
         let mut name = self.as_ref().to_string();
         name += "Visual.glb";
