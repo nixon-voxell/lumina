@@ -70,7 +70,7 @@ fn generate_terrain(
 #[derive(Event, Debug, Clone, Copy)]
 pub struct GenerateTerrain {
     pub seed: u32,
-    /// The entity that is supposed to hold the [`TerrainMap`].
+    /// The entity that is supposed to hold the [`map::TerrainMapBundle`].
     pub entity: Entity,
     pub layers: CollisionLayers,
 }

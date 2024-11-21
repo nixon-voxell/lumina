@@ -8,7 +8,7 @@ use strum::EnumCount;
 
 /// Stores an array of [`EntityPool`].
 ///
-/// Note: Number of pools needs to match the number of variants in [`EntityPoolType`].
+/// Note: Number of pools needs to match the number of variants in `T`.
 #[derive(Resource, Debug)]
 pub struct EntityPools<T: EnumCount>(Vec<EntityPool>, PhantomData<T>);
 

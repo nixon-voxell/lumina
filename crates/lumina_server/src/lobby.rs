@@ -58,7 +58,7 @@ fn cleanup_empty_lobbies(
     }
 }
 
-/// Send [`LobbyStatus`] message to clients on change.
+/// Send [`LobbyUpdate`] message to clients on change.
 fn propagate_lobby_status(
     q_lobbies: Query<(&Lobby, Entity), Changed<Lobby>>,
     mut connection_manager: ResMut<ConnectionManager>,
