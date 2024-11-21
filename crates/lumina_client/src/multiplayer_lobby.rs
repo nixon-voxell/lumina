@@ -1,10 +1,14 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_terrain::prelude::*;
 use lumina_ui::prelude::*;
+
+use crate::in_game::TerrainEntity;
 
 use super::ui::Screen;
 
@@ -14,7 +18,10 @@ impl Plugin for MultiplayerLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::MultiplayerLobby), spawn_lobby)
             .add_systems(OnExit(Screen::MultiplayerLobby), despawn_lobby)
-            .add_systems(Update, start_game);
+            .add_systems(
+                Update,
+                start_game.run_if(in_state(Screen::MultiplayerLobby)),
+            );
     }
 }
 
@@ -22,13 +29,18 @@ impl Plugin for MultiplayerLobbyPlugin {
 fn start_game(
     mut start_game_evr: EventReader<MessageEvent<StartGame>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
+    terrain_entity: Res<TerrainEntity>,
+    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
 ) {
-    if start_game_evr.is_empty() {
-        return;
-    }
-    start_game_evr.clear();
+    for start_game in start_game_evr.read() {
+        generate_terrain_evw.send(GenerateTerrain {
+            seed: start_game.message().seed,
+            entity: **terrain_entity,
+            layers: CollisionLayers::ALL,
+        });
 
-    next_screen_state.set(Screen::InGame);
+        next_screen_state.set(Screen::InGame);
+    }
 }
 
 /// Spawn lobby scene.

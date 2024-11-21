@@ -1,6 +1,4 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
-use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
@@ -8,7 +6,8 @@ use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use crate::player::PlayerClient;
+pub mod in_game;
+pub mod matchmaking;
 
 use super::LobbyInfos;
 
@@ -16,23 +15,18 @@ pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ClientExitLobby>()
+        app.add_plugins((matchmaking::MatchmakingPlugin, in_game::InGamePlugin))
+            .add_event::<ClientExitLobby>()
             .add_systems(Startup, spawn_debug_camera)
             .add_systems(
                 Update,
                 (
                     cleanup_empty_lobbies,
                     propagate_lobby_status,
-                    spawn_multiplayer_lobby,
-                    start_game,
                     handle_disconnections,
                     handle_exit_lobby,
                     execute_exit_lobby,
                 ),
-            )
-            .add_systems(
-                PreUpdate,
-                handle_matchmaking.in_set(ServerReplicationSet::ClientReplication),
             );
     }
 }
@@ -79,104 +73,6 @@ fn propagate_lobby_status(
             entity.room_id(),
             &room_manager,
         );
-    }
-}
-
-fn spawn_multiplayer_lobby(mut commands: Commands, q_lobbies: Query<Entity, Added<Lobby>>) {
-    for entity in q_lobbies.iter() {
-        commands
-            .spawn((LobbyType::Multiplayer.info(), SpawnBlueprint))
-            .set_parent(entity);
-    }
-}
-
-/// Generate terain and start the game when lobby is full.
-fn start_game(
-    mut commands: Commands,
-    q_lobbies: Query<(&LobbySeed, Entity), Added<LobbyFull>>,
-    mut connection_manager: ResMut<ConnectionManager>,
-    room_manager: Res<RoomManager>,
-    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
-) {
-    for (&LobbySeed(seed), entity) in q_lobbies.iter() {
-        generate_terrain_evw.send(GenerateTerrain {
-            seed,
-            entity,
-            // TODO: Use 1 -> 32 layers lol.
-            layers: CollisionLayers::ALL,
-        });
-
-        // Send message to clients to notify that the game has started.
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &StartGame,
-            entity.room_id(),
-            &room_manager,
-        );
-
-        commands.entity(entity).insert(LobbyInGame);
-    }
-}
-
-fn handle_matchmaking(
-    mut commands: Commands,
-    mut matchmake_evr: EventReader<MessageEvent<Matchmake>>,
-    mut q_lobbies: Query<
-        (&mut Lobby, &LobbySize, Entity),
-        (Without<LobbyFull>, Without<LobbyInGame>),
-    >,
-    mut room_manager: ResMut<RoomManager>,
-    mut lobby_infos: ResMut<LobbyInfos>,
-) {
-    for matchmake in matchmake_evr.read() {
-        let client_id = matchmake.context;
-
-        // Already matchmake, something is wrong...
-        if lobby_infos.contains_key(&client_id) {
-            warn!("Recieved duplicated matchmake commands from {client_id:?}");
-            continue;
-        }
-
-        let lobby_size = *matchmake.message;
-        let mut lobby_entity = None;
-
-        // Find an available lobby to join.
-        for (mut lobby, size, entity) in q_lobbies.iter_mut() {
-            // Only find lobbies with the correct size.
-            if lobby_size != **size {
-                continue;
-            }
-
-            if lobby.len() < **size as usize {
-                lobby.push(client_id);
-                lobby_entity = Some(entity);
-
-                if lobby.len() == **size as usize {
-                    // Tag lobby as full so that this lobby won't show up the
-                    // next time a new client requests to join. (optimization)
-                    commands.entity(entity).insert(LobbyFull);
-                }
-
-                break;
-            }
-        }
-
-        // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity.unwrap_or_else(|| {
-            let seed = rand::random();
-            let entity = commands
-                .spawn(LobbyBundle::new(client_id, lobby_size, seed))
-                .id();
-
-            entity
-        });
-
-        // Spawn player.
-        commands.spawn(PlayerClient {
-            client_id,
-            lobby_entity,
-        });
-        room_manager.add_client(client_id, lobby_entity.room_id());
-        lobby_infos.insert(client_id, lobby_entity);
     }
 }
 

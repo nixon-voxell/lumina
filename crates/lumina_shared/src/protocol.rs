@@ -109,7 +109,6 @@ pub struct LobbyUpdate {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct LobbyData {
     pub room_id: RoomId,
-    pub seed: u32,
 }
 
 /// Exit lobby command sent from client to server when already inside a lobby.
@@ -118,7 +117,9 @@ pub struct ExitLobby;
 
 /// Start game command sent from server to client when the lobby room is full.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub struct StartGame;
+pub struct StartGame {
+    pub seed: u32,
+}
 
 /// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]

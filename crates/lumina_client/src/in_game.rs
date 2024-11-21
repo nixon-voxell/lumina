@@ -1,29 +1,16 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use lumina_terrain::prelude::*;
 
-use crate::{matchmaking::LobbyDataCache, ui::Screen};
+use crate::ui::Screen;
 
 pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<TerrainEntity>()
-            .add_systems(OnEnter(Screen::InGame), generate_terrain)
+            // .add_systems(OnEnter(Screen::InGame), generate_terrain)
             .add_systems(OnExit(Screen::InGame), clear_terrain);
     }
-}
-
-fn generate_terrain(
-    lobby_cache: Res<LobbyDataCache>,
-    terrain_entity: Res<TerrainEntity>,
-    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
-) {
-    generate_terrain_evw.send(GenerateTerrain {
-        seed: lobby_cache.seed,
-        entity: **terrain_entity,
-        layers: CollisionLayers::ALL,
-    });
 }
 
 fn clear_terrain(

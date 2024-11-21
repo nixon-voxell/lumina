@@ -18,7 +18,8 @@ impl Plugin for AmmoPlugin {
             .add_event::<FireAmmo>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
-            .add_systems(FixedUpdate, (fire_ammo, track_ammo_lifetime));
+            .add_systems(FixedUpdate, fire_ammo)
+            .add_systems(FixedPostUpdate, track_ammo_lifetime);
     }
 }
 
@@ -83,10 +84,10 @@ fn track_ammo_lifetime(
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     time: Res<Time>,
 ) {
-    for (mut ammo, ammo_type, ammo_entity) in q_ammos.iter_mut() {
-        ammo.lifetime -= time.delta_seconds();
+    for (mut ammo_stat, ammo_type, ammo_entity) in q_ammos.iter_mut() {
+        ammo_stat.lifetime -= time.delta_seconds();
 
-        if ammo.lifetime <= 0.0 {
+        if ammo_stat.lifetime <= 0.0 {
             commands
                 .entity(ammo_entity)
                 .insert(Visibility::Hidden)
@@ -170,7 +171,8 @@ pub struct AmmoStat {
 }
 
 /// Ammo damage applied to damagable objects.
-#[derive(Component)]
+#[derive(Component, Reflect, Deref)]
+#[reflect(Component)]
 pub struct AmmoDamage(pub f32);
 
 /// Point of reference for a certain [`AmmoType`].

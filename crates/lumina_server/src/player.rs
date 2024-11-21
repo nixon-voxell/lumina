@@ -10,8 +10,6 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 use server::*;
 
-use crate::lobby::LobbySeed;
-
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
@@ -36,7 +34,6 @@ impl Plugin for PlayerPlugin {
 fn spawn_players(
     mut commands: Commands,
     q_new_players: Query<(&PlayerClient, Entity), Added<PlayerClient>>,
-    q_lobby_seeds: Query<&LobbySeed>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
@@ -48,11 +45,6 @@ fn spawn_players(
         entity,
     ) in q_new_players.iter()
     {
-        let Ok(&LobbySeed(seed)) = q_lobby_seeds.get(*lobby_entity) else {
-            error!("Unable to find lobby for {client_id}.");
-            continue;
-        };
-
         // Spawn spaceship.
         commands.spawn((
             PlayerId(*client_id),
@@ -73,7 +65,7 @@ fn spawn_players(
 
         let room_id = lobby_entity.room_id();
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &LobbyData { room_id, seed },
+            &LobbyData { room_id },
             room_id,
             &room_manager,
         );
