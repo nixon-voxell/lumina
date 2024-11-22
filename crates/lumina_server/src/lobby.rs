@@ -9,8 +9,6 @@ use smallvec::SmallVec;
 pub mod in_game;
 pub mod matchmaking;
 
-use crate::physics_world::PhysicsWorldId;
-
 use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;

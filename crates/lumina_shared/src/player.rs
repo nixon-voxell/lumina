@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+use avian2d::prelude::*;
 use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -15,6 +16,13 @@ use super::action::PlayerAction;
 pub mod ammo;
 pub mod spaceship;
 pub mod weapon;
+
+pub mod prelude {
+    pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
+    pub use super::spaceship::Spaceship;
+    pub use super::weapon::{Weapon, WeaponStat};
+    pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
+}
 
 pub(super) struct PlayerPlugin;
 
@@ -107,3 +115,10 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct SpawnPoint;
+
+#[derive(PhysicsLayer)]
+pub enum GameLayer {
+    Spaceship,
+    Ammo,
+    Wall,
+}

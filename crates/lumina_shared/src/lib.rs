@@ -17,7 +17,7 @@ mod type_registry;
 pub mod prelude {
     pub use crate::action::PlayerAction;
     pub use crate::blueprints::*;
-    pub use crate::player::{PlayerId, PlayerInfoType, PlayerInfos};
+    pub use crate::player::prelude::*;
     pub use crate::protocol::*;
 }
 

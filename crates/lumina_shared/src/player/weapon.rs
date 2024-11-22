@@ -85,17 +85,26 @@ fn weapon_direction(
 
 fn weapon_attack(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponStat, &PlayerId), With<SourceEntity>>,
+    mut q_weapons: Query<
+        (
+            &Transform,
+            &Weapon,
+            &mut WeaponStat,
+            &PlayerId,
+            &PhysicsWorldId,
+        ),
+        With<SourceEntity>,
+    >,
     mut fire_ammo_evw: EventWriter<FireAmmo>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) {
             // Attack!
-            if let Some((weapon_transform, weapon, mut weapon_stat, id)) = player_infos
-                [PlayerInfoType::Weapon]
-                .get(id)
-                .and_then(|e| q_weapons.get_mut(*e).ok())
+            if let Some((weapon_transform, weapon, mut weapon_stat, &player_id, &world_id)) =
+                player_infos[PlayerInfoType::Weapon]
+                    .get(id)
+                    .and_then(|e| q_weapons.get_mut(*e).ok())
             {
                 if weapon_stat.can_fire(weapon.firing_rate) == false {
                     continue;
@@ -107,7 +116,8 @@ fn weapon_attack(
 
                 // Fire!
                 fire_ammo_evw.send(FireAmmo {
-                    id: *id,
+                    player_id,
+                    world_id,
                     ammo_type: weapon.ammo_type,
                     position,
                     direction,

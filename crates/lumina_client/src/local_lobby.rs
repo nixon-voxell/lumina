@@ -7,7 +7,6 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::effector::MatchmakeEffector;
-use lumina_shared::player::spaceship::Spaceship;
 use lumina_shared::prelude::*;
 use lumina_ui::main_window::WINDOW_FADE_DURATION;
 use lumina_ui::prelude::*;
@@ -123,7 +122,8 @@ pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
-    id: PlayerId,
+    player_id: PlayerId,
+    world_id: PhysicsWorldId,
 }
 
 impl Default for LocalLobbyBundle {
@@ -132,7 +132,8 @@ impl Default for LocalLobbyBundle {
             local_lobby: LocalLobby,
             spatial: SpatialBundle::default(),
             source: SourceEntity,
-            id: PlayerId::LOCAL,
+            player_id: PlayerId::LOCAL,
+            world_id: PhysicsWorldId::default(),
         }
     }
 }

@@ -1,7 +1,10 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
-use super::{ui::Screen, Connection};
+use super::ui::Screen;
+use super::Connection;
 
 mod aim;
 mod spaceship;
@@ -19,7 +22,20 @@ impl Plugin for PlayerPlugin {
 
         app.init_resource::<LocalPlayerId>()
             .add_systems(OnEnter(Connection::Disconnected), reset_local_player_id)
-            .add_systems(OnEnter(Screen::LocalLobby), reset_local_player_id);
+            .add_systems(OnEnter(Screen::LocalLobby), reset_local_player_id)
+            .add_systems(
+                Update,
+                (set_physics_world::<RigidBody>, set_physics_world::<Weapon>),
+            );
+    }
+}
+
+fn set_physics_world<T: Component>(
+    mut commands: Commands,
+    q_entities: Query<Entity, (Added<T>, Without<PhysicsWorldId>)>,
+) {
+    for entity in q_entities.iter() {
+        commands.entity(entity).insert(PhysicsWorldId::default());
     }
 }
 

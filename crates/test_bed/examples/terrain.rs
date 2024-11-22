@@ -55,6 +55,7 @@ fn generate_terrain(
         seed: rand::random(),
         entity,
         layers: CollisionLayers::ALL,
+        world_id: default(),
     });
 }
 

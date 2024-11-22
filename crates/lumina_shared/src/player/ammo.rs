@@ -115,7 +115,8 @@ fn apply_damage(
 
 #[derive(Event)]
 pub struct FireAmmo {
-    pub id: PlayerId,
+    pub player_id: PlayerId,
+    pub world_id: PhysicsWorldId,
     pub ammo_type: AmmoType,
     pub position: Vec2,
     pub direction: Vec2,
@@ -151,7 +152,8 @@ impl InitAmmoBundle {
 
 #[derive(Bundle)]
 pub struct FireAmmoBundle {
-    pub id: PlayerId,
+    pub player_id: PlayerId,
+    pub world_id: PhysicsWorldId,
     pub stat: AmmoStat,
     pub damage: AmmoDamage,
     pub position: Position,
@@ -165,7 +167,8 @@ pub struct FireAmmoBundle {
 impl FireAmmoBundle {
     pub fn new(fire_ammo: &FireAmmo, ammo: &Ammo) -> Self {
         Self {
-            id: fire_ammo.id,
+            player_id: fire_ammo.player_id,
+            world_id: fire_ammo.world_id,
             stat: AmmoStat {
                 lifetime: ammo.lifetime,
             },

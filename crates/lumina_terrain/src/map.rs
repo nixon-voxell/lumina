@@ -55,14 +55,11 @@ impl Terrain<'_, '_> {
             let entity = self.pools[TerrainType::Tile]
                 .get_unused_or_spawn(|| self.commands.spawn_empty().id());
 
-            self.commands
-                .entity(entity)
-                .insert(TileBundle::new(
-                    &self.tile_ref,
-                    Vec2::new(config.tile_size * x as f32, config.tile_size * y as f32),
-                    config.tile_size,
-                ))
-                .set_parent(map_entity);
+            self.commands.entity(entity).insert(TileBundle::new(
+                &self.tile_ref,
+                Vec2::new(config.tile_size * x as f32, config.tile_size * y as f32),
+                config.tile_size,
+            ));
 
             let filled_neighbor_count = states
                 .get_neighbors(x, y)
@@ -74,7 +71,7 @@ impl Terrain<'_, '_> {
             if filled_neighbor_count < 4 {
                 self.commands
                     .entity(entity)
-                    .insert(TileColliderBundle::new(&self.tile_ref, gen.layers));
+                    .insert(TileColliderBundle::new(&self.tile_ref, gen));
             }
 
             tiles.push(TerrainTile { entity, x, y });
@@ -224,16 +221,18 @@ impl TileBundle {
 #[derive(Bundle)]
 pub struct TileColliderBundle {
     pub collider: Collider,
-    pub layers: CollisionLayers,
     pub rigidbody: RigidBody,
+    pub layers: CollisionLayers,
+    pub world_id: PhysicsWorldId,
 }
 
 impl TileColliderBundle {
-    pub fn new(tile_ref: &TileRef, layers: CollisionLayers) -> Self {
+    pub fn new(tile_ref: &TileRef, gen: &GenerateTerrain) -> Self {
         Self {
             collider: tile_ref.collider.clone(),
-            layers,
             rigidbody: RigidBody::Static,
+            layers: gen.layers,
+            world_id: gen.world_id,
         }
     }
 }

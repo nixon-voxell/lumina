@@ -29,6 +29,7 @@ fn start_game(
             seed,
             entity,
             layers: CollisionLayers::ALL,
+            world_id: PhysicsWorldId(seed),
         });
 
         // Send message to clients to notify that the game has started.
