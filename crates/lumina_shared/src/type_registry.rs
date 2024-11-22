@@ -8,13 +8,15 @@ use crate::effector::{
 use crate::player::ammo::{Ammo, AmmoRef};
 use crate::player::spaceship::Spaceship;
 use crate::player::weapon::Weapon;
+use crate::player::SpawnPoint;
 
 pub(super) struct TypeRegistryPlugin;
 
 impl Plugin for TypeRegistryPlugin {
     fn build(&self, app: &mut App) {
         // Player
-        app.register_type::<Weapon>()
+        app.register_type::<SpawnPoint>()
+            .register_type::<Weapon>()
             .register_type::<WeaponType>()
             .register_type::<Spaceship>()
             .register_type::<SpaceshipType>()

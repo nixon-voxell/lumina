@@ -8,6 +8,7 @@ use lumina_common::settings::LuminaSettings;
 pub mod action;
 pub mod blueprints;
 pub mod effector;
+pub mod health;
 pub mod player;
 pub mod protocol;
 

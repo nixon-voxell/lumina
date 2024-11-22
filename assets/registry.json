@@ -20451,6 +20451,17 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::player::SpawnPoint": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::SpawnPoint",
+      "properties": {},
+      "required": [],
+      "short_name": "SpawnPoint",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::player::ammo::Ammo": {
       "additionalProperties": false,
       "isComponent": true,

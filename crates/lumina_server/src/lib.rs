@@ -11,6 +11,7 @@ use server::*;
 
 mod game;
 mod lobby;
+mod physics_world;
 mod player;
 mod source_entity;
 mod ui;
@@ -32,6 +33,7 @@ impl Plugin for ServerPlugin {
         .add_plugins((
             ui::ServerUiPlugin,
             source_entity::SourceEntityPlugin,
+            physics_world::PhysicsWorldPlugin,
             lobby::LobbyPlugin,
             player::PlayerPlugin,
         ))

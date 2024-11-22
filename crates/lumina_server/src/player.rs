@@ -38,7 +38,7 @@ fn spawn_players(
     room_manager: Res<RoomManager>,
 ) {
     for (
-        PlayerClient {
+        &PlayerClient {
             client_id,
             lobby_entity,
         },
@@ -46,22 +46,24 @@ fn spawn_players(
     ) in q_new_players.iter()
     {
         // Spawn spaceship.
-        commands.spawn((
-            PlayerId(*client_id),
-            // TODO: Allow player to choose what spaceship to spawn.
-            SpaceshipType::Assassin.config_info(),
-            SpawnBlueprint,
-            // TODO: Use 1 -> 32 layers lol.
-            CollisionLayers::ALL,
-        ));
+        commands
+            .spawn((
+                PlayerId(client_id),
+                // TODO: Allow player to choose what spaceship to spawn.
+                SpaceshipType::Assassin.config_info(),
+                SpawnBlueprint,
+            ))
+            .set_parent(lobby_entity);
 
         // Spawn weapon.
-        commands.spawn((
-            PlayerId(*client_id),
-            // TODO: Allow player to choose what weapon to spawn.
-            WeaponType::Cannon.config_info(),
-            SpawnBlueprint,
-        ));
+        commands
+            .spawn((
+                PlayerId(client_id),
+                // TODO: Allow player to choose what weapon to spawn.
+                WeaponType::Cannon.config_info(),
+                SpawnBlueprint,
+            ))
+            .set_parent(lobby_entity);
 
         let room_id = lobby_entity.room_id();
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(

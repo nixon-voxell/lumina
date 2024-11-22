@@ -9,6 +9,8 @@ use smallvec::SmallVec;
 pub mod in_game;
 pub mod matchmaking;
 
+use crate::physics_world::PhysicsWorldId;
+
 use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;
@@ -143,6 +145,8 @@ pub(super) struct LobbyBundle {
     pub lobby: Lobby,
     pub size: LobbySize,
     pub seed: LobbySeed,
+    pub world_id: PhysicsWorldId,
+    pub spatial: SpatialBundle,
 }
 
 impl LobbyBundle {
@@ -151,6 +155,8 @@ impl LobbyBundle {
             size: LobbySize(size),
             lobby: Lobby(SmallVec::from_slice(&[initial_client])),
             seed: LobbySeed(seed),
+            world_id: PhysicsWorldId(seed),
+            spatial: SpatialBundle::default(),
         }
     }
 }

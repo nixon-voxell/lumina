@@ -6,6 +6,7 @@ use lumina_common::prelude::*;
 use strum::IntoEnumIterator;
 
 use crate::blueprints::AmmoType;
+use crate::health::Health;
 
 use super::PlayerId;
 
@@ -18,7 +19,7 @@ impl Plugin for AmmoPlugin {
             .add_event::<FireAmmo>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
-            .add_systems(FixedUpdate, fire_ammo)
+            .add_systems(FixedUpdate, (fire_ammo, apply_damage))
             .add_systems(FixedPostUpdate, track_ammo_lifetime);
     }
 }
@@ -59,17 +60,11 @@ fn fire_ammo(
         // Get ammo pool for the particular ammo type.
         let ammo_pool = &mut ammo_pools[fire_ammo.ammo_type];
 
-        let ammo_entity = match ammo_pool.get_unused() {
-            Some(ammo_entity) => ammo_entity,
-            None => {
-                let ammo_entity = commands
-                    .spawn(InitAmmoBundle::new(fire_ammo.ammo_type, collider.clone()))
-                    .id();
-                ammo_pool.insert_new_used(ammo_entity);
-
-                ammo_entity
-            }
-        };
+        let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
+            commands
+                .spawn(InitAmmoBundle::new(fire_ammo.ammo_type, collider.clone()))
+                .id()
+        });
 
         // Initialize fire ammo components.
         commands
@@ -93,6 +88,27 @@ fn track_ammo_lifetime(
                 .insert(Visibility::Hidden)
                 .remove::<RigidBody>();
             ammo_pools[*ammo_type].set_unused(ammo_entity);
+        }
+    }
+}
+
+// TODO: Prevent ammos colliding with itself.
+/// Applies damage to the targeted spaceship entities based on received DamageEvents.
+fn apply_damage(
+    mut q_healths: Query<&mut Health>,
+    mut q_ammos: Query<
+        (&mut AmmoStat, &AmmoDamage, &CollidingEntities),
+        Changed<CollidingEntities>,
+    >,
+) {
+    for (mut stat, &AmmoDamage(damage), colliding) in q_ammos.iter_mut() {
+        // Ammo collided with something, disable it!
+        stat.lifetime = 0.0;
+
+        for entity in colliding.iter() {
+            if let Ok(mut health) = q_healths.get_mut(*entity) {
+                **health -= damage;
+            }
         }
     }
 }

@@ -31,7 +31,9 @@ pub fn propagate_component<C: Component + Clone>(
 ) {
     for (component, children) in q_children.iter() {
         for entity in children.iter() {
-            commands.entity(*entity).insert(component.clone());
+            if let Some(mut cmd) = commands.get_entity(*entity) {
+                cmd.try_insert(component.clone());
+            }
         }
     }
 }

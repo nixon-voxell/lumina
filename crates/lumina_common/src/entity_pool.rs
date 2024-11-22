@@ -59,11 +59,11 @@ impl EntityPool {
 
     /// Get an unused entity from the entity pool or spawn a new one
     /// and move it from unused to used.
-    pub fn get_unused_or_spawn(&mut self, commands: &mut Commands) -> Entity {
+    pub fn get_unused_or_spawn(&mut self, mut spawn: impl FnMut() -> Entity) -> Entity {
         match self.get_unused() {
             Some(entity) => entity,
             None => {
-                let entity = commands.spawn_empty().id();
+                let entity = spawn();
                 self.insert_new_used(entity);
                 entity
             }

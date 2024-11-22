@@ -103,3 +103,7 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
         Self(std::array::from_fn(|_| HashMap::default()))
     }
 }
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct SpawnPoint;

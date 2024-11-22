@@ -28,7 +28,7 @@ pub struct TerrainEntity(pub Entity);
 
 impl FromWorld for TerrainEntity {
     fn from_world(world: &mut World) -> Self {
-        let entity = world.spawn_empty().id();
+        let entity = world.spawn(SpatialBundle::default()).id();
         Self(entity)
     }
 }

@@ -28,7 +28,6 @@ fn start_game(
         generate_terrain_evw.send(GenerateTerrain {
             seed,
             entity,
-            // TODO: Use 1 -> 32 layers lol.
             layers: CollisionLayers::ALL,
         });
 

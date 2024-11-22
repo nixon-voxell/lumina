@@ -1,13 +1,11 @@
 use avian2d::prelude::*;
-use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
-use crate::action::PlayerAction;
+use crate::{action::PlayerAction, health::MaxHealth};
 
-use super::ammo::{AmmoDamage, AmmoStat};
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceshipPlugin;
@@ -15,8 +13,7 @@ pub(super) struct SpaceshipPlugin;
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, init_spaceships)
-            .add_systems(FixedUpdate, spaceship_movement)
-            .add_systems(Update, apply_damage);
+            .add_systems(FixedUpdate, spaceship_movement);
     }
 }
 
@@ -45,7 +42,7 @@ fn init_spaceships(
                 linear_acceleration: 0.0,
                 linear_damping: spaceship.linear_damping,
             },
-            MaxHealth(100.0),
+            MaxHealth::new(100.0),
         ));
 
         debug!("Initialized Spaceship physics for {spaceship_entity:?} - ({name:?})");
@@ -234,48 +231,4 @@ pub struct SpaceshipPhysicsBundle {
     pub angular_damping: AngularDamping,
     pub collider: Collider,
     pub mass_properties: MassPropertiesBundle,
-}
-
-// TODO: Move health items into it's own file.
-/// The maximum health of the entity.
-#[derive(Reflect, Deref, Serialize, Deserialize, Debug, Clone, Copy)]
-#[reflect(Component)]
-pub struct MaxHealth(f32);
-
-impl Component for MaxHealth {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, entity, _| {
-            let max_health = **world.entity(entity).get::<Self>().unwrap();
-
-            let mut commands = world.commands();
-            commands.entity(entity).insert(Health(max_health));
-        });
-    }
-}
-
-/// The current health of the entity.
-#[derive(Component, Reflect, Deref, DerefMut, Serialize, Deserialize, Debug, Clone, Copy)]
-#[reflect(Component)]
-pub struct Health(f32);
-
-/// Applies damage to the targeted spaceship entities based on received DamageEvents.
-fn apply_damage(
-    mut q_healths: Query<&mut Health>,
-    mut q_ammos: Query<
-        (&mut AmmoStat, &AmmoDamage, &CollidingEntities),
-        Changed<CollidingEntities>,
-    >,
-) {
-    for (mut stat, &AmmoDamage(damage), colliding) in q_ammos.iter_mut() {
-        // Ammo collided with something, disable it!
-        stat.lifetime = 0.0;
-
-        for entity in colliding.iter() {
-            if let Ok(mut health) = q_healths.get_mut(*entity) {
-                **health -= damage;
-            }
-        }
-    }
 }

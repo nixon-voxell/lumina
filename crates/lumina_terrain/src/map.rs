@@ -52,13 +52,17 @@ impl Terrain<'_, '_> {
             }
 
             // Use pool if exists.
-            let entity = self.pools[TerrainType::Tile].get_unused_or_spawn(&mut self.commands);
+            let entity = self.pools[TerrainType::Tile]
+                .get_unused_or_spawn(|| self.commands.spawn_empty().id());
 
-            self.commands.entity(entity).insert(TileBundle::new(
-                &self.tile_ref,
-                Vec2::new(config.tile_size * x as f32, config.tile_size * y as f32),
-                config.tile_size,
-            ));
+            self.commands
+                .entity(entity)
+                .insert(TileBundle::new(
+                    &self.tile_ref,
+                    Vec2::new(config.tile_size * x as f32, config.tile_size * y as f32),
+                    config.tile_size,
+                ))
+                .set_parent(map_entity);
 
             let filled_neighbor_count = states
                 .get_neighbors(x, y)
