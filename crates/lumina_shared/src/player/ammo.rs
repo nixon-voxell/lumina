@@ -8,7 +8,7 @@ use strum::IntoEnumIterator;
 use crate::blueprints::AmmoType;
 use crate::health::Health;
 
-use super::PlayerId;
+use super::{GameLayer, PlayerId};
 
 pub(super) struct AmmoPlugin;
 
@@ -19,8 +19,10 @@ impl Plugin for AmmoPlugin {
             .add_event::<FireAmmo>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
-            .add_systems(FixedUpdate, (fire_ammo, apply_damage))
-            .add_systems(FixedPostUpdate, track_ammo_lifetime);
+            .add_systems(
+                FixedUpdate,
+                (fire_ammo, (apply_damage, track_ammo_lifetime).chain()),
+            );
     }
 }
 
@@ -95,20 +97,36 @@ fn track_ammo_lifetime(
 // TODO: Prevent ammos colliding with itself.
 /// Applies damage to the targeted spaceship entities based on received DamageEvents.
 fn apply_damage(
+    q_names: Query<&Name>,
     mut q_healths: Query<&mut Health>,
     mut q_ammos: Query<
-        (&mut AmmoStat, &AmmoDamage, &CollidingEntities),
+        (&mut AmmoStat, &AmmoDamage, Ref<CollidingEntities>),
         Changed<CollidingEntities>,
     >,
 ) {
     for (mut stat, &AmmoDamage(damage), colliding) in q_ammos.iter_mut() {
-        // Ammo collided with something, disable it!
-        stat.lifetime = 0.0;
+        // No collisions.
+        if colliding.is_added() || colliding.len() == 0 {
+            continue;
+        }
+
+        let mut hit = false;
 
         for entity in colliding.iter() {
             if let Ok(mut health) = q_healths.get_mut(*entity) {
                 **health -= damage;
             }
+
+            if let Ok(name) = q_names.get(*entity) {
+                println!("\n\nCollided with {name}");
+            }
+
+            hit = true;
+        }
+
+        // Ammo collided with something, disable it!
+        if hit {
+            stat.lifetime = 0.0;
         }
     }
 }
@@ -128,6 +146,7 @@ pub struct InitAmmoBundle {
     pub ammo_type: AmmoType,
     pub mass_properties: MassPropertiesBundle,
     pub collider: Collider,
+    pub layers: CollisionLayers,
     pub rigidbody: RigidBody,
     pub sensor: Sensor,
     pub spatial: SpatialBundle,
@@ -141,9 +160,14 @@ impl InitAmmoBundle {
             ammo_type,
             mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
             collider,
+            layers: CollisionLayers::new(GameLayer::Ammo, [GameLayer::Spaceship, GameLayer::Wall]),
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
-            spatial: SpatialBundle::default(),
+            spatial: SpatialBundle {
+                // Set z axis so that it renders behind everything.
+                transform: Transform::from_xyz(0.0, 0.0, 200.0),
+                ..default()
+            },
             no_translation_interp: NoTranslationInterpolation,
             source: SourceEntity,
         }
@@ -162,6 +186,8 @@ pub struct FireAmmoBundle {
     pub angular_velocity: AngularVelocity,
     pub rigidbody: RigidBody,
     pub visibility: Visibility,
+    #[cfg(debug_assertions)]
+    pub name: Name,
 }
 
 impl FireAmmoBundle {
@@ -179,6 +205,8 @@ impl FireAmmoBundle {
             angular_velocity: AngularVelocity(ammo.angular_impulse),
             rigidbody: RigidBody::Dynamic,
             visibility: Visibility::Inherited,
+            #[cfg(debug_assertions)]
+            name: Name::new("Ammo"),
         }
     }
 }
