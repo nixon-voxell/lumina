@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_vello::VelloPlugin;
 use velyst::typst_element::prelude::*;
-use velyst::{prelude::*, VelystPlugin};
+use velyst::{ prelude::*, VelystPlugin };
 
 fn main() {
     App::new()
@@ -37,7 +37,7 @@ fn main() {
         }) // Set initial boostmeter values
         .insert_resource(HealthFunc {
             current_hp: 100.0, // Set initial HP
-            max_hp: 100.0,     // Set max HP
+            max_hp: 100.0, // Set max HP
         })
         .insert_resource(WeaponSelectorFunc {
             box1: true,
@@ -48,20 +48,20 @@ fn main() {
         .add_systems(Update, simulate_health_change) // Simulation of hp changes
         .add_systems(
             Update,
-            update_timer_ui.run_if(resource_changed::<TypstContent<CountdownTimerFunc>>),
+            update_timer_ui.run_if(resource_changed::<TypstContent<CountdownTimerFunc>>)
         )
         .add_systems(
             Update,
-            update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>),
+            update_boost_meter_ui.run_if(resource_changed::<TypstContent<BoostmeterFunc>>)
         )
         .add_systems(
             Update,
-            update_weapon_selector_ui.run_if(resource_changed::<TypstContent<WeaponSelectorFunc>>),
+            update_weapon_selector_ui.run_if(resource_changed::<TypstContent<WeaponSelectorFunc>>)
         )
         .add_systems(Update, update_boost_meter)
         .add_systems(
             Update,
-            update_health_ui.run_if(resource_changed::<TypstContent<HealthFunc>>), // Simulation of health ui
+            update_health_ui.run_if(resource_changed::<TypstContent<HealthFunc>>) // Simulation of health ui
         )
         .add_systems(Update, handle_weapon_selection)
         .run();
@@ -79,7 +79,7 @@ struct TimerAccumulator {
 
 fn update_timer_ui(
     mut func: ResMut<MainFunc>,
-    timer_countdown: Res<TypstContent<CountdownTimerFunc>>,
+    timer_countdown: Res<TypstContent<CountdownTimerFunc>>
 ) {
     func.timer.clear();
     func.timer.push(timer_countdown.clone());
@@ -87,7 +87,7 @@ fn update_timer_ui(
 
 fn update_boost_meter_ui(
     mut func: ResMut<MainFunc>,
-    boostmeter: Res<TypstContent<BoostmeterFunc>>,
+    boostmeter: Res<TypstContent<BoostmeterFunc>>
 ) {
     func.boostmeter.clear();
     func.boostmeter.push(boostmeter.clone());
@@ -95,7 +95,7 @@ fn update_boost_meter_ui(
 
 fn update_weapon_selector_ui(
     mut func: ResMut<MainFunc>,
-    weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
+    weapon_selector: Res<TypstContent<WeaponSelectorFunc>>
 ) {
     func.weapon_selector = weapon_selector.clone();
 }
@@ -109,17 +109,17 @@ fn update_health_ui(mut func: ResMut<MainFunc>, health_content: Res<TypstContent
 fn update_boost_meter(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut boostmeter_func: ResMut<BoostmeterFunc>,
+    mut boostmeter_func: ResMut<BoostmeterFunc>
 ) {
     // If space is pressed, increase the boost bar's height
     if keys.pressed(KeyCode::Space) {
-        boostmeter_func.red_height += 0.5 * time.delta_seconds() as f64;
+        boostmeter_func.red_height += 0.5 * (time.delta_seconds() as f64);
         if boostmeter_func.red_height > 1.0 {
             boostmeter_func.red_height = 1.0; // Cap it at 100%
         }
     } else {
         // If space is released, reduce the height
-        boostmeter_func.red_height -= 0.5 * time.delta_seconds() as f64;
+        boostmeter_func.red_height -= 0.5 * (time.delta_seconds() as f64);
         if boostmeter_func.red_height < 0.0 {
             boostmeter_func.red_height = 0.0; // Min is 0%
         }
@@ -130,7 +130,7 @@ fn update_boost_meter(
 fn update_timer(
     time: Res<Time>,
     mut timer_func: ResMut<CountdownTimerFunc>,
-    mut accumulator: ResMut<TimerAccumulator>, // Use an accumulator to track time
+    mut accumulator: ResMut<TimerAccumulator> // Use an accumulator to track time
 ) {
     // Accumulate elapsed time
     accumulator.elapsed += time.delta_seconds();
@@ -162,10 +162,7 @@ fn update_timer(
         accumulator.elapsed -= 1.0;
 
         // Add a debug log
-        println!(
-            "Timer Updated: {}:{}",
-            timer_func.minutes, timer_func.seconds
-        );
+        println!("Timer Updated: {}:{}", timer_func.minutes, timer_func.seconds);
     }
 }
 
@@ -173,18 +170,15 @@ fn update_timer(
 fn simulate_health_change(time: Res<Time>, mut health_func: ResMut<HealthFunc>) {
     // Decrease HP by a small amount over time, down to a minimum of 0.0
     if health_func.current_hp > 0.0 {
-        health_func.current_hp -= 5.0 * time.delta_seconds() as f64;
+        health_func.current_hp -= 5.0 * (time.delta_seconds() as f64);
         health_func.current_hp = health_func.current_hp.max(0.0); // Ensure HP does not go below 0.0
-        println!(
-            "Simulating health decrease: current HP = {:.2}",
-            health_func.current_hp
-        );
+        println!("Simulating health decrease: current HP = {:.2}", health_func.current_hp);
     }
 }
 
 fn handle_weapon_selection(
     keys: Res<ButtonInput<KeyCode>>,
-    mut weapon_selector: ResMut<WeaponSelectorFunc>,
+    mut weapon_selector: ResMut<WeaponSelectorFunc>
 ) {
     // If Q is pressed, toggle the first box stroke
     if keys.just_pressed(KeyCode::KeyQ) {

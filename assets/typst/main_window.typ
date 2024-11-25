@@ -10,7 +10,7 @@
     fill: base0.transparentize(100% * transparency),
   )[
     #for content in body {
-      content
+      place()[#content]
     }
   ]
 ]
