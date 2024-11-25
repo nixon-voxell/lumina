@@ -2,10 +2,10 @@ use bevy::prelude::*;
 
 use super::Connection;
 
+pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod splash;
-pub(super) mod game_ui;
 
 pub(super) struct UiPlugin;
 

@@ -27,7 +27,7 @@ struct TimerAccumulator {
 fn update_timer(
     time: Res<Time>,
     mut timer_func: ResMut<CountdownTimerFunc>,
-    mut accumulator: ResMut<TimerAccumulator> // Use an accumulator to track time
+    mut accumulator: ResMut<TimerAccumulator>, // Use an accumulator to track time
 ) {
     // Accumulate elapsed time
     accumulator.elapsed += time.delta_seconds();

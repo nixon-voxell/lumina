@@ -12,7 +12,7 @@ impl Plugin for HealthUiPlugin {
             .init_resource::<HealthFunc>()
             .insert_resource(HealthFunc {
                 current_hp: 100.0, // Set initial HP
-                max_hp: 100.0, // Set max HP
+                max_hp: 100.0,     // Set max HP
             });
     }
 }

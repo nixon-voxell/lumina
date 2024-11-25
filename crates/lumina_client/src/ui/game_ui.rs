@@ -2,12 +2,12 @@ use bevy::prelude::*;
 
 use super::Connection;
 
-mod timer;
 mod boostmeter;
-mod weapon_selector;
 mod health;
 mod main_ui;
 mod score_bar;
+mod timer;
+mod weapon_selector;
 
 use crate::ui::Screen;
 

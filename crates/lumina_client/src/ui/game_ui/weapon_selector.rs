@@ -8,7 +8,8 @@ pub(super) struct WeaponSelectorUiPlugin;
 impl Plugin for WeaponSelectorUiPlugin {
     fn build(&self, app: &mut App) {
         let weapon_configs = WeaponConfigs::default();
-        let bullet_counts: Vec<i32> = weapon_configs.weapons
+        let bullet_counts: Vec<i32> = weapon_configs
+            .weapons
             .iter()
             .map(|w| w.current_ammo)
             .collect();
@@ -58,7 +59,7 @@ impl Default for WeaponConfigs {
                     max_ammo: 100,
                     current_ammo: 100,
                     weapon_type: WeaponType::Laser,
-                }
+                },
             ],
         }
     }
@@ -67,7 +68,7 @@ impl Default for WeaponConfigs {
 fn handle_weapon_selection(
     keys: Res<ButtonInput<KeyCode>>,
     mut weapon_selector: ResMut<WeaponSelectorFunc>,
-    weapon_configs: Res<WeaponConfigs>
+    weapon_configs: Res<WeaponConfigs>,
 ) {
     let max_index = weapon_configs.weapons.len() - 1;
 

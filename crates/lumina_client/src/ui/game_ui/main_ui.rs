@@ -1,15 +1,15 @@
 use bevy::prelude::*;
-use velyst::prelude::*;
 use lumina_ui::prelude::*;
+use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
 use crate::ui::Screen;
 
-use super::timer::CountdownTimerFunc;
 use super::boostmeter::BoostmeterFunc;
 use super::health::HealthFunc;
-use super::weapon_selector::WeaponSelectorFunc;
 use super::score_bar::ScoreBarFunc;
+use super::timer::CountdownTimerFunc;
+use super::weapon_selector::WeaponSelectorFunc;
 
 pub(super) struct MainUiPlugin;
 
@@ -20,9 +20,8 @@ impl Plugin for MainUiPlugin {
             .init_resource::<MainFunc>()
             .add_systems(
                 Update,
-                (push_to_main_window::<MainFunc>(), update_main_ui).run_if(
-                    in_state(Screen::Playing)
-                )
+                (push_to_main_window::<MainFunc>(), update_main_ui)
+                    .run_if(in_state(Screen::Playing)),
             );
     }
 }
@@ -33,7 +32,7 @@ fn update_main_ui(
     boostmeter: Res<TypstContent<BoostmeterFunc>>,
     health: Res<TypstContent<HealthFunc>>,
     weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
-    score_bar: Res<TypstContent<ScoreBarFunc>>
+    score_bar: Res<TypstContent<ScoreBarFunc>>,
 ) {
     func.timer = timer_countdown.clone();
     func.boostmeter = boostmeter.clone();

@@ -22,7 +22,7 @@ impl Plugin for BoostmeterUiPlugin {
 fn update_boost_meter(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut boostmeter_func: ResMut<BoostmeterFunc>
+    mut boostmeter_func: ResMut<BoostmeterFunc>,
 ) {
     // If space is pressed, increase the boost bar's height
     if keys.pressed(KeyCode::Space) {
