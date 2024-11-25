@@ -174,6 +174,7 @@ pub(super) fn spaceship_health(
     >,
 ) {
     for (health, mut viz) in q_spaceships.iter_mut() {
+        info!("{health:?}");
         match **health <= 0.0 {
             true => *viz = Visibility::Hidden,
             false => *viz = Visibility::Inherited,

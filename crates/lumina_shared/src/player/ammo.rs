@@ -136,7 +136,7 @@ fn ammo_collision(
             {
                 continue;
             }
-
+            // Apply damage if possible.
             if let Ok(mut health) = q_healths.get_mut(entity) {
                 **health -= damage;
             }
@@ -185,7 +185,7 @@ impl InitAmmoBundle {
             sensor: Sensor,
             spatial: SpatialBundle {
                 // Set z axis so that it renders behind everything.
-                transform: Transform::from_xyz(0.0, 0.0, 200.0),
+                transform: Transform::from_xyz(0.0, 0.0, -200.0),
                 ..default()
             },
             no_translation_interp: NoTranslationInterpolation,
