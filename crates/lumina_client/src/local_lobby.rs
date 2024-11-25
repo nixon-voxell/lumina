@@ -7,6 +7,7 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::effector::MatchmakeEffector;
+use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::main_window::WINDOW_FADE_DURATION;
 use lumina_ui::prelude::*;
@@ -25,7 +26,12 @@ impl Plugin for LocalLobbyPlugin {
             (spawn_lobby, despawn_networked_inputs),
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-        .add_systems(Update, init_spaceship.run_if(in_state(Screen::LocalLobby)))
+        .add_systems(
+            PostUpdate,
+            init_spaceship
+                .after(TransformSystem::TransformPropagate)
+                .run_if(in_state(Screen::LocalLobby)),
+        )
         .add_systems(
             Update,
             matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
@@ -72,12 +78,28 @@ fn spawn_lobby(
     **main_window_transparency = 1.0;
 }
 
-/// Rotate the spaceship to face forward.
-fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<Spaceship>>) {
-    for entity in q_spaceships.iter() {
-        commands
-            .entity(entity)
-            .insert(Rotation::radians(std::f32::consts::FRAC_PI_2));
+/// Initialize spaceship to spawn point location.
+fn init_spaceship(
+    mut commands: Commands,
+    mut q_spaceships: Query<
+        (&mut Position, &mut Rotation, Entity),
+        (
+            With<Spaceship>,
+            With<SourceEntity>,
+            Without<SpaceshipInitialized>,
+        ),
+    >,
+    q_spawn_point: Query<&GlobalTransform, With<SpawnPoint>>,
+) {
+    if let Ok((mut position, mut rotation, entity)) = q_spaceships.get_single_mut() {
+        let Ok(spawn_transform) = q_spawn_point.get_single().map(|t| t.compute_transform()) else {
+            return;
+        };
+
+        *position = Position(spawn_transform.translation.xy());
+        *rotation = Rotation::radians(spawn_transform.rotation.to_scaled_axis().z);
+
+        commands.entity(entity).insert(SpaceshipInitialized);
     }
 }
 
@@ -150,3 +172,6 @@ impl Default for LocalLobbyBundle {
 #[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
 pub(super) struct LocalLobby;
+
+#[derive(Component)]
+struct SpaceshipInitialized;

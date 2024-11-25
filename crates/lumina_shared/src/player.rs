@@ -21,6 +21,7 @@ pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
     pub use super::spaceship::Spaceship;
     pub use super::weapon::{Weapon, WeaponStat};
+    pub use super::SpawnPoint;
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
 }
 
