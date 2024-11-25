@@ -20451,6 +20451,38 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::health::Health": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_shared::health::Health",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      ],
+      "short_name": "Health",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_shared::health::MaxHealth": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_shared::health::MaxHealth",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      ],
+      "short_name": "MaxHealth",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
     "lumina_shared::player::SpawnPoint": {
       "additionalProperties": false,
       "isComponent": true,
@@ -20522,11 +20554,6 @@
       "isResource": false,
       "long_name": "lumina_shared::player::spaceship::Spaceship",
       "properties": {
-        "angular_acceleration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
         "angular_damping": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -20561,11 +20588,16 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
+        },
+        "rotation_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
         "linear_acceleration",
-        "angular_acceleration",
+        "rotation_speed",
         "boost_linear_acceleration",
         "brake_linear_acceleration",
         "max_linear_speed",

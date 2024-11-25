@@ -21,7 +21,7 @@ impl Plugin for AmmoPlugin {
             .add_systems(Update, setup_ammmo_ref)
             .add_systems(
                 FixedUpdate,
-                (fire_ammo, (apply_damage, track_ammo_lifetime).chain()),
+                (fire_ammo, (ammo_collision, track_ammo_lifetime).chain()),
             );
     }
 }
@@ -38,9 +38,9 @@ fn setup_ammmo_ref(
     q_ammo_refs: Query<(&AmmoType, Entity), Added<AmmoRef>>,
     mut ammo_refs: ResMut<RefEntityMap<AmmoType>>,
 ) {
-    for (ammo_type, ammo_entity) in q_ammo_refs.iter() {
+    for (ammo_type, entity) in q_ammo_refs.iter() {
         debug!("Initialized ammo ref {:?}.", ammo_type);
-        ammo_refs.insert(*ammo_type, ammo_entity);
+        ammo_refs.insert(*ammo_type, entity);
     }
 }
 
@@ -65,6 +65,7 @@ fn fire_ammo(
         let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
             commands
                 .spawn(InitAmmoBundle::new(fire_ammo.ammo_type, collider.clone()))
+                .insert(Name::new("Ammo"))
                 .id()
         });
 
@@ -77,34 +78,46 @@ fn fire_ammo(
 
 fn track_ammo_lifetime(
     mut commands: Commands,
-    mut q_ammos: Query<(&mut AmmoStat, &AmmoType, Entity), With<RigidBody>>,
+    mut q_ammos: Query<
+        (
+            &mut AmmoStat,
+            &AmmoType,
+            &mut Visibility,
+            &mut CollidingEntities,
+            Entity,
+        ),
+        With<RigidBody>,
+    >,
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     time: Res<Time>,
 ) {
-    for (mut ammo_stat, ammo_type, ammo_entity) in q_ammos.iter_mut() {
+    for (mut ammo_stat, ammo_type, mut viz, mut colliding, ammo_entity) in q_ammos.iter_mut() {
         ammo_stat.lifetime -= time.delta_seconds();
 
+        // Hide and clear collisions.
         if ammo_stat.lifetime <= 0.0 {
-            commands
-                .entity(ammo_entity)
-                .insert(Visibility::Hidden)
-                .remove::<RigidBody>();
+            *viz = Visibility::Hidden;
+            colliding.clear();
+            commands.entity(ammo_entity).remove::<RigidBody>();
             ammo_pools[*ammo_type].set_unused(ammo_entity);
         }
     }
 }
 
-// TODO: Prevent ammos colliding with itself.
-/// Applies damage to the targeted spaceship entities based on received DamageEvents.
-fn apply_damage(
-    q_names: Query<&Name>,
+fn ammo_collision(
+    q_col_criteria: Query<(Option<&PlayerId>, Has<Sensor>)>,
     mut q_healths: Query<&mut Health>,
     mut q_ammos: Query<
-        (&mut AmmoStat, &AmmoDamage, Ref<CollidingEntities>),
+        (
+            &mut AmmoStat,
+            &AmmoDamage,
+            Ref<CollidingEntities>,
+            &PlayerId,
+        ),
         Changed<CollidingEntities>,
     >,
 ) {
-    for (mut stat, &AmmoDamage(damage), colliding) in q_ammos.iter_mut() {
+    for (mut stat, &AmmoDamage(damage), colliding, id) in q_ammos.iter_mut() {
         // No collisions.
         if colliding.is_added() || colliding.len() == 0 {
             continue;
@@ -112,13 +125,20 @@ fn apply_damage(
 
         let mut hit = false;
 
-        for entity in colliding.iter() {
-            if let Ok(mut health) = q_healths.get_mut(*entity) {
-                **health -= damage;
+        for &entity in colliding.iter() {
+            // Ignore if we are colliding with entity that
+            // has similar player id or has Sensor component.
+            if q_col_criteria
+                .get(entity)
+                .is_ok_and(|(col_id, has_sensor)| {
+                    col_id.is_some_and(|col_id| col_id == id) || has_sensor
+                })
+            {
+                continue;
             }
 
-            if let Ok(name) = q_names.get(*entity) {
-                println!("\n\nCollided with {name}");
+            if let Ok(mut health) = q_healths.get_mut(entity) {
+                **health -= damage;
             }
 
             hit = true;

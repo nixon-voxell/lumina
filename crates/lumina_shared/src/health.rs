@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// The maximum health of the entity.
-#[derive(Reflect, Deref, Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Reflect, Deref, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct MaxHealth(f32);
 
@@ -27,6 +27,8 @@ impl Component for MaxHealth {
 }
 
 /// The current health of the entity.
-#[derive(Component, Reflect, Deref, DerefMut, Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(
+    Component, Reflect, Deref, DerefMut, Serialize, Deserialize, Debug, Clone, Copy, PartialEq,
+)]
 #[reflect(Component)]
 pub struct Health(f32);

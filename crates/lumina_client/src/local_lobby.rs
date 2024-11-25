@@ -45,17 +45,28 @@ fn spawn_lobby(
 
     // Spaceship
     commands
-        .spawn((SpaceshipType::Assassin.config_info(), SpawnBlueprint))
+        .spawn((
+            SpaceshipType::Assassin.config_info(),
+            SpawnBlueprint,
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     // Weapon
     commands
-        .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
+        .spawn((
+            WeaponType::Cannon.config_info(),
+            SpawnBlueprint,
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     // Action
     commands
-        .spawn(InputManagerBundle::with_map(PlayerAction::input_map()))
+        .spawn((
+            InputManagerBundle::with_map(PlayerAction::input_map()),
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     **main_window_transparency = 1.0;
@@ -122,7 +133,6 @@ pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
-    player_id: PlayerId,
     world_id: PhysicsWorldId,
 }
 
@@ -132,7 +142,6 @@ impl Default for LocalLobbyBundle {
             local_lobby: LocalLobby,
             spatial: SpatialBundle::default(),
             source: SourceEntity,
-            player_id: PlayerId::LOCAL,
             world_id: PhysicsWorldId::default(),
         }
     }

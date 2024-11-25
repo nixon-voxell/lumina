@@ -7,9 +7,8 @@ use server::RoomId;
 
 use crate::action::PlayerAction;
 use crate::blueprints::{SpaceshipType, WeaponType};
-use crate::player::spaceship::Spaceship;
-use crate::player::weapon::Weapon;
-use crate::player::PlayerId;
+use crate::health::{Health, MaxHealth};
+use crate::player::prelude::*;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
@@ -30,7 +29,20 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
 
+        // Input
+        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
+
         // Components
+        // Health
+        app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Simple)
+            .add_interpolation(client::ComponentSyncMode::Simple);
+
+        app.register_component::<Health>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Simple)
+            .add_interpolation(client::ComponentSyncMode::Simple);
+
+        // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
@@ -51,10 +63,7 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
-        app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
-
+        // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
@@ -78,19 +87,16 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Full);
 
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
-        // .add_interpolation(ComponentSyncMode::Full)
-        // .add_interpolation_fn(linear_velocity::lerp)
-        // .add_correction_fn(linear_velocity::lerp);
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(linear_velocity::lerp)
+            .add_correction_fn(linear_velocity::lerp);
 
         app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
-        // .add_interpolation(ComponentSyncMode::Full)
-        // .add_interpolation_fn(angular_velocity::lerp)
-        // .add_correction_fn(angular_velocity::lerp);
-
-        // Input
-        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(angular_velocity::lerp)
+            .add_correction_fn(angular_velocity::lerp);
     }
 }
 

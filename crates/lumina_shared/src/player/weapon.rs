@@ -8,7 +8,7 @@ use crate::action::PlayerAction;
 use crate::blueprints::AmmoType;
 
 use super::ammo::FireAmmo;
-use super::spaceship::Spaceship;
+use super::spaceship::{spaceship_health, Spaceship};
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
@@ -19,7 +19,8 @@ impl Plugin for WeaponPlugin {
             .add_systems(
                 FixedUpdate,
                 (weapon_recharge, (weapon_direction, weapon_attack).chain()),
-            );
+            )
+            .add_systems(PostUpdate, weapon_visibility.after(spaceship_health));
     }
 }
 
@@ -137,6 +138,22 @@ fn weapon_recharge(
             weapon_stat.recharge + time.delta_seconds(),
             weapon.firing_rate,
         );
+    }
+}
+
+/// Update weapon visibility based on spaceship visibility.
+fn weapon_visibility(
+    mut commands: Commands,
+    q_spaceships: Query<
+        (&Visibility, &PlayerId),
+        (Changed<Visibility>, With<Spaceship>, With<SourceEntity>),
+    >,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (viz, id) in q_spaceships.iter() {
+        if let Some(entity) = player_infos[PlayerInfoType::Weapon].get(id) {
+            commands.entity(*entity).insert(*viz);
+        }
     }
 }
 
