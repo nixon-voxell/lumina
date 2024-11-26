@@ -1,11 +1,9 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_terrain::prelude::*;
 use server::*;
 
 use super::lobby::Lobby;
@@ -19,7 +17,6 @@ impl Plugin for PlayerPlugin {
             PreUpdate,
             (
                 spawn_players,
-                init_spaceship_position,
                 replicate_actions.after(MainSet::EmitEvents),
                 replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                 replicate_spawn::<Spaceship>,
@@ -73,38 +70,6 @@ fn spawn_players(
         info!("SERVER: Spawned player for {client_id}");
 
         commands.entity(entity).despawn();
-    }
-}
-
-/// This function updates the position of newly spawned spaceships
-fn init_spaceship_position(
-    mut commands: Commands, // Need Commands to add Position if missing
-    mut q_spaceships: Query<
-        (Entity, &mut Position),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<PositionInitialized>,
-        ),
-    >,
-    terrain_config: TerrainConfig,
-) {
-    let Some(terrain_config) = terrain_config.get() else {
-        return;
-    };
-
-    // TODO: Use different positions for different ships based on their team id.
-    let width = terrain_config.tile_size * terrain_config.noise_surr_width as f32;
-    let desired_position = Vec2::splat(width);
-
-    for (spaceship_entity, mut position) in q_spaceships.iter_mut() {
-        // Check if the Position component exists
-        *position = Position(desired_position);
-        println!("\n\n\n\nSpaceship position: {:?}", position);
-        // If it doesn't exist, add the Position component
-        commands
-            .entity(spaceship_entity)
-            .insert(PositionInitialized);
     }
 }
 
@@ -206,9 +171,6 @@ fn replicate_actions(
         }
     }
 }
-
-#[derive(Component)]
-pub struct PositionInitialized;
 
 #[derive(Component)]
 pub struct PlayerClient {

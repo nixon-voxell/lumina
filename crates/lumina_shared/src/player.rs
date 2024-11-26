@@ -62,7 +62,7 @@ fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     system.into_configs()
 }
 
-#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Serialize, Deserialize, Deref, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub ClientId);
 
 impl PlayerId {
