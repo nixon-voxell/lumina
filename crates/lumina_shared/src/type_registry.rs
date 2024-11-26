@@ -6,10 +6,8 @@ use crate::effector::{
     Effector, EffectorPopupMsg, InteractableEffector, MatchmakeEffector, TutorialEffector,
 };
 use crate::health::{Health, MaxHealth};
-use crate::player::ammo::{Ammo, AmmoRef};
-use crate::player::spaceship::Spaceship;
-use crate::player::weapon::Weapon;
-use crate::player::SpawnPoint;
+use crate::player::ammo::AmmoRef;
+use crate::player::prelude::*;
 
 pub(super) struct TypeRegistryPlugin;
 

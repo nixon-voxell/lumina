@@ -15,13 +15,14 @@ use super::action::PlayerAction;
 
 pub mod ammo;
 pub mod spaceship;
+pub mod spawn_point;
 pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
     pub use super::spaceship::Spaceship;
+    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed};
     pub use super::weapon::{Weapon, WeaponStat};
-    pub use super::SpawnPoint;
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
 }
 
@@ -33,6 +34,7 @@ impl Plugin for PlayerPlugin {
             spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
+            spawn_point::SpawnPointPlugin,
         ));
 
         app.init_resource::<PlayerInfos>()
@@ -112,10 +114,6 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
         Self(std::array::from_fn(|_| HashMap::default()))
     }
 }
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct SpawnPoint;
 
 #[derive(PhysicsLayer)]
 pub enum GameLayer {

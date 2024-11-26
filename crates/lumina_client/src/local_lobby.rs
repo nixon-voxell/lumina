@@ -1,4 +1,3 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
 use blenvy::*;
@@ -26,12 +25,6 @@ impl Plugin for LocalLobbyPlugin {
             (spawn_lobby, despawn_networked_inputs),
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-        .add_systems(
-            PostUpdate,
-            init_spaceship
-                .after(TransformSystem::TransformPropagate)
-                .run_if(in_state(Screen::LocalLobby)),
-        )
         .add_systems(
             Update,
             matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
@@ -76,31 +69,6 @@ fn spawn_lobby(
         .set_parent(lobby_scene);
 
     **main_window_transparency = 1.0;
-}
-
-/// Initialize spaceship to spawn point location.
-fn init_spaceship(
-    mut commands: Commands,
-    mut q_spaceships: Query<
-        (&mut Position, &mut Rotation, Entity),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<SpaceshipInitialized>,
-        ),
-    >,
-    q_spawn_point: Query<&GlobalTransform, With<SpawnPoint>>,
-) {
-    if let Ok((mut position, mut rotation, entity)) = q_spaceships.get_single_mut() {
-        let Ok(spawn_transform) = q_spawn_point.get_single().map(|t| t.compute_transform()) else {
-            return;
-        };
-
-        *position = Position(spawn_transform.translation.xy());
-        *rotation = Rotation::radians(spawn_transform.rotation.to_scaled_axis().z);
-
-        commands.entity(entity).insert(SpaceshipInitialized);
-    }
 }
 
 /// Despawn lobby scene.
@@ -172,6 +140,3 @@ impl Default for LocalLobbyBundle {
 #[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
 pub(super) struct LocalLobby;
-
-#[derive(Component)]
-struct SpaceshipInitialized;
