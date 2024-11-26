@@ -7,8 +7,6 @@ use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::player::spaceship::Spaceship;
-use lumina_shared::player::PlayerInfoType;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;

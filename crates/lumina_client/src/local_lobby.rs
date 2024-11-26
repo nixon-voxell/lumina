@@ -1,4 +1,3 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
 use blenvy::*;
@@ -7,11 +6,12 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::effector::MatchmakeEffector;
-use lumina_shared::player::spaceship::{Spaceship, SpaceshipType};
-use lumina_shared::player::weapon::WeaponType;
+use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::main_window::WINDOW_FADE_DURATION;
 use lumina_ui::prelude::*;
+
+use crate::ui::lobby::LobbyFunc;
 
 use super::effector::effector_interaction;
 use super::ui::Screen;
@@ -25,7 +25,6 @@ impl Plugin for LocalLobbyPlugin {
             (spawn_lobby, despawn_networked_inputs),
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-        .add_systems(Update, init_spaceship.run_if(in_state(Screen::LocalLobby)))
         .add_systems(
             Update,
             matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
@@ -40,44 +39,41 @@ fn spawn_lobby(
 ) {
     let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
-        .spawn((
-            BlueprintInfo::from_path("levels/Lobby.glb"),
-            SpawnBlueprint,
-            HideUntilReady,
-        ))
+        .spawn((LobbyType::Local.info(), SpawnBlueprint))
         .set_parent(lobby_scene);
 
     // Spaceship
     commands
-        .spawn((SpaceshipType::Assassin.config_info(), SpawnBlueprint))
+        .spawn((
+            SpaceshipType::Assassin.config_info(),
+            SpawnBlueprint,
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     // Weapon
     commands
-        .spawn((WeaponType::Cannon.config_info(), SpawnBlueprint))
+        .spawn((
+            WeaponType::Cannon.config_info(),
+            SpawnBlueprint,
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     // Action
     commands
-        .spawn(InputManagerBundle::with_map(PlayerAction::input_map()))
+        .spawn((
+            InputManagerBundle::with_map(PlayerAction::input_map()),
+            PlayerId::LOCAL,
+        ))
         .set_parent(lobby_scene);
 
     **main_window_transparency = 1.0;
 }
 
-/// Rotate the spaceship to face forward.
-fn init_spaceship(mut commands: Commands, q_spaceships: Query<Entity, Added<Spaceship>>) {
-    for entity in q_spaceships.iter() {
-        commands
-            .entity(entity)
-            .insert(Rotation::radians(std::f32::consts::FRAC_PI_2));
-    }
-}
-
-/// Despawn local lobby scene
-fn despawn_lobby(mut commands: Commands, q_local_lobby: Query<Entity, With<LocalLobby>>) {
-    // Despawn local lobby.
-    let lobby = q_local_lobby.single();
+/// Despawn lobby scene.
+fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>>) {
+    let lobby = q_lobby.single();
     commands.entity(lobby).despawn_recursive();
 }
 
@@ -94,11 +90,14 @@ fn matchmake_effector_trigger(
         res.add_subroutines((
             wait(std::time::Duration::from_secs_f32(WINDOW_FADE_DURATION)),
             |mut connection_manager: ResMut<ConnectionManager>,
-             mut next_screen_state: ResMut<NextState<Screen>>| {
+             mut next_screen_state: ResMut<NextState<Screen>>,
+             mut lobby_func: ResMut<LobbyFunc>| {
                 next_screen_state.set(Screen::Matchmaking);
 
                 let _ =
                     connection_manager.send_message::<ReliableChannel, _>(&Matchmake(PLAYER_COUNT));
+                lobby_func.max_player_count = PLAYER_COUNT;
+
                 co_break()
             },
         ));
@@ -124,7 +123,7 @@ pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
-    id: PlayerId,
+    world_id: PhysicsWorldId,
 }
 
 impl Default for LocalLobbyBundle {
@@ -133,7 +132,7 @@ impl Default for LocalLobbyBundle {
             local_lobby: LocalLobby,
             spatial: SpatialBundle::default(),
             source: SourceEntity,
-            id: PlayerId::LOCAL,
+            world_id: PhysicsWorldId::default(),
         }
     }
 }

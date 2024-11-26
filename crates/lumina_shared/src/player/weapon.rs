@@ -1,14 +1,15 @@
 use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
-use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::action::PlayerAction;
+use crate::blueprints::AmmoType;
 
-use super::ammo::{AmmoType, FireAmmo};
-use super::spaceship::Spaceship;
-use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use super::ammo::FireAmmo;
+use super::spaceship::{spaceship_health, Spaceship};
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct WeaponPlugin;
 
@@ -18,7 +19,8 @@ impl Plugin for WeaponPlugin {
             .add_systems(
                 FixedUpdate,
                 (weapon_recharge, (weapon_direction, weapon_attack).chain()),
-            );
+            )
+            .add_systems(PostUpdate, weapon_visibility.after(spaceship_health));
     }
 }
 
@@ -49,7 +51,10 @@ fn weapon_direction(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_weapon_transforms: Query<&mut Transform, (With<Weapon>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
+    time: Res<Time>,
 ) {
+    const ROTATION_SPEED: f32 = 20.0;
+
     for (action, id) in q_actions.iter() {
         if let Some(mut weapon_transform) = player_infos[PlayerInfoType::Weapon]
             .get(id)
@@ -68,7 +73,12 @@ fn weapon_direction(
                     continue;
                 }
 
-                weapon_transform.rotation = Quat::from_rotation_z(direction.to_angle());
+                let target_rotation = Quat::from_rotation_z(direction.to_angle());
+                weapon_transform.rotation = Quat::slerp(
+                    weapon_transform.rotation,
+                    target_rotation,
+                    time.delta_seconds() * ROTATION_SPEED,
+                );
             }
         }
     }
@@ -76,17 +86,26 @@ fn weapon_direction(
 
 fn weapon_attack(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponStat, &PlayerId), With<SourceEntity>>,
+    mut q_weapons: Query<
+        (
+            &Transform,
+            &Weapon,
+            &mut WeaponStat,
+            &PlayerId,
+            &PhysicsWorldId,
+        ),
+        With<SourceEntity>,
+    >,
     mut fire_ammo_evw: EventWriter<FireAmmo>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) {
             // Attack!
-            if let Some((weapon_transform, weapon, mut weapon_stat, id)) = player_infos
-                [PlayerInfoType::Weapon]
-                .get(id)
-                .and_then(|e| q_weapons.get_mut(*e).ok())
+            if let Some((weapon_transform, weapon, mut weapon_stat, &player_id, &world_id)) =
+                player_infos[PlayerInfoType::Weapon]
+                    .get(id)
+                    .and_then(|e| q_weapons.get_mut(*e).ok())
             {
                 if weapon_stat.can_fire(weapon.firing_rate) == false {
                     continue;
@@ -98,7 +117,8 @@ fn weapon_attack(
 
                 // Fire!
                 fire_ammo_evw.send(FireAmmo {
-                    id: *id,
+                    player_id,
+                    world_id,
                     ammo_type: weapon.ammo_type,
                     position,
                     direction,
@@ -121,32 +141,23 @@ fn weapon_recharge(
     }
 }
 
-#[derive(Component, Reflect, Default, Debug, Clone, Copy)]
-#[reflect(Component)]
-pub enum WeaponType {
-    #[default]
-    Cannon,
-    Missle,
-    GattlingGun,
-}
-
-impl BlueprintType for WeaponType {
-    fn visual_info(&self) -> BlueprintInfo {
-        match self {
-            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonVisual.glb"),
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
-
-    fn config_info(&self) -> BlueprintInfo {
-        match self {
-            WeaponType::Cannon => BlueprintInfo::from_path("levels/WeaponCannonConfig.glb"),
-            _ => todo!("{self:?} is not supported yet."),
+/// Update weapon visibility based on spaceship visibility.
+fn weapon_visibility(
+    mut commands: Commands,
+    q_spaceships: Query<
+        (&Visibility, &PlayerId),
+        (Changed<Visibility>, With<Spaceship>, With<SourceEntity>),
+    >,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (viz, id) in q_spaceships.iter() {
+        if let Some(entity) = player_infos[PlayerInfoType::Weapon].get(id) {
+            commands.entity(*entity).insert(*viz);
         }
     }
 }
 
-#[derive(Reflect)]
+#[derive(Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct Weapon {
     /// Interval in seconds between each fire.

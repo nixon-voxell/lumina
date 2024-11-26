@@ -20,7 +20,7 @@ LuminaSettings(
         // )),
         conditioner: None,
         input_delay_ticks: 4,
-        correction_ticks_factor: 1.5,
+        correction_ticks_factor: 1.0,
     ),
     shared: SharedSettings(
         server_addr: "127.0.0.1",

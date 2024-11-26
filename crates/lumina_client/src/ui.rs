@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::Connection;
 
+pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod splash;
@@ -14,6 +15,7 @@ impl Plugin for UiPlugin {
             splash::SplashUiPlugin,
             main_menu::MainMenuUiPlugin,
             lobby::LobbyUiPlugin,
+            game_ui::GameUiPlugin,
         ));
 
         app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu);
@@ -34,7 +36,7 @@ pub enum Screen {
     LocalLobby,
     Matchmaking,
     MultiplayerLobby,
-    // Playing,
+    InGame,
     // GameOver,
     // Leaderboard,
     // Tutorial,

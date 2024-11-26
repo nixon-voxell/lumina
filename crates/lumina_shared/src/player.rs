@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+use avian2d::prelude::*;
 use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -14,7 +15,16 @@ use super::action::PlayerAction;
 
 pub mod ammo;
 pub mod spaceship;
+pub mod spawn_point;
 pub mod weapon;
+
+pub mod prelude {
+    pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
+    pub use super::spaceship::Spaceship;
+    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed};
+    pub use super::weapon::{Weapon, WeaponStat};
+    pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
+}
 
 pub(super) struct PlayerPlugin;
 
@@ -24,11 +34,11 @@ impl Plugin for PlayerPlugin {
             spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
+            spawn_point::SpawnPointPlugin,
         ));
 
         app.init_resource::<PlayerInfos>()
-            // Propagate [`PlayerId`] to the children hierarchy.
-            .add_systems(PreUpdate, propagate_component::<PlayerId>)
+            .add_systems(PostUpdate, propagate_component::<PlayerId>)
             .add_systems(
                 Update,
                 (
@@ -52,7 +62,7 @@ fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     system.into_configs()
 }
 
-#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Serialize, Deserialize, Deref, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub ClientId);
 
 impl PlayerId {
@@ -68,7 +78,7 @@ pub enum PlayerInfoType {
 
 /// Maps [`PlayerId`] to it's corresponding [`Entity`].
 ///
-/// Note: Number of hashmaps needs to match the number of types in [`PlayerInfoType`].
+/// Note: Number of hashmaps needs to match the number of variants in [`PlayerInfoType`].
 #[derive(Resource, Debug, Deref, DerefMut)]
 pub struct PlayerInfos<const COUNT: usize = { PlayerInfoType::COUNT }>(
     [HashMap<PlayerId, Entity>; COUNT],
@@ -103,4 +113,11 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
     fn default() -> Self {
         Self(std::array::from_fn(|_| HashMap::default()))
     }
+}
+
+#[derive(PhysicsLayer)]
+pub enum GameLayer {
+    Spaceship,
+    Ammo,
+    Wall,
 }

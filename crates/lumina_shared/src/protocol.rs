@@ -6,8 +6,9 @@ use lightyear::utils::avian2d::*;
 use server::RoomId;
 
 use crate::action::PlayerAction;
-use crate::player::spaceship::{Spaceship, SpaceshipType};
-use crate::player::PlayerId;
+use crate::blueprints::{SpaceshipType, WeaponType};
+use crate::health::{Health, MaxHealth};
+use crate::player::prelude::*;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
@@ -24,10 +25,24 @@ impl Plugin for ProtocolPlugin {
         // Messages
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
-        app.register_message::<LobbyStatus>(ChannelDirection::ServerToClient);
+        app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
+        app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
 
+        // Input
+        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
+
         // Components
+        // Health
+        app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Simple)
+            .add_interpolation(client::ComponentSyncMode::Simple);
+
+        app.register_component::<Health>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Simple)
+            .add_interpolation(client::ComponentSyncMode::Simple);
+
+        // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
@@ -40,6 +55,15 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
+        app.register_component::<Weapon>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
@@ -63,19 +87,16 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Full);
 
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
-        // .add_interpolation(ComponentSyncMode::Full)
-        // .add_interpolation_fn(linear_velocity::lerp)
-        // .add_correction_fn(linear_velocity::lerp);
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(linear_velocity::lerp)
+            .add_correction_fn(linear_velocity::lerp);
 
         app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
-        // .add_interpolation(ComponentSyncMode::Full)
-        // .add_interpolation_fn(angular_velocity::lerp)
-        // .add_correction_fn(angular_velocity::lerp);
-
-        // Input
-        app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
+            .add_prediction(ComponentSyncMode::Full)
+            .add_interpolation(ComponentSyncMode::Full)
+            .add_interpolation_fn(angular_velocity::lerp)
+            .add_correction_fn(angular_velocity::lerp);
     }
 }
 
@@ -85,19 +106,26 @@ impl Plugin for ProtocolPlugin {
 pub struct Matchmake(pub u8);
 
 /// Update on lobby status sent from server to client.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct LobbyStatus {
-    pub room_id: RoomId,
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct LobbyUpdate {
     pub client_count: u8,
 }
 
+/// Data required from the clients when they joined a lobby.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct LobbyData {
+    pub room_id: RoomId,
+}
+
 /// Exit lobby command sent from client to server when already inside a lobby.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct ExitLobby;
 
 /// Start game command sent from server to client when the lobby room is full.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct StartGame;
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct StartGame {
+    pub seed: u32,
+}
 
 /// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]
