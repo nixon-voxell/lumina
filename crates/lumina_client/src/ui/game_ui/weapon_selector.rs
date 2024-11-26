@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use velyst::prelude::*;
 
-use super::main_ui::GameUi;
+use crate::ui::game_ui::GameUi;
 
 pub(super) struct WeaponSelectorUiPlugin;
 
