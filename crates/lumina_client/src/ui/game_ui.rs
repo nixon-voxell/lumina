@@ -35,7 +35,7 @@ impl Plugin for GameUiPlugin {
             .add_systems(
                 Update,
                 (push_to_main_window::<MainFunc>(), update_main_ui)
-                    .run_if(in_state(Screen::Playing)),
+                    .run_if(in_state(Screen::InGame)),
             );
     }
 }
