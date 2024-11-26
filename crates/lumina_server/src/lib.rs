@@ -9,6 +9,7 @@ use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
 use server::*;
 
+mod game;
 mod lobby;
 mod player;
 mod source_entity;

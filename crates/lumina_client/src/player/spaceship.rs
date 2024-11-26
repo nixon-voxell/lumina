@@ -3,7 +3,6 @@ use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::action::ReplicateActionBundle;
-use lumina_shared::player::spaceship::Spaceship;
 use lumina_shared::prelude::*;
 
 use super::LocalPlayerId;
@@ -16,11 +15,11 @@ impl Plugin for SpaceshipPlugin {
     }
 }
 
-// TODO: Add a slight screen shake during boosting.
+// TODO: Add a slight screen shake during boosting?
 
 fn spawn_networked_action(
     mut commands: Commands,
-    q_spaceships: Query<&PlayerId, (With<Spaceship>, (Added<SourceEntity>, With<Predicted>))>,
+    q_spaceships: Query<&PlayerId, (With<Spaceship>, With<Predicted>, Added<SourceEntity>)>,
     mut player_infos: ResMut<PlayerInfos>,
     local_player_id: Res<LocalPlayerId>,
 ) {

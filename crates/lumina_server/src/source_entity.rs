@@ -2,8 +2,6 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::player::spaceship::Spaceship;
-use lumina_shared::player::weapon::Weapon;
 use lumina_shared::prelude::*;
 use server::*;
 

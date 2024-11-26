@@ -7,8 +7,9 @@ authors.workspace = true
 
 [dependencies]
 lumina_common = { workspace = true }
-lumina_ui = { workspace = true }
 lumina_shared = { workspace = true }
+lumina_ui = { workspace = true }
+lumina_terrain = { workspace = true }
 lumina_dev = { workspace = true, optional = true }
 bevy_shader_utils = { workspace = true }
 velyst = { workspace = true }
@@ -32,6 +33,7 @@ dev = [
   # Improve compile times for dev builds by linking Bevy as a dynamic library.
   "bevy/dynamic_linking",
   "dep:lumina_dev",
+  "lumina_common/dev"
 ]
 dev_native = [
   "dev",

@@ -770,6 +770,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_framepace"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fa5f7d858e66d0f4c4fe3e1a678da440037ce383c4c51bff3c1fa06a121ebc0"
+dependencies = [
+ "bevy_app",
+ "bevy_diagnostic",
+ "bevy_ecs",
+ "bevy_log",
+ "bevy_reflect",
+ "bevy_render",
+ "bevy_time",
+ "bevy_utils",
+ "bevy_window",
+ "bevy_winit",
+ "spin_sleep",
+]
+
+[[package]]
 name = "bevy_gilrs"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3837,6 +3856,7 @@ dependencies = [
  "lumina_common",
  "lumina_dev",
  "lumina_shared",
+ "lumina_terrain",
  "lumina_ui",
  "noisy_bevy",
  "rand",
@@ -3854,6 +3874,7 @@ dependencies = [
  "leafwing-input-manager",
  "lightyear",
  "serde",
+ "strum",
 ]
 
 [[package]]
@@ -3875,6 +3896,7 @@ dependencies = [
  "lumina_common",
  "lumina_dev",
  "lumina_shared",
+ "lumina_terrain",
  "lumina_ui",
  "rand",
  "smallvec",
@@ -3887,10 +3909,13 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy_framepace",
+ "bevy_transform_interpolation",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
  "lumina_common",
+ "lumina_terrain",
  "lumina_ui",
  "noisy_bevy",
  "rand",
@@ -3898,6 +3923,23 @@ dependencies = [
  "smallvec",
  "strum",
  "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "lumina_terrain"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "bevy_transform_interpolation",
+ "blenvy",
+ "lumina_common",
+ "noisy_bevy",
+ "rand",
+ "serde",
+ "strum",
+ "thiserror",
 ]
 
 [[package]]
@@ -5973,6 +6015,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
 
 [[package]]
+name = "spin_sleep"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64bd7227d85bfd1b8df51e0d83da36d9baaee85eb75730386ef8e3ab6f2a2ea3"
+dependencies = [
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "spinning_top"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6198,10 +6249,14 @@ dependencies = [
 name = "test_bed"
 version = "0.1.0"
 dependencies = [
+ "avian2d",
  "bevy",
  "bevy_enoki",
  "bevy_shader_utils",
  "bevy_vello",
+ "lumina_common",
+ "lumina_terrain",
+ "noisy_bevy",
  "rand",
  "velyst",
 ]

@@ -2,8 +2,6 @@ use bevy::render::render_resource::AsBindGroup;
 use bevy::{prelude::*, render::render_resource::ShaderRef};
 use bevy_enoki::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::player::ammo::FireAmmo;
-use lumina_shared::player::weapon::Weapon;
 use lumina_shared::prelude::*;
 
 use crate::camera::CameraShake;
@@ -25,7 +23,7 @@ fn attack_cam_shake(
     mut camera_shake: ResMut<CameraShake>,
 ) {
     for fire_ammo in fire_ammo_evr.read() {
-        if fire_ammo.id == **local_player_id {
+        if fire_ammo.player_id == **local_player_id {
             camera_shake.add_trauma_with_threshold(0.2, 0.3);
         }
     }
@@ -41,7 +39,7 @@ fn attack_vfx(
 ) {
     for fire_ammo in fire_ammo_evr.read() {
         let Some(weapon_vfx) = player_infos[PlayerInfoType::Weapon]
-            .get(&fire_ammo.id)
+            .get(&fire_ammo.player_id)
             .and_then(|e| q_weapon_vfx.get(*e).ok())
         else {
             continue;

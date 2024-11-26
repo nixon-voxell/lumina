@@ -36,7 +36,7 @@ pub enum Screen {
     LocalLobby,
     Matchmaking,
     MultiplayerLobby,
-    Playing,
+    InGame,
     // GameOver,
     // Leaderboard,
     // Tutorial,

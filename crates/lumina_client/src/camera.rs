@@ -7,8 +7,6 @@ use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::player::spaceship::Spaceship;
-use lumina_shared::player::PlayerInfoType;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
@@ -271,8 +269,13 @@ impl CameraShake {
 
     #[allow(unused)]
     pub fn add_trauma_with_threshold(&mut self, trauma: f32, threshold: f32) {
+        // TODO: improve this?
+        if self.trauma >= threshold {
+            return;
+        }
+
         self.add_trauma(trauma);
-        self.trauma = f32::min(self.trauma, threshold);
+        // self.trauma = f32::min(self.trauma, threshold);
     }
 
     fn reduce_trauma(&mut self, delta: f32) {

@@ -13,6 +13,10 @@ avian2d = { workspace = true }
 blenvy = { workspace = true }
 serde = { workspace = true }
 bevy_transform_interpolation = { workspace = true }
+strum = { workspace = true }
 
 [lints]
 workspace = true
+
+[features]
+dev = ["avian2d/debug-plugin"]
