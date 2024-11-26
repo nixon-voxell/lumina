@@ -21,22 +21,20 @@ pub(super) struct GameUiPlugin;
 
 impl Plugin for GameUiPlugin {
     fn build(&self, app: &mut App) {
-        app.init_state::<Screen>()
-            .add_plugins((
-                timer::TimerUiPlugin,
-                boostmeter::BoostmeterUiPlugin,
-                weapon_selector::WeaponSelectorUiPlugin,
-                health::HealthUiPlugin,
-                score_bar::ScoreBarUiPlugin,
-            ))
-            .register_typst_asset::<GameUi>()
-            .compile_typst_func::<GameUi, MainFunc>()
-            .init_resource::<MainFunc>()
-            .add_systems(
-                Update,
-                (push_to_main_window::<MainFunc>(), update_main_ui)
-                    .run_if(in_state(Screen::InGame)),
-            );
+        app.add_plugins((
+            timer::TimerUiPlugin,
+            boostmeter::BoostmeterUiPlugin,
+            weapon_selector::WeaponSelectorUiPlugin,
+            health::HealthUiPlugin,
+            score_bar::ScoreBarUiPlugin,
+        ))
+        .register_typst_asset::<GameUi>()
+        .compile_typst_func::<GameUi, MainFunc>()
+        .init_resource::<MainFunc>()
+        .add_systems(
+            Update,
+            (push_to_main_window::<MainFunc>(), update_main_ui).run_if(in_state(Screen::InGame)),
+        );
     }
 }
 
