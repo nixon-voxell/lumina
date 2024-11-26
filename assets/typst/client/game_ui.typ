@@ -167,8 +167,22 @@
   ]
 }
 
-#let countdown_timer(minutes, seconds) = {
-    text(fill: white, size: 45pt)[#minutes:#seconds]
+#let countdown_timer(total_seconds) = {
+    // Ensure non-negative time
+    let total = calc.max(total_seconds, 0)
+
+    // Calculate minutes and seconds
+    let minutes = calc.floor(total / 60)
+    let seconds = calc.rem(total, 60)
+
+    // Format minutes and seconds with leading zeros
+    let formatted_minutes = if minutes < 10 { "0" + str(minutes) } else { str(minutes) }
+    let formatted_seconds = if seconds < 10 { "0" + str(seconds) } else { str(seconds) }
+
+    // Display the countdown timer in MM:SS format
+    text(fill: white, size: 45pt)[
+        #formatted_minutes:#formatted_seconds
+    ]
 }
 
 // Input:
