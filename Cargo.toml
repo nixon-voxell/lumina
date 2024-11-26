@@ -13,6 +13,7 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 # Lumina
 lumina_common = { path = "crates/lumina_common" }
 lumina_ui = { path = "crates/lumina_ui" }
+lumina_terrain = { path = "crates/lumina_terrain" }
 lumina_shared = { path = "crates/lumina_shared" }
 lumina_dev = { path = "crates/lumina_dev" }
 bevy_shader_utils = { path = "crates/bevy_shader_utils" }
@@ -50,6 +51,7 @@ rand = "0.8"
 smallvec = "1"
 strum = "0.26"
 strum_macros = "0.26"
+thiserror = "1.0"
 
 [workspace.lints.clippy]
 # Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
@@ -68,12 +70,12 @@ redundant_type_annotations = "warn"
 [profile.dev]
 opt-level = 1
 
-[profile.dev.package.lumina_shared]
-opt-level = 1
-
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.dev.package.lumina_shared]
+opt-level = 1
 
 # Remove expensive debug assertions due to <https://github.com/bevyengine/bevy/issues/14291>
 [profile.dev.package.wgpu-types]

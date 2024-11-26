@@ -1,26 +1,27 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use blenvy::BlueprintInfo;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
+use crate::health::Health;
 
-use super::{BlueprintType, PlayerId, PlayerInfoType, PlayerInfos};
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, init_spaceships)
-            .add_systems(FixedUpdate, spaceship_movement);
+            .add_systems(FixedUpdate, spaceship_movement)
+            .add_systems(PostUpdate, spaceship_health);
     }
 }
 
 fn init_spaceships(
     mut commands: Commands,
-    q_spaceships: Query<(&Spaceship, Option<&Name>, Entity), Added<SourceEntity>>,
+    q_spaceships: Query<(&Spaceship, Entity), Added<SourceEntity>>,
 ) {
     // TODO: Consider using a lookup collider.
     let collider = Collider::triangle(
@@ -29,7 +30,7 @@ fn init_spaceships(
         Vec2::new(20.0, 0.0),
     );
 
-    for (spaceship, name, spaceship_entity) in q_spaceships.iter() {
+    for (spaceship, spaceship_entity) in q_spaceships.iter() {
         commands.entity(spaceship_entity).insert((
             SpaceshipPhysicsBundle {
                 rigidbody: RigidBody::Dynamic,
@@ -45,7 +46,7 @@ fn init_spaceships(
             },
         ));
 
-        debug!("Initialized Spaceship physics for {spaceship_entity:?} - ({name:?})");
+        debug!("Initialized Spaceship physics for {spaceship_entity})");
     }
 }
 
@@ -61,41 +62,40 @@ fn spaceship_movement(
         (
             &mut MovementStat,
             &mut LinearVelocity,
-            &mut AngularVelocity,
             &mut LinearDamping,
-            &Rotation,
+            &mut Rotation,
             &Spaceship,
+            &Visibility,
         ),
         With<SourceEntity>,
     >,
     time: Res<Time>,
     player_infos: Res<PlayerInfos>,
 ) {
-    // How fast the space ship accelerates/decelarates.
+    // How fast the spaceship accelerates/decelarates.
     const ACCELERATION_FACTOR: f32 = 10.0;
     const DECELERATION_FACTOR: f32 = 20.0;
     const DAMPING_FACTOR: f32 = 16.0;
 
-    let acceleration_factor = f32::min(ACCELERATION_FACTOR * time.delta_seconds(), 1.0);
-    let deceleration_factor = f32::min(DECELERATION_FACTOR * time.delta_seconds(), 1.0);
-    let damping_factor = f32::min(DAMPING_FACTOR * time.delta_seconds(), 1.0);
+    let acceleration_factor = f32::min(1.0, ACCELERATION_FACTOR * time.delta_seconds());
+    let deceleration_factor = f32::min(1.0, DECELERATION_FACTOR * time.delta_seconds());
+    let damping_factor = f32::min(1.0, DAMPING_FACTOR * time.delta_seconds());
 
     for (action, id) in q_actions.iter() {
         let Some(&spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
             continue;
         };
 
-        let Ok((
-            mut movement_stat,
-            mut linear,
-            mut angular,
-            mut linear_damping,
-            rotation,
-            spaceship,
-        )) = q_spaceships.get_mut(spaceship_entity)
+        let Ok((mut movement_stat, mut linear, mut linear_damping, mut rotation, spaceship, viz)) =
+            q_spaceships.get_mut(spaceship_entity)
         else {
             continue;
         };
+
+        // Cannot move hidden spaceship.
+        if viz == Visibility::Hidden {
+            continue;
+        }
 
         let is_moving = action.pressed(&PlayerAction::Move);
         let is_braking = action.pressed(&PlayerAction::Brake);
@@ -152,9 +152,10 @@ fn spaceship_movement(
                 .normalize_or_zero();
             let desired_angle = movement.to_angle();
 
-            angular.0 += rotation.angle_between(Rotation::radians(desired_angle))
-                * spaceship.angular_acceleration
-                * time.delta_seconds();
+            *rotation = rotation.slerp(
+                Rotation::radians(desired_angle),
+                f32::min(1.0, time.delta_seconds() * spaceship.rotation_speed),
+            );
         }
 
         let direction = Vec2::new(rotation.cos, rotation.sin);
@@ -166,30 +167,17 @@ fn spaceship_movement(
     }
 }
 
-#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-pub enum SpaceshipType {
-    Assassin,
-    Tank,
-    Support,
-}
-
-impl BlueprintType for SpaceshipType {
-    fn visual_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceshipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceshipAssassinVisual.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
-        }
-    }
-
-    fn config_info(&self) -> BlueprintInfo {
-        match self {
-            SpaceshipType::Assassin => {
-                BlueprintInfo::from_path("levels/SpaceshipAssassinConfig.glb")
-            }
-            _ => todo!("{self:?} is not supported yet."),
+pub(super) fn spaceship_health(
+    mut q_spaceships: Query<
+        (&Health, &mut Visibility),
+        (Changed<Health>, With<Spaceship>, With<SourceEntity>),
+    >,
+) {
+    for (health, mut viz) in q_spaceships.iter_mut() {
+        info!("{health:?}");
+        match **health <= 0.0 {
+            true => *viz = Visibility::Hidden,
+            false => *viz = Visibility::Inherited,
         }
     }
 }
@@ -199,8 +187,8 @@ impl BlueprintType for SpaceshipType {
 pub struct Spaceship {
     /// Normal linear acceleration.
     pub linear_acceleration: f32,
-    /// Normal angular acceleration.
-    pub angular_acceleration: f32,
+    /// Rotation speed of the spaceship.
+    pub rotation_speed: f32,
     /// Linear acceleration when boost is applied.
     pub boost_linear_acceleration: f32,
     /// Linear acceleration when brake is applied.

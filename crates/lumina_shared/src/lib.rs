@@ -1,20 +1,23 @@
 //! This module contains the shared code between the client and the server.
+
 use bevy::prelude::*;
 use bevy::utils::Duration;
 use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 
 pub mod action;
+pub mod blueprints;
 pub mod effector;
+pub mod health;
 pub mod player;
-pub mod procedural_map;
 pub mod protocol;
 
 mod type_registry;
 
 pub mod prelude {
     pub use crate::action::PlayerAction;
-    pub use crate::player::{PlayerId, PlayerInfoType, PlayerInfos};
+    pub use crate::blueprints::*;
+    pub use crate::player::prelude::*;
     pub use crate::protocol::*;
 }
 
@@ -27,10 +30,10 @@ impl Plugin for SharedPlugin {
             .add_plugins((
                 type_registry::TypeRegistryPlugin,
                 lumina_ui::UiPlugin,
+                lumina_terrain::TerrainPlugin,
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 effector::EffectorPlugin,
-                procedural_map::GridMapPlugin,
             ));
     }
 }

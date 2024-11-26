@@ -2,18 +2,21 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::procedural_map::grid_map::GenerateMapEvent;
+use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-use super::player::spawn_player_entity;
+pub mod in_game;
+pub mod matchmaking;
+
 use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ClientExitLobby>()
+        app.add_plugins((matchmaking::MatchmakingPlugin, in_game::InGamePlugin))
+            .add_event::<ClientExitLobby>()
             .add_systems(Startup, spawn_debug_camera)
             .add_systems(
                 Update,
@@ -24,10 +27,6 @@ impl Plugin for LobbyPlugin {
                     handle_exit_lobby,
                     execute_exit_lobby,
                 ),
-            )
-            .add_systems(
-                PreUpdate,
-                handle_matchmaking.in_set(ServerReplicationSet::ClientReplication),
             );
     }
 }
@@ -47,104 +46,33 @@ fn spawn_debug_camera(mut commands: Commands) {
 
 fn cleanup_empty_lobbies(
     mut commands: Commands,
-    q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>)>,
+    q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
+    mut clear_terrain_evw: EventWriter<ClearTerrain>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
-            commands.entity(entity).despawn();
+            clear_terrain_evw.send(ClearTerrain(entity));
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
 
-/// Send [`LobbyStatus`] message to clients on change.
+/// Send [`LobbyUpdate`] message to clients on change.
 fn propagate_lobby_status(
     q_lobbies: Query<(&Lobby, Entity), Changed<Lobby>>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
-    for (lobby, lobby_entity) in q_lobbies.iter() {
+    for (lobby, entity) in q_lobbies.iter() {
         let client_count = lobby.len() as u8;
-        let room_id = lobby_entity.room_id();
 
         // Send message to clients to notify about the changes.
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &LobbyStatus {
-                room_id,
-                client_count,
-            },
-            room_id,
+            &LobbyUpdate { client_count },
+            entity.room_id(),
             &room_manager,
         );
-    }
-}
-
-fn handle_matchmaking(
-    mut commands: Commands,
-    mut matchmake_evr: EventReader<MessageEvent<Matchmake>>,
-    mut q_lobbies: Query<
-        (&mut Lobby, &LobbySize, Entity),
-        (Without<LobbyFull>, Without<LobbyInGame>),
-    >,
-    mut room_manager: ResMut<RoomManager>,
-    mut lobby_infos: ResMut<LobbyInfos>,
-    mut generate_map_evw: EventWriter<GenerateMapEvent>,
-) {
-    for matchmake in matchmake_evr.read() {
-        let client_id = matchmake.context;
-
-        // Already matchmake
-        if lobby_infos.contains_key(&client_id) {
-            warn!("Recieved duplicated matchmake commands from {client_id:?}");
-            continue;
-        }
-
-        let lobby_size = *matchmake.message;
-        let mut lobby_entity = None;
-        // Number of clients in the lobby before the client joins.
-        // let mut lobby_len = 0;
-
-        // Find an available lobby to join.
-        for (mut lobby, size, entity) in q_lobbies.iter_mut() {
-            // Only find lobbies with the correct size.
-            if lobby_size != **size {
-                continue;
-            }
-
-            if lobby.len() < **size as usize {
-                // lobby_len = lobby.len();
-                lobby.push(client_id);
-                lobby_entity = Some(entity);
-
-                if lobby.len() == **size as usize {
-                    // Tag lobby as full so that this lobby won't show up the
-                    // next time a new client requests to join. (optimization)
-                    commands.entity(entity).insert(LobbyFull);
-
-                    // Send GenerateMapEvent when the lobby is full
-
-                    // TODO: Move up here in the future
-                    // let room_id = entity.room_id();
-                    // generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
-                }
-
-                break;
-            }
-        }
-
-        // If there is no available lobby to join, create a new one.
-        let lobby_entity = lobby_entity.unwrap_or_else(|| {
-            let entity = commands.spawn(LobbyBundle::new(lobby_size, client_id)).id();
-
-            let room_id = entity.room_id();
-            generate_map_evw.send(GenerateMapEvent(room_id.0)); // Use the room ID for the event
-
-            entity
-        });
-
-        spawn_player_entity(&mut commands, client_id);
-        room_manager.add_client(client_id, lobby_entity.room_id());
-        lobby_infos.insert(client_id, lobby_entity);
     }
 }
 
@@ -210,17 +138,23 @@ fn execute_exit_lobby(
     }
 }
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub(super) struct LobbyBundle {
     pub lobby: Lobby,
     pub size: LobbySize,
+    pub seed: LobbySeed,
+    pub world_id: PhysicsWorldId,
+    pub spatial: SpatialBundle,
 }
 
 impl LobbyBundle {
-    pub fn new(size: u8, initial_client: ClientId) -> Self {
+    pub fn new(initial_client: ClientId, size: u8, seed: u32) -> Self {
         Self {
             size: LobbySize(size),
             lobby: Lobby(SmallVec::from_slice(&[initial_client])),
+            seed: LobbySeed(seed),
+            world_id: PhysicsWorldId(seed),
+            spatial: SpatialBundle::default(),
         }
     }
 }
@@ -237,18 +171,11 @@ impl Lobby {
     }
 }
 
-#[derive(Event)]
-pub(super) struct ClientExitLobby(ClientId);
+#[derive(Component, Debug, Deref, DerefMut)]
+pub(super) struct LobbySeed(pub u32);
 
-impl ClientExitLobby {
-    pub fn id(&self) -> ClientId {
-        self.0
-    }
-}
-
-/// Size of lobby, indicating the max number of players in the lobby.
-#[derive(Component, Default, Debug, Deref, DerefMut)]
-pub(super) struct LobbySize(u8);
+#[derive(Component, Debug, Deref, DerefMut)]
+pub(super) struct LobbySize(pub u8);
 
 /// Tag for specifying a lobby is currently in game.
 #[derive(Component, Default)]
@@ -257,3 +184,12 @@ pub(super) struct LobbyInGame;
 /// Tag for specifying a lobby is currently full.
 #[derive(Component, Default)]
 pub(super) struct LobbyFull;
+
+#[derive(Event)]
+pub(super) struct ClientExitLobby(ClientId);
+
+impl ClientExitLobby {
+    pub fn id(&self) -> ClientId {
+        self.0
+    }
+}

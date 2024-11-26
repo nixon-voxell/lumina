@@ -5,10 +5,11 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
-use bevy_transform_interpolation::*;
 
-use crate::prelude::SourceEntity;
 use crate::settings::LuminaSettings;
+
+pub mod physics_interp;
+pub mod world;
 
 pub(super) struct PhysicsPlugin;
 
@@ -19,7 +20,12 @@ impl Plugin for PhysicsPlugin {
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
-            TransformInterpolationPlugin::default(),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
+        ))
+        .add_plugins((
+            physics_interp::PhysicsInterpPlugin,
+            world::PhysicsWorldPlugin,
         ));
 
         let settings = app.world().get_resource::<LuminaSettings>().unwrap();
@@ -36,42 +42,7 @@ impl Plugin for PhysicsPlugin {
             .add_systems(
                 Update,
                 (convert_primitive_rigidbody, convert_mesh_rigidbody),
-            )
-            .add_systems(PostUpdate, (init_position_sync, init_rotation_sync));
-    }
-}
-
-/// Insert [`TranslationInterpolation`] for entities with [`Position`] and [`SourceEntity`].
-fn init_position_sync(
-    mut commands: Commands,
-    q_positions: Query<
-        Entity,
-        (
-            With<Position>,
-            With<SourceEntity>,
-            Without<TranslationInterpolation>,
-        ),
-    >,
-) {
-    for entity in q_positions.iter() {
-        commands.entity(entity).insert(TranslationInterpolation);
-    }
-}
-
-/// Insert [`RotationInterpolation`] for entities with [`Rotation`] and [`SourceEntity`].
-fn init_rotation_sync(
-    mut commands: Commands,
-    q_rotations: Query<
-        Entity,
-        (
-            With<Rotation>,
-            With<SourceEntity>,
-            Without<RotationInterpolation>,
-        ),
-    >,
-) {
-    for entity in q_rotations.iter() {
-        commands.entity(entity).insert(RotationInterpolation);
+            );
     }
 }
 
