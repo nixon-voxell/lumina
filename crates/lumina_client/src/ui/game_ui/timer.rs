@@ -26,7 +26,7 @@ struct TimerAccumulator {
 fn update_timer(
     time: Res<Time>,
     mut timer_func: ResMut<CountdownTimerFunc>,
-    mut accumulator: ResMut<TimerAccumulator>
+    mut accumulator: ResMut<TimerAccumulator>,
 ) {
     // Check if the timer has already reached 0 to avoid unnecessary calculations
     if timer_func.total_seconds <= 0.0 {

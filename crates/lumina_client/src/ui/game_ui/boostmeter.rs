@@ -18,7 +18,7 @@ impl Plugin for BoostmeterUiPlugin {
     }
 }
 
-// Update the booster fill state
+/// Update the booster fill state
 fn update_boost_meter(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
@@ -37,8 +37,6 @@ fn update_boost_meter(
             boostmeter_func.red_height = 0.0; // Min is 0%
         }
     }
-    // Debugging red_height value
-    // println!("Boostmeter red_height: {:.2}", boostmeter_func.red_height);
 }
 
 #[derive(TypstFunc, Resource, Default)]
