@@ -178,7 +178,7 @@
 
   // Calculate minutes and seconds
   let minutes = calc.floor(total / 60)
-  let seconds = calc.rem(total, 60)
+  let seconds = calc.floor(calc.rem(total, 60))
 
   // Format minutes and seconds with leading zeros
   let formatted_minutes = if minutes < 10 {
@@ -186,6 +186,7 @@
   } else {
     str(minutes)
   }
+
   let formatted_seconds = if seconds < 10 {
     "0" + str(seconds)
   } else {
@@ -193,7 +194,7 @@
   }
 
   // Display the countdown timer in MM:SS format
-  text(fill: white, size: 45pt)[
+  text(fill: base7, size: 45pt)[
     #formatted_minutes:#formatted_seconds
   ]
 }
@@ -292,10 +293,6 @@
       height: 100%,
       inset: 50pt,
     )[
-      #place(right + horizon)[
-
-      ]
-
       #place(center + top)[
         #score_bar
       ]
@@ -307,10 +304,9 @@
 
       #place(top + left)[
         #timer
-        }
       ]
       // Directly access the weapon_selector fields without iterating
-      #place(center + bottom, dx: 350pt)[
+      #place(right + bottom)[
         #weapon_selector
       ]
     ]
