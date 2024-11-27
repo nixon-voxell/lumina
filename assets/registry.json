@@ -20599,15 +20599,32 @@
       "typeInfo": "Struct"
     },
     "lumina_shared::player::spawn_point::SpawnPoint": {
-      "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
+      "items": false,
       "long_name": "lumina_shared::player::spawn_point::SpawnPoint",
-      "properties": {},
-      "required": [],
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spawn_point::TeamType"
+          }
+        }
+      ],
       "short_name": "SpawnPoint",
-      "type": "object",
-      "typeInfo": "Struct"
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_shared::player::spawn_point::TeamType": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spawn_point::TeamType",
+      "oneOf": [
+        "A",
+        "B"
+      ],
+      "short_name": "TeamType",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "lumina_shared::player::weapon::Weapon": {
       "additionalProperties": false,
