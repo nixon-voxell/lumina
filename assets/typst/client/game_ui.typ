@@ -213,12 +213,9 @@
   rect_height: 31pt,
   spacing: 8pt,
 ) = {
-  // Calculate the ratio of current HP to max HP
-  let hp_ratio = current_hp / max_hp
-
-  // Determine the total number of blocks and how many blocks to display based on HP ratio
-  let max_blocks = 10 // Adjust this value for more or fewer blocks
-  let num_blocks = hp_ratio * max_blocks
+  // Calculate the total number of blocks needed
+  let blocks = calc.ceil(current_hp / 10)
+  let max_blocks = calc.ceil(max_hp / 10)
 
   // Define health state colors
   let healthy_color = rgb("A9DC76") // Green
@@ -226,11 +223,8 @@
   let low_color = rgb("FF6188") // Red
 
   // Function to determine block color based on health ratio
-  let get_block_color(is_filled) = {
-    if not is_filled {
-      // For empty blocks, use transparent version of healthy color
-      return healthy_color.transparentize(80%)
-    }
+  let get_block_color(block_index) = {
+    let hp_ratio = current_hp / max_hp
 
     // Color thresholds
     if hp_ratio > 0.7 {
@@ -258,10 +252,13 @@
           ),
         ),
         box(fill: white, height: rect_height)[
-          // Display the fractional blocks based on the HP ratio
+          // Display blocks for current and max health
           #for i in range(max_blocks) {
-            let is_filled = i < num_blocks
-            let fill_color = get_block_color(is_filled)
+            let fill_color = if i < blocks { 
+              get_block_color(i) 
+            } else { 
+              get_block_color(i).transparentize(80%) 
+            }
             place(dx: i * (rect_width + spacing))[
               #rect(
                 width: rect_width,
