@@ -195,8 +195,8 @@ impl TerrainStates {
 
         // Upper-right corner, adjusted to avoid noise surrounding width
         let upper_right = Vec2::new(
-            (config.size.x - config.noise_surr_width) as f32 * config.tile_size,
-            (config.size.y - config.noise_surr_width) as f32 * config.tile_size,
+            (config.size.x - config.noise_surr_width - 1) as f32 * config.tile_size,
+            (config.size.y - config.noise_surr_width - 1) as f32 * config.tile_size,
         );
 
         (bottom_left, upper_right)

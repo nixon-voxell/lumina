@@ -6,13 +6,15 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 use server::*;
 
-use super::{LobbyFull, LobbyInGame, LobbyInfos, LobbySeed};
+use super::{LobbyFull, LobbyInGame, LobbyInfos, LobbySeed, TeamType};
+use lumina_terrain::map::TerrainStates;
 
 pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (start_game, init_spaceship_position));
+        app.insert_resource(TeamToggle::new())
+            .add_systems(Update, (start_game, init_spaceship_position));
     }
 }
 
@@ -45,9 +47,9 @@ fn start_game(
 
 /// This function updates the position of newly spawned spaceships
 fn init_spaceship_position(
-    mut commands: Commands, // Need Commands to add Position if missing
+    mut commands: Commands,
     mut q_spaceships: Query<
-        (&mut Position, &PlayerId, Entity),
+        (&mut Position, &mut Rotation, &PlayerId, Entity),
         (
             With<Spaceship>,
             With<SourceEntity>,
@@ -57,16 +59,22 @@ fn init_spaceship_position(
     q_in_game_lobbies: Query<(), With<LobbyInGame>>,
     terrain_config: TerrainConfig,
     lobby_infos: Res<LobbyInfos>,
+    mut team_toggle: ResMut<TeamToggle>, // Access the team toggle resource
 ) {
     let Some(terrain_config) = terrain_config.get() else {
+        eprintln!("Terrain config is not available!");
         return;
     };
 
-    // TODO: Use different positions for different ships based on their team id.
-    let width = terrain_config.tile_size * terrain_config.noise_surr_width as f32;
-    let desired_position = Vec2::splat(width);
+    let (bottom_left, upper_right) =
+        TerrainStates::get_map_corners_without_noise_surr(terrain_config);
 
-    for (mut position, id, entity) in q_spaceships.iter_mut() {
+    println!(
+        "\n\n\n\nDebugging Map Corners: Bottom-left: {:?}, Upper-right: {:?}",
+        bottom_left, upper_right
+    );
+
+    for (mut position, _rotation, id, entity) in q_spaceships.iter_mut() {
         if lobby_infos
             .get(&**id)
             .is_some_and(|e| q_in_game_lobbies.contains(*e))
@@ -75,10 +83,31 @@ fn init_spaceship_position(
             continue;
         }
 
-        *position = Position(desired_position);
-        commands.entity(entity).insert(PositionInitialized);
+        let (spawn_position, team_type) = if team_toggle.toggle {
+            (bottom_left, TeamType::A)
+        } else {
+            (upper_right, TeamType::B)
+        };
+
+        team_toggle.toggle = !team_toggle.toggle; // Toggle the team for the next spawn
+
+        *position = Position(spawn_position);
+        commands
+            .entity(entity)
+            .insert((PositionInitialized, team_type));
     }
 }
 
 #[derive(Component)]
 pub struct PositionInitialized;
+
+#[derive(Resource)]
+pub struct TeamToggle {
+    pub toggle: bool,
+}
+
+impl TeamToggle {
+    pub fn new() -> Self {
+        Self { toggle: true }
+    }
+}
