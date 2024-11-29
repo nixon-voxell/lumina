@@ -221,10 +221,10 @@
   let rect_width = (total_width - (max_blocks - 1) * spacing) / max_blocks
 
   // Define health state colors
-  let low_color = rgb("FF6188")       // Red
-  let medium_color = rgb("FFB454")    // Orange
-  let medium_high_color = rgb("FFEB3B")    // Bright Yellow
-  let healthy_color = rgb("A9DC76")   // Green
+  let low_color = rgb("FF6188") // Red
+  let medium_color = rgb("FFB454") // Orange
+  let medium_high_color = rgb("FFEB3B") // Bright Yellow
+  let healthy_color = rgb("A9DC76") // Green
 
   // Function to determine block color based on health ratio and block index
   let get_block_color(block_index) = {
@@ -273,10 +273,10 @@
         box(fill: white, height: rect_height)[
           // Display blocks for current and max health
           #for i in range(max_blocks) {
-            let fill_color = if i < blocks { 
-              get_block_color(i) 
-            } else { 
-              get_block_color(i).transparentize(80%) 
+            let fill_color = if i < blocks {
+              get_block_color(i)
+            } else {
+              get_block_color(i).transparentize(80%)
             }
             place(dx: i * (rect_width + spacing))[
               #rect(
