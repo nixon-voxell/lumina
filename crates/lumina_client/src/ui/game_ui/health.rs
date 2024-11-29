@@ -1,11 +1,14 @@
 use bevy::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_shared::{ health::{ Health, MaxHealth }, player::PlayerId };
+use lumina_shared::{
+    health::{Health, MaxHealth},
+    player::PlayerId,
+};
 
 use velyst::prelude::*;
 
-use crate::{ player::LocalPlayerId, ui::game_ui::GameUi };
+use crate::{player::LocalPlayerId, ui::game_ui::GameUi};
 
 pub(super) struct HealthUiPlugin;
 
@@ -21,10 +24,10 @@ impl Plugin for HealthUiPlugin {
 fn update_health_ui(
     q_spaceships: Query<
         (&Health, &MaxHealth, &PlayerId),
-        (Changed<Health>, With<Spaceship>, With<SourceEntity>)
+        (Changed<Health>, With<Spaceship>, With<SourceEntity>),
     >,
     local_player_id: Res<LocalPlayerId>,
-    mut health_func: ResMut<HealthFunc>
+    mut health_func: ResMut<HealthFunc>,
 ) {
     for (health, max_health, player_id) in q_spaceships.iter() {
         if player_id == &local_player_id.0 {
