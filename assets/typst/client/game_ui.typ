@@ -209,7 +209,7 @@
 #let playerhealth(
   current_hp,
   max_hp,
-  rect_width: 21pt,
+  total_width: 280pt,
   rect_height: 31pt,
   spacing: 8pt,
 ) = {
@@ -217,22 +217,41 @@
   let blocks = calc.ceil(current_hp / 10)
   let max_blocks = calc.ceil(max_hp / 10)
 
-  // Define health state colors
-  let healthy_color = rgb("A9DC76") // Green
-  let medium_color = rgb("FFB454") // Orange
-  let low_color = rgb("FF6188") // Red
+  // Calculate the width of each block
+  let rect_width = (total_width - (max_blocks - 1) * spacing) / max_blocks
 
-  // Function to determine block color based on health ratio
+  // Define health state colors
+  let low_color = rgb("FF6188")       // Red
+  let medium_color = rgb("FFB454")    // Orange
+  let medium_high_color = rgb("FFEB3B")    // Bright Yellow
+  let healthy_color = rgb("A9DC76")   // Green
+
+  // Function to determine block color based on health ratio and block index
   let get_block_color(block_index) = {
     let hp_ratio = current_hp / max_hp
 
-    // Color thresholds
-    if hp_ratio > 0.7 {
-      healthy_color.saturate(80%)
-    } else if hp_ratio > 0.3 {
-      medium_color.saturate(80%)
+    // Color progression for all blocks
+    if block_index < 15 {
+      if hp_ratio > 0.7 {
+        healthy_color.saturate(80%)
+      } else if hp_ratio > 0.5 {
+        medium_high_color.saturate(80%)
+      } else if hp_ratio > 0.3 {
+        medium_color.saturate(80%)
+      } else {
+        low_color.saturate(80%)
+      }
     } else {
-      low_color.saturate(80%)
+      // After 15 blocks, color changes based on overall health
+      if hp_ratio > 0.7 {
+        healthy_color.saturate(80%)
+      } else if hp_ratio > 0.5 {
+        medium_high_color.saturate(80%)
+      } else if hp_ratio > 0.3 {
+        medium_color.saturate(80%)
+      } else {
+        low_color.saturate(80%)
+      }
     }
   }
 
