@@ -185,6 +185,22 @@ impl TerrainStates {
 
         Self(states)
     }
+
+    pub fn get_map_corners_without_noise_surr(config: &TerrainConfigAsset) -> (Vec2, Vec2) {
+        // Bottom-left corner, adjusted to avoid noise surrounding width
+        let bottom_left = Vec2::new(
+            config.noise_surr_width as f32 * config.tile_size,
+            config.noise_surr_width as f32 * config.tile_size,
+        );
+
+        // Upper-right corner, adjusted to avoid noise surrounding width
+        let upper_right = Vec2::new(
+            (config.size.x - config.noise_surr_width) as f32 * config.tile_size,
+            (config.size.y - config.noise_surr_width) as f32 * config.tile_size,
+        );
+
+        (bottom_left, upper_right)
+    }
 }
 
 #[derive(Resource)]
