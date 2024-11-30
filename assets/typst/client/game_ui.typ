@@ -221,10 +221,10 @@
   let rect_width = (total_width - (max_blocks - 1) * spacing) / max_blocks
 
   // Define health state colors
-  let low_color = rgb("FF6188") // Red
-  let medium_color = rgb("FFB454") // Orange
-  let medium_high_color = rgb("FFEB3B") // Bright Yellow
-  let healthy_color = rgb("A9DC76") // Green
+  let low_color = red // Red
+  let medium_color = orange // Orange
+  let medium_high_color = yellow.mix((base7, 50%)) // Bright Yellow
+  let healthy_color = green // Green
 
   // Function to determine block color based on health ratio and block index
   let get_block_color(block_index) = {

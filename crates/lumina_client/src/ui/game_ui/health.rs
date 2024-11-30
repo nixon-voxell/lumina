@@ -8,7 +8,8 @@ use lumina_shared::{
 
 use velyst::prelude::*;
 
-use crate::{player::LocalPlayerId, ui::game_ui::GameUi};
+use crate::player::LocalPlayerId;
+use crate::ui::game_ui::GameUi;
 
 pub(super) struct HealthUiPlugin;
 
@@ -29,12 +30,12 @@ fn update_health_ui(
     local_player_id: Res<LocalPlayerId>,
     mut health_func: ResMut<HealthFunc>,
 ) {
-    for (health, max_health, player_id) in q_spaceships.iter() {
-        if player_id == &local_player_id.0 {
-            health_func.current_hp = **health as f64;
-            health_func.max_hp = **max_health as f64;
-            break;
-        }
+    for (health, max_health, _player_id) in q_spaceships
+        .iter()
+        .filter(|(_, _, id)| **id == local_player_id.0)
+    {
+        health_func.current_hp = **health as f64;
+        health_func.max_hp = **max_health as f64;
     }
 }
 
