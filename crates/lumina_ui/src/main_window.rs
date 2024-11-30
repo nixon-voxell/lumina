@@ -95,7 +95,6 @@ pub struct MainWindowFunc {
 struct MainWindowUi;
 
 /// Helper for ordering and pushing content to MainWindowFunc.
-
 pub fn push_to_main_window_background<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Background)
 }

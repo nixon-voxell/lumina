@@ -50,7 +50,7 @@ pub struct LocalPlayerInfo<'w> {
     pub local_player_id: Res<'w, LocalPlayerId>,
 }
 
-impl<'w> LocalPlayerInfo<'w> {
+impl LocalPlayerInfo<'_> {
     pub fn get(&self, info_type: PlayerInfoType) -> Option<Entity> {
         self.player_infos[info_type]
             .get(&**self.local_player_id)
