@@ -15,8 +15,10 @@ pub struct FlatlandGiPlugin;
 
 impl Plugin for FlatlandGiPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Msaa::Off)
-            .add_plugins(generate_mipmap::GenerateMipmapPlugin);
+        app.insert_resource(Msaa::Off).add_plugins((
+            generate_mipmap::GenerateMipmapPlugin,
+            // radiance_cascades::RadianceCascadesPlugin,
+        ));
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
@@ -28,7 +30,7 @@ impl Plugin for FlatlandGiPlugin {
                 (
                     Node2d::MainTransparentPass,
                     FlatlandGi::Mipmap,
-                    FlatlandGi::Radiance,
+                    // FlatlandGi::Radiance,
                     Node2d::EndMainPass,
                 ),
             )

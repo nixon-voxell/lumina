@@ -5,5 +5,6 @@
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    return textureSampleLevel(screen_texture, screen_sampler, in.uv, 3.0);
+    return textureSampleLevel(screen_texture, screen_sampler, in.uv, 0.0);
+    // return textureLoad(screen_texture, vec2<u32>(in.uv * vec2<f32>(1600.0, 900.0)), 0);
 }

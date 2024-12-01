@@ -10,11 +10,6 @@ const EPSILON: f32 = 4.88e-04;
 @group(0) @binding(2) var tex_radiance_cascades_source: texture_2d<f32>;
 @group(0) @binding(3) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
 
-@fragment
-fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    return textureSampleLevel(screen_texture, screen_sampler, in.uv, 3.0);
-}
-
 @compute
 @workgroup_size(8, 8, 1)
 fn radiance_cascades(
@@ -46,7 +41,7 @@ fn radiance_cascades(
     var probe_coord_center = probe_coord + probe.width / 2;
     let origin = vec2<f32>(probe_coord_center) + ray_dir * probe.start;
 
-    var color = raymarch(origin, ray_dir, probe.range);
+    var color = raymarch(origin, ray_dir);
 
 #ifdef MERGE
     // TODO: Factor in transparency.
@@ -62,12 +57,16 @@ fn radiance_cascades(
     );
 }
 
-fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>, range: f32) -> vec4<f32> {
+fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
+    let range = probe.range;
+    let tex_level = probe.cascade_count * 2;
+
     var color = vec4<f32>(0.0);
     var position = origin;
     var covered_range = 0.0;
 
     let dimensions = vec2<f32>(textureDimensions(tex_main));
+    // let raymarch_count = 
 
     for (var r = 0u; r < MAX_RAYMARCH; r++) {
         if (

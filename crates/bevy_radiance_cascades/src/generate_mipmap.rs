@@ -73,7 +73,7 @@ fn prepare_mipmap_textures(
         let views = (0..config.mip_count)
             .map(|mip| {
                 cached_tex.texture.create_view(&TextureViewDescriptor {
-                    label: Some("mip"),
+                    label: Some(&format!("mip{mip}")),
                     format: None,
                     dimension: None,
                     aspect: TextureAspect::All,
