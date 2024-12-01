@@ -10,43 +10,50 @@ impl Plugin for SpawnPointPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PostUpdate,
-            init_spaceship.after(TransformSystem::TransformPropagate),
+            init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
         )
         .observe(on_add_spawned)
         .observe(on_remove_spawned);
     }
 }
 
-// Initialize spaceships and assign them alternately to teams.
-fn init_spaceship(
+/// Initialize spaceships and assign them to available spawn points.
+fn init_spaceships_at_spawn_points(
     mut commands: Commands,
-    q_spawn_points: Query<(&GlobalTransform, Entity), (With<SpawnPoint>, Without<SpawnPointUsed>)>,
-    mut q_spaceships: Query<
+    spawn_point_query: Query<
+        (&GlobalTransform, &TeamType, Entity),
+        (With<SpawnPoint>, Without<SpawnPointUsed>),
+    >,
+    mut spaceship_query: Query<
         (&mut Position, &mut Rotation, Entity),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<SpawnPointEntity>,
-        ),
+        (With<Spaceship>, Without<SpawnPointEntity>),
     >,
 ) {
-    let mut spawn_points = q_spawn_points.iter();
+    let mut available_spawn_points = spawn_point_query.iter();
 
-    for (mut position, mut rotation, entity) in q_spaceships.iter_mut() {
-        // Obtain a new spawn transform.
-        let Some((spawn_transform, spawn_entity)) = spawn_points.next() else {
-            return;
+    for (mut spaceship_position, mut spaceship_rotation, spaceship_entity) in
+        spaceship_query.iter_mut()
+    {
+        // Retrieve the next available spawn point and its transform.
+        let Some((spawn_point_transform, team_type, spawn_point_entity)) =
+            available_spawn_points.next()
+        else {
+            return; // Exit if there are no more available spawn points
         };
 
-        let (_, spawn_rot, spawn_trans) = spawn_transform.to_scale_rotation_translation();
+        // Extract position and rotation from the spawn point's transform
+        let (_, spawn_point_rotation, spawn_point_translation) =
+            spawn_point_transform.to_scale_rotation_translation();
 
-        *position = Position(spawn_trans.xy());
-        *rotation = Rotation::radians(spawn_rot.to_scaled_axis().z);
+        // Set spaceship position and rotation based on the spawn point's transform
+        *spaceship_position = Position(spawn_point_translation.xy());
+        *spaceship_rotation = Rotation::radians(spawn_point_rotation.to_scaled_axis().z);
 
+        // Associate the spaceship with the spawn point, mark it as used, and assign its team type
         commands
-            .entity(entity)
-            .insert(SpawnPointEntity(spawn_entity));
-        commands.entity(spawn_entity).insert(SpawnPointUsed);
+            .entity(spaceship_entity)
+            .insert((SpawnPointEntity(spawn_point_entity), *team_type)); // Assign the TeamType here
+        commands.entity(spawn_point_entity).insert(SpawnPointUsed); // Mark spawn point as used
     }
 }
 
@@ -84,12 +91,6 @@ pub struct SpawnPoint(TeamType);
 pub enum TeamType {
     A,
     B,
-}
-
-impl Default for TeamType {
-    fn default() -> Self {
-        TeamType::A // Default team is Team A.
-    }
 }
 
 #[derive(Component)]

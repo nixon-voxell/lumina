@@ -13,8 +13,7 @@ pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(TeamToggle::new())
-            .add_systems(Update, (start_game, init_spaceship_position));
+        app.add_systems(Update, (start_game, init_spaceship_position));
     }
 }
 
@@ -45,69 +44,48 @@ fn start_game(
     }
 }
 
-/// This function updates the position of newly spawned spaceships
+/// Updates the position of newly spawned spaceships based on their assigned team type.
 fn init_spaceship_position(
     mut commands: Commands,
-    mut q_spaceships: Query<
-        (&mut Position, &mut Rotation, &PlayerId, Entity),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<PositionInitialized>,
-        ),
-    >,
-    q_in_game_lobbies: Query<(), With<LobbyInGame>>,
+    mut spaceship_query: Query<(&mut Position, &PlayerId, &TeamType, Entity), With<Spaceship>>,
+    in_game_lobbies_query: Query<(), With<LobbyInGame>>,
     terrain_config: TerrainConfig,
-    lobby_infos: Res<LobbyInfos>,
-    mut team_toggle: ResMut<TeamToggle>, // Access the team toggle resource
+    lobby_info: Res<LobbyInfos>,
 ) {
+    // Ensure the terrain config is available
     let Some(terrain_config) = terrain_config.get() else {
         eprintln!("Terrain config is not available!");
         return;
     };
 
+    // Retrieve map corners (bottom-left and upper-right) based on terrain configuration
     let (bottom_left, upper_right) =
         TerrainStates::get_map_corners_without_noise_surr(terrain_config);
 
-    println!(
-        "\n\n\n\nDebugging Map Corners: Bottom-left: {:?}, Upper-right: {:?}",
-        bottom_left, upper_right
-    );
-
-    for (mut position, _rotation, id, entity) in q_spaceships.iter_mut() {
-        if lobby_infos
-            .get(&**id)
-            .is_some_and(|e| q_in_game_lobbies.contains(*e))
+    for (mut spaceship_position, player_id, team_type, spaceship_entity) in
+        spaceship_query.iter_mut()
+    {
+        // Skip if the spaceship is not part of an in-game lobby
+        if lobby_info
+            .get(&**player_id)
+            .is_some_and(|lobby_entity| in_game_lobbies_query.contains(*lobby_entity))
             == false
         {
             continue;
         }
 
-        let (spawn_position, team_type) = if team_toggle.toggle {
-            (bottom_left, TeamType::A)
-        } else {
-            (upper_right, TeamType::B)
+        // Position the spaceship based on its assigned team type
+        *spaceship_position = match team_type {
+            TeamType::A => Position(Vec2::new(bottom_left.x, bottom_left.y)),
+            TeamType::B => Position(Vec2::new(upper_right.x, upper_right.y)),
         };
 
-        team_toggle.toggle = !team_toggle.toggle; // Toggle the team for the next spawn
-
-        *position = Position(spawn_position);
+        // Mark the spaceship as initialized
         commands
-            .entity(entity)
-            .insert((PositionInitialized, team_type));
+            .entity(spaceship_entity)
+            .insert(PositionInitialized);
     }
 }
 
 #[derive(Component)]
 pub struct PositionInitialized;
-
-#[derive(Resource)]
-pub struct TeamToggle {
-    pub toggle: bool,
-}
-
-impl TeamToggle {
-    pub fn new() -> Self {
-        Self { toggle: true }
-    }
-}
