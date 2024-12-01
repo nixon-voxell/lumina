@@ -11,13 +11,13 @@ use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
 use bevy_radiance_cascades::generate_mipmap::MipmapTexture;
 use bevy_radiance_cascades::prelude::*;
-use bevy_radiance_cascades::RadianceCascadesPlugin;
+use bevy_radiance_cascades::FlatlandGiPlugin;
 use binding_types::sampler;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins((RadianceCascadesPlugin, DebugPipelinePlugin))
+        .add_plugins((FlatlandGiPlugin, DebugPipelinePlugin))
         .add_systems(Startup, setup)
         .run();
 }

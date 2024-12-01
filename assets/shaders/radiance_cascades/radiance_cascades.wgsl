@@ -7,9 +7,13 @@ const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> probe: Probe;
 @group(0) @binding(1) var tex_main: texture_2d<f32>;
-@group(0) @binding(2) var tex_dist_field: texture_2d<f32>;
-@group(0) @binding(3) var tex_radiance_cascades_source: texture_2d<f32>;
-@group(0) @binding(4) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
+@group(0) @binding(2) var tex_radiance_cascades_source: texture_2d<f32>;
+@group(0) @binding(3) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
+
+@fragment
+fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
+    return textureSampleLevel(screen_texture, screen_sampler, in.uv, 3.0);
+}
 
 @compute
 @workgroup_size(8, 8, 1)

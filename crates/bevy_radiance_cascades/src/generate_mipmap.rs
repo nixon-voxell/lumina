@@ -1,18 +1,18 @@
-use bevy::core_pipeline::core_2d::graph::{Core2d, Node2d};
+use bevy::core_pipeline::core_2d::graph::Core2d;
 use bevy::core_pipeline::fullscreen_vertex_shader::fullscreen_shader_vertex_state;
 use bevy::ecs::query::QueryItem;
 use bevy::prelude::*;
 use bevy::render::extract_component::{ExtractComponent, ExtractComponentPlugin};
+use bevy::render::render_graph::*;
 use bevy::render::render_resource::binding_types::texture_2d;
 use bevy::render::render_resource::*;
 use bevy::render::renderer::{RenderContext, RenderDevice};
 use bevy::render::texture::{CachedTexture, TextureCache};
 use bevy::render::view::ViewTarget;
-use bevy::render::{render_graph::*, RenderSet};
-use bevy::render::{Render, RenderApp};
+use bevy::render::{Render, RenderApp, RenderSet};
 use binding_types::sampler;
 
-use crate::RadianceCascadesPass;
+use crate::FlatlandGi;
 
 pub struct GenerateMipmapPlugin;
 
@@ -25,18 +25,7 @@ impl Plugin for GenerateMipmapPlugin {
         };
 
         render_app
-            .add_render_graph_node::<ViewNodeRunner<MipmapPipelineNode>>(
-                Core2d,
-                RadianceCascadesPass::Mipmap,
-            )
-            .add_render_graph_edges(
-                Core2d,
-                (
-                    Node2d::MainTransparentPass,
-                    RadianceCascadesPass::Mipmap,
-                    Node2d::EndMainPass,
-                ),
-            )
+            .add_render_graph_node::<ViewNodeRunner<MipmapPipelineNode>>(Core2d, FlatlandGi::Mipmap)
             .add_systems(
                 Render,
                 prepare_mipmap_textures.in_set(RenderSet::PrepareResources),
