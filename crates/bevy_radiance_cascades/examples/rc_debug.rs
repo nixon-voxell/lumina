@@ -9,8 +9,8 @@ use bevy::render::view::ViewTarget;
 use bevy::render::{render_graph::*, RenderSet};
 use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
-use bevy_radiance_cascades::generate_mipmap::MipmapTexture;
 use bevy_radiance_cascades::prelude::*;
+use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use bevy_radiance_cascades::FlatlandGiPlugin;
 use binding_types::sampler;
 
@@ -19,11 +19,12 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins((FlatlandGiPlugin, DebugPipelinePlugin))
         .add_systems(Startup, setup)
+        .add_systems(Update, config_update)
         .run();
 }
 
 const X_EXTENT: f32 = 900.0;
-const MIPMAP_NUM: u32 = 4;
+// const X_EXTENT: f32 = 0.0;
 
 fn setup(
     mut commands: Commands,
@@ -34,17 +35,16 @@ fn setup(
         Camera2dBundle {
             camera: Camera {
                 hdr: true,
+                clear_color: ClearColorConfig::Custom(Color::NONE),
                 ..default()
             },
             ..default()
         },
-        MipmapConfig {
-            mip_count: MIPMAP_NUM,
-        },
+        RadianceCascadesConfig::default(),
     ));
 
     let shapes = [
-        meshes.add(Circle::new(50.0)),
+        meshes.add(Circle::new(10.0)),
         meshes.add(CircularSector::new(50.0, 1.0)),
         meshes.add(CircularSegment::new(50.0, 1.25)),
         meshes.add(Ellipse::new(25.0, 50.0)),
@@ -63,7 +63,8 @@ fn setup(
 
     for (i, shape) in shapes.into_iter().enumerate() {
         // Distribute colors evenly across the rainbow.
-        let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 0.7);
+        let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
+        // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
 
         commands.spawn(ColorMesh2dBundle {
             mesh: Mesh2dHandle(shape),
@@ -73,9 +74,32 @@ fn setup(
                 -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
                 0.0,
                 0.0,
+                // 0.0, 0.0, 0.0,
             ),
             ..default()
         });
+    }
+}
+
+fn config_update(
+    mut q_config: Query<&mut RadianceCascadesConfig>,
+    kbd_input: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+) {
+    let mut config = q_config.single_mut();
+
+    let speed = match kbd_input.pressed(KeyCode::ShiftLeft) {
+        true => 6.0,
+        false => 3.0,
+    };
+
+    let offset = time.delta_seconds() * speed;
+    if kbd_input.pressed(KeyCode::KeyK) {
+        let interval = config.interval();
+        config.set_interval(interval + offset);
+    } else if kbd_input.pressed(KeyCode::KeyJ) {
+        let interval = config.interval();
+        config.set_interval(interval - offset);
     }
 }
 
@@ -99,23 +123,37 @@ impl Plugin for DebugPipelinePlugin {
             )
             .add_systems(
                 Render,
-                (|mut commands: Commands, q_textures: Query<(&MipmapTexture, Entity)>| {
+                (|mut commands: Commands,
+                  q_textures: Query<(&RadianceCascadesTextures, Entity)>| {
                     for (tex, entity) in q_textures.iter() {
-                        commands.entity(entity).insert(DebugTexture(
-                            tex.cached_tex.texture.create_view(&TextureViewDescriptor {
-                                label: Some("debug_view"),
-                                format: None,
-                                dimension: None,
-                                aspect: TextureAspect::All,
-                                base_mip_level: 0,
-                                mip_level_count: Some(MIPMAP_NUM),
-                                base_array_layer: 0,
-                                array_layer_count: None,
-                            }),
-                        ));
+                        commands
+                            .entity(entity)
+                            .insert(DebugTexture(tex.mipmap_tex.default_view.clone()));
                     }
                 })
                 .after(RenderSet::PrepareResources),
+                // (|mut commands: Commands,
+                //   q_textures: Query<(
+                //     &bevy_radiance_cascades::mipmap::MipmapTexture,
+                //     &MipmapConfig,
+                //     Entity,
+                // )>| {
+                //     for (tex, config, entity) in q_textures.iter() {
+                //         commands.entity(entity).insert(DebugTexture(
+                //             tex.cached_tex.texture.create_view(&TextureViewDescriptor {
+                //                 label: Some("debug_view"),
+                //                 format: None,
+                //                 dimension: None,
+                //                 aspect: TextureAspect::All,
+                //                 base_mip_level: 0,
+                //                 mip_level_count: Some(config.mip_count),
+                //                 base_array_layer: 0,
+                //                 array_layer_count: None,
+                //             }),
+                //         ));
+                //     }
+                // })
+                // .after(RenderSet::PrepareResources),
             );
     }
 

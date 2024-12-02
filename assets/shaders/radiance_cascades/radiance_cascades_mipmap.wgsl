@@ -1,4 +1,4 @@
-#import "shaders/radiance_probe.wgsl"::Probe;
+#import "shaders/radiance_cascades/radiance_probe.wgsl"::Probe;
 
 @group(0) @binding(0) var<uniform> probe: Probe;
 @group(0) @binding(1) var tex_radiance_cascades: texture_2d<f32>;

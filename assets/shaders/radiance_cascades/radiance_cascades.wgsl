@@ -1,14 +1,18 @@
 #import bevy_render::maths::{PI_2, HALF_PI}
-#import "shaders/radiance_probe.wgsl"::Probe;
+#import "shaders/radiance_cascades/radiance_probe.wgsl"::Probe;
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
-const MAX_RAYMARCH: u32 = 32;
+/// Raymarch length in pixels.
+const RAYMARCH_LENGTH: f32 = 3.0;
+const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> probe: Probe;
 @group(0) @binding(1) var tex_main: texture_2d<f32>;
-@group(0) @binding(2) var tex_radiance_cascades_source: texture_2d<f32>;
-@group(0) @binding(3) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
+@group(0) @binding(2) var sampler_main: sampler;
+
+@group(1) @binding(0) var tex_radiance_cascades_source: texture_2d<f32>;
+@group(1) @binding(1) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
 
 @compute
 @workgroup_size(8, 8, 1)
@@ -38,10 +42,10 @@ fn radiance_cascades(
     let probe_coord = probe_cell * probe.width;
 
     // Center coordinate of the probe grid
-    var probe_coord_center = probe_coord + probe.width / 2;
-    let origin = vec2<f32>(probe_coord_center) + ray_dir * probe.start;
+    let probe_coord_center = probe_coord + probe.width / 2;
+    let ray_origin = vec2<f32>(probe_coord_center) + ray_dir * probe.start;
 
-    var color = raymarch(origin, ray_dir);
+    var color = raymarch(ray_origin, ray_dir);
 
 #ifdef MERGE
     // TODO: Factor in transparency.
@@ -59,7 +63,7 @@ fn radiance_cascades(
 
 fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
     let range = probe.range;
-    let tex_level = probe.cascade_count * 2;
+    // let tex_level = probe.cascade_index * 2;
 
     var color = vec4<f32>(0.0);
     var position = origin;
@@ -78,28 +82,24 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let coord = vec2<u32>(round(position));
-        var dist = textureLoad(tex_dist_field, coord, 0).r;
 
-        if (dist < EPSILON) {
-            // position += ray_dir * 1.5;
-            color = textureLoad(tex_main, coord, 0);
+        color = textureLoad(tex_main, coord, 0);
 
-            // Treat values from -1.0 ~ 1.0 as no light
-            // This way, we can handle both negative and postive light
-            let color_sign = sign(color);
-            let color_abs = abs(color);
+        // Treat values from -1.0 ~ 1.0 as no light
+        // This way, we can handle both negative and postive light
+        let color_sign = sign(color);
+        let color_abs = abs(color);
 
-            color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
-            color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
-            color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
+        color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
+        color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
+        color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
 
-            // TODO: Factor in transparency.
-            color.a = 1.0;
+        if color.a > (1.0 - EPSILON) {
             break;
         }
 
-        position += ray_dir * dist;
-        covered_range += dist;
+        position += ray_dir * RAYMARCH_LENGTH;
+        covered_range += RAYMARCH_LENGTH;
     }
 
     return color;
