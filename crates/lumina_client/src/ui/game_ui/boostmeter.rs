@@ -2,6 +2,11 @@ use bevy::prelude::*;
 use velyst::prelude::*;
 
 use crate::ui::game_ui::GameUi;
+
+use crate::player::LocalPlayerId;
+use lumina_shared::player::spaceship::Boost;
+use lumina_shared::player::PlayerId;
+
 pub(super) struct BoostmeterUiPlugin;
 
 impl Plugin for BoostmeterUiPlugin {
@@ -9,33 +14,25 @@ impl Plugin for BoostmeterUiPlugin {
         app.register_typst_asset::<GameUi>()
             .compile_typst_func::<GameUi, BoostmeterFunc>()
             .init_resource::<BoostmeterFunc>()
-            .insert_resource(BoostmeterFunc {
-                height: 10.0,
-                width: 213.0,
-                red_height: 0.0,
-            })
             .add_systems(Update, update_boost_meter);
     }
 }
 
-/// Update the booster fill state
+/// Update the boost meter UI to reflect energy changes during boosting and regeneration.
 fn update_boost_meter(
-    time: Res<Time>,
-    keys: Res<ButtonInput<KeyCode>>,
-    mut boostmeter_func: ResMut<BoostmeterFunc>,
+    q_boosts: Query<(&Boost, &PlayerId)>, // Query for Boost and PlayerId components
+    local_player_id: Res<LocalPlayerId>, // Local player's ID
+    mut boostmeter_func: ResMut<BoostmeterFunc> // Boostmeter resource to update
 ) {
-    // If space is pressed, increase the boost bar's height
-    if keys.pressed(KeyCode::Space) {
-        boostmeter_func.red_height += 0.5 * (time.delta_seconds() as f64);
-        if boostmeter_func.red_height > 1.0 {
-            boostmeter_func.red_height = 1.0; // Cap it at 100%
-        }
-    } else {
-        // If space is released, reduce the height
-        boostmeter_func.red_height -= 0.5 * (time.delta_seconds() as f64);
-        if boostmeter_func.red_height < 0.0 {
-            boostmeter_func.red_height = 0.0; // Min is 0%
-        }
+    // Filter boosts by the local player's ID
+    for (boost, _player_id) in q_boosts.iter().filter(|(_, id)| **id == local_player_id.0) {
+        boostmeter_func.red_height = (boost.energy / boost.max_energy) as f64;
+        info!(
+            "Boost energy updated for local player: {} / {}, red_height: {}",
+            boost.energy,
+            boost.max_energy,
+            boostmeter_func.red_height
+        );
     }
 }
 
