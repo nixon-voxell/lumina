@@ -11,6 +11,7 @@ use bevy::render::view::ViewTarget;
 use bevy::render::{Render, RenderApp, RenderSet};
 use binding_types::sampler;
 
+use crate::extract::ExtractTexture;
 use crate::FlatlandGi;
 
 pub struct MipmapPlugin;
@@ -102,6 +103,7 @@ pub struct MipmapPipelineNode;
 impl ViewNode for MipmapPipelineNode {
     type ViewQuery = (
         &'static ViewTarget,
+        &'static ExtractTexture,
         &'static MipmapConfig,
         &'static MipmapTexture,
     );
@@ -110,7 +112,7 @@ impl ViewNode for MipmapPipelineNode {
         &self,
         _graph: &mut RenderGraphContext,
         render_context: &mut RenderContext<'w>,
-        (view, config, textures): QueryItem<'w, Self::ViewQuery>,
+        (view, extract_tex, config, mipmap_tex): QueryItem<'w, Self::ViewQuery>,
         world: &'w World,
     ) -> Result<(), NodeRunError> {
         let pipeline_cache = world.resource::<PipelineCache>();
@@ -120,11 +122,11 @@ impl ViewNode for MipmapPipelineNode {
             return Ok(());
         };
 
-        let main_texture = view.main_texture();
+        let extract_texture = &extract_tex.texture;
         render_context.command_encoder().copy_texture_to_texture(
-            main_texture.as_image_copy(),
-            textures.cached_tex.texture.as_image_copy(),
-            main_texture.size(),
+            extract_texture.as_image_copy(),
+            mipmap_tex.cached_tex.texture.as_image_copy(),
+            extract_texture.size(),
         );
 
         for target_mip in 1..config.mip_count as usize {
@@ -132,7 +134,7 @@ impl ViewNode for MipmapPipelineNode {
                 "mipmap_bind_group",
                 &mipmap_pipeline.layout,
                 &BindGroupEntries::sequential((
-                    &textures.views[target_mip - 1],
+                    &mipmap_tex.views[target_mip - 1],
                     &mipmap_pipeline.sampler,
                 )),
             );
@@ -140,7 +142,7 @@ impl ViewNode for MipmapPipelineNode {
             let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
                 label: Some("mipmap_pass"),
                 color_attachments: &[Some(RenderPassColorAttachment {
-                    view: &textures.views[target_mip],
+                    view: &mipmap_tex.views[target_mip],
                     resolve_target: None,
                     ops: Operations::default(),
                 })],

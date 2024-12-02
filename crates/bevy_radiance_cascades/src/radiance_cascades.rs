@@ -256,9 +256,6 @@ fn prepare_rc_bind_groups(
     }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
-pub struct RadianceCascadesLabel;
-
 /// Adding this to [bevy::prelude::Camera2d] will enable Radiance Cascades GI.
 #[derive(ExtractComponent, Component, Clone, Copy)]
 pub struct RadianceCascadesConfig {

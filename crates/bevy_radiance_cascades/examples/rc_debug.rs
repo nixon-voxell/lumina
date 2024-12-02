@@ -24,7 +24,6 @@ fn main() {
 }
 
 const X_EXTENT: f32 = 900.0;
-// const X_EXTENT: f32 = 0.0;
 
 fn setup(
     mut commands: Commands,
@@ -36,6 +35,7 @@ fn setup(
             camera: Camera {
                 hdr: true,
                 clear_color: ClearColorConfig::Custom(Color::NONE),
+                // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
                 ..default()
             },
             ..default()
@@ -44,7 +44,7 @@ fn setup(
     ));
 
     let shapes = [
-        meshes.add(Circle::new(10.0)),
+        meshes.add(Circle::new(50.0)),
         meshes.add(CircularSector::new(50.0, 1.0)),
         meshes.add(CircularSegment::new(50.0, 1.25)),
         meshes.add(Ellipse::new(25.0, 50.0)),
@@ -66,18 +66,24 @@ fn setup(
         let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
         // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
 
-        commands.spawn(ColorMesh2dBundle {
-            mesh: Mesh2dHandle(shape),
-            material: materials.add(color),
-            transform: Transform::from_xyz(
-                // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
-                0.0,
-                0.0,
-                // 0.0, 0.0, 0.0,
-            ),
-            ..default()
-        });
+        let entity = commands
+            .spawn(ColorMesh2dBundle {
+                mesh: Mesh2dHandle(shape),
+                material: materials.add(color),
+                transform: Transform::from_xyz(
+                    // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
+                    -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
+                    0.0,
+                    0.0,
+                    // 0.0, 0.0, 0.0,
+                ),
+                ..default()
+            })
+            .id();
+
+        if i % 2 == 0 {
+            commands.entity(entity).insert(Radiance);
+        }
     }
 }
 
