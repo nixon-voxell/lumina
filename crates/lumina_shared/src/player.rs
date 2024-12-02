@@ -1,4 +1,4 @@
-use std::ops::{ Index, IndexMut };
+use std::ops::{Index, IndexMut};
 
 use avian2d::prelude::*;
 use bevy::ecs::schedule::SystemConfigs;
@@ -7,8 +7,8 @@ use bevy::utils::HashMap;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use spaceship::Spaceship;
 use spaceship::Boost;
+use spaceship::Spaceship;
 use strum::EnumCount;
 use weapon::Weapon;
 
@@ -20,12 +20,12 @@ pub mod spawn_point;
 pub mod weapon;
 
 pub mod prelude {
-    pub use super::ammo::{ Ammo, AmmoDamage, AmmoStat, FireAmmo };
-    pub use super::spaceship::Spaceship;
+    pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
     pub use super::spaceship::Boost;
-    pub use super::spawn_point::{ SpawnPoint, SpawnPointEntity, SpawnPointUsed };
-    pub use super::weapon::{ Weapon, WeaponStat };
-    pub use super::{ PlayerId, PlayerInfoType, PlayerInfos };
+    pub use super::spaceship::Spaceship;
+    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed};
+    pub use super::weapon::{Weapon, WeaponStat};
+    pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
 }
 
 pub(super) struct PlayerPlugin;
@@ -41,21 +41,22 @@ impl Plugin for PlayerPlugin {
 
         app.init_resource::<PlayerInfos>()
             .add_systems(PostUpdate, propagate_component::<PlayerId>)
-            .add_systems(Update, (
-                insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
-                insert_info::<Spaceship>(PlayerInfoType::Spaceship),
-                insert_info::<Weapon>(PlayerInfoType::Weapon),
-                insert_info::<Boost>(PlayerInfoType::Boost),
-            ));
+            .add_systems(
+                Update,
+                (
+                    insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
+                    insert_info::<Spaceship>(PlayerInfoType::Spaceship),
+                    insert_info::<Weapon>(PlayerInfoType::Weapon),
+                    insert_info::<Boost>(PlayerInfoType::Boost),
+                ),
+            );
     }
 }
 
 /// Insert entity into [`PlayerInfos`].
 fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
-    let system = move |
-        q_entities: Query<(&PlayerId, Entity), (With<C>, Added<SourceEntity>)>,
-        mut player_infos: ResMut<PlayerInfos>
-    | {
+    let system = move |q_entities: Query<(&PlayerId, Entity), (With<C>, Added<SourceEntity>)>,
+                       mut player_infos: ResMut<PlayerInfos>| {
         for (id, entity) in q_entities.iter() {
             player_infos[info_type].insert(*id, entity);
         }

@@ -7,7 +7,7 @@ use lumina_common::prelude::*;
 use crate::action::PlayerAction;
 use crate::health::Health;
 
-use super::{ PlayerId, PlayerInfoType, PlayerInfos };
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
 pub(super) struct SpaceshipPlugin;
 
@@ -62,27 +62,21 @@ impl Boost {
     pub fn try_boost(&mut self, delta_time: f32) -> bool {
         info!(
             "Attempting boost: State = {:?}, Energy = {:.2}/{:.2}",
-            self.state,
-            self.energy,
-            self.max_energy
+            self.state, self.energy, self.max_energy
         );
 
         if self.state == BoostState::Idle && self.energy >= self.consumption_rate * delta_time {
             // Start boosting
             self.state = BoostState::Boosting;
-            self.energy = (self.energy - self.consumption_rate * delta_time).clamp(
-                0.0,
-                self.max_energy
-            );
+            self.energy =
+                (self.energy - self.consumption_rate * delta_time).clamp(0.0, self.max_energy);
             return true;
         }
 
         // Remain in boosting if enough energy is present
         if self.state == BoostState::Boosting {
-            self.energy = (self.energy - self.consumption_rate * delta_time).clamp(
-                0.0,
-                self.max_energy
-            );
+            self.energy =
+                (self.energy - self.consumption_rate * delta_time).clamp(0.0, self.max_energy);
             return true;
         }
 
@@ -100,13 +94,13 @@ impl Boost {
 
 fn init_spaceships(
     mut commands: Commands,
-    q_spaceships: Query<(&Spaceship, Entity), Added<SourceEntity>>
+    q_spaceships: Query<(&Spaceship, Entity), Added<SourceEntity>>,
 ) {
     // TODO: Consider using a lookup collider.
     let collider = Collider::triangle(
         Vec2::new(-20.0, 20.0),
         Vec2::new(-20.0, -20.0),
-        Vec2::new(20.0, 0.0)
+        Vec2::new(20.0, 0.0),
     );
 
     for (spaceship, spaceship_entity) in q_spaceships.iter() {
@@ -157,10 +151,10 @@ fn spaceship_movement(
             &Spaceship,
             &Visibility,
         ),
-        With<SourceEntity>
+        With<SourceEntity>,
     >,
     time: Res<Time>,
-    player_infos: Res<PlayerInfos>
+    player_infos: Res<PlayerInfos>,
 ) {
     // How fast the spaceship accelerates/decelarates.
     const ACCELERATION_FACTOR: f32 = 10.0;
@@ -176,17 +170,16 @@ fn spaceship_movement(
             continue;
         };
 
-        let Ok(
-            (
-                mut movement_stat,
-                mut linear,
-                mut linear_damping,
-                mut rotation,
-                mut boost,
-                spaceship,
-                viz,
-            ),
-        ) = q_spaceships.get_mut(spaceship_entity) else {
+        let Ok((
+            mut movement_stat,
+            mut linear,
+            mut linear_damping,
+            mut rotation,
+            mut boost,
+            spaceship,
+            viz,
+        )) = q_spaceships.get_mut(spaceship_entity)
+        else {
             continue;
         };
 
@@ -216,10 +209,8 @@ fn spaceship_movement(
         // Linear damping
         match is_braking {
             true => {
-                movement_stat.towards_linear_damping(
-                    spaceship.brake_linear_damping,
-                    damping_factor
-                );
+                movement_stat
+                    .towards_linear_damping(spaceship.brake_linear_damping, damping_factor);
             }
             false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
         }
@@ -227,33 +218,29 @@ fn spaceship_movement(
         // Linear acceleration
         match (is_moving, is_braking, boosting_active) {
             // Moving only
-            (true, false, false) =>
-                movement_stat.towards_linear_acceleration(
-                    spaceship.linear_acceleration,
-                    acceleration_factor,
-                    deceleration_factor
-                ),
+            (true, false, false) => movement_stat.towards_linear_acceleration(
+                spaceship.linear_acceleration,
+                acceleration_factor,
+                deceleration_factor,
+            ),
             // Moving and braking
-            (true, true, _) =>
-                movement_stat.towards_linear_acceleration(
-                    spaceship.brake_linear_acceleration,
-                    acceleration_factor,
-                    deceleration_factor
-                ),
+            (true, true, _) => movement_stat.towards_linear_acceleration(
+                spaceship.brake_linear_acceleration,
+                acceleration_factor,
+                deceleration_factor,
+            ),
             // Moving and boosting
-            (true, false, true) =>
-                movement_stat.towards_linear_acceleration(
-                    spaceship.boost_linear_acceleration,
-                    acceleration_factor,
-                    deceleration_factor
-                ),
+            (true, false, true) => movement_stat.towards_linear_acceleration(
+                spaceship.boost_linear_acceleration,
+                acceleration_factor,
+                deceleration_factor,
+            ),
             // Not even moving, reduce speed to 0.0
-            (false, ..) =>
-                movement_stat.towards_linear_acceleration(
-                    0.0,
-                    acceleration_factor,
-                    deceleration_factor
-                ),
+            (false, ..) => movement_stat.towards_linear_acceleration(
+                0.0,
+                acceleration_factor,
+                deceleration_factor,
+            ),
         }
 
         // Angular acceleration
@@ -261,7 +248,7 @@ fn spaceship_movement(
             movement_stat.linear_acceleration = FloatExt::lerp(
                 movement_stat.linear_acceleration,
                 spaceship.linear_acceleration,
-                acceleration_factor
+                acceleration_factor,
             );
 
             let movement = action
@@ -273,7 +260,7 @@ fn spaceship_movement(
 
             *rotation = rotation.slerp(
                 Rotation::radians(desired_angle),
-                f32::min(1.0, time.delta_seconds() * spaceship.rotation_speed)
+                f32::min(1.0, time.delta_seconds() * spaceship.rotation_speed),
             );
         }
 
@@ -289,8 +276,8 @@ fn spaceship_movement(
 pub(super) fn spaceship_health(
     mut q_spaceships: Query<
         (&Health, &mut Visibility),
-        (Changed<Health>, With<Spaceship>, With<SourceEntity>)
-    >
+        (Changed<Health>, With<Spaceship>, With<SourceEntity>),
+    >,
 ) {
     for (health, mut viz) in q_spaceships.iter_mut() {
         info!("{health:?}");
@@ -338,7 +325,7 @@ impl MovementStat {
         &mut self,
         target: f32,
         acceleration_factor: f32,
-        deceleration_factor: f32
+        deceleration_factor: f32,
     ) {
         let factor = match self.linear_acceleration.total_cmp(&target) {
             std::cmp::Ordering::Less => acceleration_factor,
@@ -378,7 +365,7 @@ pub struct SpaceshipPhysicsBundle {
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub enum BoostState {
-    Idle, // Not boosting
+    Idle,     // Not boosting
     Boosting, // Actively boosting
     Cooldown, // In cooldown period
 }
