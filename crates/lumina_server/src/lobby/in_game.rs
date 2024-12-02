@@ -47,14 +47,14 @@ fn start_game(
 /// Updates the position of newly spawned spaceships based on their assigned team type.
 fn init_spaceship_position(
     mut commands: Commands,
-    mut spaceship_query: Query<(&mut Position, &PlayerId, &TeamType, Entity), With<Spaceship>>,
-    in_game_lobbies_query: Query<(), With<LobbyInGame>>,
+    mut q_spaceship: Query<(&mut Position, &PlayerId, &TeamType, Entity), With<Spaceship>>,
+    q_in_game_lobbies: Query<(), With<LobbyInGame>>,
     terrain_config: TerrainConfig,
     lobby_info: Res<LobbyInfos>,
 ) {
     // Ensure the terrain config is available
     let Some(terrain_config) = terrain_config.get() else {
-        eprintln!("Terrain config is not available!");
+        error!("Terrain config is not available!");
         return;
     };
 
@@ -62,13 +62,11 @@ fn init_spaceship_position(
     let (bottom_left, upper_right) =
         TerrainStates::get_map_corners_without_noise_surr(terrain_config);
 
-    for (mut spaceship_position, player_id, team_type, spaceship_entity) in
-        spaceship_query.iter_mut()
-    {
+    for (mut spaceship_position, player_id, team_type, spaceship_entity) in q_spaceship.iter_mut() {
         // Skip if the spaceship is not part of an in-game lobby
         if lobby_info
             .get(&**player_id)
-            .is_some_and(|lobby_entity| in_game_lobbies_query.contains(*lobby_entity))
+            .is_some_and(|lobby_entity| q_in_game_lobbies.contains(*lobby_entity))
             == false
         {
             continue;

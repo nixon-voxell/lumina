@@ -20,23 +20,22 @@ impl Plugin for SpawnPointPlugin {
 /// Initialize spaceships and assign them to available spawn points.
 fn init_spaceships_at_spawn_points(
     mut commands: Commands,
-    spawn_point_query: Query<
-        (&GlobalTransform, &TeamType, Entity),
-        (With<SpawnPoint>, Without<SpawnPointUsed>),
-    >,
-    mut spaceship_query: Query<
+    q_spawn_point: Query<(&GlobalTransform, &SpawnPoint, Entity), Without<SpawnPointUsed>>,
+    mut q_spaceship: Query<
         (&mut Position, &mut Rotation, Entity),
-        (With<Spaceship>, Without<SpawnPointEntity>),
+        (
+            With<Spaceship>,
+            With<SourceEntity>,
+            Without<SpawnPointEntity>,
+        ),
     >,
 ) {
-    let mut available_spawn_points = spawn_point_query.iter();
+    let mut spawn_points = q_spawn_point.iter();
 
-    for (mut spaceship_position, mut spaceship_rotation, spaceship_entity) in
-        spaceship_query.iter_mut()
+    for (mut spaceship_position, mut spaceship_rotation, spaceship_entity) in q_spaceship.iter_mut()
     {
         // Retrieve the next available spawn point and its transform.
-        let Some((spawn_point_transform, team_type, spawn_point_entity)) =
-            available_spawn_points.next()
+        let Some((spawn_point_transform, spawn_point, spawn_point_entity)) = spawn_points.next()
         else {
             return; // Exit if there are no more available spawn points
         };
@@ -52,7 +51,7 @@ fn init_spaceships_at_spawn_points(
         // Associate the spaceship with the spawn point, mark it as used, and assign its team type
         commands
             .entity(spaceship_entity)
-            .insert((SpawnPointEntity(spawn_point_entity), *team_type)); // Assign the TeamType here
+            .insert((SpawnPointEntity(spawn_point_entity), **spawn_point));
         commands.entity(spawn_point_entity).insert(SpawnPointUsed); // Mark spawn point as used
     }
 }
