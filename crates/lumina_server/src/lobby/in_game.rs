@@ -14,70 +14,62 @@ pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (start_game, init_spaceship_position))
-            .add_systems(PostUpdate, respawn_spaceships);
+        app.add_systems(
+            Update,
+            (start_countdown, start_game, init_spaceship_position),
+        )
+        .add_systems(PostUpdate, respawn_spaceships);
+    }
+}
+
+fn start_countdown(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyFull>>) {
+    for entity in q_lobbies.iter() {
+        // Initialize the countdown timer for 5 seconds if it's not already set
+        info!("Initializing countdown timer for lobby {:?}", entity);
+        commands.entity(entity).insert(CountdownTimer(5.0)); // 5-second countdown
     }
 }
 
 /// Manages the countdown and starts the game for each lobby individually
 fn start_game(
     mut commands: Commands,
-    q_lobbies: Query<(&LobbySeed, Entity), Added<LobbyFull>>, // Lobbies that have reached 'full' state
-    mut q_timer: Query<(&mut CountdownTimer, Entity)>,        // Timer for each lobby
+    mut q_lobbies: Query<(&mut CountdownTimer, &LobbySeed, Entity), With<LobbyFull>>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
     mut generate_terrain_evw: EventWriter<GenerateTerrain>,
-    time: Res<Time>, // Time resource to track elapsed time
+    time: Res<Time>,
 ) {
-    // Loop through all entities (lobbies) with a countdown timer
-    for (mut countdown_timer, entity) in q_timer.iter_mut() {
+    for (mut countdown_timer, &LobbySeed(seed), entity) in q_lobbies.iter_mut() {
         // Decrease the timer by the actual time elapsed (in seconds)
         countdown_timer.0 -= time.delta_seconds();
 
-        // Debugging: Log the current timer value for this lobby
-        info!(
-            "Countdown timer for lobby {:?} is at {:.2} seconds",
-            entity, countdown_timer.0
-        );
+        info!("Countdown timer {:.2} seconds", countdown_timer.0);
 
-        // When the countdown reaches zero, start the game
+        // When the countdown reaches zero, start the game.
         if countdown_timer.0 <= 0.0 {
-            // Loop through all lobbies that are "full"
-            for (&LobbySeed(seed), lobby_entity) in q_lobbies.iter() {
-                // Generate terrain and send messages to notify clients
-                generate_terrain_evw.send(GenerateTerrain {
-                    seed,
-                    entity,
-                    layers: CollisionLayers::ALL,
-                    world_id: PhysicsWorldId(seed),
-                });
+            // Generate terrain and send messages to notify clients.
+            generate_terrain_evw.send(GenerateTerrain {
+                seed,
+                entity,
+                layers: CollisionLayers::ALL,
+                world_id: PhysicsWorldId(seed),
+            });
 
-                // Send message to clients to notify that the game has started.
-                let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-                    &StartGame { seed },
-                    lobby_entity.room_id(),
-                    &room_manager,
-                );
+            let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+                &StartGame { seed },
+                entity.room_id(),
+                &room_manager,
+            );
 
-                // Update lobby state to "in-game"
-                commands.entity(lobby_entity).insert(LobbyInGame);
+            // Update lobby state to "in-game"
+            commands
+                .entity(entity)
+                .insert(LobbyInGame)
+                // Remove the countdown timer after the game starts
+                .remove::<CountdownTimer>();
 
-                // Log that the game is starting for this lobby
-                info!("Game started for lobby {:?} with seed {:?}", entity, seed);
-            }
-
-            // Remove the countdown timer after the game starts
-            commands.entity(entity).remove::<CountdownTimer>();
-            info!("Countdown timer removed for lobby {:?}", entity);
-        }
-    }
-
-    // If the lobby is full and we haven't started the countdown yet, initialize it
-    for (_, entity) in q_lobbies.iter() {
-        // Initialize the countdown timer for 5 seconds if it's not already set
-        if !q_timer.contains(entity) {
-            info!("Initializing countdown timer for lobby {:?}", entity);
-            commands.entity(entity).insert(CountdownTimer(5.0)); // 5-second countdown
+            // Log that the game is starting for this lobby
+            info!("Game started for lobby {:?} with seed {:?}", entity, seed);
         }
     }
 }
