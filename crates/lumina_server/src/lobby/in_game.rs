@@ -16,9 +16,13 @@ impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (start_countdown, start_game, init_spaceship_position),
-        )
-        .add_systems(PostUpdate, respawn_spaceships);
+            (
+                start_countdown,
+                start_game,
+                init_spaceship_position,
+                respawn_spaceships,
+            ),
+        );
     }
 }
 
