@@ -39,7 +39,5 @@ pub fn fast_log2_ceil(number: u32) -> u32 {
 /// n > log4(1 + 3(x)/a1)
 pub fn cascade_count(max_length: f32, init_interval: f32) -> usize {
     // Ceil is used becaues n should be greater than the value we get.
-    let cascade_count = f32::log(1.0 + 3.0 * max_length / init_interval, 4.0).ceil() as usize;
-
-    cascade_count
+    f32::log(1.0 + 3.0 * max_length / init_interval, 4.0).ceil() as usize
 }

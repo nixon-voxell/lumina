@@ -16,7 +16,7 @@ impl Plugin for TypeRegistryPlugin {
     fn build(&self, app: &mut App) {
         app
             // Radiance
-            .register_type::<Radiance>()
+            .register_type::<NoRadiance>()
             // Health
             .register_type::<MaxHealth>()
             .register_type::<Health>()

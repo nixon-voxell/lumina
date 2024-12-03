@@ -116,10 +116,6 @@ fn setup(
                 ..default()
             })
             .id();
-
-        if i % 2 == 0 {
-            commands.entity(entity).insert(Radiance);
-        }
     }
 }
 

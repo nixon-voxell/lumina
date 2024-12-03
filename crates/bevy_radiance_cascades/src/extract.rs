@@ -1,6 +1,3 @@
-use std::hash::Hash;
-use std::marker::PhantomData;
-
 use bevy::core_pipeline::core_2d::graph::Core2d;
 use bevy::core_pipeline::core_2d::Transparent2d;
 use bevy::ecs::query::QueryItem;
@@ -14,31 +11,26 @@ use bevy::render::renderer::{RenderContext, RenderDevice};
 use bevy::render::texture::{CachedTexture, TextureCache};
 use bevy::render::view::ViewTarget;
 use bevy::render::{Render, RenderApp, RenderSet};
-use bevy::sprite::*;
 
 use crate::prelude::RadianceCascadesConfig;
 use crate::radiance_cascades::RadianceCascadesTextures;
-use crate::{FlatlandGi, Radiance};
+use crate::{FlatlandGi, NoRadiance};
 
 #[derive(Default)]
-pub struct ExtractPlugin<M: Material2d>(PhantomData<M>);
+pub struct ExtractPlugin;
 
-impl<M: Material2d> Plugin for ExtractPlugin<M>
-where
-    M::Data: PartialEq + Eq + Hash + Clone,
-{
+impl Plugin for ExtractPlugin {
     fn build(&self, app: &mut App) {
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
 
         render_app
-            .add_render_graph_node::<ViewNodeRunner<ExtractNode>>(Core2d, FlatlandGi::Extract);
-
-        render_app.add_systems(
-            Render,
-            (prepare_extract_texture.in_set(RenderSet::PrepareResources),),
-        );
+            .add_render_graph_node::<ViewNodeRunner<ExtractNode>>(Core2d, FlatlandGi::Extract)
+            .add_systems(
+                Render,
+                prepare_extract_texture.in_set(RenderSet::PrepareResources),
+            );
     }
 }
 
@@ -53,8 +45,7 @@ fn prepare_extract_texture(
     render_device: Res<RenderDevice>,
 ) {
     for (entity, view) in q_views.iter() {
-        let mut size = view.main_texture().size();
-        size.depth_or_array_layers = 1;
+        let size = view.main_texture().size();
 
         let texture = texture_cache.get(
             &render_device,
@@ -100,7 +91,8 @@ impl ViewNode for ExtractNode {
 
         let mut extract_phase = SortedRenderPhase::default();
         for item in phase.items.iter() {
-            if world.entity(item.entity).contains::<Radiance>() {
+            let entity_ref = world.entity(item.entity);
+            if entity_ref.contains::<NoRadiance>() == false {
                 extract_phase.add(Transparent2d {
                     sort_key: item.sort_key,
                     entity: item.entity,
@@ -132,7 +124,7 @@ impl ViewNode for ExtractNode {
             render_pass.set_camera_viewport(viewport);
         }
 
-        if !extract_phase.items.is_empty() {
+        if extract_phase.items.is_empty() == false {
             extract_phase.render(&mut render_pass, world, view_entity);
         }
 

@@ -13,7 +13,7 @@ pub mod radiance_cascades;
 pub mod prelude {
     pub use super::mipmap::MipmapConfig;
     pub use super::radiance_cascades::RadianceCascadesConfig;
-    pub use super::Radiance;
+    pub use super::NoRadiance;
 }
 
 pub struct FlatlandGiPlugin;
@@ -21,12 +21,12 @@ pub struct FlatlandGiPlugin;
 impl Plugin for FlatlandGiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            extract::ExtractPlugin::<ColorMaterial>::default(),
+            extract::ExtractPlugin,
             mipmap::MipmapPlugin,
             radiance_cascades::RadianceCascadesPlugin,
             composite::CompositePlugin,
         ))
-        .add_plugins(ExtractComponentPlugin::<Radiance>::default())
+        .add_plugins(ExtractComponentPlugin::<NoRadiance>::default())
         .insert_resource(Msaa::Off);
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
@@ -59,7 +59,8 @@ pub enum FlatlandGi {
     Composite,
 }
 
-/// Marker component for renderable entities that contributes to the global radiance.
+/// Marker component for renderable entities that does not
+/// contribute to the global radiance (will be placed in the background).
 #[derive(Component, ExtractComponent, Reflect, Clone, Copy)]
 #[reflect(Component)]
-pub struct Radiance;
+pub struct NoRadiance;

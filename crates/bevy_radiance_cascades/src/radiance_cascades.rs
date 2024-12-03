@@ -53,11 +53,9 @@ impl Plugin for RadianceCascadesPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app.init_resource::<RadianceCascadesPipeline>();
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+            render_app.init_resource::<RadianceCascadesPipeline>();
+        }
     }
 }
 
@@ -590,7 +588,7 @@ impl FromWorld for RadianceCascadesPipeline {
             .resource_mut::<PipelineCache>()
             // This will add the pipeline to the cache and queue it's creation
             .queue_render_pipeline(RenderPipelineDescriptor {
-                label: Some("mipmap_pipeline".into()),
+                label: Some("rc_mipmap_pipeline".into()),
                 layout: vec![mipmap_layout.clone()],
                 // This will setup a fullscreen triangle for the vertex state
                 vertex: fullscreen_shader_vertex_state(),

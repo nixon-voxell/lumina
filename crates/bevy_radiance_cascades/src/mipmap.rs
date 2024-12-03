@@ -34,14 +34,9 @@ impl Plugin for MipmapPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        // We need to get the render app from the main app
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app
-            // Initialize the pipeline
-            .init_resource::<MipmapPipeline>();
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+            render_app.init_resource::<MipmapPipeline>();
+        }
     }
 }
 
@@ -57,7 +52,7 @@ fn prepare_mipmap_textures(
         let cached_tex = texture_cache.get(
             &render_device,
             TextureDescriptor {
-                label: Some("main_mipmap_texture"),
+                label: Some("rc_mipmap_texture"),
                 size,
                 mip_level_count: config.mip_count,
                 sample_count: 1,
@@ -74,7 +69,7 @@ fn prepare_mipmap_textures(
         let views = (0..config.mip_count)
             .map(|mip| {
                 cached_tex.texture.create_view(&TextureViewDescriptor {
-                    label: Some(&format!("mip{mip}")),
+                    label: Some(&format!("rc_mip{mip}_view")),
                     format: None,
                     dimension: None,
                     aspect: TextureAspect::All,
@@ -131,7 +126,7 @@ impl ViewNode for MipmapPipelineNode {
 
         for target_mip in 1..config.mip_count as usize {
             let bind_group = render_context.render_device().create_bind_group(
-                "mipmap_bind_group",
+                "rc_mipmap_bind_group",
                 &mipmap_pipeline.layout,
                 &BindGroupEntries::sequential((
                     &mipmap_tex.views[target_mip - 1],
@@ -140,7 +135,7 @@ impl ViewNode for MipmapPipelineNode {
             );
 
             let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-                label: Some("mipmap_pass"),
+                label: Some("rc_mipmap_pass"),
                 color_attachments: &[Some(RenderPassColorAttachment {
                     view: &mipmap_tex.views[target_mip],
                     resolve_target: None,
@@ -179,7 +174,7 @@ impl FromWorld for MipmapPipeline {
 
         // We need to define the bind group layout used for our pipeline
         let layout = render_device.create_bind_group_layout(
-            "mipmap_layout",
+            "rc_mipmap_layout",
             &BindGroupLayoutEntries::sequential(
                 // The layout entries will only be visible in the fragment stage
                 ShaderStages::FRAGMENT,
@@ -193,7 +188,7 @@ impl FromWorld for MipmapPipeline {
         );
 
         let sampler = render_device.create_sampler(&SamplerDescriptor {
-            label: Some("mipmap_sampler"),
+            label: Some("rc_mipmap_sampler"),
             address_mode_u: AddressMode::ClampToEdge,
             address_mode_v: AddressMode::ClampToEdge,
             address_mode_w: AddressMode::ClampToEdge,
@@ -209,7 +204,7 @@ impl FromWorld for MipmapPipeline {
             world
                 .resource_mut::<PipelineCache>()
                 .queue_render_pipeline(RenderPipelineDescriptor {
-                    label: Some("mipmap_pipeline".into()),
+                    label: Some("rc_mipmap_pipeline".into()),
                     layout: vec![layout.clone()],
                     vertex: fullscreen_shader_vertex_state(),
                     fragment: Some(FragmentState {

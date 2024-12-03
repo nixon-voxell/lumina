@@ -4,7 +4,7 @@
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
 const RAYMARCH_LENGTH: f32 = 3.0;
-const MAX_RAYMARCH: u32 = 256;
+const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> probe: Probe;
@@ -62,9 +62,6 @@ fn radiance_cascades(
 }
 
 fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
-    let range = probe.range;
-    // let tex_level = probe.cascade_index * 2;
-
     var color = vec4<f32>(0.0);
     var volumetric_color = vec3<f32>(1.0);
     var position = origin;
@@ -75,7 +72,7 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
     for (var r = 0u; r < MAX_RAYMARCH; r++) {
         if (
-            covered_range >= range ||
+            covered_range >= probe.range ||
             any(position >= dimensions) ||
             any(position < vec2<f32>(0.0))
         ) {
@@ -108,6 +105,8 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         position += ray_dir * RAYMARCH_LENGTH;
         covered_range += RAYMARCH_LENGTH;
     }
+
+    // color *= 1.0 - pow(covered_range / probe.range, 2.0);
 
     return color;
 }

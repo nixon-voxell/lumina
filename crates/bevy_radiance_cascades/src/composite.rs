@@ -28,12 +28,9 @@ impl Plugin for CompositePlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        // We need to get the render app from the main app
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app.init_resource::<CompositePipeline>();
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+            render_app.init_resource::<CompositePipeline>();
+        }
     }
 }
 

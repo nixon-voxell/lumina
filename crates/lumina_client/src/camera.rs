@@ -4,6 +4,7 @@ use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy::render::view::RenderLayers;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use bevy_radiance_cascades::prelude::*;
@@ -30,6 +31,7 @@ impl Plugin for CameraPlugin {
                     camera_zoom,
                     spaceship_velocity_zoom_shake,
                     main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
+                    propagate_component::<NoRadiance>,
                 ),
             )
             .add_systems(PreUpdate, restore_camera_shake)
@@ -44,12 +46,16 @@ impl Plugin for CameraPlugin {
 
 /// Spawn camera for game rendering (default to render layer 0).
 fn spawn_game_camera(mut commands: Commands) {
+    let mut bloom = BloomSettings::NATURAL;
+    bloom.intensity = 0.2;
+
     commands.spawn((
         Name::new("Game Camera"),
         GameCamera,
         Camera2dBundle {
             camera: Camera {
                 clear_color: Color::Srgba(Srgba::hex("19181A").unwrap()).into(),
+                // clear_color: ClearColorConfig::Custom(Color::NONE),
                 hdr: true,
                 ..default()
             },
@@ -66,7 +72,7 @@ fn spawn_game_camera(mut commands: Commands) {
             deband_dither: DebandDither::Enabled,
             ..default()
         },
-        BloomSettings::default(),
+        bloom,
         SmaaSettings::default(),
         RadianceCascadesConfig::default(),
     ));
