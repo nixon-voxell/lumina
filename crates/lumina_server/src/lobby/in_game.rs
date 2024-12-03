@@ -154,15 +154,14 @@ pub fn respawn_spaceships(
             position.0 = position_initialized.0;
 
             // Reset the health to the maximum health value
-            health.set(max_health.get());
+            health.set(**max_health);
 
             // Make the spaceship visible again
             *visibility = Visibility::Inherited;
 
             info!(
                 "Respawned spaceship at position {:?} with health {:?}",
-                position.0,
-                health.get()
+                position.0, **health
             );
         }
     }
