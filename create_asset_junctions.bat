@@ -8,6 +8,11 @@ mklink /J assets\ ..\..\assets\
 
 cd ../..
 
+cd crates\bevy_radiance_cascades
+mklink /J assets\ ..\..\assets\
+
+cd ../..
+
 cd crates\test_bed
 mklink /J assets\ ..\..\assets\
 

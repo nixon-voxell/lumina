@@ -48,7 +48,7 @@ fn spawn_ui_camera(mut commands: Commands) {
         Name::new("Ui Camera"),
         Camera2dBundle {
             camera: Camera {
-                clear_color: Color::NONE.into(),
+                clear_color: ClearColorConfig::None,
                 hdr: true,
                 order: 1,
                 ..default()
