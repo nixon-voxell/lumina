@@ -7,7 +7,6 @@ use bevy::utils::HashMap;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use spaceship::Boost;
 use spaceship::Spaceship;
 use strum::EnumCount;
 use weapon::Weapon;
@@ -21,8 +20,7 @@ pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
-    pub use super::spaceship::Boost;
-    pub use super::spaceship::Spaceship;
+    pub use super::spaceship::{Boost, Spaceship};
     pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed};
     pub use super::weapon::{Weapon, WeaponStat};
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
@@ -47,7 +45,6 @@ impl Plugin for PlayerPlugin {
                     insert_info::<ActionState<PlayerAction>>(PlayerInfoType::Action),
                     insert_info::<Spaceship>(PlayerInfoType::Spaceship),
                     insert_info::<Weapon>(PlayerInfoType::Weapon),
-                    insert_info::<Boost>(PlayerInfoType::Boost),
                 ),
             );
     }
@@ -77,7 +74,6 @@ pub enum PlayerInfoType {
     Action,
     Spaceship,
     Weapon,
-    Boost,
 }
 
 /// Maps [`PlayerId`] to it's corresponding [`Entity`].

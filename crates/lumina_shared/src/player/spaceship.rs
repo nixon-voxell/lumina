@@ -22,37 +22,35 @@ impl Plugin for SpaceshipPlugin {
 impl Boost {
     /// Handles state transitions and logic based on time progression.
     pub fn update_state(&mut self, delta_time: f32, is_boosting: bool) {
+        let regen_energy = self.regen_rate * delta_time;
+        let new_energy = (self.energy + regen_energy).min(self.max_energy);
+        let new_cooldown = self.current_cooldown - delta_time;
+
         match self.state {
             BoostState::Boosting => {
-                // If the boost button is not pressed or energy is depleted, return to Idle
+                // Transition to Idle if not boosting or energy is depleted
                 if !is_boosting || self.energy <= f32::EPSILON {
                     self.state = BoostState::Idle;
-                    info!("Boost stopped: Transitioning to Idle");
-                    return;
+                    self.energy = new_energy; // Regenerate energy
                 }
-                // Stay in Boosting if the button is pressed and there's energy
             }
             BoostState::Cooldown => {
-                // Decrease cooldown timer
-                self.current_cooldown -= delta_time;
-
-                // Regenerate energy during cooldown
-                self.energy = (self.energy + self.regen_rate * delta_time).min(self.max_energy);
-
+                self.current_cooldown = new_cooldown;
                 // Transition to Idle if cooldown is complete
                 if self.current_cooldown <= 0.0 {
                     self.state = BoostState::Idle;
-                    info!("Cooldown ended: Transitioning to Idle");
+                    self.energy = new_energy; // Regenerate energy
+                } else {
+                    // Regenerate energy during cooldown
+                    self.energy = new_energy;
                 }
             }
             BoostState::Idle => {
-                // Regenerate energy while idle
-                self.regenerate(delta_time);
-
-                // If the boost button is pressed and there's enough energy, start Boosting
+                // Always regenerate energy while idle
+                self.energy = new_energy;
+                // Transition to Boosting if boost is activated and there's enough energy
                 if is_boosting && self.energy > f32::EPSILON {
                     self.state = BoostState::Boosting;
-                    info!("Boost started: Transitioning to Boosting");
                 }
             }
         }
@@ -60,11 +58,6 @@ impl Boost {
 
     /// Attempts to activate boosting, returning true if successful.
     pub fn try_boost(&mut self, delta_time: f32) -> bool {
-        info!(
-            "Attempting boost: State = {:?}, Energy = {:.2}/{:.2}",
-            self.state, self.energy, self.max_energy
-        );
-
         if self.state == BoostState::Idle && self.energy >= self.consumption_rate * delta_time {
             // Start boosting
             self.state = BoostState::Boosting;
@@ -80,15 +73,7 @@ impl Boost {
             return true;
         }
 
-        info!("Boost not activated: Insufficient energy or invalid state.");
         false
-    }
-
-    /// Regenerates energy if in the idle state.
-    fn regenerate(&mut self, delta_time: f32) {
-        if self.state == BoostState::Idle {
-            self.energy = (self.energy + self.regen_rate * delta_time).min(self.max_energy);
-        }
     }
 }
 
@@ -116,16 +101,6 @@ fn init_spaceships(
             MovementStat {
                 linear_acceleration: 0.0,
                 linear_damping: spaceship.linear_damping,
-            },
-            // TODO: If I didnt add this, it wouldnt work (Maybe find a way not hardcoding this)
-            Boost {
-                energy: 100.0,
-                max_energy: 100.0,
-                regen_rate: 5.0,
-                consumption_rate: 20.0,
-                cooldown_duration: 2.0,
-                current_cooldown: 0.0,
-                state: BoostState::Idle,
             },
         ));
 

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use lumina_common::prelude::SourceEntity;
 use velyst::prelude::*;
 
 use crate::ui::game_ui::GameUi;
@@ -20,17 +21,13 @@ impl Plugin for BoostmeterUiPlugin {
 
 /// Update the boost meter UI to reflect energy changes during boosting and regeneration.
 fn update_boost_meter(
-    q_boosts: Query<(&Boost, &PlayerId)>, // Query for Boost and PlayerId components
-    local_player_id: Res<LocalPlayerId>,  // Local player's ID
-    mut boostmeter_func: ResMut<BoostmeterFunc>, // Boostmeter resource to update
+    q_boosts: Query<(&Boost, &PlayerId), With<SourceEntity>>, // Query for Boost and PlayerId components
+    local_player_id: Res<LocalPlayerId>,                      // Local player's ID
+    mut boostmeter_func: ResMut<BoostmeterFunc>,              // Boostmeter resource to update
 ) {
     // Filter boosts by the local player's ID
     for (boost, _player_id) in q_boosts.iter().filter(|(_, id)| **id == local_player_id.0) {
         boostmeter_func.red_height = (boost.energy / boost.max_energy) as f64;
-        info!(
-            "Boost energy updated for local player: {} / {}, red_height: {}",
-            boost.energy, boost.max_energy, boostmeter_func.red_height
-        );
     }
 }
 
