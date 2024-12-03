@@ -11,6 +11,10 @@ impl MaxHealth {
     pub fn new(health: f32) -> Self {
         Self(health)
     }
+
+    pub fn get(&self) -> f32 {
+        self.0
+    }
 }
 
 impl Component for MaxHealth {
@@ -32,3 +36,13 @@ impl Component for MaxHealth {
 )]
 #[reflect(Component)]
 pub struct Health(f32);
+
+impl Health {
+    pub fn get(&self) -> f32 {
+        self.0
+    }
+
+    pub fn set(&mut self, value: f32) {
+        self.0 = value;
+    }
+}
