@@ -25,8 +25,7 @@ impl Plugin for InGamePlugin {
 fn start_countdown(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyFull>>) {
     for entity in q_lobbies.iter() {
         // Initialize the countdown timer for 5 seconds if it's not already set
-        info!("Initializing countdown timer for lobby {:?}", entity);
-        commands.entity(entity).insert(CountdownTimer(5.0)); // 5-second countdown
+        commands.entity(entity).insert(CountdownTimer(5.0));
     }
 }
 
@@ -42,8 +41,6 @@ fn start_game(
     for (mut countdown_timer, &LobbySeed(seed), entity) in q_lobbies.iter_mut() {
         // Decrease the timer by the actual time elapsed (in seconds)
         countdown_timer.0 -= time.delta_seconds();
-
-        info!("Countdown timer {:.2} seconds", countdown_timer.0);
 
         // When the countdown reaches zero, start the game.
         if countdown_timer.0 <= 0.0 {
@@ -61,14 +58,12 @@ fn start_game(
                 &room_manager,
             );
 
-            // Update lobby state to "in-game"
             commands
                 .entity(entity)
                 .insert(LobbyInGame)
-                // Remove the countdown timer after the game starts
+                // Remove the countdown timer after the game starts.
                 .remove::<CountdownTimer>();
 
-            // Log that the game is starting for this lobby
             info!("Game started for lobby {:?} with seed {:?}", entity, seed);
         }
     }
@@ -79,11 +74,7 @@ fn init_spaceship_position(
     mut commands: Commands,
     mut q_spaceship: Query<
         (&mut Position, &PlayerId, &TeamType, Entity),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<PositionInitialized>,
-        ),
+        (With<Spaceship>, With<SourceEntity>, Without<InitPosition>),
     >,
     q_in_game_lobbies: Query<(), With<LobbyInGame>>,
     terrain_config: TerrainConfig,
@@ -120,7 +111,7 @@ fn init_spaceship_position(
         // Store the initial position in the PositionInitialized component
         commands
             .entity(spaceship_entity)
-            .insert(PositionInitialized(new_position));
+            .insert(InitPosition(new_position));
     }
 }
 
@@ -129,27 +120,22 @@ pub fn respawn_spaceships(
     mut q_spaceships: Query<
         (
             &mut Position,
-            &mut Visibility,
-            &PositionInitialized,
+            &Visibility,
+            &InitPosition,
             &MaxHealth,
             &mut Health,
         ),
         (With<Spaceship>, With<SourceEntity>),
     >,
 ) {
-    for (mut position, mut visibility, position_initialized, max_health, mut health) in
+    for (mut position, visibility, position_initialized, max_health, mut health) in
         q_spaceships.iter_mut()
     {
         // Check if the spaceship is currently hidden
         if *visibility == Visibility::Hidden {
-            // Reset the position to the stored initial position
+            // Reset position and health.
             position.0 = position_initialized.0;
-
-            // Reset the health to the maximum health value
-            health.set(**max_health);
-
-            // Make the spaceship visible again
-            *visibility = Visibility::Inherited;
+            **health = **max_health;
 
             info!(
                 "Respawned spaceship at position {:?} with health {:?}",
@@ -159,9 +145,10 @@ pub fn respawn_spaceships(
     }
 }
 
+/// Initial spawn position of the spaceships.
 #[derive(Component)]
-pub struct PositionInitialized(pub Vec2);
+pub struct InitPosition(pub Vec2);
 
-/// Component that tracks time remaining for the countdown
+/// Countdown before the game starts (in seconds).
 #[derive(Component)]
-pub struct CountdownTimer(pub f32); // Time in seconds
+pub struct CountdownTimer(pub f32);
