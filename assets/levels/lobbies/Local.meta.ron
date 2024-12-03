@@ -1,6 +1,6 @@
 (
   assets:
    [ 
-    ("SpawnPoint", File ( path: "blueprints/SpawnPoint.glb" )),
+    ("SpawnPointA", File ( path: "blueprints/SpawnPointA.glb" )),
    ]
 )
