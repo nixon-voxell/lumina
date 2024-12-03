@@ -4,7 +4,6 @@ use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
-use bevy::render::view::RenderLayers;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
 use bevy_radiance_cascades::prelude::*;

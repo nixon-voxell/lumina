@@ -102,7 +102,7 @@ fn setup(
             Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
         };
 
-        let entity = commands
+        let _entity = commands
             .spawn(ColorMesh2dBundle {
                 mesh: Mesh2dHandle(shape),
                 material: materials.add(color),
