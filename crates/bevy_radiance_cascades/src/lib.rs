@@ -49,7 +49,7 @@ impl Plugin for FlatlandGiPlugin {
 
 #[derive(RenderLabel, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum FlatlandGi {
-    /// Extract entities with [`Radiance`] component.
+    /// Extract entities without [`NoRadiance`] component.
     Extract,
     /// Main texture mipmap.
     Mipmap,

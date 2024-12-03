@@ -92,8 +92,8 @@ fn prepare_rc_textures(
 
         let mut half_size = size;
         let probe_width = 1 << cascade_config.resolution_factor;
-        half_size.width = (half_size.width + probe_width - 1) / probe_width;
-        half_size.height = (half_size.height + probe_width - 1) / probe_width;
+        half_size.width = half_size.width.div_ceil(probe_width);
+        half_size.height = half_size.height.div_ceil(probe_width);
 
         let rc_texture_desc = |name: &'static str| TextureDescriptor {
             label: Some(name),
