@@ -1,10 +1,10 @@
 #import "monokai_pro.typ": *
 
-#let main_window(width, height, body, transparency) = [
-  #let width = (width * 1pt)
-  #let height = (height * 1pt)
+#let main_window(width, height, body, transparency) = {
+  let width = (width * 1pt)
+  let height = (height * 1pt)
 
-  #box(
+  box(
     width: width,
     height: height,
     fill: base0.transparentize(100% * transparency),
@@ -13,4 +13,4 @@
       place()[#content]
     }
   ]
-]
+}

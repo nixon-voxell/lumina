@@ -94,16 +94,19 @@ pub struct MainWindowFunc {
 #[typst_path = "typst/main_window.typ"]
 struct MainWindowUi;
 
-/// Helper for ordering and pushing content to MainWindowFunc.
+// Helper for ordering and pushing content to MainWindowFunc.
 
+/// Push content to the background layer of the window.
 pub fn push_to_main_window_background<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Background)
 }
 
+/// Push content to the center layer of the window.
 pub fn push_to_main_window<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Default)
 }
 
+/// Push content to the foreground layer of the window.
 pub fn push_to_main_window_foreground<F: TypstFunc>() -> SystemConfigs {
     push_to_main_window_unordered::<F>().in_set(MainWindowSet::Foreground)
 }
