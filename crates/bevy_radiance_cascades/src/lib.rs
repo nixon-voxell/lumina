@@ -4,6 +4,7 @@ use bevy::render::extract_component::{ExtractComponent, ExtractComponentPlugin};
 use bevy::render::render_graph::{RenderGraphApp, RenderLabel};
 use bevy::render::RenderApp;
 
+pub mod composite;
 pub mod extract;
 pub mod math_util;
 pub mod mipmap;
@@ -23,10 +24,10 @@ impl Plugin for FlatlandGiPlugin {
             extract::ExtractPlugin::<ColorMaterial>::default(),
             mipmap::MipmapPlugin,
             radiance_cascades::RadianceCascadesPlugin,
+            composite::CompositePlugin,
         ))
-        .add_plugins(ExtractComponentPlugin::<Radiance>::default());
-        // TODO: REMOVE THIS?
-        // .insert_resource(Msaa::Off);
+        .add_plugins(ExtractComponentPlugin::<Radiance>::default())
+        .insert_resource(Msaa::Off);
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
@@ -39,6 +40,7 @@ impl Plugin for FlatlandGiPlugin {
                 FlatlandGi::Extract,
                 FlatlandGi::Mipmap,
                 FlatlandGi::Radiance,
+                FlatlandGi::Composite,
                 Node2d::EndMainPass,
             ),
         );
@@ -58,5 +60,6 @@ pub enum FlatlandGi {
 }
 
 /// Marker component for renderable entities that contributes to the global radiance.
-#[derive(Component, ExtractComponent, Clone, Copy)]
+#[derive(Component, ExtractComponent, Reflect, Clone, Copy)]
+#[reflect(Component)]
 pub struct Radiance;

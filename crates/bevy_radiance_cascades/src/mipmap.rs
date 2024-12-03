@@ -12,6 +12,7 @@ use bevy::render::{Render, RenderApp, RenderSet};
 use binding_types::sampler;
 
 use crate::extract::ExtractTexture;
+use crate::radiance_cascades::RadianceCascadesTextures;
 use crate::FlatlandGi;
 
 pub struct MipmapPlugin;
@@ -102,7 +103,6 @@ pub struct MipmapPipelineNode;
 
 impl ViewNode for MipmapPipelineNode {
     type ViewQuery = (
-        &'static ViewTarget,
         &'static ExtractTexture,
         &'static MipmapConfig,
         &'static MipmapTexture,
@@ -112,7 +112,7 @@ impl ViewNode for MipmapPipelineNode {
         &self,
         _graph: &mut RenderGraphContext,
         render_context: &mut RenderContext<'w>,
-        (view, extract_tex, config, mipmap_tex): QueryItem<'w, Self::ViewQuery>,
+        (extract_tex, config, mipmap_tex): QueryItem<'w, Self::ViewQuery>,
         world: &'w World,
     ) -> Result<(), NodeRunError> {
         let pipeline_cache = world.resource::<PipelineCache>();
@@ -205,33 +205,28 @@ impl FromWorld for MipmapPipeline {
 
         let shader = world.load_asset("shaders/radiance_cascades/blit.wgsl");
 
-        let pipeline_id = world
-            .resource_mut::<PipelineCache>()
-            // This will add the pipeline to the cache and queue it's creation
-            .queue_render_pipeline(RenderPipelineDescriptor {
-                label: Some("mipmap_pipeline".into()),
-                layout: vec![layout.clone()],
-                // This will setup a fullscreen triangle for the vertex state
-                vertex: fullscreen_shader_vertex_state(),
-                fragment: Some(FragmentState {
-                    shader,
-                    shader_defs: vec![],
-                    // Make sure this matches the entry point of your shader.
-                    // It can be anything as long as it matches here and in the shader.
-                    entry_point: "fragment".into(),
-                    targets: vec![Some(ColorTargetState {
-                        format: TextureFormat::Rgba16Float,
-                        blend: None,
-                        write_mask: ColorWrites::ALL,
-                    })],
-                }),
-                // All of the following properties are not important for this effect so just use the default values.
-                // This struct doesn't have the Default trait implemented because not all field can have a default value.
-                primitive: default(),
-                depth_stencil: None,
-                multisample: default(),
-                push_constant_ranges: vec![],
-            });
+        let pipeline_id =
+            world
+                .resource_mut::<PipelineCache>()
+                .queue_render_pipeline(RenderPipelineDescriptor {
+                    label: Some("mipmap_pipeline".into()),
+                    layout: vec![layout.clone()],
+                    vertex: fullscreen_shader_vertex_state(),
+                    fragment: Some(FragmentState {
+                        shader,
+                        shader_defs: vec![],
+                        entry_point: "fragment".into(),
+                        targets: vec![Some(ColorTargetState {
+                            format: RadianceCascadesTextures::CASCADE_FORMAT,
+                            blend: None,
+                            write_mask: ColorWrites::ALL,
+                        })],
+                    }),
+                    primitive: PrimitiveState::default(),
+                    depth_stencil: None,
+                    multisample: MultisampleState::default(),
+                    push_constant_ranges: vec![],
+                });
 
         Self {
             layout,

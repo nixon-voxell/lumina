@@ -27,8 +27,7 @@ pub struct RadianceCascadesPlugin;
 
 impl Plugin for RadianceCascadesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(ExtractComponentPlugin::<RadianceCascadesConfig>::default())
-            .insert_resource(Msaa::Off);
+        app.add_plugins(ExtractComponentPlugin::<RadianceCascadesConfig>::default());
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;

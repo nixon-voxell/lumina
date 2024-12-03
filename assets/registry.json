@@ -11608,6 +11608,17 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_radiance_cascades::Radiance": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_radiance_cascades::Radiance",
+      "properties": {},
+      "required": [],
+      "short_name": "Radiance",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_render::alpha::AlphaMode": {
       "isComponent": false,
       "isResource": false,

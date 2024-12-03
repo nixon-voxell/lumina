@@ -4,7 +4,7 @@
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
 const RAYMARCH_LENGTH: f32 = 3.0;
-const MAX_RAYMARCH: u32 = 128;
+const MAX_RAYMARCH: u32 = 256;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> probe: Probe;
@@ -66,6 +66,7 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
     // let tex_level = probe.cascade_index * 2;
 
     var color = vec4<f32>(0.0);
+    var volumetric_color = vec3<f32>(1.0);
     var position = origin;
     var covered_range = 0.0;
 
@@ -83,20 +84,26 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
         let coord = vec2<u32>(round(position));
 
-        color = textureLoad(tex_main, coord, 0);
+        var new_color = textureLoad(tex_main, coord, 0);
 
         // Treat values from -1.0 ~ 1.0 as no light
         // This way, we can handle both negative and postive light
-        let color_sign = sign(color);
-        let color_abs = abs(color);
+        let color_sign = sign(new_color);
+        let color_abs = abs(new_color);
 
-        color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
-        color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
-        color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
+        var lighting_color = new_color;
+        lighting_color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
+        lighting_color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
+        lighting_color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
 
-        if color.a > (1.0 - EPSILON) {
+        if new_color.a > (1.0 - EPSILON) {
+            color = lighting_color * vec4<f32>(volumetric_color, 1.0);
             break;
         }
+
+        // if new_color.a > EPSILON {
+        //     volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * new_color.a));
+        // }
 
         position += ray_dir * RAYMARCH_LENGTH;
         covered_range += RAYMARCH_LENGTH;

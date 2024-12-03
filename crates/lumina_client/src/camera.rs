@@ -1,10 +1,12 @@
 use avian2d::prelude::*;
 use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy_motiongfx::prelude::*;
+use bevy_radiance_cascades::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
@@ -17,7 +19,8 @@ pub(super) struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CameraZoom>()
+        app.add_plugins(bevy_radiance_cascades::FlatlandGiPlugin)
+            .init_resource::<CameraZoom>()
             .init_resource::<CameraShake>()
             .add_systems(Startup, spawn_game_camera)
             .add_systems(
@@ -51,7 +54,8 @@ fn spawn_game_camera(mut commands: Commands) {
                 ..default()
             },
             projection: OrthographicProjection {
-                near: -1000.0,
+                near: -500.0,
+                far: 500.0,
                 scaling_mode: ScalingMode::AutoMax {
                     max_width: 1280.0,
                     max_height: 720.0,
@@ -63,6 +67,8 @@ fn spawn_game_camera(mut commands: Commands) {
             ..default()
         },
         BloomSettings::default(),
+        SmaaSettings::default(),
+        RadianceCascadesConfig::default(),
     ));
 }
 

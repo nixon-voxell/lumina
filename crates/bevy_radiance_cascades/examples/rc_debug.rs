@@ -1,7 +1,12 @@
+use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::core_2d::graph::{Core2d, Node2d};
 use bevy::core_pipeline::fullscreen_vertex_shader::fullscreen_shader_vertex_state;
+// use bevy::core_pipeline::fxaa::Fxaa;
+use bevy::core_pipeline::smaa::SmaaSettings;
+use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::ecs::query::QueryItem;
 use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
 use bevy::render::render_resource::binding_types::texture_2d;
 use bevy::render::render_resource::*;
 use bevy::render::renderer::{RenderContext, RenderDevice};
@@ -17,13 +22,15 @@ use binding_types::sampler;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins((FlatlandGiPlugin, DebugPipelinePlugin))
+        .add_plugins(FlatlandGiPlugin)
+        // .add_plugins(DebugPipelinePlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, config_update)
         .run();
 }
 
-const X_EXTENT: f32 = 900.0;
+// const X_EXTENT: f32 = 900.0;
+const X_EXTENT: f32 = 100.0;
 
 fn setup(
     mut commands: Commands,
@@ -31,40 +38,69 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn((
+        // Camera2dBundle {
+        //     camera: Camera {
+        //         hdr: true,
+        //         clear_color: ClearColorConfig::Custom(Color::NONE),
+        //         // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
+        //         ..default()
+        //     },
+        //     ..default()
+        // },
         Camera2dBundle {
             camera: Camera {
-                hdr: true,
-                clear_color: ClearColorConfig::Custom(Color::NONE),
                 // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
+                clear_color: ClearColorConfig::Custom(Color::NONE),
+                hdr: true,
                 ..default()
             },
+            projection: OrthographicProjection {
+                near: -500.0,
+                far: 500.0,
+                scaling_mode: ScalingMode::AutoMax {
+                    max_width: 1280.0,
+                    max_height: 720.0,
+                },
+                ..default()
+            },
+            tonemapping: Tonemapping::TonyMcMapface,
+            deband_dither: DebandDither::Enabled,
             ..default()
         },
+        BloomSettings::default(),
+        SmaaSettings::default(),
         RadianceCascadesConfig::default(),
+        // Fxaa::default(),
     ));
 
     let shapes = [
         meshes.add(Circle::new(50.0)),
-        meshes.add(CircularSector::new(50.0, 1.0)),
-        meshes.add(CircularSegment::new(50.0, 1.25)),
-        meshes.add(Ellipse::new(25.0, 50.0)),
-        meshes.add(Annulus::new(25.0, 50.0)),
+        // meshes.add(CircularSector::new(50.0, 1.0)),
+        // meshes.add(CircularSegment::new(50.0, 1.25)),
+        // meshes.add(Ellipse::new(25.0, 50.0)),
+        // meshes.add(Annulus::new(25.0, 50.0)),
         meshes.add(Capsule2d::new(25.0, 50.0)),
-        meshes.add(Rhombus::new(75.0, 100.0)),
-        meshes.add(Rectangle::new(50.0, 100.0)),
-        meshes.add(RegularPolygon::new(50.0, 6)),
-        meshes.add(Triangle2d::new(
-            Vec2::Y * 50.0,
-            Vec2::new(-50.0, -50.0),
-            Vec2::new(50.0, -50.0),
-        )),
+        // meshes.add(Rhombus::new(75.0, 100.0)),
+        // meshes.add(Rectangle::new(50.0, 100.0)),
+        // meshes.add(RegularPolygon::new(50.0, 6)),
+        // meshes.add(Triangle2d::new(
+        //     Vec2::Y * 50.0,
+        //     Vec2::new(-50.0, -50.0),
+        //     Vec2::new(50.0, -50.0),
+        // )),
     ];
     let num_shapes = shapes.len();
 
     for (i, shape) in shapes.into_iter().enumerate() {
         // Distribute colors evenly across the rainbow.
-        let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
+        // let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
         // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
+
+        let color = if i % 2 == 0 {
+            Color::linear_rgba(2.0, 2.0, 2.0, 1.0)
+        } else {
+            Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
+        };
 
         let entity = commands
             .spawn(ColorMesh2dBundle {
