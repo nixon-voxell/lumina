@@ -11,9 +11,9 @@ pub mod mipmap;
 pub mod radiance_cascades;
 
 pub mod prelude {
-    pub use super::mipmap::MipmapConfig;
-    pub use super::radiance_cascades::RadianceCascadesConfig;
-    pub use super::NoRadiance;
+    pub use crate::mipmap::MipmapConfig;
+    pub use crate::radiance_cascades::RadianceCascadesConfig;
+    pub use crate::NoRadiance;
 }
 
 pub struct FlatlandGiPlugin;

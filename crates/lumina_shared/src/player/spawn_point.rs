@@ -1,6 +1,7 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use lumina_common::prelude::*;
+use strum::EnumCount;
 
 use super::prelude::Spaceship;
 
@@ -87,10 +88,19 @@ fn on_remove_spawned(
 #[reflect(Component)]
 pub struct SpawnPoint(TeamType);
 
-#[derive(Reflect, PartialEq, Eq, Clone, Copy, Component)]
+#[derive(Reflect, EnumCount, PartialEq, Eq, Clone, Copy, Component)]
 pub enum TeamType {
     A,
     B,
+}
+
+impl TeamType {
+    pub fn invert(&self) -> Self {
+        match self {
+            TeamType::A => TeamType::B,
+            TeamType::B => TeamType::A,
+        }
+    }
 }
 
 #[derive(Component)]

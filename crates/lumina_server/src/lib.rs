@@ -34,6 +34,7 @@ impl Plugin for ServerPlugin {
             source_entity::SourceEntityPlugin,
             lobby::LobbyPlugin,
             player::PlayerPlugin,
+            game::GamePlugin,
         ))
         .init_resource::<LobbyInfos>()
         .add_systems(Startup, start_server);

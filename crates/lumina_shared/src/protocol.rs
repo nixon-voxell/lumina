@@ -4,6 +4,7 @@ use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
 use server::RoomId;
+use strum::EnumCount;
 
 use crate::action::PlayerAction;
 use crate::blueprints::{SpaceshipType, WeaponType};
@@ -28,6 +29,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
         app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
+        app.register_message::<GameScore>(ChannelDirection::ServerToClient);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -99,6 +101,9 @@ impl Plugin for ProtocolPlugin {
             .add_correction_fn(angular_velocity::lerp);
     }
 }
+
+#[derive(Component, Deref, DerefMut, Serialize, Deserialize, Default, Debug)]
+pub struct GameScore(pub [u32; TeamType::COUNT]);
 
 /// Matchmake command (with lobby size encoded) sent from
 /// client to server to find an available lobby to join.
