@@ -13,7 +13,26 @@ impl Plugin for AudioPlugin {
 
         app.add_systems(OnEnter(Screen::MainMenu), play_main_menu_bg)
             .add_systems(OnEnter(Screen::InGame), play_in_game_bg)
-            .add_systems(Update, (cannon_fire, ammo_hit));
+            .add_systems(Update, (button_interaction, cannon_fire, ammo_hit));
+    }
+}
+
+fn button_interaction(
+    mut commands: Commands,
+    q_interactions: Query<&Interaction, Changed<Interaction>>,
+    asset_server: Res<AssetServer>,
+) {
+    for interaction in q_interactions.iter() {
+        let audio_name = match interaction {
+            Interaction::Pressed => "audio/ButtonClick.ogg",
+            Interaction::Hovered => "audio/ButtonHover.ogg",
+            Interaction::None => return,
+        };
+
+        commands.spawn(AudioBundle {
+            source: asset_server.load(audio_name),
+            settings: PlaybackSettings::DESPAWN,
+        });
     }
 }
 
