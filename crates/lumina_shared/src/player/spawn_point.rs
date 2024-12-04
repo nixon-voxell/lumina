@@ -75,9 +75,15 @@ fn on_remove_spawned(
     }
 }
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
-pub struct SpawnPoint;
+pub struct SpawnPoint(TeamType);
+
+#[derive(Reflect)]
+pub enum TeamType {
+    A,
+    B,
+}
 
 #[derive(Component)]
 pub struct SpawnPointUsed;

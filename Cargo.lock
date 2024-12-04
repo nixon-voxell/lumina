@@ -1048,6 +1048,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61baa1bdc1f4a7ac2c18217570a7cc04e1cd54d38456e91782f0371c79afe0a8"
 
 [[package]]
+name = "bevy_radiance_cascades"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_reflect"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3849,6 +3856,7 @@ dependencies = [
  "bevy_coroutine",
  "bevy_enoki",
  "bevy_motiongfx",
+ "bevy_radiance_cascades",
  "bevy_shader_utils",
  "blenvy",
  "leafwing-input-manager",
@@ -3910,6 +3918,7 @@ dependencies = [
  "avian2d",
  "bevy",
  "bevy_framepace",
+ "bevy_radiance_cascades",
  "bevy_transform_interpolation",
  "blenvy",
  "leafwing-input-manager",

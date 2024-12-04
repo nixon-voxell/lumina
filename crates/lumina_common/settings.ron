@@ -6,7 +6,6 @@ LuminaSettings(
         headless: true,
         inspector: false,
         conditioner: None,
-        server_port: 5000,
     ),
     client: ClientSettings(
         inspector: true,

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_radiance_cascades::prelude::*;
 use lumina_common::physics::{MeshRigidbody, PrimitiveRigidbody};
 
 use crate::blueprints::{AmmoType, SpaceshipType, WeaponType};
@@ -15,6 +16,8 @@ pub(super) struct TypeRegistryPlugin;
 impl Plugin for TypeRegistryPlugin {
     fn build(&self, app: &mut App) {
         app
+            // Radiance
+            .register_type::<NoRadiance>()
             // Health
             .register_type::<MaxHealth>()
             .register_type::<Health>()

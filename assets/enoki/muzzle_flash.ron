@@ -21,8 +21,8 @@
         (100.0, 1.0, Some(QuarticIn))
     ])),
     color_curve: Some((points: [
-        ((red: 800.0, green: 600.0, blue: 0.0, alpha: 1.0), 0.0, None),
-        ((red: 800.0, green: 100.436, blue: 0.0, alpha: 1.0), 0.8, None),
+        ((red: 8.0, green: 6.0, blue: 0.0, alpha: 1.0), 0.0, None),
+        ((red: 8.0, green: 1.0, blue: 0.0, alpha: 1.0), 0.8, None),
         ((red: 0.1, green: 0.0, blue: 0.0, alpha: 1.0), 1.0, None)])
     )
 )
