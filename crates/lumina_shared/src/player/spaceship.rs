@@ -23,57 +23,24 @@ impl Boost {
     /// Handles state transitions and logic based on time progression.
     pub fn update_state(&mut self, delta_time: f32, is_boosting: bool) {
         let regen_energy = self.regen_rate * delta_time;
-        let new_energy = (self.energy + regen_energy).min(self.max_energy);
-        let new_cooldown = self.current_cooldown - delta_time;
 
-        match self.state {
-            BoostState::Boosting => {
-                // Transition to Idle if not boosting or energy is depleted
-                if !is_boosting || self.energy <= f32::EPSILON {
-                    self.state = BoostState::Idle;
-                    self.energy = new_energy; // Regenerate energy
-                }
-            }
-            BoostState::Cooldown => {
-                self.current_cooldown = new_cooldown;
-                // Transition to Idle if cooldown is complete
-                if self.current_cooldown <= 0.0 {
-                    self.state = BoostState::Idle;
-                    self.energy = new_energy; // Regenerate energy
-                } else {
-                    // Regenerate energy during cooldown
-                    self.energy = new_energy;
-                }
-            }
-            BoostState::Idle => {
-                // Always regenerate energy while idle
-                self.energy = new_energy;
-                // Transition to Boosting if boost is activated and there's enough energy
-                if is_boosting && self.energy > f32::EPSILON {
-                    self.state = BoostState::Boosting;
-                }
-            }
+        if is_boosting {
+            self.energy = f32::max(0.0, self.energy - self.consumption_rate * delta_time);
+            self.current_cooldown = self.cooldown_duration;
+            return;
         }
+
+        if self.current_cooldown <= 0.0 {
+            self.energy = f32::min(self.max_energy, self.energy + regen_energy);
+            return;
+        }
+
+        self.current_cooldown -= delta_time;
     }
 
     /// Attempts to activate boosting, returning true if successful.
-    pub fn try_boost(&mut self, delta_time: f32) -> bool {
-        if self.state == BoostState::Idle && self.energy >= self.consumption_rate * delta_time {
-            // Start boosting
-            self.state = BoostState::Boosting;
-            self.energy =
-                (self.energy - self.consumption_rate * delta_time).clamp(0.0, self.max_energy);
-            return true;
-        }
-
-        // Remain in boosting if enough energy is present
-        if self.state == BoostState::Boosting {
-            self.energy =
-                (self.energy - self.consumption_rate * delta_time).clamp(0.0, self.max_energy);
-            return true;
-        }
-
-        false
+    pub fn can_boost(&self, delta_time: f32) -> bool {
+        self.energy > self.consumption_rate * delta_time
     }
 }
 
@@ -171,15 +138,7 @@ fn spaceship_movement(
         boost.update_state(time.delta_seconds(), is_boosting);
 
         // Handle boosting activation and determine if boosting is active
-        let boosting_active = if is_boosting && boost.try_boost(time.delta_seconds()) {
-            info!("Boost activated by right-click");
-            true
-        } else {
-            if is_boosting {
-                info!("Boost failed to activate (insufficient energy or not in Idle state)");
-            }
-            false
-        };
+        let boosting_active = is_boosting && boost.can_boost(time.delta_seconds());
 
         // Linear damping
         match is_braking {
@@ -257,12 +216,8 @@ pub(super) fn spaceship_health(
     for (health, mut viz) in q_spaceships.iter_mut() {
         info!("{health:?}");
         match **health <= 0.0 {
-            true => {
-                *viz = Visibility::Hidden;
-            }
-            false => {
-                *viz = Visibility::Inherited;
-            }
+            true => *viz = Visibility::Hidden,
+            false => *viz = Visibility::Inherited,
         }
     }
 }
@@ -304,9 +259,7 @@ impl MovementStat {
     ) {
         let factor = match self.linear_acceleration.total_cmp(&target) {
             std::cmp::Ordering::Less => acceleration_factor,
-            std::cmp::Ordering::Equal => {
-                return;
-            }
+            std::cmp::Ordering::Equal => return,
             std::cmp::Ordering::Greater => deceleration_factor,
         };
         self.linear_acceleration = FloatExt::lerp(self.linear_acceleration, target, factor);
@@ -336,21 +289,6 @@ pub struct SpaceshipPhysicsBundle {
     pub mass_properties: MassPropertiesBundle,
 }
 
-/// Represents the state of the Boost system.
-#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-pub enum BoostState {
-    Idle,     // Not boosting
-    Boosting, // Actively boosting
-    Cooldown, // In cooldown period
-}
-
-impl Default for BoostState {
-    fn default() -> Self {
-        BoostState::Idle // Default state
-    }
-}
-
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct Boost {
@@ -366,6 +304,4 @@ pub struct Boost {
     pub cooldown_duration: f32,
     // Remaining cooldown time
     pub current_cooldown: f32,
-    // Current state of the boost system
-    pub state: BoostState,
 }

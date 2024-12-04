@@ -1,12 +1,10 @@
 use bevy::prelude::*;
-use lumina_common::prelude::SourceEntity;
+use lumina_common::prelude::*;
+use lumina_shared::player::prelude::*;
 use velyst::prelude::*;
 
-use crate::ui::game_ui::GameUi;
-
 use crate::player::LocalPlayerId;
-use lumina_shared::player::spaceship::Boost;
-use lumina_shared::player::PlayerId;
+use crate::ui::game_ui::GameUi;
 
 pub(super) struct BoostmeterUiPlugin;
 

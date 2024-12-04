@@ -8,7 +8,7 @@ use crate::effector::{
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
 use crate::player::prelude::*;
-use crate::player::spaceship::{Boost, BoostState};
+use crate::player::spaceship::Boost;
 
 pub(super) struct TypeRegistryPlugin;
 
@@ -26,7 +26,6 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Spaceship>()
             .register_type::<SpaceshipType>()
             .register_type::<Boost>()
-            .register_type::<BoostState>()
             .register_type::<Ammo>()
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()

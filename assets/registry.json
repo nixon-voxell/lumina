@@ -20572,11 +20572,6 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
-        },
-        "state": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::BoostState"
-          }
         }
       },
       "required": [
@@ -20585,25 +20580,11 @@
         "regen_rate",
         "consumption_rate",
         "cooldown_duration",
-        "current_cooldown",
-        "state"
+        "current_cooldown"
       ],
       "short_name": "Boost",
       "type": "object",
       "typeInfo": "Struct"
-    },
-    "lumina_shared::player::spaceship::BoostState": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::BoostState",
-      "oneOf": [
-        "Idle",
-        "Boosting",
-        "Cooldown"
-      ],
-      "short_name": "BoostState",
-      "type": "string",
-      "typeInfo": "Enum"
     },
     "lumina_shared::player::spaceship::Spaceship": {
       "additionalProperties": false,
