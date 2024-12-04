@@ -7,8 +7,9 @@
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    let main = textureSample(tex_screen, sampler_screen, in.uv) * 0.01;
-    let radiance = textureSample(tex_radiance, sampler_radiance, in.uv);
+    let main = textureSample(tex_screen, sampler_screen, in.uv) * 0.02;
+    let radiance = textureSample(tex_radiance, sampler_radiance, in.uv) * 0.8;
 
-    return main + radiance;
+    // return main;
+    return min(main + radiance, vec4<f32>(1.0));
 }

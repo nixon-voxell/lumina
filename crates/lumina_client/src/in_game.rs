@@ -1,4 +1,7 @@
 use bevy::prelude::*;
+use client::*;
+use lightyear::prelude::*;
+use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 
 use crate::ui::Screen;
@@ -8,8 +11,19 @@ pub(super) struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<TerrainEntity>()
-            // .add_systems(OnEnter(Screen::InGame), generate_terrain)
-            .add_systems(OnExit(Screen::InGame), clear_terrain);
+            .add_systems(OnExit(Screen::InGame), clear_terrain)
+            .add_systems(Update, game_over.run_if(in_state(Screen::InGame)));
+    }
+}
+
+/// Listen to [`EndGame`] command.
+fn game_over(
+    mut evr_end_game: EventReader<MessageEvent<EndGame>>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
+) {
+    for _ in evr_end_game.read() {
+        // Update screen state.
+        next_screen_state.set(Screen::GameOver);
     }
 }
 

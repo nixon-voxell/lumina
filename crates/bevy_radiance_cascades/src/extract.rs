@@ -37,7 +37,7 @@ impl Plugin for ExtractPlugin {
 #[derive(Component, Deref)]
 pub struct ExtractTexture(CachedTexture);
 
-fn prepare_extract_texture(
+pub(super) fn prepare_extract_texture(
     mut commands: Commands,
     // TODO: Use something else, like FlatlandGi instead of RcConfig.
     q_views: Query<(Entity, &ViewTarget), With<RadianceCascadesConfig>>,
@@ -45,7 +45,11 @@ fn prepare_extract_texture(
     render_device: Res<RenderDevice>,
 ) {
     for (entity, view) in q_views.iter() {
-        let size = view.main_texture().size();
+        // Half the size of the screen.
+        let size = view
+            .main_texture()
+            .size()
+            .mip_level_size(1, TextureDimension::D2);
 
         let texture = texture_cache.get(
             &render_device,

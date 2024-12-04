@@ -3,7 +3,6 @@
 #let main_window(width, height, body, transparency) = {
   let width = (width * 1pt)
   let height = (height * 1pt)
-  set text(font: "Consolas")
 
   box(
     width: width,

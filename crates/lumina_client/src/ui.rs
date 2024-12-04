@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use bevy_radiance_cascades::prelude::*;
+use bevy_vello::prelude::*;
 
 use super::Connection;
 
@@ -18,13 +20,23 @@ impl Plugin for UiPlugin {
             game_ui::GameUiPlugin,
         ));
 
-        app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu);
+        app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu)
+            .add_systems(Update, set_no_radiance);
     }
 }
 
 /// Return to main menu
 fn return_to_main_menu(mut next_screen_state: ResMut<NextState<Screen>>) {
     next_screen_state.set(Screen::MainMenu);
+}
+
+fn set_no_radiance(
+    mut commands: Commands,
+    q_scenes: Query<Entity, (With<VelloScene>, Without<NoRadiance>)>,
+) {
+    for entity in q_scenes.iter() {
+        commands.entity(entity).insert(NoRadiance);
+    }
 }
 
 #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
@@ -37,7 +49,7 @@ pub enum Screen {
     Matchmaking,
     MultiplayerLobby,
     InGame,
-    // GameOver,
+    GameOver,
     // Leaderboard,
     // Tutorial,
     // Credits,

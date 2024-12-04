@@ -3,11 +3,11 @@ use lumina_ui::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-mod boostmeter;
-mod health;
-mod score_bar;
-mod timer;
-mod weapon_selector;
+pub mod boostmeter;
+pub mod health;
+pub mod score_bar;
+pub mod timer;
+pub mod weapon_selector;
 
 use crate::ui::Screen;
 

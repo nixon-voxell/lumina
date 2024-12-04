@@ -29,6 +29,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
         app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
+        app.register_message::<EndGame>(ChannelDirection::ServerToClient);
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
 
         // Input
@@ -143,6 +144,10 @@ pub struct ExitLobby;
 pub struct StartGame {
     pub seed: u32,
 }
+
+/// End game command sent from server to client either when 1 team wins or timer runs out.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct EndGame;
 
 /// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]

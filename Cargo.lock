@@ -3858,6 +3858,7 @@ dependencies = [
  "bevy_motiongfx",
  "bevy_radiance_cascades",
  "bevy_shader_utils",
+ "bevy_vello",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",

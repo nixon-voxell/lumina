@@ -7,7 +7,6 @@ use bevy::render::render_resource::binding_types::texture_2d;
 use bevy::render::render_resource::*;
 use bevy::render::renderer::{RenderContext, RenderDevice};
 use bevy::render::texture::{CachedTexture, TextureCache};
-use bevy::render::view::ViewTarget;
 use bevy::render::{Render, RenderApp, RenderSet};
 use binding_types::sampler;
 
@@ -42,18 +41,16 @@ impl Plugin for MipmapPlugin {
 
 fn prepare_mipmap_textures(
     mut commands: Commands,
-    q_views: Query<(&ViewTarget, &MipmapConfig, Entity)>,
+    q_views: Query<(&ExtractTexture, &MipmapConfig, Entity)>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
 ) {
-    for (view, config, entity) in q_views.iter() {
-        let size = view.main_texture().size();
-
+    for (extract_tex, config, entity) in q_views.iter() {
         let cached_tex = texture_cache.get(
             &render_device,
             TextureDescriptor {
                 label: Some("rc_mipmap_texture"),
-                size,
+                size: extract_tex.texture.size(),
                 mip_level_count: config.mip_count,
                 sample_count: 1,
                 dimension: TextureDimension::D2,

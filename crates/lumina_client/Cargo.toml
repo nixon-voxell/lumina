@@ -15,6 +15,7 @@ bevy_shader_utils = { workspace = true }
 bevy_radiance_cascades = { workspace = true }
 velyst = { workspace = true }
 bevy = { workspace = true }
+bevy_vello = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }

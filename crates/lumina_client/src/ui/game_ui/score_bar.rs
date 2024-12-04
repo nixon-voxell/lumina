@@ -26,7 +26,11 @@ fn udpate_game_score(
 ) {
     for game_score in evr_game_score.read() {
         let msg = game_score.message();
-        func.scores = msg.scores.to_vec();
+        func.scores = msg
+            .scores
+            .iter()
+            .map(|&score| score.clamp(0, msg.max_score))
+            .collect();
         func.max_score = msg.max_score;
     }
 }

@@ -59,7 +59,7 @@ pub enum FlatlandGi {
     Composite,
 }
 
-/// Marker component for renderable entities that does not
+/// Marker component for renderable entities that will *not*
 /// contribute to the global radiance (will be placed in the background).
 #[derive(Component, ExtractComponent, Reflect, Clone, Copy)]
 #[reflect(Component)]
