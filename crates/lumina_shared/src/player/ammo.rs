@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_transform_interpolation::*;
 use blenvy::*;
+use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use strum::IntoEnumIterator;
 
@@ -108,7 +109,8 @@ fn track_ammo_lifetime(
 
 fn ammo_collision(
     q_col_criteria: Query<(Option<&PlayerId>, Has<Sensor>)>,
-    mut q_healths: Query<&mut Health>,
+    // Only apply damage on the server.
+    mut q_healths: Query<&mut Health, With<server::SyncTarget>>,
     mut q_ammos: Query<
         (
             &Position,

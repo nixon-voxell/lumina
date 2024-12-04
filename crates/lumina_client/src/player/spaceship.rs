@@ -16,18 +16,19 @@ impl Plugin for SpaceshipPlugin {
 }
 
 fn cache_team_type(
-    q_spaceships: Query<(&TeamType, &PlayerId), With<SourceEntity>>,
+    q_spaceships: Query<(&TeamType, &PlayerId), (With<SourceEntity>, Changed<TeamType>)>,
     local_player_id: Res<LocalPlayerId>,
     mut local_team_type: ResMut<CachedGameStat>,
 ) {
-    if local_team_type.team_type.is_some() {
-        return;
-    }
+    // if local_team_type.team_type.is_some() {
+    //     return;
+    // }
 
     for (team_type, _) in q_spaceships
         .iter()
         .filter(|(_, &id)| **local_player_id == id)
     {
+        println!("\n\n{team_type:?}");
         local_team_type.team_type = Some(*team_type);
     }
 }

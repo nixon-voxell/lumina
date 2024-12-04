@@ -38,12 +38,10 @@ impl Plugin for ProtocolPlugin {
         // Components
         // Health
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+            .add_prediction(client::ComponentSyncMode::Simple);
 
         app.register_component::<Health>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+            .add_prediction(client::ComponentSyncMode::Simple);
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
@@ -51,8 +49,7 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation(client::ComponentSyncMode::Once);
 
         app.register_component::<TeamType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+            .add_prediction(client::ComponentSyncMode::Simple);
 
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
