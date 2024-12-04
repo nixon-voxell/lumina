@@ -20,8 +20,8 @@ pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoStat, FireAmmo};
-    pub use super::spaceship::Spaceship;
-    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed};
+    pub use super::spaceship::{Boost, Spaceship};
+    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
     pub use super::weapon::{Weapon, WeaponStat};
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
 }

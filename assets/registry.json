@@ -20331,6 +20331,55 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::player::spaceship::Boost": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::Boost",
+      "properties": {
+        "consumption_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "cooldown_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "current_cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "energy": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "max_energy": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "regen_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "energy",
+        "max_energy",
+        "regen_rate",
+        "consumption_rate",
+        "cooldown_duration",
+        "current_cooldown"
+      ],
+      "short_name": "Boost",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::player::spaceship::Spaceship": {
       "additionalProperties": false,
       "isComponent": true,

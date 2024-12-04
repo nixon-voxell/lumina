@@ -3,7 +3,7 @@
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
-const RAYMARCH_LENGTH: f32 = 3.0;
+const RAYMARCH_LENGTH: f32 = 1.0;
 const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
@@ -166,7 +166,8 @@ fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<
         vec2<f32>(probe_correcetion_offset) * 0.5
     );
 
-    return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
+    // return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
+    return (TL + TR + BL + BR) * 0.25 * 0.25;
 }
 
 fn fetch_cascade(

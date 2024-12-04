@@ -6,79 +6,63 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 use server::*;
 
-use super::{LobbyFull, LobbyInGame, LobbyInfos, LobbySeed};
+use super::{LobbyFull, LobbyInGame, LobbySeed};
 
 pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (start_game, init_spaceship_position));
+        app.add_systems(Update, (start_countdown, start_game));
     }
 }
 
-/// Generate terain and start the game when lobby is full.
+fn start_countdown(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyFull>>) {
+    for entity in q_lobbies.iter() {
+        // Initialize the countdown timer for 5 seconds if it's not already set
+        commands.entity(entity).insert(CountdownTimer(5.0));
+    }
+}
+
+/// Manages the countdown and starts the game for each lobby individually
 fn start_game(
     mut commands: Commands,
-    q_lobbies: Query<(&LobbySeed, Entity), Added<LobbyFull>>,
+    mut q_lobbies: Query<(&mut CountdownTimer, &LobbySeed, Entity), With<LobbyFull>>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
     mut generate_terrain_evw: EventWriter<GenerateTerrain>,
+    time: Res<Time>,
 ) {
-    for (&LobbySeed(seed), entity) in q_lobbies.iter() {
-        generate_terrain_evw.send(GenerateTerrain {
-            seed,
-            entity,
-            layers: CollisionLayers::ALL,
-            world_id: PhysicsWorldId(seed),
-        });
+    for (mut countdown_timer, &LobbySeed(seed), entity) in q_lobbies.iter_mut() {
+        // Decrease the timer by the actual time elapsed (in seconds)
+        countdown_timer.0 -= time.delta_seconds();
 
-        // Send message to clients to notify that the game has started.
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &StartGame { seed },
-            entity.room_id(),
-            &room_manager,
-        );
+        // When the countdown reaches zero, start the game.
+        if countdown_timer.0 <= 0.0 {
+            // Generate terrain and send messages to notify clients.
+            generate_terrain_evw.send(GenerateTerrain {
+                seed,
+                entity,
+                layers: CollisionLayers::ALL,
+                world_id: PhysicsWorldId(seed),
+            });
 
-        commands.entity(entity).insert(LobbyInGame);
-    }
-}
+            let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+                &StartGame { seed },
+                entity.room_id(),
+                &room_manager,
+            );
 
-/// This function updates the position of newly spawned spaceships
-fn init_spaceship_position(
-    mut commands: Commands, // Need Commands to add Position if missing
-    mut q_spaceships: Query<
-        (&mut Position, &PlayerId, Entity),
-        (
-            With<Spaceship>,
-            With<SourceEntity>,
-            Without<PositionInitialized>,
-        ),
-    >,
-    q_in_game_lobbies: Query<(), With<LobbyInGame>>,
-    terrain_config: TerrainConfig,
-    lobby_infos: Res<LobbyInfos>,
-) {
-    let Some(terrain_config) = terrain_config.get() else {
-        return;
-    };
+            commands
+                .entity(entity)
+                .insert(LobbyInGame)
+                // Remove the countdown timer after the game starts.
+                .remove::<CountdownTimer>();
 
-    // TODO: Use different positions for different ships based on their team id.
-    let width = terrain_config.tile_size * terrain_config.noise_surr_width as f32;
-    let desired_position = Vec2::splat(width);
-
-    for (mut position, id, entity) in q_spaceships.iter_mut() {
-        if lobby_infos
-            .get(&**id)
-            .is_some_and(|e| q_in_game_lobbies.contains(*e))
-            == false
-        {
-            continue;
+            info!("Game started for lobby {:?} with seed {:?}", entity, seed);
         }
-
-        *position = Position(desired_position);
-        commands.entity(entity).insert(PositionInitialized);
     }
 }
 
+/// Countdown before the game starts (in seconds).
 #[derive(Component)]
-pub struct PositionInitialized;
+pub struct CountdownTimer(pub f32);

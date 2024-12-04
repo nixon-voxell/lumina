@@ -109,6 +109,7 @@ impl FromWorld for CompositePipeline {
                     texture_2d(TextureSampleType::Float { filterable: true }),
                     // Screen texture sampler
                     sampler(SamplerBindingType::Filtering),
+                    // sampler(SamplerBindingType::NonFiltering),
                     // Radiance texture
                     texture_2d(TextureSampleType::Float { filterable: true }),
                     // Radiance texture sampler

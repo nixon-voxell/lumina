@@ -19,6 +19,31 @@ impl Plugin for SpaceshipPlugin {
     }
 }
 
+impl Boost {
+    /// Handles state transitions and logic based on time progression.
+    pub fn update_state(&mut self, delta_time: f32, is_boosting: bool) {
+        let regen_energy = self.regen_rate * delta_time;
+
+        if is_boosting {
+            self.energy = f32::max(0.0, self.energy - self.consumption_rate * delta_time);
+            self.current_cooldown = self.cooldown_duration;
+            return;
+        }
+
+        if self.current_cooldown <= 0.0 {
+            self.energy = f32::min(self.max_energy, self.energy + regen_energy);
+            return;
+        }
+
+        self.current_cooldown -= delta_time;
+    }
+
+    /// Attempts to activate boosting, returning true if successful.
+    pub fn can_boost(&self, delta_time: f32) -> bool {
+        self.energy > self.consumption_rate * delta_time
+    }
+}
+
 fn init_spaceships(
     mut commands: Commands,
     q_spaceships: Query<(&Spaceship, Entity), Added<SourceEntity>>,
@@ -64,6 +89,7 @@ fn spaceship_movement(
             &mut LinearVelocity,
             &mut LinearDamping,
             &mut Rotation,
+            &mut Boost,
             &Spaceship,
             &Visibility,
         ),
@@ -86,8 +112,15 @@ fn spaceship_movement(
             continue;
         };
 
-        let Ok((mut movement_stat, mut linear, mut linear_damping, mut rotation, spaceship, viz)) =
-            q_spaceships.get_mut(spaceship_entity)
+        let Ok((
+            mut movement_stat,
+            mut linear,
+            mut linear_damping,
+            mut rotation,
+            mut boost,
+            spaceship,
+            viz,
+        )) = q_spaceships.get_mut(spaceship_entity)
         else {
             continue;
         };
@@ -101,16 +134,23 @@ fn spaceship_movement(
         let is_braking = action.pressed(&PlayerAction::Brake);
         let is_boosting = action.pressed(&PlayerAction::Boost);
 
+        // Update the boost state
+        boost.update_state(time.delta_seconds(), is_boosting);
+
+        // Handle boosting activation and determine if boosting is active
+        let boosting_active = is_boosting && boost.can_boost(time.delta_seconds());
+
         // Linear damping
         match is_braking {
             true => {
-                movement_stat.towards_linear_damping(spaceship.brake_linear_damping, damping_factor)
+                movement_stat
+                    .towards_linear_damping(spaceship.brake_linear_damping, damping_factor);
             }
             false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
         }
 
         // Linear acceleration
-        match (is_moving, is_braking, is_boosting) {
+        match (is_moving, is_braking, boosting_active) {
             // Moving only
             (true, false, false) => movement_stat.towards_linear_acceleration(
                 spaceship.linear_acceleration,
@@ -247,4 +287,21 @@ pub struct SpaceshipPhysicsBundle {
     pub angular_damping: AngularDamping,
     pub collider: Collider,
     pub mass_properties: MassPropertiesBundle,
+}
+
+#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+pub struct Boost {
+    // Energy level
+    pub energy: f32,
+    // Maximum energy level
+    pub max_energy: f32,
+    // Energy regeneration rate
+    pub regen_rate: f32,
+    // Energy consumption rate
+    pub consumption_rate: f32,
+    // Cooldown time in seconds
+    pub cooldown_duration: f32,
+    // Remaining cooldown time
+    pub current_cooldown: f32,
 }
