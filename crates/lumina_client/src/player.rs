@@ -7,6 +7,7 @@ use super::ui::Screen;
 use super::Connection;
 
 mod aim;
+mod name;
 mod spaceship;
 mod weapon;
 
@@ -18,6 +19,7 @@ impl Plugin for PlayerPlugin {
             aim::AimPlugin,
             spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
+            name::NamePlugin,
         ));
 
         app.init_resource::<LocalPlayerId>()
