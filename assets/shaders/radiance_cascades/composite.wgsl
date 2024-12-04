@@ -7,9 +7,9 @@
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    let main = textureSample(tex_screen, sampler_screen, in.uv) * 0.02;
-    let radiance = textureSample(tex_radiance, sampler_radiance, in.uv) * 0.8;
+    let main = textureSample(tex_screen, sampler_screen, in.uv);
+    let radiance = textureSample(tex_radiance, sampler_radiance, in.uv);
 
-    // return main;
-    return min(main + radiance, vec4<f32>(1.0));
+    // TODO: Replace addition of radiance with volumetric fog.
+    return min(main * radiance + radiance * 0.1, vec4<f32>(1.0));
 }

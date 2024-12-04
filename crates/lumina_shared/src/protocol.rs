@@ -50,6 +50,10 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
+        app.register_component::<TeamType>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
@@ -103,7 +107,7 @@ impl Plugin for ProtocolPlugin {
     }
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct GameScore {
     pub scores: [u8; TeamType::COUNT],
     pub max_score: u8,

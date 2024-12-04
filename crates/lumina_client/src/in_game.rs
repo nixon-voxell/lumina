@@ -4,6 +4,7 @@ use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 
+use crate::player::CachedGameStat;
 use crate::ui::Screen;
 
 pub(super) struct InGamePlugin;
@@ -12,7 +13,23 @@ impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<TerrainEntity>()
             .add_systems(OnExit(Screen::InGame), clear_terrain)
-            .add_systems(Update, game_over.run_if(in_state(Screen::InGame)));
+            .add_systems(
+                Update,
+                (
+                    update_game_score,
+                    game_over.run_if(in_state(Screen::InGame)),
+                ),
+            );
+    }
+}
+
+/// Listen to [`GameScore`] from server.
+fn update_game_score(
+    mut evr_game_score: EventReader<MessageEvent<GameScore>>,
+    mut game_stat: ResMut<CachedGameStat>,
+) {
+    for game_score in evr_game_score.read() {
+        game_stat.game_score = Some(game_score.message);
     }
 }
 

@@ -1,9 +1,8 @@
 use bevy::prelude::*;
-use client::*;
-use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 use velyst::prelude::*;
 
+use crate::player::CachedGameStat;
 use crate::ui::game_ui::GameUi;
 use crate::ui::Screen;
 
@@ -15,23 +14,23 @@ impl Plugin for ScoreBarUiPlugin {
             .compile_typst_func::<GameUi, ScoreBarFunc>()
             .init_resource::<ScoreBarFunc>()
             .add_systems(OnEnter(Screen::InGame), reset_game_score)
-            .add_systems(Update, udpate_game_score);
+            .add_systems(
+                Update,
+                udpate_game_score
+                    .run_if(resource_changed::<CachedGameStat>.and_then(in_state(Screen::InGame))),
+            );
     }
 }
 
 /// Listen to [`GameScore`] from server.
-fn udpate_game_score(
-    mut evr_game_score: EventReader<MessageEvent<GameScore>>,
-    mut func: ResMut<ScoreBarFunc>,
-) {
-    for game_score in evr_game_score.read() {
-        let msg = game_score.message();
-        func.scores = msg
-            .scores
+fn udpate_game_score(mut func: ResMut<ScoreBarFunc>, game_stat: Res<CachedGameStat>) {
+    if let Some(GameScore { scores, max_score }) = game_stat.game_score {
+        func.scores = scores
             .iter()
-            .map(|&score| score.clamp(0, msg.max_score))
+            .map(|&score| score.clamp(0, max_score))
             .collect();
-        func.max_score = msg.max_score;
+
+        func.max_score = max_score;
     }
 }
 

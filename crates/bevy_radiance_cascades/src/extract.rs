@@ -45,11 +45,9 @@ pub(super) fn prepare_extract_texture(
     render_device: Res<RenderDevice>,
 ) {
     for (entity, view) in q_views.iter() {
-        // Half the size of the screen.
-        let size = view
-            .main_texture()
-            .size()
-            .mip_level_size(1, TextureDimension::D2);
+        let mut size = view.main_texture().size();
+        size.width = (size.width / 2) * 2;
+        size.height = (size.height / 2) * 2;
 
         let texture = texture_cache.get(
             &render_device,

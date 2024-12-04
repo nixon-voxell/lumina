@@ -5,17 +5,31 @@ use lumina_common::prelude::*;
 use lumina_shared::action::ReplicateActionBundle;
 use lumina_shared::prelude::*;
 
-use super::LocalPlayerId;
+use super::{CachedGameStat, LocalPlayerId};
 
 pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, spawn_networked_action);
+        app.add_systems(Update, (spawn_networked_action, cache_team_type));
     }
 }
 
-// TODO: Add a slight screen shake during boosting?
+fn cache_team_type(
+    q_spaceships: Query<
+        (&TeamType, &PlayerId),
+        (With<Spaceship>, With<Predicted>, Added<SourceEntity>),
+    >,
+    local_player_id: Res<LocalPlayerId>,
+    mut local_team_type: ResMut<CachedGameStat>,
+) {
+    for (team_type, _) in q_spaceships
+        .iter()
+        .filter(|(_, &id)| **local_player_id == id)
+    {
+        local_team_type.team_type = Some(*team_type);
+    }
+}
 
 fn spawn_networked_action(
     mut commands: Commands,

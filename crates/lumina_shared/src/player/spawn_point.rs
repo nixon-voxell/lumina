@@ -1,7 +1,8 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use lumina_common::prelude::*;
-use strum::EnumCount;
+use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumCount, EnumIter, IntoStaticStr};
 
 use super::prelude::Spaceship;
 
@@ -88,7 +89,21 @@ fn on_remove_spawned(
 #[reflect(Component)]
 pub struct SpawnPoint(TeamType);
 
-#[derive(Reflect, EnumCount, PartialEq, Eq, Clone, Copy, Component)]
+#[derive(
+    Reflect,
+    EnumCount,
+    EnumIter,
+    AsRefStr,
+    IntoStaticStr,
+    Serialize,
+    Deserialize,
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    Component,
+)]
 pub enum TeamType {
     A,
     B,

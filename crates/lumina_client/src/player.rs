@@ -21,8 +21,12 @@ impl Plugin for PlayerPlugin {
         ));
 
         app.init_resource::<LocalPlayerId>()
+            .init_resource::<CachedGameStat>()
             .add_systems(OnEnter(Connection::Disconnected), reset_local_player_id)
-            .add_systems(OnEnter(Screen::LocalLobby), reset_local_player_id)
+            .add_systems(
+                OnEnter(Screen::LocalLobby),
+                (reset_local_player_id, reset_game_stat),
+            )
             .add_systems(
                 Update,
                 (set_physics_world::<RigidBody>, set_physics_world::<Weapon>),
@@ -44,6 +48,11 @@ fn reset_local_player_id(mut local_player_id: ResMut<LocalPlayerId>) {
     *local_player_id = LocalPlayerId::default();
 }
 
+/// Reset local team type to [`None`].
+fn reset_game_stat(mut local_team_type: ResMut<CachedGameStat>) {
+    *local_team_type = CachedGameStat::default();
+}
+
 #[derive(bevy::ecs::system::SystemParam)]
 pub struct LocalPlayerInfo<'w> {
     pub player_infos: Res<'w, PlayerInfos>,
@@ -59,11 +68,21 @@ impl LocalPlayerInfo<'_> {
 }
 
 // Source of truth for retrieving local entities.
-#[derive(Resource, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
+#[derive(Resource, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
 pub(super) struct LocalPlayerId(pub PlayerId);
 
 impl Default for LocalPlayerId {
     fn default() -> Self {
         Self(PlayerId::LOCAL)
     }
+}
+
+// The local player's team type.
+#[derive(Resource, Deref, DerefMut, Default, Debug, Clone, Copy)]
+pub(super) struct CachedGameStat(pub GameStat);
+
+#[derive(Default, Debug, Clone, Copy)]
+pub(super) struct GameStat {
+    pub team_type: Option<TeamType>,
+    pub game_score: Option<GameScore>,
 }
