@@ -3,7 +3,7 @@
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
-const RAYMARCH_LENGTH: f32 = 1.0;
+const RAYMARCH_LENGTH: f32 = 3.0;
 const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
