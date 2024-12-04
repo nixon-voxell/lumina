@@ -105,7 +105,7 @@
   ]
 }
 
-#let score_bar(scores) = {
+#let score_bar(scores, max_score) = {
   align(horizon)[
     #box(
       width: 850pt,
@@ -127,7 +127,7 @@
               #place(
                 left,
                 rect(
-                  width: scores.at(0) * 3.8pt,
+                  width: (float(scores.at(0)) / float(max_score)) * 100%,
                   height: 100%,
                   fill: red,
                   stroke: (top: 3pt + white),
@@ -158,7 +158,7 @@
               #place(
                 right,
                 rect(
-                  width: scores.at(1) * 3.8pt,
+                  width: (float(scores.at(1)) / float(max_score)) * 100%,
                   height: 100%,
                   fill: blue,
                   stroke: (top: 3pt + white),

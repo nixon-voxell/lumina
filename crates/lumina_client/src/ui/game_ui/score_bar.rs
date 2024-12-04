@@ -25,16 +25,28 @@ fn udpate_game_score(
     mut func: ResMut<ScoreBarFunc>,
 ) {
     for game_score in evr_game_score.read() {
-        func.scores = game_score.message().to_vec();
+        let msg = game_score.message();
+        func.scores = msg.scores.to_vec();
+        func.max_score = msg.max_score;
     }
 }
 
 fn reset_game_score(mut func: ResMut<ScoreBarFunc>) {
-    func.scores = vec![0; 2];
+    *func = ScoreBarFunc::default();
 }
 
-#[derive(TypstFunc, Resource, Default)]
+#[derive(TypstFunc, Resource)]
 #[typst_func(name = "score_bar")]
 pub struct ScoreBarFunc {
-    scores: Vec<u32>,
+    scores: Vec<u8>,
+    max_score: u8,
+}
+
+impl Default for ScoreBarFunc {
+    fn default() -> Self {
+        Self {
+            scores: Vec::new(),
+            max_score: u8::MAX,
+        }
+    }
 }

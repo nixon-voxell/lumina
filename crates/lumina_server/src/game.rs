@@ -36,7 +36,7 @@ fn respawn_spaceships(
             &TeamType,
             &PlayerId,
         ),
-        (With<Spaceship>, With<SourceEntity>),
+        (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
     >,
     mut q_game_scores: Query<&mut GameScore>,
     lobby_infos: Res<LobbyInfos>,
@@ -51,9 +51,7 @@ fn respawn_spaceships(
             .get(&**id)
             .and_then(|e| q_game_scores.get_mut(*e).ok())
         {
-            game_score[team_type.invert() as usize] += 1;
-
-            println!("{game_score:?}");
+            game_score.scores[team_type.invert() as usize] += 1;
         }
 
         // Reset position and health.
@@ -64,7 +62,7 @@ fn respawn_spaceships(
 
 fn init_game_score(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>>) {
     for entity in q_lobbies.iter() {
-        commands.entity(entity).insert(GameScore::default());
+        commands.entity(entity).insert(GameScore::new(15));
     }
 }
 

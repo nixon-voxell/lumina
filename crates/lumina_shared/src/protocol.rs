@@ -102,8 +102,20 @@ impl Plugin for ProtocolPlugin {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Serialize, Deserialize, Default, Debug)]
-pub struct GameScore(pub [u32; TeamType::COUNT]);
+#[derive(Component, Serialize, Deserialize, Debug)]
+pub struct GameScore {
+    pub scores: [u8; TeamType::COUNT],
+    pub max_score: u8,
+}
+
+impl GameScore {
+    pub fn new(max_score: u8) -> Self {
+        Self {
+            scores: [0; TeamType::COUNT],
+            max_score,
+        }
+    }
+}
 
 /// Matchmake command (with lobby size encoded) sent from
 /// client to server to find an available lobby to join.
