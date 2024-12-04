@@ -54,7 +54,7 @@ fn update_main_ui(
 }
 
 #[derive(TypstFunc, Resource, Default)]
-#[typst_func(name = "main")]
+#[typst_func(name = "main", layer = 1)]
 struct MainFunc {
     width: f64,
     height: f64,

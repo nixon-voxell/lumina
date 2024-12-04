@@ -23,7 +23,7 @@
         dir: ltr,
         spacing: 15pt,
         image(
-          "../client/game_ui/flame-icon.svg",
+          "/icons/flame-icon.svg",
           height: 2.5em,
         ),
         rect(
@@ -72,7 +72,7 @@
         #stack(
           dir: ltr,
           box(image(
-            "../client/game_ui/bullet-yellow.svg",
+            "/icons/bullet-yellow.svg",
             height: 1.3em,
           )),
           spacing: 5pt,
@@ -122,7 +122,7 @@
               height: 20pt,
               inset: 0pt,
               fill: white.transparentize(50%),
-              stroke: (top: 3pt + white),
+              stroke: (top: 3pt + red),
             )[
               #place(
                 left,
@@ -153,7 +153,7 @@
               height: 20pt,
               inset: 0pt,
               fill: white.transparentize(50%),
-              stroke: (top: 3pt + white),
+              stroke: (top: 3pt + blue),
             )[
               #place(
                 right,
@@ -266,7 +266,7 @@
         rotate(
           -90deg,
           image(
-            "../client/game_ui/battery2.svg",
+            "/icons/battery.svg",
             height: 3em,
           ),
         ),
@@ -321,10 +321,10 @@
       #place(top + left)[
         #timer
       ]
-      // Directly access the weapon_selector fields without iterating
-      #place(right + bottom)[
-        #weapon_selector
-      ]
+
+      // #place(right + bottom)[
+      //   #weapon_selector
+      // ]
     ]
   }
 )
