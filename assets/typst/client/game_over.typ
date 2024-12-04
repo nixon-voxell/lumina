@@ -13,9 +13,12 @@
   // Early return if there is nothing to show.
   // Team count must match!
   if team_names.len() <= 0 or team_names.len() != team_scores.len() {
-    [
+    place(center + horizon)[
       = Something has gone terribly wrong!
-      #button(lbl: <btn:main-menu>)[= Main Menu]
+
+      #text(fill: purple)[
+        #button(lbl: <btn:main-menu>)[=== Main Menu]
+      ]
     ]
     return
   }
@@ -59,7 +62,7 @@
 
           #align(right)[
             #text(fill: purple)[
-              #button(lbl: <btn:main-menu>)[= Main Menu]
+              #button(lbl: <btn:main-menu>)[=== Main Menu]
             ]
           ]
         ]

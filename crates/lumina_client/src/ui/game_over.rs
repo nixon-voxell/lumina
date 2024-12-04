@@ -1,5 +1,3 @@
-// TODO: Return to main menu button.
-
 use bevy::prelude::*;
 use lumina_shared::prelude::TeamType;
 use lumina_ui::prelude::*;
