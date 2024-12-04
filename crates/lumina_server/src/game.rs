@@ -149,7 +149,6 @@ fn init_spaceship_positions(
 ) {
     // Ensure the terrain config is available
     let Some(terrain_config) = terrain_config.get() else {
-        error!("Terrain config is not available!");
         return;
     };
 

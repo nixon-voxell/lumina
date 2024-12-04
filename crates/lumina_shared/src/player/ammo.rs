@@ -184,8 +184,8 @@ impl InitAmmoBundle {
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
             spatial: SpatialBundle {
-                // Set z axis so that it renders behind everything.
-                transform: Transform::from_xyz(0.0, 0.0, -80.0),
+                // Set z axis so that it renders behind walls and spaceships.
+                transform: Transform::from_xyz(0.0, 0.0, -10.0),
                 ..default()
             },
             no_translation_interp: NoTranslationInterpolation,
