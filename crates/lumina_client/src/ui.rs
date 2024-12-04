@@ -1,7 +1,10 @@
 use bevy::prelude::*;
+use bevy_radiance_cascades::prelude::*;
+use bevy_vello::render::VelloCanvasMaterial;
 
 use super::Connection;
 
+pub(super) mod game_over;
 pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
@@ -16,15 +19,26 @@ impl Plugin for UiPlugin {
             main_menu::MainMenuUiPlugin,
             lobby::LobbyUiPlugin,
             game_ui::GameUiPlugin,
+            game_over::GameOverUiPlugin,
         ));
 
-        app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu);
+        app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu)
+            .add_systems(Update, set_no_radiance);
     }
 }
 
 /// Return to main menu
 fn return_to_main_menu(mut next_screen_state: ResMut<NextState<Screen>>) {
     next_screen_state.set(Screen::MainMenu);
+}
+
+fn set_no_radiance(
+    mut commands: Commands,
+    q_scenes: Query<Entity, (With<Handle<VelloCanvasMaterial>>, Without<NoRadiance>)>,
+) {
+    for entity in q_scenes.iter() {
+        commands.entity(entity).insert(NoRadiance);
+    }
 }
 
 #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
@@ -37,7 +51,7 @@ pub enum Screen {
     Matchmaking,
     MultiplayerLobby,
     InGame,
-    // GameOver,
+    GameOver,
     // Leaderboard,
     // Tutorial,
     // Credits,

@@ -18,6 +18,7 @@ leafwing-input-manager = { workspace = true }
 avian2d = { workspace = true }
 blenvy = { workspace = true }
 rand = { workspace = true }
+strum = { workspace = true }
 smallvec = { workspace = true }
 
 [features]

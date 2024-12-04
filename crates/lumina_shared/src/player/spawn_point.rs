@@ -1,6 +1,8 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use lumina_common::prelude::*;
+use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumCount, EnumIter, IntoStaticStr};
 
 use super::prelude::Spaceship;
 
@@ -10,17 +12,18 @@ impl Plugin for SpawnPointPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PostUpdate,
-            init_spaceship.after(TransformSystem::TransformPropagate),
+            init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
         )
         .observe(on_add_spawned)
         .observe(on_remove_spawned);
     }
 }
-// TODO: Split players into teams.
-fn init_spaceship(
+
+/// Initialize spaceships and assign them to available spawn points.
+fn init_spaceships_at_spawn_points(
     mut commands: Commands,
-    q_spawn_points: Query<(&GlobalTransform, Entity), (With<SpawnPoint>, Without<SpawnPointUsed>)>,
-    mut q_spaceships: Query<
+    q_spawn_points: Query<(&GlobalTransform, &SpawnPoint, Entity), Without<SpawnPointUsed>>,
+    mut q_spaceship: Query<
         (&mut Position, &mut Rotation, Entity),
         (
             With<Spaceship>,
@@ -31,21 +34,26 @@ fn init_spaceship(
 ) {
     let mut spawn_points = q_spawn_points.iter();
 
-    for (mut position, mut rotation, entity) in q_spaceships.iter_mut() {
-        // Obtain a new spawn transform.
-        let Some((spawn_transform, spawn_entity)) = spawn_points.next() else {
+    for (mut spaceship_position, mut spaceship_rotation, spaceship_entity) in q_spaceship.iter_mut()
+    {
+        // Retrieve the next available spawn point and its transform.
+        let Some((spawn_transform, spawn_point, spawn_point_entity)) = spawn_points.next() else {
             return;
         };
 
-        let (_, spawn_rot, spawn_trans) = spawn_transform.to_scale_rotation_translation();
+        // Extract position and rotation from the spawn point's transform
+        let (_, spawn_rotation, spawn_translation) =
+            spawn_transform.to_scale_rotation_translation();
 
-        *position = Position(spawn_trans.xy());
-        *rotation = Rotation::radians(spawn_rot.to_scaled_axis().z);
+        // Set spaceship position and rotation based on the spawn point's transform
+        *spaceship_position = Position(spawn_translation.xy());
+        *spaceship_rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
 
+        // Associate the spaceship with the spawn point, mark it as used, and assign its team type
         commands
-            .entity(entity)
-            .insert(SpawnPointEntity(spawn_entity));
-        commands.entity(spawn_entity).insert(SpawnPointUsed);
+            .entity(spaceship_entity)
+            .insert((SpawnPointEntity(spawn_point_entity), **spawn_point));
+        commands.entity(spawn_point_entity).insert(SpawnPointUsed); // Mark spawn point as used
     }
 }
 
@@ -61,6 +69,8 @@ fn on_add_spawned(
     commands.entity(entity).insert(SpawnPointUsed);
 }
 
+// FIXME: This will cause a panic!
+// Because the component will be removed first before the trigger event!
 /// When a [`SpawnPointEntity`] is being removed,
 /// release it so that it can be reused again.
 fn on_remove_spawned(
@@ -79,10 +89,33 @@ fn on_remove_spawned(
 #[reflect(Component)]
 pub struct SpawnPoint(TeamType);
 
-#[derive(Reflect)]
+#[derive(
+    Reflect,
+    EnumCount,
+    EnumIter,
+    AsRefStr,
+    IntoStaticStr,
+    Serialize,
+    Deserialize,
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    Component,
+)]
 pub enum TeamType {
     A,
     B,
+}
+
+impl TeamType {
+    pub fn invert(&self) -> Self {
+        match self {
+            TeamType::A => TeamType::B,
+            TeamType::B => TeamType::A,
+        }
+    }
 }
 
 #[derive(Component)]

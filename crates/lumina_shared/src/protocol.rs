@@ -4,6 +4,7 @@ use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
 use server::RoomId;
+use strum::EnumCount;
 
 use crate::action::PlayerAction;
 use crate::blueprints::{SpaceshipType, WeaponType};
@@ -28,6 +29,8 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
         app.register_message::<LobbyData>(ChannelDirection::ServerToClient);
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
+        app.register_message::<EndGame>(ChannelDirection::ServerToClient);
+        app.register_message::<GameScore>(ChannelDirection::ServerToClient);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -44,6 +47,10 @@ impl Plugin for ProtocolPlugin {
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Once)
+            .add_interpolation(client::ComponentSyncMode::Once);
+
+        app.register_component::<TeamType>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
 
@@ -104,6 +111,21 @@ impl Plugin for ProtocolPlugin {
     }
 }
 
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct GameScore {
+    pub scores: [u8; TeamType::COUNT],
+    pub max_score: u8,
+}
+
+impl GameScore {
+    pub fn new(max_score: u8) -> Self {
+        Self {
+            scores: [0; TeamType::COUNT],
+            max_score,
+        }
+    }
+}
+
 /// Matchmake command (with lobby size encoded) sent from
 /// client to server to find an available lobby to join.
 #[derive(Serialize, Deserialize, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
@@ -130,6 +152,10 @@ pub struct ExitLobby;
 pub struct StartGame {
     pub seed: u32,
 }
+
+/// End game command sent from server to client either when 1 team wins or timer runs out.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct EndGame;
 
 /// A simple reliable channel for sending messages through the network reliably.
 #[derive(Channel)]

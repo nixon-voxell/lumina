@@ -10,11 +10,11 @@ use bevy::render::render_resource::binding_types::{
 use bevy::render::render_resource::*;
 use bevy::render::renderer::{RenderContext, RenderDevice, RenderQueue};
 use bevy::render::texture::{CachedTexture, TextureCache};
-use bevy::render::view::ViewTarget;
 use bevy::render::Render;
 use bevy::render::{RenderApp, RenderSet};
 use binding_types::sampler;
 
+use crate::extract::{prepare_extract_texture, ExtractTexture};
 use crate::math_util::{batch_count, cascade_count};
 use crate::mipmap::MipmapTexture;
 use crate::prelude::MipmapConfig;
@@ -42,7 +42,7 @@ impl Plugin for RadianceCascadesPlugin {
                 Render,
                 (
                     (
-                        calculate_cascade_count,
+                        calculate_cascade_count.after(prepare_extract_texture),
                         (prepare_rc_textures, prepare_rc_buffers),
                     )
                         .chain()
@@ -61,10 +61,10 @@ impl Plugin for RadianceCascadesPlugin {
 
 pub(super) fn calculate_cascade_count(
     mut commands: Commands,
-    q_views: Query<(&ViewTarget, &RadianceCascadesConfig, Entity)>,
+    q_views: Query<(&ExtractTexture, &RadianceCascadesConfig, Entity)>,
 ) {
-    for (view, rc_config, entity) in q_views.iter() {
-        let size = view.main_texture().size();
+    for (extract_tex, rc_config, entity) in q_views.iter() {
+        let size = extract_tex.texture.size();
         // Use diagonal length as the max length. (A^2 + B^2 = C^2)
         let max_length = f32::sqrt((size.width * size.width + size.height * size.height) as f32);
 
@@ -82,18 +82,12 @@ pub(super) fn calculate_cascade_count(
 
 fn prepare_rc_textures(
     mut commands: Commands,
-    q_views: Query<(&ViewTarget, &CascadeCount, &RadianceCascadesConfig, Entity)>,
+    q_views: Query<(&ExtractTexture, &CascadeCount, Entity)>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
 ) {
-    for (view, cascade_count, cascade_config, entity) in q_views.iter() {
-        let mut size = view.main_texture().size();
-        size.depth_or_array_layers = 1;
-
-        let mut half_size = size;
-        let probe_width = 1 << cascade_config.resolution_factor;
-        half_size.width = half_size.width.div_ceil(probe_width);
-        half_size.height = half_size.height.div_ceil(probe_width);
+    for (extract_tex, cascade_count, entity) in q_views.iter() {
+        let size = extract_tex.texture.size();
 
         let rc_texture_desc = |name: &'static str| TextureDescriptor {
             label: Some(name),

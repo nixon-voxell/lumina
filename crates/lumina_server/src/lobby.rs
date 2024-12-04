@@ -186,7 +186,7 @@ pub(super) struct LobbyInGame;
 pub(super) struct LobbyFull;
 
 #[derive(Event)]
-pub(super) struct ClientExitLobby(ClientId);
+pub(super) struct ClientExitLobby(pub ClientId);
 
 impl ClientExitLobby {
     pub fn id(&self) -> ClientId {
