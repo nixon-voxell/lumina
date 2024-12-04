@@ -24,7 +24,7 @@ fn attack_cam_shake(
 ) {
     for fire_ammo in fire_ammo_evr.read() {
         if fire_ammo.player_id == **local_player_id {
-            camera_shake.add_trauma_with_threshold(0.2, 0.3);
+            camera_shake.add_trauma_with_threshold(0.7, 0.8);
         }
     }
 }

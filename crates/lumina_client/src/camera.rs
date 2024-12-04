@@ -54,7 +54,6 @@ fn spawn_game_camera(mut commands: Commands) {
         Camera2dBundle {
             camera: Camera {
                 clear_color: Color::Srgba(Srgba::hex("19181A").unwrap()).into(),
-                // clear_color: ClearColorConfig::Custom(Color::NONE),
                 hdr: true,
                 ..default()
             },
@@ -74,6 +73,7 @@ fn spawn_game_camera(mut commands: Commands) {
         bloom,
         SmaaSettings::default(),
         RadianceCascadesConfig::default(),
+        SpatialListener::new(400.0),
     ));
 }
 
@@ -285,8 +285,10 @@ impl CameraShake {
             return;
         }
 
-        self.add_trauma(trauma);
-        // self.trauma = f32::min(self.trauma, threshold);
+        // How much trauma left can we add.
+        let computed_trauma = (threshold - self.trauma).max(0.0);
+        // Take the lowest between the amount left and the available amount.
+        self.add_trauma(trauma.min(computed_trauma));
     }
 
     fn reduce_trauma(&mut self, delta: f32) {

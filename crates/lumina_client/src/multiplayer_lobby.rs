@@ -44,7 +44,7 @@ fn start_game(
 
         next_screen_state.set(Screen::InGame);
         // Allow for custom timing.
-        timer_func.total_seconds = 60.0 * 15.0;
+        timer_func.total_seconds = 60.0 * 2.5;
     }
 }
 

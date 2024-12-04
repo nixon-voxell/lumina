@@ -95,7 +95,7 @@ fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>
     for entity in q_lobbies.iter() {
         commands
             .entity(entity)
-            .insert((GameScore::new(15), GameTimer(60.0 * 15.0)));
+            .insert((GameScore::new(15), GameTimer(60.0 * 2.5)));
     }
 }
 
@@ -149,7 +149,6 @@ fn init_spaceship_positions(
 ) {
     // Ensure the terrain config is available
     let Some(terrain_config) = terrain_config.get() else {
-        error!("Terrain config is not available!");
         return;
     };
 

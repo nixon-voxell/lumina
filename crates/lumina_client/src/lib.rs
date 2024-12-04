@@ -10,6 +10,7 @@ use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
 
+mod audio;
 mod blueprint_visual;
 mod camera;
 mod effector;
@@ -43,6 +44,7 @@ impl Plugin for ClientPlugin {
         .add_plugins((
             source_entity::SourceEntityPlugin,
             blueprint_visual::BlueprintVisualPlugin,
+            audio::AudioPlugin,
             ui::UiPlugin,
             player::PlayerPlugin,
             camera::CameraPlugin,

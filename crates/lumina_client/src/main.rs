@@ -1,5 +1,5 @@
 use bevy::asset::AssetMetaCheck;
-use bevy::audio::{AudioPlugin, Volume};
+use bevy::audio::{AudioPlugin, SpatialScale, Volume};
 use bevy::prelude::*;
 
 fn main() {
@@ -26,10 +26,10 @@ fn main() {
                 ..default()
             })
             .set(AudioPlugin {
+                default_spatial_scale: SpatialScale::new_2d(0.005),
                 global_volume: GlobalVolume {
                     volume: Volume::new(0.3),
                 },
-                ..default()
             }),
     )
     .add_plugins((

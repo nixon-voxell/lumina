@@ -17,6 +17,7 @@ impl Plugin for AmmoPlugin {
         app.init_resource::<RefEntityMap<AmmoType>>()
             .init_resource::<EntityPools<AmmoType>>()
             .add_event::<FireAmmo>()
+            .add_event::<AmmoHit>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
             .add_systems(
@@ -44,6 +45,7 @@ fn setup_ammmo_ref(
     }
 }
 
+// TODO: Needs syncing!
 fn fire_ammo(
     mut commands: Commands,
     q_ammo_refs: Query<(&Ammo, &Collider), With<AmmoRef>>,
@@ -109,6 +111,7 @@ fn ammo_collision(
     mut q_healths: Query<&mut Health>,
     mut q_ammos: Query<
         (
+            &Position,
             &mut AmmoStat,
             &AmmoDamage,
             Ref<CollidingEntities>,
@@ -116,8 +119,9 @@ fn ammo_collision(
         ),
         Changed<CollidingEntities>,
     >,
+    mut evw_ammo_hit: EventWriter<AmmoHit>,
 ) {
-    for (mut stat, &AmmoDamage(damage), colliding, id) in q_ammos.iter_mut() {
+    for (position, mut stat, &AmmoDamage(damage), colliding, id) in q_ammos.iter_mut() {
         // No collisions.
         if colliding.is_added() || colliding.len() == 0 {
             continue;
@@ -136,6 +140,7 @@ fn ammo_collision(
             {
                 continue;
             }
+
             // Apply damage if possible.
             if let Ok(mut health) = q_healths.get_mut(entity) {
                 **health -= damage;
@@ -147,6 +152,7 @@ fn ammo_collision(
         // Ammo collided with something, disable it!
         if hit {
             stat.lifetime = 0.0;
+            evw_ammo_hit.send(AmmoHit(*position));
         }
     }
 }
@@ -184,8 +190,8 @@ impl InitAmmoBundle {
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
             spatial: SpatialBundle {
-                // Set z axis so that it renders behind everything.
-                transform: Transform::from_xyz(0.0, 0.0, -80.0),
+                // Set z axis so that it renders behind walls and spaceships.
+                transform: Transform::from_xyz(0.0, 0.0, -10.0),
                 ..default()
             },
             no_translation_interp: NoTranslationInterpolation,
@@ -262,3 +268,6 @@ pub struct Ammo {
     /// Angular damping value for the ammo.
     angular_damping: f32,
 }
+
+#[derive(Event, Deref)]
+pub struct AmmoHit(Position);

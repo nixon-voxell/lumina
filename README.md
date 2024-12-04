@@ -2,6 +2,8 @@
 
 A top down fast paced objective based PvPvE game.
 
+![screenshot](./.github/assets/screenshot.png)
+
 ## Quickstart
 
 To compile Lumina, you have to perform a recursive clone:
