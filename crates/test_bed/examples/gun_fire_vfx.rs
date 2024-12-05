@@ -8,7 +8,7 @@ fn main() -> AppExit {
     let mut app = App::new();
 
     app.add_plugins((DefaultPlugins, EnokiPlugin, ShaderUtilsPlugin))
-        .add_plugins(Particle2dMaterialPlugin::<MuzzleFlashParticleMaterial>::default());
+        .add_plugins(Particle2dMaterialPlugin::<AmmoHitMaterial>::default());
 
     app.add_systems(Startup, setup)
         .add_systems(Update, spawn_spark);
@@ -18,7 +18,7 @@ fn main() -> AppExit {
 
 fn setup(
     mut commands: Commands,
-    mut muzzle_flash_materials: ResMut<Assets<MuzzleFlashParticleMaterial>>,
+    mut materials: ResMut<Assets<AmmoHitMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
     commands.spawn((
@@ -50,8 +50,8 @@ fn setup(
                 active: false,
                 ..default()
             },
-            effect: asset_server.load("enoki/muzzle_flash.ron"),
-            material: muzzle_flash_materials.add(MuzzleFlashParticleMaterial::default()),
+            effect: asset_server.load("enoki/ammo_hit.ron"),
+            material: materials.add(AmmoHitMaterial::default()),
             ..default()
         },
         OneShot::Deactivate,
@@ -59,35 +59,26 @@ fn setup(
 }
 
 fn spawn_spark(
-    mut q_particle_states: Query<(
-        &mut ParticleSpawnerState,
-        Option<&Handle<MuzzleFlashParticleMaterial>>,
-    )>,
-    mut materials: ResMut<Assets<MuzzleFlashParticleMaterial>>,
+    mut q_particle_states: Query<(&mut ParticleSpawnerState, Option<&Handle<AmmoHitMaterial>>)>,
+    // mut materials: ResMut<Assets<AmmoHitMaterial>>,
     button: Res<ButtonInput<MouseButton>>,
 ) {
     if button.just_pressed(MouseButton::Left) {
         for (mut particle_states, material) in q_particle_states.iter_mut() {
             particle_states.active = true;
 
-            if let Some(material) = material.and_then(|handle| materials.get_mut(handle)) {
-                material.variation = rand::random::<f32>() * 1000.0;
-            }
+            // if let Some(material) = material.and_then(|handle| materials.get_mut(handle)) {
+            //     material.variation = rand::random::<f32>() * 1000.0;
+            // }
         }
     }
 }
 
 #[derive(AsBindGroup, Asset, TypePath, Clone, Default)]
-pub struct MuzzleFlashParticleMaterial {
-    #[texture(0)]
-    #[sampler(1)]
-    texture: Handle<Image>,
-    #[uniform(2)]
-    variation: f32,
-}
+pub struct AmmoHitMaterial {}
 
-impl Particle2dMaterial for MuzzleFlashParticleMaterial {
+impl Particle2dMaterial for AmmoHitMaterial {
     fn fragment_shader() -> ShaderRef {
-        "shaders/enoki/muzzle_flash.wgsl".into()
+        "shaders/enoki/ammo_hit.wgsl".into()
     }
 }
