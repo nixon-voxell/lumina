@@ -1,4 +1,5 @@
 //! This module parses the settings.ron file and builds a lumina configuration from it.
+use std::io::Read;
 use std::net::Ipv4Addr;
 
 use bevy::asset::ron;
@@ -12,8 +13,13 @@ pub(super) struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
-        let settings_str = include_str!("../settings.ron");
-        let settings = read_settings::<LuminaSettings>(settings_str);
+        let mut settings_str = String::new();
+        std::fs::File::open("assets/settings.ron")
+            .expect("Setting file should be present.")
+            .read_to_string(&mut settings_str)
+            .unwrap();
+
+        let settings = read_settings::<LuminaSettings>(&settings_str);
         app.insert_resource(settings);
     }
 }

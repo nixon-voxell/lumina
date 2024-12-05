@@ -24,7 +24,7 @@ fn attack_cam_shake(
 ) {
     for fire_ammo in fire_ammo_evr.read() {
         if fire_ammo.player_id == **local_player_id {
-            camera_shake.add_trauma_with_threshold(0.7, 0.8);
+            camera_shake.add_trauma_with_threshold(0.6, 0.7);
         }
     }
 }
@@ -129,10 +129,7 @@ impl WeaponVfx {
 
 #[derive(AsBindGroup, Asset, TypePath, Clone, Default)]
 pub struct MuzzleFlashMaterial {
-    #[texture(0)]
-    #[sampler(1)]
-    texture: Handle<Image>,
-    #[uniform(2)]
+    #[uniform(0)]
     variation: f32,
 }
 

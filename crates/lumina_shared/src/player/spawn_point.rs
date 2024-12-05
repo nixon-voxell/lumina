@@ -1,10 +1,11 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumCount, EnumIter, IntoStaticStr};
 
-use super::prelude::Spaceship;
+use super::prelude::*;
 
 pub(super) struct SpawnPointPlugin;
 
@@ -24,18 +25,29 @@ fn init_spaceships_at_spawn_points(
     mut commands: Commands,
     q_spawn_points: Query<(&GlobalTransform, &SpawnPoint, Entity), Without<SpawnPointUsed>>,
     mut q_spaceship: Query<
-        (&mut Position, &mut Rotation, Entity),
+        (
+            &mut Position,
+            &mut Rotation,
+            &PlayerId,
+            Has<server::SyncTarget>,
+            Entity,
+        ),
         (
             With<Spaceship>,
             With<SourceEntity>,
             Without<SpawnPointEntity>,
+            Without<TeamType>,
         ),
     >,
 ) {
     let mut spawn_points = q_spawn_points.iter();
 
-    for (mut spaceship_position, mut spaceship_rotation, spaceship_entity) in q_spaceship.iter_mut()
-    {
+    for (mut position, mut rotation, id, is_server, entity) in q_spaceship.iter_mut() {
+        // If we are in multiplayer mode, let the sever handle the spawn position.
+        if *id != PlayerId::LOCAL && is_server == false {
+            return;
+        }
+
         // Retrieve the next available spawn point and its transform.
         let Some((spawn_transform, spawn_point, spawn_point_entity)) = spawn_points.next() else {
             return;
@@ -46,12 +58,12 @@ fn init_spaceships_at_spawn_points(
             spawn_transform.to_scale_rotation_translation();
 
         // Set spaceship position and rotation based on the spawn point's transform
-        *spaceship_position = Position(spawn_translation.xy());
-        *spaceship_rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
+        *position = Position(spawn_translation.xy());
+        *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
 
         // Associate the spaceship with the spawn point, mark it as used, and assign its team type
         commands
-            .entity(spaceship_entity)
+            .entity(entity)
             .insert((SpawnPointEntity(spawn_point_entity), **spawn_point));
         commands.entity(spawn_point_entity).insert(SpawnPointUsed); // Mark spawn point as used
     }

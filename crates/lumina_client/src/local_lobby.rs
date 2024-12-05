@@ -83,7 +83,7 @@ fn matchmake_effector_trigger(
     mut main_window_transparency: ResMut<MainWindowTransparency>,
 ) {
     // TODO: Support different player count modes.
-    const PLAYER_COUNT: u8 = 2;
+    const PLAYER_COUNT: u8 = 4;
 
     commands.add(Coroutine::new(|| {
         let mut res = co_break();
