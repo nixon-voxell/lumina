@@ -64,7 +64,7 @@ fn spawn_spark(
     button: Res<ButtonInput<MouseButton>>,
 ) {
     if button.just_pressed(MouseButton::Left) {
-        for (mut particle_states, material) in q_particle_states.iter_mut() {
+        for (mut particle_states, _) in q_particle_states.iter_mut() {
             particle_states.active = true;
 
             // if let Some(material) = material.and_then(|handle| materials.get_mut(handle)) {
