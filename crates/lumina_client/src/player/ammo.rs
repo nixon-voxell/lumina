@@ -17,7 +17,7 @@ impl Plugin for AmmoPlugin {
 
 fn hit_cam_shake(mut evr_ammo_hit: EventReader<AmmoHit>, mut camera_shake: ResMut<CameraShake>) {
     for _ in evr_ammo_hit.read() {
-        camera_shake.add_trauma_with_threshold(0.5, 0.7);
+        camera_shake.add_trauma_with_threshold(0.3, 0.4);
     }
 }
 
@@ -32,7 +32,7 @@ fn ammo_hit_vfx(
     for ammo_hit in evr_ammo_hit.read() {
         state.active = true;
         // Above walls.
-        transform.translation = ammo_hit.extend(80.0);
+        transform.translation = ammo_hit.extend(10.0);
     }
 }
 
