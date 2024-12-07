@@ -2,7 +2,7 @@
 
 A top down fast paced objective based PvPvE game.
 
-![screenshot](./.github/assets/screenshot.png)
+![poster](./.github/assets/poster.png)
 
 ## Quickstart
 
