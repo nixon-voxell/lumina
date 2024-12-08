@@ -1,4 +1,5 @@
 use bevy::render::render_resource::AsBindGroup;
+use bevy::render::view::VisibilitySystems;
 use bevy::{prelude::*, render::render_resource::ShaderRef};
 use bevy_enoki::prelude::*;
 use lumina_shared::prelude::*;
@@ -10,8 +11,41 @@ pub(super) struct AmmoPlugin;
 impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(Particle2dMaterialPlugin::<AmmoHitMaterial>::default())
-            .add_systems(Startup, spawn_ammo_vfx)
-            .add_systems(Update, (hit_cam_shake, ammo_hit_vfx));
+            .add_systems(Startup, setup_ammo_vfx)
+            .add_systems(Update, (hit_cam_shake, ammo_hit_vfx))
+            .add_systems(
+                PostUpdate,
+                ammo_vfx_visibility.after(VisibilitySystems::VisibilityPropagate),
+            );
+    }
+}
+
+fn ammo_vfx_visibility(mut q_viz: Query<&mut ViewVisibility, With<ParticleEffectInstance>>) {
+    for mut viz in q_viz.iter_mut() {
+        viz.set();
+    }
+}
+
+fn ammo_hit_vfx(
+    mut commands: Commands,
+    ammo_hit_vfx: Res<AmmoHitVfx>,
+    mut evr_ammo_hit: EventReader<AmmoHit>,
+) {
+    for ammo_hit in evr_ammo_hit.read() {
+        commands.spawn((
+            ParticleSpawnerBundle {
+                state: ParticleSpawnerState {
+                    active: true,
+                    ..default()
+                },
+                effect: ammo_hit_vfx.effect.clone_weak(),
+                material: ammo_hit_vfx.material.clone_weak(),
+                // Above walls.
+                transform: Transform::from_translation(ammo_hit.extend(10.0)),
+                ..default()
+            },
+            OneShot::Despawn,
+        ));
     }
 }
 
@@ -21,45 +55,24 @@ fn hit_cam_shake(mut evr_ammo_hit: EventReader<AmmoHit>, mut camera_shake: ResMu
     }
 }
 
-fn ammo_hit_vfx(
-    mut q_ammo_hit_vfx: Query<(&mut ParticleSpawnerState, &mut Transform), With<AmmoHitVfx>>,
-    mut evr_ammo_hit: EventReader<AmmoHit>,
-) {
-    let Ok((mut state, mut transform)) = q_ammo_hit_vfx.get_single_mut() else {
-        return;
-    };
-
-    for ammo_hit in evr_ammo_hit.read() {
-        state.active = true;
-        // Above walls.
-        transform.translation = ammo_hit.extend(10.0);
-    }
-}
-
-fn spawn_ammo_vfx(
+fn setup_ammo_vfx(
     mut commands: Commands,
     mut materials: ResMut<Assets<AmmoHitMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.spawn((
-        ParticleSpawnerBundle {
-            state: ParticleSpawnerState {
-                active: false,
-                ..default()
-            },
-            effect: asset_server.load("enoki/ammo_hit.ron"),
-            material: materials.add(AmmoHitMaterial::default()),
-            ..default()
-        },
-        OneShot::Deactivate,
-        AmmoHitVfx,
-    ));
+    commands.insert_resource(AmmoHitVfx {
+        effect: asset_server.load("enoki/ammo_hit.ron"),
+        material: materials.add(AmmoHitMaterial::default()),
+    });
 }
 
-#[derive(Component)]
-struct AmmoHitVfx;
+#[derive(Resource)]
+struct AmmoHitVfx {
+    effect: Handle<Particle2dEffect>,
+    material: Handle<AmmoHitMaterial>,
+}
 
-#[derive(AsBindGroup, Asset, TypePath, Clone, Default)]
+#[derive(AsBindGroup, Asset, TypePath, Default, Clone, Copy)]
 pub struct AmmoHitMaterial {}
 
 impl Particle2dMaterial for AmmoHitMaterial {
