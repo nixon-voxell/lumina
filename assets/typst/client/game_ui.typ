@@ -1,50 +1,33 @@
 #import "../monokai_pro.typ": *
 
-#set page(
-  width: auto,
-  height: auto,
-  margin: 0pt,
-)
-
 // Booster meter
-#let boostmeter(
-  height,
-  width,
-  red_height,
-) = {
-  let width = 300pt
-  let height = 14pt
-  grid(
-    columns: (60pt, 1fr),
-    rows: auto,
-    gutter: 3pt,
-    align(horizon)[
-      #stack(
-        dir: ltr,
-        spacing: 15pt,
-        image(
-          "/icons/flame-icon.svg",
-          height: 2.5em,
-        ),
-        rect(
-          width: width,
-          height: height,
-          inset: 0pt,
-          fill: white,
-        )[
-          // Add red rectangle as booster overheat signal
-          #place(
-            top + left,
-            rect(
-              width: red_height * 100%,
-              height: 100% * 100%,
-              fill: rgb("EC6F59").saturate(30%),
-            ),
-          )
-        ],
-      )
-    ],
-  )
+#let boostmeter(boost_percent) = {
+  align(horizon)[
+    #stack(
+      dir: ltr,
+      spacing: 15pt,
+      image(
+        "/icons/flame-icon.svg",
+        height: 1.5em,
+      ),
+      rect(
+        width: 20%,
+        height: 1.3em,
+        inset: 0pt,
+        fill: base1,
+        stroke: orange.lighten(40%).transparentize(80%) + 2pt,
+      )[
+        // Add red rectangle as booster overheat signal
+        #place(
+          rect(
+            width: boost_percent * 100%,
+            height: 100%,
+            fill: gradient.linear(orange.darken(30%), orange),
+          ),
+        )
+      ],
+    )
+  ]
 }
 
 #let weaponselector(

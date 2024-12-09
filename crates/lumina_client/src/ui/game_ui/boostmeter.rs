@@ -25,14 +25,12 @@ fn update_boost_meter(
 ) {
     // Filter boosts by the local player's ID
     for (boost, _player_id) in q_boosts.iter().filter(|(_, id)| **id == local_player_id.0) {
-        boostmeter_func.red_height = (boost.energy / boost.max_energy) as f64;
+        boostmeter_func.boost_percent = (boost.energy / boost.max_energy) as f64;
     }
 }
 
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "boostmeter")]
 pub struct BoostmeterFunc {
-    height: f64,
-    width: f64,
-    red_height: f64,
+    boost_percent: f64,
 }

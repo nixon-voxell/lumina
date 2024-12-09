@@ -4,7 +4,7 @@
   let width = (width * 1pt)
   let height = (height * 1pt)
 
-  set text(size: height * 0.02, fill: base7)
+  set text(size: calc.min(height, width) * 0.02, fill: base7)
 
   box(
     width: width,
