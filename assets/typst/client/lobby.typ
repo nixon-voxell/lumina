@@ -26,7 +26,7 @@
         Room Id: #room_id
       ]
 
-      #place(bottom + left)[
+      #place(top + right)[
         #set text(size: 14pt)
         #text(fill: red)[#button(lbl: <btn:exit-lobby>)[= Exit Lobby]]
       ]

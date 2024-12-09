@@ -3,16 +3,13 @@ use lumina_ui::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-pub mod boostmeter;
-pub mod health;
 pub mod score_bar;
+pub mod spaceship_stats;
 pub mod timer;
 pub mod weapon_selector;
 
-use crate::ui::Screen;
+// use crate::ui::Screen;
 
-use crate::ui::game_ui::boostmeter::BoostmeterFunc;
-use crate::ui::game_ui::health::HealthFunc;
 use crate::ui::game_ui::score_bar::ScoreBarFunc;
 use crate::ui::game_ui::timer::CountdownTimerFunc;
 use crate::ui::game_ui::weapon_selector::WeaponSelectorFunc;
@@ -23,9 +20,8 @@ impl Plugin for GameUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             timer::TimerUiPlugin,
-            boostmeter::BoostmeterUiPlugin,
             weapon_selector::WeaponSelectorUiPlugin,
-            health::HealthUiPlugin,
+            spaceship_stats::SpaceshipStatsPlugin,
             score_bar::ScoreBarUiPlugin,
         ))
         .register_typst_asset::<GameUi>()
@@ -41,14 +37,10 @@ impl Plugin for GameUiPlugin {
 fn update_main_ui(
     mut func: ResMut<MainFunc>,
     timer_countdown: Res<TypstContent<CountdownTimerFunc>>,
-    boostmeter: Res<TypstContent<BoostmeterFunc>>,
-    health: Res<TypstContent<HealthFunc>>,
     weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
     score_bar: Res<TypstContent<ScoreBarFunc>>,
 ) {
     func.timer = timer_countdown.clone();
-    func.boostmeter = boostmeter.clone();
-    func.health = health.clone();
     func.weapon_selector = weapon_selector.clone();
     func.score_bar = score_bar.clone();
 }
@@ -56,9 +48,7 @@ fn update_main_ui(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main", layer = 1)]
 struct MainFunc {
-    boostmeter: Content,
     timer: Content,
-    health: Content,
     weapon_selector: Content,
     score_bar: Content,
 }

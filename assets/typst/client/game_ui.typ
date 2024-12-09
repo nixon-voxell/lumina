@@ -1,35 +1,5 @@
 #import "../monokai_pro.typ": *
 
-// Booster meter
-#let boostmeter(boost_percent) = {
-  align(horizon)[
-    #stack(
-      dir: ltr,
-      spacing: 15pt,
-      image(
-        "/icons/flame-icon.svg",
-        height: 1.5em,
-      ),
-      rect(
-        width: 20%,
-        height: 1.3em,
-        inset: 0pt,
-        fill: base1,
-        stroke: orange.lighten(40%).transparentize(80%) + 2pt,
-      )[
-        // Add red rectangle as booster overheat signal
-        #place(
-          rect(
-            width: boost_percent * 100%,
-            height: 100%,
-            fill: gradient.linear(orange.darken(30%), orange),
-          ),
-        )
-      ],
-    )
-  ]
-}
-
 #let weaponselector(
   selected_index,
   num_weapon,
@@ -180,107 +150,8 @@
   ]
 }
 
-// Input:
-// - Length of the entire health bar
-// - Max HP
-// - Current HP
-
-// Rule
-// - Each box represents 10 HP
-#let playerhealth(
-  current_hp,
-  max_hp,
-  total_width: 280pt,
-  rect_height: 31pt,
-  spacing: 8pt,
-) = {
-  // Calculate the total number of blocks needed
-  let blocks = calc.ceil(current_hp / 10)
-  let max_blocks = calc.ceil(max_hp / 10)
-
-  if max_blocks == 0 {
-    return
-  }
-
-  // Calculate the width of each block
-  let rect_width = (total_width - (max_blocks - 1) * spacing) / max_blocks
-
-  // Define health state colors
-  let low_color = red // Red
-  let medium_color = orange // Orange
-  let medium_high_color = yellow.mix((base7, 50%)) // Bright Yellow
-  let healthy_color = green // Green
-
-  // Function to determine block color based on health ratio and block index
-  let get_block_color(block_index) = {
-    let hp_ratio = current_hp / max_hp
-
-    // Color progression for all blocks
-    if block_index < 15 {
-      if hp_ratio > 0.7 {
-        healthy_color.saturate(80%)
-      } else if hp_ratio > 0.5 {
-        medium_high_color.saturate(80%)
-      } else if hp_ratio > 0.3 {
-        medium_color.saturate(80%)
-      } else {
-        low_color.saturate(80%)
-      }
-    } else {
-      // After 15 blocks, color changes based on overall health
-      if hp_ratio > 0.7 {
-        healthy_color.saturate(80%)
-      } else if hp_ratio > 0.5 {
-        medium_high_color.saturate(80%)
-      } else if hp_ratio > 0.3 {
-        medium_color.saturate(80%)
-      } else {
-        low_color.saturate(80%)
-      }
-    }
-  }
-
-  grid(
-    columns: (60pt, 1fr),
-    rows: auto,
-    gutter: 3pt,
-    align(horizon)[
-      #stack(
-        dir: ltr,
-        spacing: 15pt,
-        rotate(
-          -90deg,
-          image(
-            "/icons/battery.svg",
-            height: 3em,
-          ),
-        ),
-        box(fill: white, height: rect_height)[
-          // Display blocks for current and max health
-          #for i in range(max_blocks) {
-            let fill_color = if i < blocks {
-              get_block_color(i)
-            } else {
-              get_block_color(i).transparentize(80%)
-            }
-            place(dx: i * (rect_width + spacing))[
-              #rect(
-                width: rect_width,
-                height: 100%,
-                fill: fill_color,
-              )
-            ]
-          }
-        ],
-      )
-    ],
-  )
-}
-
 #let main(
-  boostmeter,
   timer,
-  health,
   weapon_selector,
   score_bar,
 ) = {
@@ -292,11 +163,6 @@
   )[
     #place(center + top)[
       #score_bar
-    ]
-
-    #place(left + bottom)[
-      #health
-      #boostmeter
     ]
 
     #place(top + left)[
