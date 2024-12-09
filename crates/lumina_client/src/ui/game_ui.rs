@@ -33,7 +33,7 @@ impl Plugin for GameUiPlugin {
         .init_resource::<MainFunc>()
         .add_systems(
             Update,
-            (push_to_main_window::<MainFunc>(), update_main_ui).run_if(in_state(Screen::InGame)),
+            (push_to_main_window::<MainFunc>(), update_main_ui), //.run_if(in_state(Screen::InGame)),
         );
     }
 }
@@ -56,8 +56,6 @@ fn update_main_ui(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main", layer = 1)]
 struct MainFunc {
-    width: f64,
-    height: f64,
     boostmeter: Content,
     timer: Content,
     health: Content,

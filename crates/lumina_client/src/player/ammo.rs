@@ -1,6 +1,7 @@
+use bevy::prelude::*;
 use bevy::render::render_resource::AsBindGroup;
+use bevy::render::render_resource::ShaderRef;
 use bevy::render::view::VisibilitySystems;
-use bevy::{prelude::*, render::render_resource::ShaderRef};
 use bevy_enoki::prelude::*;
 use lumina_shared::prelude::*;
 

@@ -48,7 +48,7 @@ pub struct ScoreBarFunc {
 impl Default for ScoreBarFunc {
     fn default() -> Self {
         Self {
-            scores: Vec::new(),
+            scores: vec![0; 2],
             max_score: u8::MAX,
         }
     }

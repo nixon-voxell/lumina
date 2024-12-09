@@ -16,7 +16,7 @@
   let height = 14pt
   grid(
     columns: (60pt, 1fr),
-    rows: (auto),
+    rows: auto,
     gutter: 3pt,
     align(horizon)[
       #stack(
@@ -71,13 +71,15 @@
       align(horizon + center)[
         #stack(
           dir: ltr,
-          box(image(
-            "/icons/bullet-yellow.svg",
-            height: 1.3em,
-          )),
+          box(
+            image(
+              "/icons/bullet-yellow.svg",
+              height: 1.3em,
+            ),
+          ),
           spacing: 5pt,
           // Use the dynamic bullet count from the array
-          text(fill: white, 20pt)[*#(bullet_counts.at(x))*]
+          text(fill: white, 20pt)[*#(bullet_counts.at(x))*],
         )
       ],
     )
@@ -94,81 +96,77 @@
 
 #let score_display(team_score) = {
   rect(
-    width: 50pt,
-    height: 50pt,
-    fill: black.lighten(20%),
+    width: 3em,
+    height: 3em,
+    fill: base1.transparentize(20%),
     radius: 4pt,
   )[
     #align(horizon)[
-      #text(fill: white, size: 30pt)[#team_score]
+      #text(fill: base7)[#team_score]
     ]
   ]
 }
 
 #let score_bar(scores, max_score) = {
   align(horizon)[
-    #box(
-      width: 850pt,
-      height: auto,
-      {
-        grid(
-          columns: 3,
-          column-gutter: 30pt,
+    #box(width: 850pt)[
+      #grid(
+        columns: 3,
+        column-gutter: 30pt,
 
-          // Left bar with score
-          box(width: 380pt)[
-            #rect(
-              width: 100%,
-              height: 20pt,
-              inset: 0pt,
-              fill: white.transparentize(50%),
-              stroke: (top: 3pt + red),
-            )[
-              #place(
-                left,
-                rect(
-                  width: (float(scores.at(0)) / float(max_score)) * 100%,
-                  height: 100%,
-                  fill: red,
-                  stroke: (top: 3pt + white),
-                )
-              )
-            ]
-          ],
-
-          // Center container for score displays
-          box(width: auto)[
-            #stack(
-              dir: ltr,
-              spacing: 20pt,
-              score_display(scores.at(0)),
-              score_display(scores.at(1))
+        // Left bar with score
+        box(width: 380pt)[
+          #rect(
+            width: 100%,
+            height: 20pt,
+            inset: 0pt,
+            fill: white.transparentize(50%),
+            stroke: (top: 3pt + red),
+          )[
+            #place(
+              left,
+              rect(
+                width: (float(scores.at(0)) / float(max_score)) * 100%,
+                height: 100%,
+                fill: red,
+                stroke: (top: 3pt + white),
+              ),
             )
-          ],
-
-          // Right bar with score
-          box(width: 380pt)[
-            #rect(
-              width: 100%,
-              height: 20pt,
-              inset: 0pt,
-              fill: white.transparentize(50%),
-              stroke: (top: 3pt + blue),
-            )[
-              #place(
-                right,
-                rect(
-                  width: (float(scores.at(1)) / float(max_score)) * 100%,
-                  height: 100%,
-                  fill: blue,
-                  stroke: (top: 3pt + white),
-                )
-              )
-            ]
           ]
-        )
-      },
-    )
+        ],
+
+        // Center container for score displays
+        box(width: auto)[
+          #stack(
+            dir: ltr,
+            spacing: 20pt,
+            score_display(scores.at(0)),
+            score_display(scores.at(1)),
+          )
+        ],
+
+        // Right bar with score
+        box(width: 380pt)[
+          #rect(
+            width: 100%,
+            height: 20pt,
+            inset: 0pt,
+            fill: white.transparentize(50%),
+            stroke: (top: 3pt + blue),
+          )[
+            #place(
+              right,
+              rect(
+                width: (float(scores.at(1)) / float(max_score)) * 100%,
+                height: 100%,
+                fill: blue,
+                stroke: (top: 3pt + white),
+              ),
+            )
+          ]
+        ]
+      )
+    ]
   ]
 }
 
@@ -217,6 +215,10 @@
   let blocks = calc.ceil(current_hp / 10)
   let max_blocks = calc.ceil(max_hp / 10)
 
+  if max_blocks == 0 {
+    return
+  }
+
   // Calculate the width of each block
   let rect_width = (total_width - (max_blocks - 1) * spacing) / max_blocks
 
@@ -257,7 +259,7 @@
 
   grid(
     columns: (60pt, 1fr),
-    rows: (auto),
+    rows: auto,
     gutter: 3pt,
     align(horizon)[
       #stack(
@@ -293,39 +295,35 @@
 }
 
 #let main(
-  main_width,
-  main_height,
   boostmeter,
   timer,
   health,
   weapon_selector,
   score_bar,
-) = (
-  context {
-    let main_width = main_width * 1pt
-    let main_height = main_height * 1pt
-    box(
-      width: 100%,
-      height: 100%,
-      inset: 50pt,
-    )[
-      #place(center + top)[
-        #score_bar
-      ]
-
-      #place(left + bottom)[
-        #health
-        #boostmeter
-      ]
-
-      #place(top + left)[
-        #timer
-      ]
-
-      // #place(right + bottom)[
-      //   #weapon_selector
-      // ]
+) = {
+  // text.size
+  box(
+    width: 100%,
+    height: 100%,
+    inset: 30pt,
+  )[
+    #place(center + top)[
+      #score_bar
     ]
-  }
-)
+
+    #place(left + bottom)[
+      #health
+      #boostmeter
+    ]
+
+    #place(top + left)[
+      #timer
+    ]
+
+    // #place(right + bottom)[
+    //   #weapon_selector
+    // ]
+    // #context measure(box(height: 100%, width: 100%))
+  ]
+}
 
