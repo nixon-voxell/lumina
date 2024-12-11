@@ -3,16 +3,16 @@ use lumina_ui::prelude::*;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-pub mod score_bar;
-pub mod spaceship_stats;
-pub mod timer;
-pub mod weapon_selector;
+mod score_bar;
+mod spaceship_stats;
+mod timer;
+mod weapon_selector;
 
-// use crate::ui::Screen;
+use crate::ui::Screen;
 
-use crate::ui::game_ui::score_bar::ScoreBarFunc;
-use crate::ui::game_ui::timer::CountdownTimerFunc;
-use crate::ui::game_ui::weapon_selector::WeaponSelectorFunc;
+use score_bar::ScoreBarFunc;
+use timer::CountdownTimerFunc;
+use weapon_selector::WeaponSelectorFunc;
 
 pub(super) struct GameUiPlugin;
 
@@ -29,12 +29,12 @@ impl Plugin for GameUiPlugin {
         .init_resource::<MainFunc>()
         .add_systems(
             Update,
-            (push_to_main_window::<MainFunc>(), update_main_ui), //.run_if(in_state(Screen::InGame)),
+            (push_to_main_window::<MainFunc>(), game_ui).run_if(in_state(Screen::InGame)),
         );
     }
 }
 
-fn update_main_ui(
+fn game_ui(
     mut func: ResMut<MainFunc>,
     timer_countdown: Res<TypstContent<CountdownTimerFunc>>,
     weapon_selector: Res<TypstContent<WeaponSelectorFunc>>,
@@ -55,4 +55,4 @@ struct MainFunc {
 
 #[derive(TypstPath)]
 #[typst_path = "typst/client/game_ui.typ"]
-pub struct GameUi;
+struct GameUi;

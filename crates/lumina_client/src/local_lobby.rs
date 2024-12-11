@@ -80,10 +80,13 @@ fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>
 /// Action performed after the matchmake effector is being triggered.
 fn matchmake_effector_trigger(
     mut commands: Commands,
+    mut next_screen_state: ResMut<NextState<Screen>>,
     mut main_window_transparency: ResMut<MainWindowTransparency>,
 ) {
     // TODO: Support different player count modes.
     const PLAYER_COUNT: u8 = 4;
+
+    next_screen_state.set(Screen::Matchmaking);
 
     commands.add(Coroutine::new(|| {
         let mut res = co_break();

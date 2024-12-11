@@ -41,27 +41,23 @@
     }
   }
 
-  return stack(
-    dir: ltr,
-    spacing: 15pt,
-    box(fill: white, height: height)[
-      // Display blocks for current and max health
-      #for i in range(total_box_num) {
-        let fill_color = if i < box_num {
-          box_color
-        } else {
-          base7.transparentize(80%)
-        }
-        place(dx: i * (rect_width + spacing))[
-          #rect(
-            width: rect_width,
-            height: 100%,
-            fill: fill_color,
-          )
-        ]
+  return box(fill: none, height: height)[
+    // Display blocks for current and max health
+    #for i in range(total_box_num) {
+      let fill_color = if i < box_num {
+        box_color
+      } else {
+        base7.transparentize(80%)
       }
-    ],
-  )
+      place(dx: i * (rect_width + spacing))[
+        #rect(
+          width: rect_width,
+          height: 100%,
+          fill: fill_color,
+        )
+      ]
+    }
+  ]
 }
 
 #let main(data) = {

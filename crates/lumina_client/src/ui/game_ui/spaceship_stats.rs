@@ -13,12 +13,12 @@ pub(super) struct SpaceshipStatsPlugin;
 impl Plugin for SpaceshipStatsPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<SpaceshipStats>()
-            .compile_typst_func::<SpaceshipStats, SpaceshipStatsFunc>()
-            .init_resource::<SpaceshipStatsFunc>()
+            .compile_typst_func::<SpaceshipStats, MainFunc>()
+            .init_resource::<MainFunc>()
             .add_systems(
                 Update,
                 (
-                    push_to_main_window::<SpaceshipStatsFunc>(),
+                    push_to_main_window::<MainFunc>(),
                     spaceship_stats, //.run_if(in_state(Screen::InGame)),
                 ),
             );
@@ -35,7 +35,7 @@ fn spaceship_stats(
         ),
     >,
     local_player_id: Res<LocalPlayerId>,
-    mut func: ResMut<SpaceshipStatsFunc>,
+    mut func: ResMut<MainFunc>,
 ) {
     let spaceship = q_spaceships
         .iter()
@@ -54,7 +54,7 @@ fn spaceship_stats(
 
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main")]
-pub struct SpaceshipStatsFunc {
+struct MainFunc {
     data: Option<Dict>,
 }
 

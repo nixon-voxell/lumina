@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_ui::prelude::*;
-use velyst::{prelude::*, typst_element::prelude::*};
+use velyst::prelude::*;
+use velyst::typst_element::prelude::*;
 
 use crate::Connection;
 

@@ -61,66 +61,111 @@
 }
 
 #let score_bar(scores, max_score) = {
-  align(horizon)[
-    #box(width: 850pt)[
-      #grid(
-        columns: 3,
-        column-gutter: 30pt,
+  set align(horizon)
 
-        // Left bar with score
-        box(width: 380pt)[
-          #rect(
-            width: 100%,
-            height: 20pt,
-            inset: 0pt,
-            fill: white.transparentize(50%),
-            stroke: (top: 3pt + red),
-          )[
-            #place(
-              left,
-              rect(
-                width: (float(scores.at(0)) / float(max_score)) * 100%,
-                height: 100%,
-                fill: red,
-                stroke: (top: 3pt + white),
-              ),
-            )
-          ]
-        ],
+  let local_percent = 0.1 * 100%
+  let other_percent = 100% - local_percent
 
-        // Center container for score displays
-        box(width: auto)[
-          #stack(
-            dir: ltr,
-            spacing: 20pt,
-            score_display(scores.at(0)),
-            score_display(scores.at(1)),
-          )
-        ],
+  let grad_sharpness = 1%
+  let local_grad = calc.max(local_percent - grad_sharpness, 0%)
+  let other_grad = calc.min(local_percent + grad_sharpness, 100%)
 
-        // Right bar with score
-        box(width: 380pt)[
-          #rect(
-            width: 100%,
-            height: 20pt,
-            inset: 0pt,
-            fill: white.transparentize(50%),
-            stroke: (top: 3pt + blue),
-          )[
-            #place(
-              right,
-              rect(
-                width: (float(scores.at(1)) / float(max_score)) * 100%,
-                height: 100%,
-                fill: blue,
-                stroke: (top: 3pt + white),
-              ),
-            )
-          ]
-        ]
+  box(
+    width: 50%,
+    height: 1em,
+    // fill: base7,
+    fill: gradient.linear(
+      space: rgb,
+      (blue.transparentize(70%), 0%),
+      (blue.transparentize(70%), local_grad),
+      (red.transparentize(70%), other_grad),
+      (red.transparentize(70%), 100%),
+    ),
+    outset: 0.2em
+  )[
+    #place(left + horizon)[
+      #box(
+        width: local_percent,
+        height: 100%,
+        fill: blue,
+      )
+    ]
+    #place(right + horizon)[
+      #box(
+        width: other_percent,
+        height: 100%,
+        fill: red,
+      )
+    ]
+
+    #place(dx: local_percent - grad_sharpness * 0.5)[
+      #box(
+        width: 0.5em,
+        height: 200%,
+        fill: base8.transparentize(30%),
       )
     ]
   ]
+  // align(horizon)[
+  //   #box(width: 850pt)[
+  //     #grid(
+  //       columns: 3,
+  //       column-gutter: 30pt,
+
+  //       // Left bar with score
+  //       box(width: 380pt)[
+  //         #rect(
+  //           width: 100%,
+  //           height: 20pt,
+  //           inset: 0pt,
+  //           fill: white.transparentize(50%),
+  //           stroke: (top: 3pt + red),
+  //         )[
+  //           #place(
+  //             left,
+  //             rect(
+  //               width: (float(scores.at(0)) / float(max_score)) * 100%,
+  //               height: 100%,
+  //               fill: red,
+  //               stroke: (top: 3pt + white),
+  //             ),
+  //           )
+  //         ]
+  //       ],
+
+  //       // Center container for score displays
+  //       box(width: auto)[
+  //         #stack(
+  //           dir: ltr,
+  //           spacing: 20pt,
+  //           score_display(scores.at(0)),
+  //           score_display(scores.at(1)),
+  //         )
+  //       ],
+
+  //       // Right bar with score
+  //       box(width: 380pt)[
+  //         #rect(
+  //           width: 100%,
+  //           height: 20pt,
+  //           inset: 0pt,
+  //           fill: white.transparentize(50%),
+  //           stroke: (top: 3pt + blue),
+  //         )[
+  //           #place(
+  //             right,
+  //             rect(
+  //               width: (float(scores.at(1)) / float(max_score)) * 100%,
+  //               height: 100%,
+  //               fill: blue,
+  //               stroke: (top: 3pt + white),
+  //             ),
+  //           )
+  //         ]
+  //       ]
+  //     )
+  //   ]
+  // ]
 }
 
 #let countdown_timer(total_seconds) = {
@@ -145,7 +190,7 @@
   }
 
   // Display the countdown timer in MM:SS format
-  text(fill: base7, size: 45pt)[
+  text(fill: base7, size: 2em)[
     #formatted_minutes:#formatted_seconds
   ]
 }
