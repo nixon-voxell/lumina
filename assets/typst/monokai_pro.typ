@@ -13,3 +13,5 @@
 #let base6 = rgb("#939293")
 #let base7 = rgb("#C1C0C0")
 #let base8 = rgb("#FCFCFA")
+
+// Icons from: https://www.svgrepo.com/collection/solar-bold-duotone-icons/

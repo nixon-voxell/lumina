@@ -24,7 +24,7 @@ impl Plugin for LobbyUiPlugin {
                 )
                     .run_if(in_state(Screen::MultiplayerLobby)),
             )
-            .add_systems(Update, handle_lobby_update);
+            .add_systems(Update, (handle_lobby_data, handle_lobby_update));
     }
 }
 
@@ -50,9 +50,22 @@ fn handle_lobby_update(
     }
 }
 
+/// Digest data from [`LobbyData`]
+fn handle_lobby_data(
+    mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
+    mut lobby_func: ResMut<LobbyFunc>,
+) {
+    for data in lobby_data_evr.read() {
+        let data = data.message();
+
+        // Update ui.
+        lobby_func.room_id = Some(data.room_id.0);
+    }
+}
+
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "lobby", layer = 1)]
-pub struct LobbyFunc {
+pub(super) struct LobbyFunc {
     hovered_button: Option<TypLabel>,
     hovered_animation: f64,
     pub curr_player_count: u8,

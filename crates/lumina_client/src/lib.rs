@@ -3,12 +3,14 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
 use bevy_enoki::prelude::*;
+use bevy_motiongfx::MotionGfxPlugin;
 use bevy_shader_utils::ShaderUtilsPlugin;
 use blenvy::BlenvyPlugin;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
+use lumina_ui::prelude::*;
 
 mod audio;
 mod blueprint_visual;
@@ -20,6 +22,7 @@ mod matchmaking;
 mod multiplayer_lobby;
 mod player;
 mod source_entity;
+mod typ_animation;
 mod ui;
 
 pub struct ClientPlugin;
@@ -40,6 +43,7 @@ impl Plugin for ClientPlugin {
             CoroutinePlugin,
             ShaderUtilsPlugin,
             EnokiPlugin,
+            MotionGfxPlugin,
         ))
         .add_plugins((
             source_entity::SourceEntityPlugin,
@@ -53,6 +57,7 @@ impl Plugin for ClientPlugin {
             matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
             in_game::InGamePlugin,
+            typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()

@@ -41,6 +41,7 @@ fn reset_game_score(mut func: ResMut<ScoreBarFunc>) {
 #[derive(TypstFunc, Resource)]
 #[typst_func(name = "score_bar")]
 pub struct ScoreBarFunc {
+    // local_score: f64,
     scores: Vec<u8>,
     max_score: u8,
 }
@@ -48,7 +49,7 @@ pub struct ScoreBarFunc {
 impl Default for ScoreBarFunc {
     fn default() -> Self {
         Self {
-            scores: Vec::new(),
+            scores: vec![0; 2],
             max_score: u8::MAX,
         }
     }

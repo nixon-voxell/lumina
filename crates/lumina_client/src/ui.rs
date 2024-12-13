@@ -4,6 +4,7 @@ use bevy_vello::render::VelloCanvasMaterial;
 
 use super::Connection;
 
+pub(super) mod game_mode;
 pub(super) mod game_over;
 pub(super) mod game_ui;
 pub(super) mod lobby;
@@ -17,6 +18,7 @@ impl Plugin for UiPlugin {
         app.init_state::<Screen>().add_plugins((
             splash::SplashUiPlugin,
             main_menu::MainMenuUiPlugin,
+            game_mode::GameModeUiPlugin,
             lobby::LobbyUiPlugin,
             game_ui::GameUiPlugin,
             game_over::GameOverUiPlugin,

@@ -71,7 +71,7 @@ impl LocalPlayerInfo<'_> {
     }
 }
 
-// Source of truth for retrieving local entities.
+/// Source of truth for retrieving local entities.
 #[derive(Resource, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
 pub(super) struct LocalPlayerId(pub PlayerId);
 
@@ -81,12 +81,12 @@ impl Default for LocalPlayerId {
     }
 }
 
-// The local player's team type.
 #[derive(Resource, Deref, DerefMut, Default, Debug, Clone, Copy)]
 pub(super) struct CachedGameStat(pub GameStat);
 
 #[derive(Default, Debug, Clone, Copy)]
 pub(super) struct GameStat {
+    /// The local player's team type.
     pub team_type: Option<TeamType>,
     pub game_score: Option<GameScore>,
 }

@@ -9,7 +9,6 @@ use lumina_terrain::prelude::*;
 use lumina_ui::prelude::*;
 
 use crate::in_game::TerrainEntity;
-use crate::ui::game_ui::timer::CountdownTimerFunc;
 
 use super::ui::Screen;
 
@@ -32,7 +31,6 @@ fn start_game(
     mut next_screen_state: ResMut<NextState<Screen>>,
     terrain_entity: Res<TerrainEntity>,
     mut generate_terrain_evw: EventWriter<GenerateTerrain>,
-    mut timer_func: ResMut<CountdownTimerFunc>,
 ) {
     for start_game in start_game_evr.read() {
         generate_terrain_evw.send(GenerateTerrain {
@@ -43,8 +41,6 @@ fn start_game(
         });
 
         next_screen_state.set(Screen::InGame);
-        // Allow for custom timing.
-        timer_func.total_seconds = 60.0 * 2.5;
     }
 }
 

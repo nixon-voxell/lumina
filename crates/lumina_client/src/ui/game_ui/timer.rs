@@ -1,8 +1,12 @@
 use bevy::prelude::*;
+use client::*;
+use lightyear::prelude::*;
+use lumina_shared::prelude::*;
 use velyst::prelude::*;
 
-use crate::ui::game_ui::GameUi;
 use crate::ui::Screen;
+
+use super::GameUi;
 
 pub(super) struct TimerUiPlugin;
 
@@ -10,7 +14,19 @@ impl Plugin for TimerUiPlugin {
     fn build(&self, app: &mut App) {
         app.compile_typst_func::<GameUi, CountdownTimerFunc>()
             .init_resource::<CountdownTimerFunc>()
+            .add_systems(Update, start_game)
             .add_systems(Update, update_timer.run_if(in_state(Screen::InGame)));
+    }
+}
+
+/// Wait for [`StartGame`] command from server.
+fn start_game(
+    mut start_game_evr: EventReader<MessageEvent<StartGame>>,
+    mut timer_func: ResMut<CountdownTimerFunc>,
+) {
+    for _ in start_game_evr.read() {
+        // Allow for custom timing.
+        timer_func.total_seconds = 60.0 * 2.5;
     }
 }
 

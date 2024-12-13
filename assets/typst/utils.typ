@@ -23,8 +23,8 @@
 
     box(
       fill: box_fill,
-      radius: 10pt,
-      outset: (hovered_animation * 6pt),
+      radius: 0.8em,
+      outset: (hovered_animation * 0.25em),
     )[#body]
   }
 

@@ -3,7 +3,7 @@
 #import "../utils.typ": *
 
 #let connect_server(connection_msg) = {
-  set text(size: 24pt)
+  set text(size: 2em)
 
   place(center + horizon)[
     #set text(fill: base7)

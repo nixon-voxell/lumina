@@ -50,7 +50,7 @@ pub struct Effector {
     pub collider: ColliderConstructor,
 }
 
-#[derive(Component, Reflect)]
+#[derive(Event, Reflect, Clone, Copy)]
 #[reflect(Component)]
 pub struct MatchmakeEffector;
 
