@@ -74,8 +74,8 @@
     #place(bottom + left)[
       #grid(
         columns: (auto, 1fr),
-        column-gutter: 10pt,
-        row-gutter: 10pt,
+        column-gutter: 0.8em,
+        row-gutter: 1em,
         image(
           "/icons/health.svg",
           height: 1.5em,

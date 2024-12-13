@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_coroutine::prelude::*;
 use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
@@ -8,10 +7,7 @@ use lumina_common::prelude::*;
 use lumina_shared::effector::MatchmakeEffector;
 use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_ui::main_window::WINDOW_FADE_DURATION;
 use lumina_ui::prelude::*;
-
-use crate::ui::lobby::LobbyFunc;
 
 use super::effector::effector_interaction;
 use super::ui::Screen;
@@ -78,36 +74,8 @@ fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>
 }
 
 /// Action performed after the matchmake effector is being triggered.
-fn matchmake_effector_trigger(
-    mut commands: Commands,
-    mut next_screen_state: ResMut<NextState<Screen>>,
-    mut main_window_transparency: ResMut<MainWindowTransparency>,
-) {
-    // TODO: Support different player count modes.
-    const PLAYER_COUNT: u8 = 4;
-
-    next_screen_state.set(Screen::Matchmaking);
-
-    commands.add(Coroutine::new(|| {
-        let mut res = co_break();
-        res.add_subroutines((
-            wait(std::time::Duration::from_secs_f32(WINDOW_FADE_DURATION)),
-            |mut connection_manager: ResMut<ConnectionManager>,
-             mut next_screen_state: ResMut<NextState<Screen>>,
-             mut lobby_func: ResMut<LobbyFunc>| {
-                next_screen_state.set(Screen::Matchmaking);
-
-                let _ =
-                    connection_manager.send_message::<ReliableChannel, _>(&Matchmake(PLAYER_COUNT));
-                lobby_func.max_player_count = PLAYER_COUNT;
-
-                co_break()
-            },
-        ));
-        res
-    }));
-
-    **main_window_transparency = 0.0;
+fn matchmake_effector_trigger(mut _next_screen_state: ResMut<NextState<Screen>>) {
+    // next_screen_state.set(Screen::Matchmaking);
 }
 
 /// Despawn all networked player inputs.

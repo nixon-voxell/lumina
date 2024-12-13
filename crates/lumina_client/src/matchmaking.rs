@@ -4,7 +4,7 @@ use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 
 use super::player::LocalPlayerId;
-use super::ui::{lobby::LobbyFunc, Screen};
+use super::ui::Screen;
 use super::LocalClientId;
 
 pub(super) struct MatchmakingPlugin;
@@ -21,17 +21,11 @@ impl Plugin for MatchmakingPlugin {
 /// Enter multiplayer lobby
 fn enter_multiplayer_lobby(
     mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
-    mut lobby_func: ResMut<LobbyFunc>,
     mut next_screen_state: ResMut<NextState<Screen>>,
     local_client_id: Res<LocalClientId>,
     mut local_player_id: ResMut<LocalPlayerId>,
 ) {
-    for data in lobby_data_evr.read() {
-        let data = data.message();
-
-        // Update ui.
-        lobby_func.room_id = Some(data.room_id.0);
-
+    for _ in lobby_data_evr.read() {
         // Update screen state.
         next_screen_state.set(Screen::MultiplayerLobby);
         // Set local player id to the networked version of player id.

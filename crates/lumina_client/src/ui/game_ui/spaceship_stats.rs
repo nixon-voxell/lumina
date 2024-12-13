@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
-
 use velyst::prelude::*;
 use velyst::typst::foundations::{dict, Dict};
 
