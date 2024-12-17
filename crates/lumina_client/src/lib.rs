@@ -46,6 +46,7 @@ impl Plugin for ClientPlugin {
             MotionGfxPlugin,
         ))
         .add_plugins((
+            lumina_vfx::VfxPlugin,
             source_entity::SourceEntityPlugin,
             blueprint_visual::BlueprintVisualPlugin,
             audio::AudioPlugin,

@@ -1,6 +1,4 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::{AsBindGroup, ShaderRef};
-use bevy::sprite::{Material2d, MaterialMesh2dBundle};
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;

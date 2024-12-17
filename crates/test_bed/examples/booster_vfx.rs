@@ -1,6 +1,9 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::{AsBindGroup, ShaderRef};
-use bevy::sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle, Mesh2dHandle};
+use bevy::render::mesh::MeshVertexBufferLayoutRef;
+use bevy::render::render_resource::*;
+use bevy::sprite::{
+    Material2d, Material2dKey, Material2dPlugin, MaterialMesh2dBundle, Mesh2dHandle,
+};
 use bevy_shader_utils::ShaderUtilsPlugin;
 
 fn main() {
@@ -13,24 +16,6 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, update)
         .run();
-}
-
-#[derive(AsBindGroup, Debug, Clone, Asset, TypePath)]
-pub struct BoosterMaterial {
-    #[uniform(0)]
-    primary_color: LinearRgba,
-    #[uniform(1)]
-    secondary_color: LinearRgba,
-    #[uniform(2)]
-    rotation: f32,
-    #[uniform(3)]
-    inv_scale: f32,
-}
-
-impl Material2d for BoosterMaterial {
-    fn fragment_shader() -> ShaderRef {
-        "shaders/vfx/booster.wgsl".into()
-    }
 }
 
 fn setup(
@@ -47,6 +32,7 @@ fn setup(
             secondary_color: LinearRgba::rgb(0.0, 0.0, 2.0),
             rotation: 0.0,
             inv_scale: 1.0,
+            ignition: 1.0,
         }),
         transform: Transform::from_scale(Vec3::splat(300.0)),
         ..Default::default()
@@ -62,6 +48,55 @@ fn update(
         return;
     };
 
-    booster.rotation = f32::sin(time.elapsed_seconds());
-    booster.inv_scale = f32::cos(time.elapsed_seconds()).mul_add(0.5, 1.5);
+    booster.ignition = f32::sin(time.elapsed_seconds()).mul_add(0.5, 0.5);
+    // booster.rotation = f32::sin(time.elapsed_seconds());
+    // booster.inv_scale = f32::cos(time.elapsed_seconds()).mul_add(0.5, 1.5);
 }
+
+#[derive(AsBindGroup, Debug, Clone, Asset, TypePath)]
+pub struct BoosterMaterial {
+    #[uniform(0)]
+    primary_color: LinearRgba,
+    #[uniform(1)]
+    secondary_color: LinearRgba,
+    #[uniform(2)]
+    rotation: f32,
+    #[uniform(3)]
+    inv_scale: f32,
+    #[uniform(4)]
+    ignition: f32,
+}
+
+impl Material2d for BoosterMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/vfx/booster.wgsl".into()
+    }
+
+    fn specialize(
+        descriptor: &mut RenderPipelineDescriptor,
+        _layout: &MeshVertexBufferLayoutRef,
+        _key: Material2dKey<Self>,
+    ) -> Result<(), SpecializedMeshPipelineError> {
+        if let Some(fragment) = &mut descriptor.fragment {
+            if let Some(target_state) = &mut fragment.targets[0] {
+                target_state.blend = Some(BLEND_ADD);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+const BLEND_ADD: BlendState = BlendState {
+    color: BlendComponent {
+        src_factor: BlendFactor::SrcAlpha,
+        dst_factor: BlendFactor::One,
+        operation: BlendOperation::Add,
+    },
+
+    alpha: BlendComponent {
+        src_factor: BlendFactor::SrcAlpha,
+        dst_factor: BlendFactor::One,
+        operation: BlendOperation::Add,
+    },
+};

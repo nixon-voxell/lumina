@@ -1,0 +1,12 @@
+[package]
+name = "lumina_vfx"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+authors.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+
+[lints]
+workspace = true

@@ -3867,6 +3867,7 @@ dependencies = [
  "lumina_shared",
  "lumina_terrain",
  "lumina_ui",
+ "lumina_vfx",
  "noisy_bevy",
  "rand",
  "strum",
@@ -3962,6 +3963,13 @@ dependencies = [
  "bevy_motiongfx",
  "bevy_vello",
  "velyst",
+]
+
+[[package]]
+name = "lumina_vfx"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
