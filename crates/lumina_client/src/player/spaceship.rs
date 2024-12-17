@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use bevy::render::render_resource::{AsBindGroup, ShaderRef};
+use bevy::sprite::{Material2d, MaterialMesh2dBundle};
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -20,16 +22,12 @@ fn cache_team_type(
     local_player_id: Res<LocalPlayerId>,
     mut local_team_type: ResMut<CachedGameStat>,
 ) {
-    // if local_team_type.team_type.is_some() {
-    //     return;
-    // }
-
-    for (team_type, _) in q_spaceships
+    for (team_type, id) in q_spaceships
         .iter()
         .filter(|(_, &id)| **local_player_id == id)
     {
-        println!("\n\n{team_type:?}");
         local_team_type.team_type = Some(*team_type);
+        info!("{id:?} set to team: {team_type:?}");
     }
 }
 

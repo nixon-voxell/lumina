@@ -2,7 +2,7 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use blenvy::*;
+use blenvy::BlenvyPlugin;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_common::settings::LuminaSettings;
