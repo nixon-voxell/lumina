@@ -9,8 +9,6 @@ pub mod prelude {
 
 pub struct VfxPlugin;
 
-// TODO: Fix bevy_motiongfx
-
 impl Plugin for VfxPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
