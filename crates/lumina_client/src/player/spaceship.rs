@@ -1,9 +1,13 @@
+use std::f32::consts::FRAC_PI_4;
+
 use bevy::prelude::*;
+use bevy_motiongfx::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::action::ReplicateActionBundle;
 use lumina_shared::prelude::*;
+use lumina_vfx::prelude::*;
 
 use super::{CachedGameStat, LocalPlayerId};
 
@@ -11,7 +15,45 @@ pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (spawn_networked_action, cache_team_type));
+        app.add_systems(
+            Update,
+            (spawn_networked_action, cache_team_type, booster_vfx),
+        );
+    }
+}
+
+/// Animate booster vfx based on spaceship's acceleration.
+fn booster_vfx(
+    q_childrens: Query<&Children>,
+    q_spaceships: Query<(&Spaceship, &MovementStat, Entity), With<SourceEntity>>,
+    mut q_boosters: Query<&mut BoosterMaterial, With<SourceEntity>>,
+) {
+    for (spaceship, movement, entity) in q_spaceships.iter() {
+        for child in q_childrens.iter_descendants(entity) {
+            let Ok(mut booster) = q_boosters.get_mut(child) else {
+                continue;
+            };
+
+            // Ignition.
+            let ignition = f32::clamp(
+                movement.linear_acceleration() / spaceship.linear_acceleration,
+                0.0,
+                1.0,
+            );
+            booster.ignition = ease::cubic::ease_in_out(ignition);
+
+            // Boost.
+            let boost_acc = f32::max(
+                0.0,
+                movement.linear_acceleration() - spaceship.linear_acceleration,
+            );
+            let boost_acc_size =
+                spaceship.boost_linear_acceleration - spaceship.linear_acceleration;
+            booster.inv_scale = FloatExt::lerp(1.0, 0.6, boost_acc / boost_acc_size);
+
+            // Rotation.
+            booster.rotation = f32::clamp(movement.rotation_diff() * 4.0, -FRAC_PI_4, FRAC_PI_4);
+        }
     }
 }
 

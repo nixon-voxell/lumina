@@ -26,17 +26,15 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
     // Ignition gradient
     let ignition_grad = saturate(ignition - mesh.uv.y);
     // Rotate uv
-    let uv_rotation = rotation * HALF_PI * 0.5;
     var uv = mesh.uv - 0.5;
     uv.y *= inv_scale;
     uv.y += inv_scale * 0.5 - 0.5;
-    let rotated_uv = rotate_uv(uv, uv_rotation, vec2<f32>(0.0, -0.5));
+    let rotated_uv = rotate_uv(uv, rotation, vec2<f32>(0.0, -0.5));
 
     uv = mix(uv, rotated_uv, smoothstep(0.2, 1.2, uv.y + 0.5));
 
     // Offset of the starting point the x uv contracts to form the sharp shape.
     let stretch_offset = 0.4 + (1.0 - ignition);
-    // let stretch_offset = 1.4;
 
     // Noise
     var noise_uv = -uv;
@@ -64,8 +62,7 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
 
     var col = mix(secondary_color, primary_color, pow(effect, 1.5)) * effect;
     col *= ignition_grad;
-    col.a = effect;
+    col.a = effect * step(0.1, ignition_grad);
 
     return col;
-    // return vec4<f32>(saturate(0.2 - mesh.uv.y));
 }

@@ -18,15 +18,15 @@ impl Plugin for Material2dVfxPlugin {
 #[reflect(Component)]
 pub struct BoosterMaterial {
     #[uniform(0)]
-    primary_color: LinearRgba,
+    pub primary_color: LinearRgba,
     #[uniform(1)]
-    secondary_color: LinearRgba,
+    pub secondary_color: LinearRgba,
     #[uniform(2)]
-    rotation: f32,
+    pub rotation: f32,
     #[uniform(3)]
-    inv_scale: f32,
+    pub inv_scale: f32,
     #[uniform(4)]
-    ignition: f32,
+    pub ignition: f32,
 }
 
 impl Material2d for BoosterMaterial {
@@ -34,19 +34,19 @@ impl Material2d for BoosterMaterial {
         "shaders/vfx/booster.wgsl".into()
     }
 
-    // fn specialize(
-    //     descriptor: &mut RenderPipelineDescriptor,
-    //     _layout: &MeshVertexBufferLayoutRef,
-    //     _key: Material2dKey<Self>,
-    // ) -> Result<(), SpecializedMeshPipelineError> {
-    //     if let Some(fragment) = &mut descriptor.fragment {
-    //         if let Some(target_state) = &mut fragment.targets[0] {
-    //             target_state.blend = Some(BLEND_ADD);
-    //         }
-    //     }
+    fn specialize(
+        descriptor: &mut RenderPipelineDescriptor,
+        _layout: &MeshVertexBufferLayoutRef,
+        _key: Material2dKey<Self>,
+    ) -> Result<(), SpecializedMeshPipelineError> {
+        if let Some(fragment) = &mut descriptor.fragment {
+            if let Some(target_state) = &mut fragment.targets[0] {
+                target_state.blend = Some(BLEND_ADD);
+            }
+        }
 
-    //     Ok(())
-    // }
+        Ok(())
+    }
 }
 
 const BLEND_ADD: BlendState = BlendState {
@@ -55,7 +55,6 @@ const BLEND_ADD: BlendState = BlendState {
         dst_factor: BlendFactor::One,
         operation: BlendOperation::Add,
     },
-
     alpha: BlendComponent {
         src_factor: BlendFactor::SrcAlpha,
         dst_factor: BlendFactor::One,
