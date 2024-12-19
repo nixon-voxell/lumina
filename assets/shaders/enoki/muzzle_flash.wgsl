@@ -3,8 +3,6 @@
 #import bevy_enoki::particle_vertex_out::{ VertexOutput }
 #import bevy_shader_utils::perlin_noise_2d::perlinNoise2
 
-@group(1) @binding(0) var<uniform> variation: f32;
-
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     let center = vec2<f32>(0.5, 0.5);
@@ -16,6 +14,7 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var x_angle = atan2(diff.y, diff.x) / 3.142;
     var angle = atan2(diff.y, diff.x) / 3.142;
+    let variation = in.lifetime_total * 10000.0;
     let noise = perlinNoise2(vec2<f32>(x_angle * 20.0, variation + in.lifetime_frac));
     angle = 1.0 - abs(angle);
     angle = saturate(angle - 0.8) / 0.2;

@@ -83,4 +83,3 @@ pub struct ClearTerrain(pub Entity);
 pub enum TerrainType {
     Tile,
 }
-enum_as_usize!(TerrainType);

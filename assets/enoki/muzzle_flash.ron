@@ -1,5 +1,5 @@
 (
-    spawn_rate: 0.05,
+    spawn_rate: 0.001,
     spawn_amount: 1,
     emission_shape: Point,
     lifetime: (0.05, 0.25),

@@ -63,7 +63,7 @@ fn fire_ammo(
         };
 
         // Get ammo pool for the particular ammo type.
-        let ammo_pool = &mut ammo_pools[fire_ammo.ammo_type];
+        let ammo_pool = &mut ammo_pools[fire_ammo.ammo_type as usize];
 
         let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
             commands
@@ -102,7 +102,7 @@ fn track_ammo_lifetime(
             *viz = Visibility::Hidden;
             colliding.clear();
             commands.entity(ammo_entity).remove::<RigidBody>();
-            ammo_pools[*ammo_type].set_unused(ammo_entity);
+            ammo_pools[*ammo_type as usize].set_unused(ammo_entity);
         }
     }
 }

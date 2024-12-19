@@ -1,9 +1,8 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::AsBindGroup;
-use bevy::render::render_resource::ShaderRef;
 use bevy::render::view::VisibilitySystems;
 use bevy_enoki::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_vfx::prelude::*;
 
 use crate::camera::CameraShake;
 
@@ -29,24 +28,15 @@ fn ammo_vfx_visibility(mut q_viz: Query<&mut ViewVisibility, With<ParticleEffect
 
 fn ammo_hit_vfx(
     mut commands: Commands,
-    ammo_hit_vfx: Res<AmmoHitVfx>,
+    material_handle: Res<AmmoHitMaterialHandle>,
     mut evr_ammo_hit: EventReader<AmmoHit>,
 ) {
     for ammo_hit in evr_ammo_hit.read() {
-        commands.spawn((
-            ParticleSpawnerBundle {
-                state: ParticleSpawnerState {
-                    active: true,
-                    ..default()
-                },
-                effect: ammo_hit_vfx.effect.clone_weak(),
-                material: ammo_hit_vfx.material.clone_weak(),
-                // Above walls.
-                transform: Transform::from_translation(ammo_hit.extend(10.0)),
-                ..default()
-            },
-            OneShot::Despawn,
-        ));
+        commands.trigger(DespawnVfx {
+            vfx_type: DespawnVfxType::AmmoHit,
+            transform: Transform::from_translation(ammo_hit.extend(10.0)),
+            material: material_handle.clone_weak(),
+        });
     }
 }
 
@@ -56,28 +46,11 @@ fn hit_cam_shake(mut evr_ammo_hit: EventReader<AmmoHit>, mut camera_shake: ResMu
     }
 }
 
-fn setup_ammo_vfx(
-    mut commands: Commands,
-    mut materials: ResMut<Assets<AmmoHitMaterial>>,
-    asset_server: Res<AssetServer>,
-) {
-    commands.insert_resource(AmmoHitVfx {
-        effect: asset_server.load("enoki/ammo_hit.ron"),
-        material: materials.add(AmmoHitMaterial::default()),
-    });
+fn setup_ammo_vfx(mut commands: Commands, mut materials: ResMut<Assets<AmmoHitMaterial>>) {
+    commands.insert_resource(AmmoHitMaterialHandle(
+        materials.add(AmmoHitMaterial::default()),
+    ));
 }
 
-#[derive(Resource)]
-struct AmmoHitVfx {
-    effect: Handle<Particle2dEffect>,
-    material: Handle<AmmoHitMaterial>,
-}
-
-#[derive(AsBindGroup, Asset, TypePath, Default, Clone, Copy)]
-pub struct AmmoHitMaterial {}
-
-impl Particle2dMaterial for AmmoHitMaterial {
-    fn fragment_shader() -> ShaderRef {
-        "shaders/enoki/ammo_hit.wgsl".into()
-    }
-}
+#[derive(Resource, Deref)]
+struct AmmoHitMaterialHandle(Handle<AmmoHitMaterial>);
