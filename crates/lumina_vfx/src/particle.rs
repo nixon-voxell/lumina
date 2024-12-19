@@ -1,0 +1,216 @@
+use std::hash::Hash;
+use std::marker::PhantomData;
+
+use bevy::prelude::*;
+use bevy::render::render_resource::*;
+use bevy::utils::HashMap;
+use bevy_enoki::prelude::*;
+use bevy_enoki::EnokiPlugin;
+use lumina_common::prelude::*;
+use strum::{AsRefStr, EnumCount, EnumIter, IntoEnumIterator};
+
+pub(super) struct ParticleVfxPlugin;
+
+impl Plugin for ParticleVfxPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(EnokiPlugin)
+            .add_plugins(particle_from_component_plugin::<MuzzleFlashMaterial>)
+            .add_systems(
+                PreStartup,
+                (
+                    load_particle_effects::<DespawnVfxType>,
+                    load_particle_effects::<InPlaceVfxType>,
+                ),
+            )
+            .add_systems(Update, (setup_in_place_vfx, init_oneshot_effect))
+            .observe(one_shot_vfx::<ColorParticle2dMaterial>);
+    }
+}
+#[derive(Component, Reflect, Asset, AsBindGroup, Default, Debug, Clone)]
+#[reflect(Component)]
+pub struct MuzzleFlashMaterial {}
+
+impl Particle2dMaterial for MuzzleFlashMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/enoki/muzzle_flash.wgsl".into()
+    }
+}
+
+/// Initialize and update [`InPlaceVfxMap`].
+pub struct InPlaceVfxMapPlugin<T: Component>(PhantomData<T>);
+
+impl<T: Component> Plugin for InPlaceVfxMapPlugin<T> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (init_in_place_vfx_map::<T>, map_in_place_vfx::<T>));
+    }
+}
+
+impl<T: Component> Default for InPlaceVfxMapPlugin<T> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+/// Insert [`InPlaceVfxMap`] component to target entities that just spawned.
+fn init_in_place_vfx_map<T: Component>(mut commands: Commands, q_targets: Query<Entity, Added<T>>) {
+    for entity in q_targets.iter() {
+        commands.entity(entity).insert(InPlaceVfxMap::default());
+    }
+}
+
+/// Find parent with component `T` when any vfx is spawned and setup [`InPlaceVfxMap`].
+fn map_in_place_vfx<T: Component>(
+    mut q_targets: Query<&mut InPlaceVfxMap, With<T>>,
+    q_vfxs: Query<(&InPlaceVfxType, Entity), Added<InPlaceVfxType>>,
+    q_parents: Query<&Parent>,
+) {
+    for (vfx, vfx_entity) in q_vfxs.iter() {
+        for map_entity in q_parents.iter_ancestors(vfx_entity) {
+            let Ok(mut map) = q_targets.get_mut(map_entity) else {
+                continue;
+            };
+
+            info!("Mapped: {vfx:?} from {vfx_entity} to {map_entity}");
+            map.insert(*vfx, vfx_entity);
+
+            // Only find the first parent with the required component.
+            break;
+        }
+    }
+}
+
+fn setup_in_place_vfx(
+    mut commands: Commands,
+    q_vfxs: Query<(&InPlaceVfxType, &Transform, Entity), Added<InPlaceVfxType>>,
+    effects: Res<InPlaceVfxAssets>,
+) {
+    for (&vfx, &transform, entity) in q_vfxs.iter() {
+        commands.entity(entity).insert(ParticleSpawnerBundle {
+            state: ParticleSpawnerState {
+                active: false,
+                ..default()
+            },
+            effect: effects[vfx as usize].clone_weak(),
+            material: DEFAULT_MATERIAL,
+            transform,
+            ..default()
+        });
+    }
+}
+
+fn init_oneshot_effect(mut commands: Commands, q_one_shots: Query<Entity, Added<OneShotEffect>>) {
+    for entity in q_one_shots.iter() {
+        commands.entity(entity).insert(OneShot::Deactivate);
+    }
+}
+
+fn one_shot_vfx<M: Particle2dMaterial + Default>(
+    trigger: Trigger<DespawnVfx<M>>,
+    mut commands: Commands,
+    assets: Res<DespawnVfxEffects>,
+) {
+    let vfx = trigger.event();
+    commands.spawn((
+        ParticleSpawnerBundle {
+            effect: assets[vfx.index()].clone_weak(),
+            material: vfx.material.clone_weak(),
+            transform: vfx.transform,
+            ..default()
+        },
+        OneShot::Despawn,
+    ));
+}
+
+fn load_particle_effects<T: EnumCount + IntoEnumIterator + AsRef<str> + Send + Sync + 'static>(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let mut assets = EnumVariantRes::<T, Handle<Particle2dEffect>>::default();
+
+    for (i, vfx) in T::iter().enumerate() {
+        assets[i] = asset_server.load(vfx.as_ref().to_string() + ".ron");
+    }
+
+    commands.insert_resource(assets);
+}
+
+/// Mappings to vfx entities that is part of the children hierarchy of the current entity.
+#[derive(Component, Deref, DerefMut, Default)]
+pub struct InPlaceVfxMap(HashMap<InPlaceVfxType, Entity>);
+
+pub type InPlaceVfxAssets = EnumVariantRes<InPlaceVfxType, Handle<Particle2dEffect>>;
+
+#[derive(
+    Event, Reflect, AsRefStr, EnumIter, EnumCount, Debug, Clone, Copy, Hash, PartialEq, Eq,
+)]
+#[reflect(Component)]
+#[strum(prefix = "enoki/", serialize_all = "snake_case")]
+pub enum InPlaceVfxType {
+    GunSparks,
+    MuzzleFlash,
+    BoosterFlakes,
+}
+
+pub type DespawnVfxEffects = EnumVariantRes<DespawnVfxType, Handle<Particle2dEffect>>;
+
+#[derive(AsRefStr, EnumIter, EnumCount, Debug, Clone, Copy)]
+#[strum(prefix = "enoki/", serialize_all = "snake_case")]
+pub enum DespawnVfxType {
+    AmmoHit,
+}
+
+/// Triggers a [`DespawnVfxType`] that will despawn after the vfx completes.
+///
+/// # Usage
+///
+/// ```
+/// use bevy::prelude::*;
+/// use bevy_enoki::prelude::*;
+/// use lumina_vfx::prelude::*;
+///
+/// fn spawn_vfx(mut commands: Commands) {
+///     commands.trigger(DespawnVfx {
+///         vfx_type: DespawnVfxType::AmmoHit,
+///         transform: Transform::default(),
+///         material: DEFAULT_MATERIAL,
+///     })
+/// }
+/// ```
+#[derive(Event)]
+pub struct DespawnVfx<M: Particle2dMaterial> {
+    pub vfx_type: DespawnVfxType,
+    pub transform: Transform,
+    pub material: Handle<M>,
+}
+
+impl<M: Particle2dMaterial> DespawnVfx<M> {
+    pub fn index(&self) -> usize {
+        self.vfx_type as usize
+    }
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct OneShotEffect;
+
+pub fn particle_from_component_plugin<M: AssetFromComponent + Particle2dMaterial>(app: &mut App)
+where
+    M::Data: PartialEq + Eq + Hash + Clone,
+{
+    app.add_plugins((
+        AssetFromComponentPlugin::<M>::default(),
+        Particle2dMaterialPlugin::<M>::default(),
+    ))
+    .add_systems(Update, remove_color_material::<M>);
+}
+
+fn remove_color_material<M: AssetFromComponent>(
+    mut commands: Commands,
+    q_entities: Query<Entity, (With<M>, Added<Handle<ColorParticle2dMaterial>>)>,
+) {
+    for entity in q_entities.iter() {
+        commands
+            .entity(entity)
+            .remove::<Handle<ColorParticle2dMaterial>>();
+    }
+}

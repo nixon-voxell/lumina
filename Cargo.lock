@@ -3970,6 +3970,10 @@ name = "lumina_vfx"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_enoki",
+ "lumina_common",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
