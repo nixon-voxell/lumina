@@ -52,3 +52,20 @@ pub enum AmmoType {
     // Honing,
 }
 enum_as_usize!(AmmoType);
+
+#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+#[strum(prefix = "levels/tesseracts/")]
+pub enum TesseractType {
+    Tesseract,
+}
+
+#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+#[strum(prefix = "levels/luminas/")]
+pub enum LuminaType {
+    Normal,
+    // Exploding,
+    // Timed,
+    // Golden,
+}

@@ -54,6 +54,6 @@ pub struct Effector {
 #[reflect(Component)]
 pub struct MatchmakeEffector;
 
-#[derive(Component, Reflect)]
+#[derive(Event, Reflect, Clone, Copy)]
 #[reflect(Component)]
-pub struct TutorialEffector;
+pub struct TesseractEffector;
