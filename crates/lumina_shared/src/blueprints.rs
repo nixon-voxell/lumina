@@ -1,5 +1,4 @@
 use blenvy::*;
-use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumCount, EnumIter};
 
@@ -51,4 +50,3 @@ pub enum AmmoType {
     // ShortRange,
     // Honing,
 }
-enum_as_usize!(AmmoType);
