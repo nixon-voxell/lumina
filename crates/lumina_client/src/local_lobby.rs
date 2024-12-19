@@ -36,10 +36,7 @@ impl Plugin for LocalLobbyPlugin {
             Update,
             matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
         )
-        .add_systems(
-            Update,
-            tesseract_effector_trigger.run_if(effector_interaction::<TesseractEffector>),
-        );
+        .observe(tesseract_effector_trigger);
     }
 }
 
@@ -140,37 +137,37 @@ fn handle_lumina_spawn_timer(
 // TESTING PURPOSES
 /// Action performed after the tesseract effector is being triggered.
 fn tesseract_effector_trigger(
+    trigger: Trigger<TesseractEffector>, // Trigger provides the activating entity.
     mut commands: Commands,
-    q_tesseract_effectors: Query<Entity, (With<TesseractEffector>, With<InteractedEffector>)>,
-    mut effector_popup_func: ResMut<EffectorPopupFunc>, // Assuming UI popup
-    mut collected_luminas: ResMut<CollectedLuminas>,
-    mut player_scores: ResMut<PlayerScores>, // Add PlayerScores resource.
-    _q_players: Query<&PlayerId>,
+    mut effector_popup_func: ResMut<EffectorPopupFunc>, // UI handling.
+    mut collected_luminas: ResMut<CollectedLuminas>,    // Pending Luminas.
+    mut player_scores: ResMut<PlayerScores>,            // Player scores.
 ) {
-    for effector_entity in q_tesseract_effectors.iter() {
-        // Perform your logic for Tesseract interaction.
-        info!("Tesseract effector triggered.");
+    let effector_entity = trigger.entity(); // Entity that triggered the event.
+    info!(
+        "Tesseract effector triggered by entity {:?}",
+        effector_entity
+    );
 
-        // Remove the `InteractedEffector` marker to allow retriggering.
-        commands
-            .entity(effector_entity)
-            .remove::<InteractedEffector>();
+    // Remove the `InteractedEffector` marker to allow retriggering.
+    commands
+        .entity(effector_entity)
+        .remove::<InteractedEffector>();
 
-        // Deposit Luminas for each player.
-        for (player_id, pending_count) in collected_luminas.pending.drain() {
-            // Add pending Luminas to the player's score.
-            let score = player_scores.scores.entry(player_id).or_insert(0);
-            *score += pending_count;
+    // Deposit all pending Luminas for each player.
+    for (player_id, pending_count) in collected_luminas.pending.drain() {
+        // Update the player's score.
+        let score = player_scores.scores.entry(player_id).or_insert(0);
+        *score += pending_count;
 
-            println!(
-                "Player {:?} deposited {} Luminas. Total score: {}",
-                player_id, pending_count, *score
-            );
-        }
-
-        // Optional: Reset UI or button functionality.
-        effector_popup_func.clear(); // Clear any active popup or progress UI.
+        println!(
+            "Player {:?} deposited {} Luminas. Total score: {}",
+            player_id, pending_count, *score
+        );
     }
+
+    // Clear any associated popup or progress UI.
+    effector_popup_func.clear();
 }
 
 #[derive(Bundle)]

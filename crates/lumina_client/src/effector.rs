@@ -3,7 +3,9 @@ use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::{EffectorPopupMsg, InteractableEffector, MatchmakeEffector};
+use lumina_shared::effector::{
+    EffectorPopupMsg, InteractableEffector, MatchmakeEffector, TesseractEffector,
+};
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
@@ -28,6 +30,7 @@ impl Plugin for EffectorPlugin {
                     show_effector_popup,
                     interact_effector,
                     effector_trigger::<MatchmakeEffector>,
+                    effector_trigger::<TesseractEffector>,
                 ),
             );
     }
