@@ -61,17 +61,6 @@ impl EntityPool {
     }
 }
 
-#[macro_export]
-macro_rules! enum_as_usize {
-    ($e:ty) => {
-        impl From<$e> for usize {
-            fn from(value: $e) -> Self {
-                value as usize
-            }
-        }
-    };
-}
-
 /// Reference entity map.
 #[derive(Resource, Deref, DerefMut)]
 pub struct RefEntityMap<T>(HashMap<T, Entity>);
