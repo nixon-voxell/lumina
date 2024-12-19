@@ -2,7 +2,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
-use bevy_enoki::prelude::*;
 use bevy_motiongfx::MotionGfxPlugin;
 use bevy_shader_utils::ShaderUtilsPlugin;
 use blenvy::BlenvyPlugin;
@@ -42,7 +41,6 @@ impl Plugin for ClientPlugin {
             },
             CoroutinePlugin,
             ShaderUtilsPlugin,
-            EnokiPlugin,
             MotionGfxPlugin,
         ))
         .add_plugins((
