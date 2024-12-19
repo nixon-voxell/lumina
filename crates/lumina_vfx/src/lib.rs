@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::*;
+use bevy_enoki::prelude::*;
 
 mod material2d;
 mod particle;
@@ -7,7 +8,7 @@ mod type_registry;
 
 pub mod prelude {
     pub use crate::material2d::BoosterMaterial;
-    pub use crate::particle::MuzzleFlashMaterial;
+    pub use crate::particle::{AmmoHitMaterial, MuzzleFlashMaterial};
     pub use crate::particle::{DespawnVfx, DespawnVfxEffects, DespawnVfxType};
     pub use crate::particle::{
         InPlaceVfxAssets, InPlaceVfxMap, InPlaceVfxMapPlugin, InPlaceVfxType,
@@ -22,9 +23,20 @@ impl Plugin for VfxPlugin {
             material2d::Material2dVfxPlugin,
             particle::ParticleVfxPlugin,
             type_registry::TypeRegistryPlugin,
-        ));
+        ))
+        .add_systems(Update, init_oneshot_effect);
     }
 }
+
+fn init_oneshot_effect(mut commands: Commands, q_one_shots: Query<Entity, Added<OneShotEffect>>) {
+    for entity in q_one_shots.iter() {
+        commands.entity(entity).insert(OneShot::Deactivate);
+    }
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct OneShotEffect;
 
 pub const BLEND_ADD: BlendState = BlendState {
     color: BlendComponent {

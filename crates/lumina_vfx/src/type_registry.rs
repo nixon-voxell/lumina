@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::particle::OneShotEffect;
+use crate::OneShotEffect;
 
 use super::prelude::*;
 
@@ -8,8 +8,8 @@ pub(super) struct TypeRegistryPlugin;
 
 impl Plugin for TypeRegistryPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<BoosterMaterial>()
-            .register_type::<OneShotEffect>()
+        app.register_type::<OneShotEffect>()
+            .register_type::<BoosterMaterial>()
             .register_type::<MuzzleFlashMaterial>()
             .register_type::<InPlaceVfxType>();
     }

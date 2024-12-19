@@ -22,10 +22,12 @@ impl Plugin for ParticleVfxPlugin {
                     load_particle_effects::<InPlaceVfxType>,
                 ),
             )
-            .add_systems(Update, (setup_in_place_vfx, init_oneshot_effect))
-            .observe(one_shot_vfx::<ColorParticle2dMaterial>);
+            .add_systems(Update, setup_in_place_vfx)
+            .observe(one_shot_vfx::<ColorParticle2dMaterial>)
+            .observe(one_shot_vfx::<AmmoHitMaterial>);
     }
 }
+
 #[derive(Component, Reflect, Asset, AsBindGroup, Default, Debug, Clone)]
 #[reflect(Component)]
 pub struct MuzzleFlashMaterial {}
@@ -34,6 +36,64 @@ impl Particle2dMaterial for MuzzleFlashMaterial {
     fn fragment_shader() -> ShaderRef {
         "shaders/enoki/muzzle_flash.wgsl".into()
     }
+}
+
+#[derive(AsBindGroup, Asset, TypePath, Default, Clone, Copy)]
+pub struct AmmoHitMaterial {}
+
+impl Particle2dMaterial for AmmoHitMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/enoki/ammo_hit.wgsl".into()
+    }
+}
+
+fn setup_in_place_vfx(
+    mut commands: Commands,
+    q_vfxs: Query<(&InPlaceVfxType, &Transform, Entity), Added<InPlaceVfxType>>,
+    effects: Res<InPlaceVfxAssets>,
+) {
+    for (&vfx, &transform, entity) in q_vfxs.iter() {
+        commands.entity(entity).insert(ParticleSpawnerBundle {
+            state: ParticleSpawnerState {
+                active: false,
+                ..default()
+            },
+            effect: effects[vfx as usize].clone_weak(),
+            material: DEFAULT_MATERIAL,
+            transform,
+            ..default()
+        });
+    }
+}
+
+fn one_shot_vfx<M: Particle2dMaterial + Default>(
+    trigger: Trigger<DespawnVfx<M>>,
+    mut commands: Commands,
+    assets: Res<DespawnVfxEffects>,
+) {
+    let vfx = trigger.event();
+    commands.spawn((
+        ParticleSpawnerBundle {
+            effect: assets[vfx.index()].clone_weak(),
+            material: vfx.material.clone_weak(),
+            transform: vfx.transform,
+            ..default()
+        },
+        OneShot::Despawn,
+    ));
+}
+
+fn load_particle_effects<T: EnumCount + IntoEnumIterator + AsRef<str> + Send + Sync + 'static>(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let mut assets = EnumVariantRes::<T, Handle<Particle2dEffect>>::default();
+
+    for (i, vfx) in T::iter().enumerate() {
+        assets[i] = asset_server.load(vfx.as_ref().to_string() + ".ron");
+    }
+
+    commands.insert_resource(assets);
 }
 
 /// Initialize and update [`InPlaceVfxMap`].
@@ -77,61 +137,6 @@ fn map_in_place_vfx<T: Component>(
             break;
         }
     }
-}
-
-fn setup_in_place_vfx(
-    mut commands: Commands,
-    q_vfxs: Query<(&InPlaceVfxType, &Transform, Entity), Added<InPlaceVfxType>>,
-    effects: Res<InPlaceVfxAssets>,
-) {
-    for (&vfx, &transform, entity) in q_vfxs.iter() {
-        commands.entity(entity).insert(ParticleSpawnerBundle {
-            state: ParticleSpawnerState {
-                active: false,
-                ..default()
-            },
-            effect: effects[vfx as usize].clone_weak(),
-            material: DEFAULT_MATERIAL,
-            transform,
-            ..default()
-        });
-    }
-}
-
-fn init_oneshot_effect(mut commands: Commands, q_one_shots: Query<Entity, Added<OneShotEffect>>) {
-    for entity in q_one_shots.iter() {
-        commands.entity(entity).insert(OneShot::Deactivate);
-    }
-}
-
-fn one_shot_vfx<M: Particle2dMaterial + Default>(
-    trigger: Trigger<DespawnVfx<M>>,
-    mut commands: Commands,
-    assets: Res<DespawnVfxEffects>,
-) {
-    let vfx = trigger.event();
-    commands.spawn((
-        ParticleSpawnerBundle {
-            effect: assets[vfx.index()].clone_weak(),
-            material: vfx.material.clone_weak(),
-            transform: vfx.transform,
-            ..default()
-        },
-        OneShot::Despawn,
-    ));
-}
-
-fn load_particle_effects<T: EnumCount + IntoEnumIterator + AsRef<str> + Send + Sync + 'static>(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let mut assets = EnumVariantRes::<T, Handle<Particle2dEffect>>::default();
-
-    for (i, vfx) in T::iter().enumerate() {
-        assets[i] = asset_server.load(vfx.as_ref().to_string() + ".ron");
-    }
-
-    commands.insert_resource(assets);
 }
 
 /// Mappings to vfx entities that is part of the children hierarchy of the current entity.
@@ -188,10 +193,6 @@ impl<M: Particle2dMaterial> DespawnVfx<M> {
         self.vfx_type as usize
     }
 }
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct OneShotEffect;
 
 pub fn particle_from_component_plugin<M: AssetFromComponent + Particle2dMaterial>(app: &mut App)
 where
