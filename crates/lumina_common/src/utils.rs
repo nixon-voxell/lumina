@@ -1,6 +1,9 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 use bevy_transform_interpolation::*;
 use lightyear::prelude::*;
+use strum::EnumCount;
 
 pub(super) struct UtilsPlugin;
 
@@ -220,5 +223,15 @@ impl XorShift32 {
         self.0 ^= self.0 << 5;
 
         state
+    }
+}
+
+/// Enum variant data stored in the form of a [`Resource`].
+#[derive(Resource, Deref, DerefMut, Debug)]
+pub struct EnumVariantRes<T: EnumCount, U>(#[deref] Vec<U>, PhantomData<T>);
+
+impl<T: EnumCount, U: Default + Clone> Default for EnumVariantRes<T, U> {
+    fn default() -> Self {
+        Self(vec![U::default(); T::COUNT], PhantomData)
     }
 }

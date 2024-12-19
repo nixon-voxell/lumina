@@ -15,9 +15,7 @@ pub mod prelude {
     pub use crate::physics::world::PhysicsWorldId;
     pub use crate::settings::LuminaSettings;
     pub use crate::source_entity::{SetSourceAppExt, SourceEntity};
-    pub use crate::utils::{
-        propagate_component, ColorPalette, EntityRoomId, TransformSyncSet, Vec2d, XorShift32,
-    };
+    pub use crate::utils::*;
 }
 
 pub struct CommonPlugin;
