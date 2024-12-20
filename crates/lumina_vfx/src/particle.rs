@@ -130,7 +130,7 @@ fn map_in_place_vfx<T: Component>(
                 continue;
             };
 
-            info!("Mapped: {vfx:?} from {vfx_entity} to {map_entity}");
+            debug!("Mapped: {vfx:?} from {vfx_entity} to {map_entity}");
             map.insert(*vfx, vfx_entity);
 
             // Only find the first parent with the required component.
