@@ -21,7 +21,7 @@ impl Terrain<'_, '_> {
     pub fn clear_terrain(&mut self, entity: Entity) -> bool {
         if let Ok((mut tiles, mut states)) = self.q_maps.get_mut(entity) {
             for TerrainTile { entity, .. } in tiles.drain(..) {
-                self.pools[TerrainType::Tile].set_unused(entity);
+                self.pools[TerrainType::Tile as usize].set_unused(entity);
                 self.commands
                     .entity(entity)
                     .remove::<(RigidBody, Collider)>()
@@ -52,7 +52,7 @@ impl Terrain<'_, '_> {
             }
 
             // Use pool if exists.
-            let entity = self.pools[TerrainType::Tile]
+            let entity = self.pools[TerrainType::Tile as usize]
                 .get_unused_or_spawn(|| self.commands.spawn_empty().id());
 
             self.commands.entity(entity).insert(TileBundle::new(

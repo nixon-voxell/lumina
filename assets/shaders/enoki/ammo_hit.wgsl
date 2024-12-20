@@ -1,7 +1,6 @@
 // Inspirations from : https://www.shadertoy.com/view/lcKGRc
 
 #import bevy_enoki::particle_vertex_out::{ VertexOutput }
-#import bevy_shader_utils::perlin_noise_2d::perlinNoise2
 
 fn gyroid(p: vec3<f32>) -> f32 { return dot(cos(p),sin(p.yzx)); }
 
