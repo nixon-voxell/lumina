@@ -127,7 +127,8 @@ impl ViewNode for MipmapPipelineNode {
                 &mipmap_pipeline.layout,
                 &BindGroupEntries::sequential((
                     &mipmap_tex.views[target_mip - 1],
-                    &mipmap_pipeline.sampler,
+                    &mipmap_pipeline.filtered_sampler,
+                    &mipmap_pipeline.nearest_sampler,
                 )),
             );
 
@@ -161,7 +162,8 @@ pub struct MipmapConfig {
 #[derive(Resource)]
 struct MipmapPipeline {
     layout: BindGroupLayout,
-    sampler: Sampler,
+    filtered_sampler: Sampler,
+    nearest_sampler: Sampler,
     pipeline_id: CachedRenderPipelineId,
 }
 
@@ -178,13 +180,15 @@ impl FromWorld for MipmapPipeline {
                 (
                     // Screen texture
                     texture_2d(TextureSampleType::Float { filterable: true }),
-                    // Screen texture sampler
+                    // Screen texture sampler (filter)
                     sampler(SamplerBindingType::Filtering),
+                    // Screen texture sampler (nearest)
+                    sampler(SamplerBindingType::NonFiltering),
                 ),
             ),
         );
 
-        let sampler = render_device.create_sampler(&SamplerDescriptor {
+        let filtered_sampler = render_device.create_sampler(&SamplerDescriptor {
             label: Some("rc_mipmap_sampler"),
             address_mode_u: AddressMode::ClampToEdge,
             address_mode_v: AddressMode::ClampToEdge,
@@ -195,7 +199,18 @@ impl FromWorld for MipmapPipeline {
             ..Default::default()
         });
 
-        let shader = world.load_asset("shaders/radiance_cascades/blit.wgsl");
+        let nearest_sampler = render_device.create_sampler(&SamplerDescriptor {
+            label: Some("rc_mipmap_sampler"),
+            address_mode_u: AddressMode::ClampToEdge,
+            address_mode_v: AddressMode::ClampToEdge,
+            address_mode_w: AddressMode::ClampToEdge,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
+            ..Default::default()
+        });
+
+        let shader = world.load_asset("shaders/radiance_cascades/blit_mipmap.wgsl");
 
         let pipeline_id =
             world
@@ -222,7 +237,8 @@ impl FromWorld for MipmapPipeline {
 
         Self {
             layout,
-            sampler,
+            filtered_sampler,
+            nearest_sampler,
             pipeline_id,
         }
     }

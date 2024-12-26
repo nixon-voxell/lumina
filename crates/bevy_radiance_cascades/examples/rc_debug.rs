@@ -15,7 +15,7 @@ use bevy::render::{render_graph::*, RenderSet};
 use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
 use bevy_radiance_cascades::prelude::*;
-use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
+// use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use bevy_radiance_cascades::FlatlandGiPlugin;
 use binding_types::sampler;
 
@@ -74,7 +74,7 @@ fn setup(
     ));
 
     let shapes = [
-        meshes.add(Circle::new(50.0)),
+        meshes.add(Circle::new(10.0)),
         // meshes.add(CircularSector::new(50.0, 1.0)),
         // meshes.add(CircularSegment::new(50.0, 1.25)),
         // meshes.add(Ellipse::new(25.0, 50.0)),
@@ -97,9 +97,9 @@ fn setup(
         // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
 
         let color = if i % 2 == 0 {
-            Color::linear_rgba(2.0, 2.0, 2.0, 1.0)
+            Color::linear_rgba(10.0, 10.0, 10.0, 1.0)
         } else {
-            Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
+            Color::linear_rgba(1.0, 0.0, 0.0, 0.9)
         };
 
         let _entity = commands
@@ -161,37 +161,37 @@ impl Plugin for DebugPipelinePlugin {
             )
             .add_systems(
                 Render,
-                (|mut commands: Commands,
-                  q_textures: Query<(&RadianceCascadesTextures, Entity)>| {
-                    for (tex, entity) in q_textures.iter() {
-                        commands
-                            .entity(entity)
-                            .insert(DebugTexture(tex.mipmap_tex.default_view.clone()));
-                    }
-                })
-                .after(RenderSet::PrepareResources),
                 // (|mut commands: Commands,
-                //   q_textures: Query<(
-                //     &bevy_radiance_cascades::mipmap::MipmapTexture,
-                //     &MipmapConfig,
-                //     Entity,
-                // )>| {
-                //     for (tex, config, entity) in q_textures.iter() {
-                //         commands.entity(entity).insert(DebugTexture(
-                //             tex.cached_tex.texture.create_view(&TextureViewDescriptor {
-                //                 label: Some("debug_view"),
-                //                 format: None,
-                //                 dimension: None,
-                //                 aspect: TextureAspect::All,
-                //                 base_mip_level: 0,
-                //                 mip_level_count: Some(config.mip_count),
-                //                 base_array_layer: 0,
-                //                 array_layer_count: None,
-                //             }),
-                //         ));
+                //   q_textures: Query<(&RadianceCascadesTextures, Entity)>| {
+                //     for (tex, entity) in q_textures.iter() {
+                //         commands
+                //             .entity(entity)
+                //             .insert(DebugTexture(tex.mipmap_tex.default_view.clone()));
                 //     }
                 // })
                 // .after(RenderSet::PrepareResources),
+                (|mut commands: Commands,
+                  q_textures: Query<(
+                    &bevy_radiance_cascades::mipmap::MipmapTexture,
+                    &MipmapConfig,
+                    Entity,
+                )>| {
+                    for (tex, config, entity) in q_textures.iter() {
+                        commands.entity(entity).insert(DebugTexture(
+                            tex.cached_tex.texture.create_view(&TextureViewDescriptor {
+                                label: Some("debug_view"),
+                                format: None,
+                                dimension: None,
+                                aspect: TextureAspect::All,
+                                base_mip_level: 0,
+                                mip_level_count: Some(config.mip_count),
+                                base_array_layer: 0,
+                                array_layer_count: None,
+                            }),
+                        ));
+                    }
+                })
+                .after(RenderSet::PrepareResources),
             );
     }
 

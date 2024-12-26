@@ -133,10 +133,12 @@ fn prepare_rc_buffers(
     render_queue: Res<RenderQueue>,
 ) {
     for (config, cascade_count, entity) in q_configs.iter() {
+        let mut num_cascades = UniformBuffer::default();
         let mut probe_buffers = DynamicUniformBuffer::default();
         probe_buffers.set_label(Some("rc_probe_buffers"));
 
         let cascade_count = cascade_count.0;
+        num_cascades.set(cascade_count as u32);
         let mut probe_buffer_offsets = Vec::with_capacity(cascade_count);
 
         for c in 0..cascade_count {
@@ -157,9 +159,11 @@ fn prepare_rc_buffers(
             probe_buffer_offsets.push(offset);
         }
 
+        num_cascades.write_buffer(&render_device, &render_queue);
         probe_buffers.write_buffer(&render_device, &render_queue);
 
         commands.entity(entity).insert(RadianceCascadesBuffer {
+            num_cascades,
             probe_buffers,
             probe_buffer_offsets,
         });
@@ -182,6 +186,9 @@ fn prepare_rc_bind_groups(
             "rc_main_bind_group ",
             &pipeline.main_layout,
             &BindGroupEntries::sequential((
+                // Num cascades
+                &buffer.num_cascades,
+                // Probe
                 &buffer.probe_buffers,
                 // Main texture
                 &mipmap_texture
@@ -203,9 +210,9 @@ fn prepare_rc_bind_groups(
                     address_mode_u: AddressMode::ClampToEdge,
                     address_mode_v: AddressMode::ClampToEdge,
                     address_mode_w: AddressMode::ClampToEdge,
-                    mag_filter: FilterMode::Nearest,
-                    min_filter: FilterMode::Nearest,
-                    mipmap_filter: FilterMode::Nearest,
+                    mag_filter: FilterMode::Linear,
+                    min_filter: FilterMode::Linear,
+                    mipmap_filter: FilterMode::Linear,
                     ..Default::default()
                 }),
             )),
@@ -330,6 +337,7 @@ struct Probe {
 
 #[derive(Component)]
 pub struct RadianceCascadesBuffer {
+    num_cascades: UniformBuffer<u32>,
     probe_buffers: DynamicUniformBuffer<Probe>,
     probe_buffer_offsets: Vec<u32>,
 }
@@ -518,12 +526,14 @@ impl FromWorld for RadianceCascadesPipeline {
             &BindGroupLayoutEntries::sequential(
                 ShaderStages::COMPUTE,
                 (
+                    // Num cascadesee
+                    uniform_buffer::<u32>(false),
                     // Probe width
                     uniform_buffer::<Probe>(true),
                     // Main texture
-                    texture_2d(TextureSampleType::Float { filterable: false }),
+                    texture_2d(TextureSampleType::Float { filterable: true }),
                     // Main texture sampler
-                    sampler(SamplerBindingType::NonFiltering),
+                    sampler(SamplerBindingType::Filtering),
                 ),
             ),
         );
@@ -544,11 +554,9 @@ impl FromWorld for RadianceCascadesPipeline {
             ),
         );
 
-        // We need to define the bind group layout used for our pipeline
         let mipmap_layout = render_device.create_bind_group_layout(
             "rc_mipmap_layout",
             &BindGroupLayoutEntries::sequential(
-                // The layout entries will only be visible in the fragment stage
                 ShaderStages::FRAGMENT,
                 (
                     // Screen texture
