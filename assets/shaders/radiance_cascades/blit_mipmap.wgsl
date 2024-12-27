@@ -8,7 +8,9 @@
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     var filtered_color = textureSample(tex_screen, sampler_screen_filter, in.uv);
     let nearest_color = textureSample(tex_screen, sampler_screen_nearest, in.uv);
-    filtered_color.a = nearest_color.a;
+    filtered_color.a = filtered_color.a * 1.6;
+    // filtered_color.a = step(0.25, filtered_color.a);
+    // filtered_color = pow(filtered_color, vec4<f32>(1.1));
 
     return filtered_color;
 }

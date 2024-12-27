@@ -73,6 +73,27 @@ fn setup(
         // Fxaa::default(),
     ));
 
+    const COUNT: usize = 4;
+    const SPACING: f32 = 150.0;
+    const OFFSET: Vec3 = Vec3::new(
+        (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
+        (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
+        0.0,
+    );
+
+    for y in 0..COUNT {
+        for x in 0..COUNT {
+            commands.spawn((ColorMesh2dBundle {
+                mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
+                material: materials.add(Color::linear_rgba(0.0, 0.0, 0.0, 1.0)),
+                transform: Transform::from_translation(
+                    Vec3::new((x as f32) * SPACING, (y as f32) * SPACING, 0.0) - OFFSET,
+                ),
+                ..default()
+            },));
+        }
+    }
+
     let shapes = [
         meshes.add(Circle::new(10.0)),
         // meshes.add(CircularSector::new(50.0, 1.0)),
@@ -97,9 +118,9 @@ fn setup(
         // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
 
         let color = if i % 2 == 0 {
-            Color::linear_rgba(10.0, 10.0, 10.0, 1.0)
+            Color::linear_rgba(50.0, 50.0, 50.0, 1.0)
         } else {
-            Color::linear_rgba(1.0, 0.0, 0.0, 0.9)
+            Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
         };
 
         let _entity = commands

@@ -4,7 +4,7 @@
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
 const RAYMARCH_LENGTH: f32 = 0.5;
-const MAX_RAYMARCH: u32 = 128;
+const MAX_RAYMARCH: u32 = 64;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> num_cascades: u32;
@@ -70,12 +70,12 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
     let level_idx = f32(probe.cascade_index);
     let raymarch_multiplier = pow(2.0, level_idx);
-    // let raymarch_multiplier = level_idx + 1.0;
     let dimensions = vec2<f32>(textureDimensions(tex_main));
 
     var march_count = 0u;
     let step_size = RAYMARCH_LENGTH * raymarch_multiplier;
-    let ray_start = probe.start;
+    let ray_start = probe.start * 0.5;
+    // let ray_start = 0.0;
     let ray_end = probe.start + probe.range;
 
     for (var r = ray_start; r < ray_end; r += step_size) {
@@ -86,7 +86,8 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
         let coord = p / dimensions;
         var new_color = textureSampleLevel(tex_main, sampler_main, coord, level_idx);
-        // var new_color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
+        // var new_color = textureSampleLevel(tex_main, sampler_main, coord, 3.0);
+        new_color.a = clamp(new_color.a, 0.0, 1.0);
 
         if new_color.a > EPSILON {
             volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * new_color.a));
