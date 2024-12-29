@@ -137,37 +137,38 @@ fn handle_lumina_spawn_timer(
 // TESTING PURPOSES
 /// Action performed after the tesseract effector is being triggered.
 fn tesseract_effector_trigger(
-    trigger: Trigger<TesseractEffector>, // Trigger provides the activating entity.
+    trigger: Trigger<TesseractEffector>,
     mut commands: Commands,
-    mut effector_popup_func: ResMut<EffectorPopupFunc>, // UI handling.
-    mut collected_luminas: ResMut<CollectedLuminas>,    // Pending Luminas.
-    mut player_scores: ResMut<PlayerScores>,            // Player scores.
+    mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>,
+    mut player_scores: ResMut<PlayerScores>,
 ) {
-    let effector_entity = trigger.entity(); // Entity that triggered the event.
+    let effector_entity = trigger.entity();
     info!(
         "Tesseract effector triggered by entity {:?}",
         effector_entity
     );
 
-    // Remove the `InteractedEffector` marker to allow retriggering.
+    // Handle each player near the Tesseract.
+    for (player_id, mut collected_luminas) in q_players.iter_mut() {
+        if collected_luminas.pending > 0 {
+            // Transfer pending Luminas to the player's score.
+            let score = player_scores.scores.entry(*player_id).or_insert(0);
+            *score += collected_luminas.pending;
+
+            println!(
+                "Player {:?} deposited {} Luminas. Total score: {}",
+                player_id, collected_luminas.pending, *score
+            );
+
+            // Reset the player's pending Luminas.
+            collected_luminas.pending = 0;
+        }
+    }
+
+    // Clear interaction marker.
     commands
         .entity(effector_entity)
         .remove::<InteractedEffector>();
-
-    // Deposit all pending Luminas for each player.
-    for (player_id, pending_count) in collected_luminas.pending.drain() {
-        // Update the player's score.
-        let score = player_scores.scores.entry(player_id).or_insert(0);
-        *score += pending_count;
-
-        println!(
-            "Player {:?} deposited {} Luminas. Total score: {}",
-            player_id, pending_count, *score
-        );
-    }
-
-    // Clear any associated popup or progress UI.
-    effector_popup_func.clear();
 }
 
 #[derive(Bundle)]

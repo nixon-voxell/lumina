@@ -1,6 +1,5 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashMap;
 use blenvy::*;
 use lumina_common::prelude::*;
 
@@ -11,8 +10,7 @@ pub struct LuminaPlugin;
 
 impl Plugin for LuminaPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CollectedLuminas>()
-            .add_event::<SpawnLumina>()
+        app.add_event::<SpawnLumina>()
             .add_event::<LuminaCollected>()
             .add_systems(
                 FixedUpdate,
@@ -61,24 +59,25 @@ fn spawn_lumina(mut commands: Commands, mut spawn_lumina_evr: EventReader<SpawnL
 /// Handles both collision detection and gameplay effects for Lumina collection.
 fn lumina_collection(
     mut commands: Commands,
-    q_luminas: Query<(&CollidingEntities, Entity, &Transform), With<LuminaStat>>,
-    q_players: Query<&PlayerId>,
-    mut collected_luminas: ResMut<CollectedLuminas>,
+    q_luminas: Query<(Entity, &CollidingEntities), With<LuminaStat>>, // Only Luminas.
+    mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>, // Only players with CollectedLuminas.
 ) {
-    for (colliding_entities, lumina_entity, _lumina_transform) in q_luminas.iter() {
-        for &collided_entity in colliding_entities.iter() {
-            if let Ok(player_id) = q_players.get(collided_entity) {
+    for (lumina_entity, colliding_entities) in q_luminas.iter() {
+        // Filter for players that collided with the Lumina.
+        for &player_entity in colliding_entities.iter() {
+            if let Ok((player_id, mut collected_luminas)) = q_players.get_mut(player_entity) {
                 println!(
                     "Player {:?} collected Lumina {:?}",
                     player_id, lumina_entity
                 );
 
-                // Increment pending Luminas for the player.
-                *collected_luminas.pending.entry(*player_id).or_insert(0) += 1;
+                // Increment the player's pending Lumina count.
+                collected_luminas.pending += 1;
 
-                // Despawn the Lumina.
+                // Despawn the Lumina entity.
                 commands.entity(lumina_entity).despawn();
 
+                // Only allow one player to collect the Lumina.
                 break;
             }
         }
@@ -114,8 +113,8 @@ pub struct SpawnLumina {
     pub lifetime: f32,
 }
 
-#[derive(Resource, Default)]
+#[derive(Component, Default)]
 pub struct CollectedLuminas {
-    // Luminas collected but not yet deposited.
-    pub pending: HashMap<PlayerId, u32>,
+    // Count of Luminas collected by this player.
+    pub pending: u32,
 }
