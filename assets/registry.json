@@ -20225,6 +20225,17 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::blueprints::LuminaType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::LuminaType",
+      "oneOf": [
+        "Normal"
+      ],
+      "short_name": "LuminaType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
     "lumina_shared::blueprints::SpaceshipType": {
       "isComponent": true,
       "isResource": false,
@@ -20233,6 +20244,17 @@
         "Assassin"
       ],
       "short_name": "SpaceshipType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_shared::blueprints::TesseractType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::TesseractType",
+      "oneOf": [
+        "Tesseract"
+      ],
+      "short_name": "TesseractType",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -20318,14 +20340,14 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::effector::TutorialEffector": {
+    "lumina_shared::effector::TesseractEffector": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::effector::TutorialEffector",
+      "long_name": "lumina_shared::effector::TesseractEffector",
       "properties": {},
       "required": [],
-      "short_name": "TutorialEffector",
+      "short_name": "TesseractEffector",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -20412,6 +20434,25 @@
       "properties": {},
       "required": [],
       "short_name": "AmmoRef",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::lumina::LuminaStat": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::lumina::LuminaStat",
+      "properties": {
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "lifetime"
+      ],
+      "short_name": "LuminaStat",
       "type": "object",
       "typeInfo": "Struct"
     },
