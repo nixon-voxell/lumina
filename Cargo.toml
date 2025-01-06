@@ -48,6 +48,7 @@ avian2d = { version = "0.1", default-features = false, features = [
 blenvy = "0.1.0-alpha.1"
 bevy_enoki = "0.2.2"
 noisy_bevy = "0.7"
+bevy-inspector-egui = "0.27"
 serde = "1"
 rand = "0.8"
 smallvec = "1"

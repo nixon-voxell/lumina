@@ -14,6 +14,8 @@ use bevy::render::view::ViewTarget;
 use bevy::render::{render_graph::*, RenderSet};
 use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
+use bevy_inspector_egui::prelude;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_radiance_cascades::prelude::*;
 // use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use bevy_radiance_cascades::FlatlandGiPlugin;
@@ -22,15 +24,13 @@ use binding_types::sampler;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(FlatlandGiPlugin)
         // .add_plugins(DebugPipelinePlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, config_update)
+        .add_systems(Update, (config_update, marker_update))
         .run();
 }
-
-// const X_EXTENT: f32 = 900.0;
-const X_EXTENT: f32 = 100.0;
 
 fn setup(
     mut commands: Commands,
@@ -38,15 +38,6 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn((
-        // Camera2dBundle {
-        //     camera: Camera {
-        //         hdr: true,
-        //         clear_color: ClearColorConfig::Custom(Color::NONE),
-        //         // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
-        //         ..default()
-        //     },
-        //     ..default()
-        // },
         Camera2dBundle {
             camera: Camera {
                 // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
@@ -67,8 +58,8 @@ fn setup(
             deband_dither: DebandDither::Enabled,
             ..default()
         },
-        BloomSettings::default(),
-        SmaaSettings::default(),
+        // BloomSettings::default(),
+        // SmaaSettings::default(),
         RadianceCascadesConfig::default(),
         // Fxaa::default(),
     ));
@@ -94,51 +85,18 @@ fn setup(
         }
     }
 
-    let shapes = [
-        meshes.add(Circle::new(10.0)),
-        // meshes.add(CircularSector::new(50.0, 1.0)),
-        // meshes.add(CircularSegment::new(50.0, 1.25)),
-        // meshes.add(Ellipse::new(25.0, 50.0)),
-        // meshes.add(Annulus::new(25.0, 50.0)),
-        meshes.add(Capsule2d::new(25.0, 50.0)),
-        // meshes.add(Rhombus::new(75.0, 100.0)),
-        // meshes.add(Rectangle::new(50.0, 100.0)),
-        // meshes.add(RegularPolygon::new(50.0, 6)),
-        // meshes.add(Triangle2d::new(
-        //     Vec2::Y * 50.0,
-        //     Vec2::new(-50.0, -50.0),
-        //     Vec2::new(50.0, -50.0),
-        // )),
-    ];
-    let num_shapes = shapes.len();
-
-    for (i, shape) in shapes.into_iter().enumerate() {
-        // Distribute colors evenly across the rainbow.
-        // let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
-        // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
-
-        let color = if i % 2 == 0 {
-            Color::linear_rgba(50.0, 50.0, 50.0, 1.0)
-        } else {
-            Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
-        };
-
-        let _entity = commands
-            .spawn(ColorMesh2dBundle {
-                mesh: Mesh2dHandle(shape),
-                material: materials.add(color),
-                transform: Transform::from_xyz(
-                    // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                    -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
-                    0.0,
-                    0.0,
-                    // 0.0, 0.0, 0.0,
-                ),
-                ..default()
-            })
-            .id();
-    }
+    commands.spawn((
+        ColorMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Circle::new(10.0))),
+            material: materials.add(Color::linear_rgba(50.0, 50.0, 50.0, 1.0)),
+            ..default()
+        },
+        Marker,
+    ));
 }
+
+#[derive(Component)]
+struct Marker;
 
 fn config_update(
     mut q_config: Query<&mut RadianceCascadesConfig>,
@@ -159,6 +117,23 @@ fn config_update(
     } else if kbd_input.pressed(KeyCode::KeyJ) {
         let interval = config.interval();
         config.set_interval(interval - offset);
+    }
+}
+
+fn marker_update(
+    mut q_markers: Query<&mut Transform, With<Marker>>,
+    q_windows: Query<&Window>,
+    camera_q: Query<(&Camera, &GlobalTransform)>,
+) {
+    let window = q_windows.single();
+    let (camera, camera_transform) = camera_q.single();
+    for mut transform in q_markers.iter_mut() {
+        if let Some(position) = window
+            .cursor_position()
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+        {
+            transform.translation = position.extend(0.0);
+        }
     }
 }
 

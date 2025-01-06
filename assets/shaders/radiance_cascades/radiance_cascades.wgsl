@@ -69,12 +69,15 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
     var covered_range = 0.0;
 
     let level_idx = f32(probe.cascade_index);
-    let raymarch_multiplier = pow(2.0, level_idx);
+    let raymarch_multiplier = f32(1u << probe.cascade_index);
+    // let raymarch_multiplier = 1.0;
     let dimensions = vec2<f32>(textureDimensions(tex_main));
 
     var march_count = 0u;
     let step_size = RAYMARCH_LENGTH * raymarch_multiplier;
-    let ray_start = probe.start * 0.5;
+    // let step_size = RAYMARCH_LENGTH;
+    let ray_start = probe.start;
+    // let ray_start = probe.start * 0.5;
     // let ray_start = 0.0;
     let ray_end = probe.start + probe.range;
 
@@ -85,17 +88,22 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let coord = p / dimensions;
-        var new_color = textureSampleLevel(tex_main, sampler_main, coord, level_idx);
-        // var new_color = textureSampleLevel(tex_main, sampler_main, coord, 3.0);
-        new_color.a = clamp(new_color.a, 0.0, 1.0);
+        // var new_color = textureSampleLevel(tex_main, sampler_main, coord, level_idx);
+        var new_color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
+        let alpha = clamp(new_color.a, 0.0, 1.0);
 
-        if new_color.a > EPSILON {
-            volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * new_color.a));
+        let x = 1.0 - level_idx / f32(num_cascades);
+        if alpha > 1.0 - EPSILON {
+            color = new_color;
+            // color = new_color * pow(x, f32(march_count) * step_size / probe.range);
+            // color = new_color * (pow(1.0 - f32(march_count) * step_size / probe.range, 1.0));
+            // color = new_color * vec4<f32>(volumetric_color, 1.0);
+            color.a = 1.0;
+            break;
         }
 
-        if new_color.a >= 1.0 {
-            color = new_color * vec4<f32>(volumetric_color, 1.0);
-            break;
+        if alpha > EPSILON {
+            volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * alpha));
         }
 
         // Prevent infinite loop.

@@ -50,6 +50,8 @@ impl Plugin for RadianceCascadesPlugin {
                     prepare_rc_bind_groups.in_set(RenderSet::PrepareBindGroups),
                 ),
             );
+
+        app.register_type::<RadianceCascadesConfig>();
     }
 
     fn finish(&self, app: &mut App) {
@@ -210,9 +212,9 @@ fn prepare_rc_bind_groups(
                     address_mode_u: AddressMode::ClampToEdge,
                     address_mode_v: AddressMode::ClampToEdge,
                     address_mode_w: AddressMode::ClampToEdge,
-                    mag_filter: FilterMode::Linear,
-                    min_filter: FilterMode::Linear,
-                    mipmap_filter: FilterMode::Linear,
+                    mag_filter: FilterMode::Nearest,
+                    min_filter: FilterMode::Nearest,
+                    mipmap_filter: FilterMode::Nearest,
                     ..Default::default()
                 }),
             )),
@@ -255,7 +257,8 @@ fn prepare_rc_bind_groups(
 }
 
 /// Adding this to [bevy::prelude::Camera2d] will enable Radiance Cascades GI.
-#[derive(ExtractComponent, Component, Clone, Copy)]
+#[derive(ExtractComponent, Component, Reflect, Clone, Copy)]
+#[reflect(Component)]
 pub struct RadianceCascadesConfig {
     /// Determines the number of directions in cascade 0 (angular resolution).
     /// `angular_resolution = resolution_factor * 4`.
