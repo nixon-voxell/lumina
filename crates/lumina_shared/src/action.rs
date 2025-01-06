@@ -34,7 +34,7 @@ impl ReplicateActionBundle {
 #[derive(Actionlike, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Move,
-    Brake,
+    Dash,
     Boost,
     Interact,
     Attack,
@@ -48,7 +48,7 @@ impl PlayerAction {
 
         // Default gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
-        input_map.insert(Self::Brake, GamepadButtonType::LeftTrigger);
+        input_map.insert(Self::Dash, GamepadButtonType::LeftTrigger);
         input_map.insert(Self::Boost, GamepadButtonType::LeftTrigger2);
         input_map.insert(Self::Interact, GamepadButtonType::South);
         input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
@@ -56,7 +56,7 @@ impl PlayerAction {
 
         // Default kbm input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
-        input_map.insert(Self::Brake, KeyCode::Space);
+        input_map.insert(Self::Dash, KeyCode::Space);
         input_map.insert(Self::Boost, MouseButton::Right);
         input_map.insert(Self::Interact, KeyCode::KeyE);
         input_map.insert(Self::Attack, MouseButton::Left);

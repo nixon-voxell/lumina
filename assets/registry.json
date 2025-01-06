@@ -20288,7 +20288,7 @@
       "long_name": "lumina_shared::action::PlayerAction",
       "oneOf": [
         "Move",
-        "Brake",
+        "Dash",
         "Boost",
         "Interact",
         "Attack",
@@ -20545,6 +20545,55 @@
         "current_cooldown"
       ],
       "short_name": "Boost",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::Dash": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::Dash",
+      "properties": {
+        "cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "direction": {
+          "type": {
+            "$ref": "#/$defs/glam::Vec2"
+          }
+        },
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "energy_cost": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "is_dashing": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "direction",
+        "duration",
+        "cooldown",
+        "energy_cost",
+        "speed",
+        "is_dashing"
+      ],
+      "short_name": "Dash",
       "type": "object",
       "typeInfo": "Struct"
     },

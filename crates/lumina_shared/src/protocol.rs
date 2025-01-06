@@ -63,6 +63,10 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(client::ComponentSyncMode::Simple)
             .add_interpolation(client::ComponentSyncMode::Simple);
 
+        app.register_component::<Dash>(ChannelDirection::ServerToClient)
+            .add_prediction(client::ComponentSyncMode::Simple)
+            .add_interpolation(client::ComponentSyncMode::Simple);
+
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
             .add_prediction(client::ComponentSyncMode::Once)
             .add_interpolation(client::ComponentSyncMode::Once);
