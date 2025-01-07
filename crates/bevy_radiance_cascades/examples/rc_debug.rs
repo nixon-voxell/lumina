@@ -1,8 +1,6 @@
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::core_2d::graph::{Core2d, Node2d};
 use bevy::core_pipeline::fullscreen_vertex_shader::fullscreen_shader_vertex_state;
-// use bevy::core_pipeline::fxaa::Fxaa;
-use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::ecs::query::QueryItem;
 use bevy::prelude::*;
@@ -14,10 +12,8 @@ use bevy::render::view::ViewTarget;
 use bevy::render::{render_graph::*, RenderSet};
 use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
-use bevy_inspector_egui::prelude;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_radiance_cascades::prelude::*;
-// use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use bevy_radiance_cascades::FlatlandGiPlugin;
 use binding_types::sampler;
 
@@ -58,10 +54,7 @@ fn setup(
             deband_dither: DebandDither::Enabled,
             ..default()
         },
-        // BloomSettings::default(),
-        // SmaaSettings::default(),
         RadianceCascadesConfig::default(),
-        // Fxaa::default(),
     ));
 
     const COUNT: usize = 4;
@@ -166,21 +159,40 @@ impl Plugin for DebugPipelinePlugin {
                 //     }
                 // })
                 // .after(RenderSet::PrepareResources),
+                // (|mut commands: Commands,
+                //   q_textures: Query<(
+                //     &bevy_radiance_cascades::mipmap::MipmapTexture,
+                //     &MipmapConfig,
+                //     Entity,
+                // )>| {
+                //     for (tex, config, entity) in q_textures.iter() {
+                //         commands.entity(entity).insert(DebugTexture(
+                //             tex.cached_tex.texture.create_view(&TextureViewDescriptor {
+                //                 label: Some("debug_view"),
+                //                 format: None,
+                //                 dimension: None,
+                //                 aspect: TextureAspect::All,
+                //                 base_mip_level: 0,
+                //                 mip_level_count: Some(config.mip_count),
+                //                 base_array_layer: 0,
+                //                 array_layer_count: None,
+                //             }),
+                //         ));
+                //     }
                 (|mut commands: Commands,
                   q_textures: Query<(
-                    &bevy_radiance_cascades::mipmap::MipmapTexture,
-                    &MipmapConfig,
+                    &bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures,
                     Entity,
                 )>| {
-                    for (tex, config, entity) in q_textures.iter() {
+                    for (tex, entity) in q_textures.iter() {
                         commands.entity(entity).insert(DebugTexture(
-                            tex.cached_tex.texture.create_view(&TextureViewDescriptor {
+                            tex.cached_tex0.texture.create_view(&TextureViewDescriptor {
                                 label: Some("debug_view"),
                                 format: None,
                                 dimension: None,
                                 aspect: TextureAspect::All,
                                 base_mip_level: 0,
-                                mip_level_count: Some(config.mip_count),
+                                mip_level_count: Some(1),
                                 base_array_layer: 0,
                                 array_layer_count: None,
                             }),

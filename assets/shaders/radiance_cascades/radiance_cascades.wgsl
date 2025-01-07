@@ -44,7 +44,6 @@ fn radiance_cascades(
 
     // Center coordinate of the probe grid
     let probe_origin = vec2<f32>(probe_coord + probe.width / 2);
-    // let ray_origin = vec2<f32>(probe_origin) + ray_dir * probe.start;
 
     var color = raymarch(probe_origin, ray_dir);
 
