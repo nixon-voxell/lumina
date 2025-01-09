@@ -63,7 +63,7 @@ impl ViewNode for CompositePipelineNode {
             &BindGroupEntries::sequential((
                 post_process.source,
                 &composite_pipeline.sampler,
-                &rc_tex.mipmap_tex.default_view,
+                &rc_tex.converge_tex.default_view,
                 &composite_pipeline.sampler,
             )),
         );

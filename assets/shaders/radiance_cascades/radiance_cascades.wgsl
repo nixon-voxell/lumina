@@ -4,7 +4,7 @@
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
 const RAYMARCH_LENGTH: f32 = 0.5;
-const MAX_RAYMARCH: u32 = 64;
+const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> num_cascades: u32;
@@ -19,7 +19,7 @@ const EPSILON: f32 = 4.88e-04;
 @workgroup_size(8, 8, 1)
 fn radiance_cascades(
     @builtin(global_invocation_id) global_id: vec3<u32>,
-    @builtin(local_invocation_id) local_id: vec3<u32>
+    @builtin(local_invocation_id) local_id: vec3<u32>,
 ) {
     let base_coord = global_id.xy;
     let dimensions = textureDimensions(tex_radiance_cascades_source);
@@ -45,7 +45,14 @@ fn radiance_cascades(
     // Center coordinate of the probe grid
     let probe_origin = vec2<f32>(probe_coord + probe.width / 2);
 
+    // let target_index = 5u;
+    // var color = vec4<f32>(0.0);
+    // if probe.cascade_index == target_index {
+    //     color = raymarch(probe_origin, ray_dir);
+    // }
+
     var color = raymarch(probe_origin, ray_dir);
+
 
 #ifdef MERGE
     // TODO: Factor in transparency.
@@ -62,7 +69,7 @@ fn radiance_cascades(
 }
 
 fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
-    var color = vec4<f32>(0.0);
+    var radiance = vec4<f32>(0.0);
     var volumetric_color = vec3<f32>(1.0);
     var position = origin;
     var covered_range = 0.0;
@@ -87,22 +94,31 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let coord = p / dimensions;
-        // var new_color = textureSampleLevel(tex_main, sampler_main, coord, level_idx);
-        var new_color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
-        let alpha = clamp(new_color.a, 0.0, 1.0);
+        var color = textureSampleLevel(tex_main, sampler_main, coord, level_idx - 1.0);
+        // var color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
+        let alpha = clamp(color.a, 0.0, 1.0);
+        // Treat values from -1.0 ~ 1.0 as no light
+        // This way, we can handle both negative and postive light
+        let color_sign = sign(color);
+        let color_abs = abs(color);
+
+        var new_radiance = vec4<f32>(0.0);
+        new_radiance.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
+        new_radiance.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
+        new_radiance.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
 
         let x = 1.0 - level_idx / f32(num_cascades);
         if alpha > 1.0 - EPSILON {
-            color = new_color;
+            radiance = new_radiance * 1.0;
             // color = new_color * pow(x, f32(march_count) * step_size / probe.range);
             // color = new_color * (pow(1.0 - f32(march_count) * step_size / probe.range, 1.0));
             // color = new_color * vec4<f32>(volumetric_color, 1.0);
-            color.a = 1.0;
+            radiance.a = 1.0;
             break;
         }
 
         if alpha > EPSILON {
-            volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * alpha));
+            volumetric_color *= pow(new_radiance.rgb, vec3<f32>(0.1 * alpha));
         }
 
         // Prevent infinite loop.
@@ -112,49 +128,8 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
     }
 
-    // for (var r = 0u; r < MAX_RAYMARCH; r++) {
-    //     if (
-    //         covered_range >= probe.range ||
-    //         any(position >= dimensions) ||
-    //         any(position < vec2<f32>(0.0))
-    //     ) {
-    //         break;
-    //     }
 
-    //     // let coord = vec2<u32>(round(position));
-
-    //     let coord = position / dimensions;
-    //     var new_color = textureSampleLevel(tex_main, sampler_main, coord, level_idx);
-    //     // var new_color = textureLoad(tex_main, coord, 0);
-
-    //     // Treat values from -1.0 ~ 1.0 as no light
-    //     // This way, we can handle both negative and postive light
-    //     let color_sign = sign(new_color);
-    //     let color_abs = abs(new_color);
-
-    //     var lighting_color = new_color;
-    //     lighting_color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
-    //     lighting_color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
-    //     lighting_color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
-
-    //     if new_color.a >= 1.0 {
-    //         color = lighting_color * vec4<f32>(volumetric_color, 1.0);
-    //         break;
-    //     }
-
-    //     if new_color.a > EPSILON {
-    //         volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * new_color.a));
-    //     }
-
-    //     let range = RAYMARCH_LENGTH * raymarch_multiplier;
-    //     position += ray_dir * range;
-    //     covered_range += range;
-    // }
-
-    // color *= 1.0 - pow(covered_range / probe.range, 2.0);
-
-    return color;
-    // return vec4<f32>(1.0 - (covered_range / probe.range)) * color;
+    return radiance;
 }
 
 fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<f32> {
@@ -214,6 +189,7 @@ fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<
 
     return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
     // return (TL + TR + BL + BR) * 0.25 * 0.25;
+    // return BL * 0.25 * 0.25;
 }
 
 fn fetch_cascade(

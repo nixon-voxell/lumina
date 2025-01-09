@@ -7,12 +7,9 @@
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     var filtered_color = textureSample(tex_screen, sampler_screen_filter, in.uv);
-    // let nearest_color = textureSample(tex_screen, sampler_screen_nearest, in.uv);
+    let nearest_color = textureSample(tex_screen, sampler_screen_nearest, in.uv);
     var alpha = filtered_color.a;
-    // filtered_color.a = step(0.25, filtered_color.a);
-    // filtered_color = pow(filtered_color, vec4<f32>(1.1));
-    filtered_color.a = alpha * 1.6;
-    // filtered_color.a = clamp(filtered_color.a, 0.0, 1.5);
+    filtered_color.a = alpha * 1.1;
 
     return filtered_color;
 }

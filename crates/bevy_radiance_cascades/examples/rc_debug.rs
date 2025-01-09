@@ -1,4 +1,3 @@
-use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::core_2d::graph::{Core2d, Node2d};
 use bevy::core_pipeline::fullscreen_vertex_shader::fullscreen_shader_vertex_state;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
@@ -22,7 +21,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(FlatlandGiPlugin)
-        // .add_plugins(DebugPipelinePlugin)
+        .add_plugins(DebugPipelinePlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, (config_update, marker_update))
         .run();
@@ -57,8 +56,8 @@ fn setup(
         RadianceCascadesConfig::default(),
     ));
 
-    const COUNT: usize = 4;
-    const SPACING: f32 = 150.0;
+    const COUNT: usize = 2;
+    const SPACING: f32 = 250.0;
     const OFFSET: Vec3 = Vec3::new(
         (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
         (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
@@ -68,7 +67,7 @@ fn setup(
     for y in 0..COUNT {
         for x in 0..COUNT {
             commands.spawn((ColorMesh2dBundle {
-                mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
+                mesh: Mesh2dHandle(meshes.add(Circle::new(10.0))),
                 material: materials.add(Color::linear_rgba(0.0, 0.0, 0.0, 1.0)),
                 transform: Transform::from_translation(
                     Vec3::new((x as f32) * SPACING, (y as f32) * SPACING, 0.0) - OFFSET,
@@ -81,7 +80,8 @@ fn setup(
     commands.spawn((
         ColorMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle::new(10.0))),
-            material: materials.add(Color::linear_rgba(50.0, 50.0, 50.0, 1.0)),
+            material: materials.add(Color::linear_rgba(1.7, 1.7, 1.7, 1.0)),
+            // material: materials.add(Color::linear_rgba(2.0, 2.0, 2.0, 1.0)),
             ..default()
         },
         Marker,
@@ -96,7 +96,9 @@ fn config_update(
     kbd_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let mut config = q_config.single_mut();
+    let Ok(mut config) = q_config.get_single_mut() else {
+        return;
+    };
 
     let speed = match kbd_input.pressed(KeyCode::ShiftLeft) {
         true => 6.0,
@@ -151,15 +153,6 @@ impl Plugin for DebugPipelinePlugin {
             .add_systems(
                 Render,
                 // (|mut commands: Commands,
-                //   q_textures: Query<(&RadianceCascadesTextures, Entity)>| {
-                //     for (tex, entity) in q_textures.iter() {
-                //         commands
-                //             .entity(entity)
-                //             .insert(DebugTexture(tex.mipmap_tex.default_view.clone()));
-                //     }
-                // })
-                // .after(RenderSet::PrepareResources),
-                // (|mut commands: Commands,
                 //   q_textures: Query<(
                 //     &bevy_radiance_cascades::mipmap::MipmapTexture,
                 //     &MipmapConfig,
@@ -179,6 +172,7 @@ impl Plugin for DebugPipelinePlugin {
                 //             }),
                 //         ));
                 //     }
+                // })
                 (|mut commands: Commands,
                   q_textures: Query<(
                     &bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures,
@@ -186,16 +180,19 @@ impl Plugin for DebugPipelinePlugin {
                 )>| {
                     for (tex, entity) in q_textures.iter() {
                         commands.entity(entity).insert(DebugTexture(
-                            tex.cached_tex0.texture.create_view(&TextureViewDescriptor {
-                                label: Some("debug_view"),
-                                format: None,
-                                dimension: None,
-                                aspect: TextureAspect::All,
-                                base_mip_level: 0,
-                                mip_level_count: Some(1),
-                                base_array_layer: 0,
-                                array_layer_count: None,
-                            }),
+                            tex.converge_tex
+                                // tex.main_texture()
+                                .texture
+                                .create_view(&TextureViewDescriptor {
+                                    label: Some("debug_view"),
+                                    format: None,
+                                    dimension: None,
+                                    aspect: TextureAspect::All,
+                                    base_mip_level: 0,
+                                    mip_level_count: Some(1),
+                                    base_array_layer: 0,
+                                    array_layer_count: None,
+                                }),
                         ));
                     }
                 })
