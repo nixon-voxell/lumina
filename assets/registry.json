@@ -20559,6 +20559,11 @@
             "$ref": "#/$defs/f32"
           }
         },
+        "current_cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
         "direction": {
           "type": {
             "$ref": "#/$defs/glam::Vec2"
@@ -20589,6 +20594,7 @@
         "direction",
         "duration",
         "cooldown",
+        "current_cooldown",
         "energy_cost",
         "speed",
         "is_dashing"

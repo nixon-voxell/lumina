@@ -156,53 +156,99 @@ fn spaceship_movement(
             dash.is_dashing,
             is_dashing,
             boost.energy >= dash.energy_cost,
+            dash.current_cooldown <= 0.0,
         ) {
             // Case 1: Dash is currently active
-            (true, _, _) => {
+            (true, _, _, _) => {
                 dash.duration -= time.delta_seconds();
                 if dash.duration <= 0.0 {
-                    dash.is_dashing = false; // End dash
-                    dash.cooldown = 3.0; // Start cooldown
-                    movement_stat.towards_linear_damping(25.0, damping_factor);
+                    dash.is_dashing = false;
+                    dash.current_cooldown = dash.cooldown;
+                    dash.direction = Vec2::ZERO;
+                    movement_stat.towards_linear_damping(35.0, damping_factor);
                 }
             }
 
-            // Case 2: Dash is just starting and energy is sufficient
-            (false, true, true) => {
-                dash.is_dashing = true;
-                dash.duration = 0.3; // Reset dash duration for the next dash
-                dash.direction = action
+            // Case 2: Dash is just starting, has energy, and not in cooldown
+            (false, true, true, true) => {
+                let current_direction = action
                     .clamped_axis_pair(&PlayerAction::Move)
                     .map(|axis| axis.xy())
-                    .unwrap_or_else(|| Vec2::new(0.0, 0.0)) // Default direction
+                    .unwrap_or_else(|| Vec2::new(0.0, 0.0))
                     .normalize_or_zero();
 
-                boost.energy -= dash.energy_cost; // Deduct energy for dash
-                linear.0 = dash.direction * dash.speed; // Dash velocity
-                movement_stat.towards_linear_damping(0.0, damping_factor); // Reduce damping for dash
+                if current_direction != Vec2::ZERO {
+                    dash.is_dashing = true;
+                    dash.duration = 0.7;
+                    dash.direction = current_direction;
+                    boost.energy -= dash.energy_cost;
+                    linear.0 = dash.direction * dash.speed;
+                    movement_stat.towards_linear_damping(0.0, damping_factor);
+                }
             }
 
-            // Case 3: Dash is attempted but energy is insufficient
-            (false, true, false) => {
-                // TODO: Handle failed dash attempt
-                debug!("Dash failed: Not enough energy");
-                movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor);
+            // Case 3: Dash is attempted but either in cooldown or insufficient energy
+            (false, true, has_energy, not_in_cooldown) => {
+                if !has_energy || !not_in_cooldown {
+                    if is_moving {
+                        // Calculate the current movement direction
+                        let current_direction = action
+                            .clamped_axis_pair(&PlayerAction::Move)
+                            .map(|axis| axis.xy())
+                            .unwrap_or_else(|| Vec2::ZERO)
+                            .normalize_or_zero();
+
+                        if current_direction != Vec2::ZERO {
+                            // Apply acceleration to maintain velocity
+                            movement_stat.towards_linear_acceleration(
+                                spaceship.linear_acceleration,
+                                acceleration_factor,
+                                deceleration_factor,
+                            );
+
+                            // Update velocity based on the current direction and acceleration
+                            linear.0 += current_direction
+                                * movement_stat.linear_acceleration
+                                * time.delta_seconds();
+                            linear.0 = linear.0.clamp_length_max(spaceship.max_linear_speed);
+                        }
+                    } else {
+                        // If not moving, apply braking behavior
+                        movement_stat.towards_linear_acceleration(
+                            0.0,
+                            acceleration_factor,
+                            deceleration_factor,
+                        );
+                    }
+
+                    // Apply damping to smoothly reduce velocity if necessary
+                    movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor);
+                }
             }
 
             // Case 4: Normal movement (not dashing)
-            (false, false, _) => {
+            (false, false, _, _) => {
+                dash.direction = Vec2::ZERO;
                 movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor);
             }
+        }
+
+        // Update cooldown timer
+        if dash.current_cooldown > 0.0 {
+            dash.current_cooldown -= time.delta_seconds();
         }
 
         // Linear acceleration.
         match (is_moving, is_dashing, boosting_active) {
             // Moving only.
-            (true, false, false) => movement_stat.towards_linear_acceleration(
-                spaceship.linear_acceleration,
-                acceleration_factor,
-                deceleration_factor,
-            ),
+            (true, false, false) => {
+                // Apply acceleration for normal movement
+                movement_stat.towards_linear_acceleration(
+                    spaceship.linear_acceleration,
+                    acceleration_factor,
+                    deceleration_factor,
+                );
+            }
             // // Moving and braking.
             // (true, true, _) => movement_stat.towards_linear_acceleration(
             //     spaceship.brake_linear_acceleration,
@@ -212,8 +258,8 @@ fn spaceship_movement(
 
             // Moving and dashing.
             (true, true, _) => {
-                // Maintain dash speed without modifying acceleration
-                linear.0 = dash.direction * dash.speed;
+                // // Maintain dash speed without modifying acceleration
+                // linear.0 = dash.direction * dash.speed;
             }
             // Moving and boosting.
             (true, false, true) => movement_stat.towards_linear_acceleration(
@@ -372,7 +418,7 @@ pub struct Boost {
 }
 
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
+#[reflect(Component, Default)]
 pub struct Dash {
     // Dash direction
     pub direction: Vec2,
@@ -380,6 +426,8 @@ pub struct Dash {
     pub duration: f32,
     // Cooldown after dash (seconds)
     pub cooldown: f32,
+    // Remaining cooldown time
+    pub current_cooldown: f32,
     // Energy cost for dashing
     pub energy_cost: f32,
     // Dash speed
