@@ -26,9 +26,14 @@ impl Plugin for SpaceshipStatsPlugin {
 
 fn spaceship_stats(
     q_spaceships: Query<
-        (&MaxHealth, &Health, &Boost, &PlayerId),
+        (&MaxHealth, &Health, &Boost, &Dash, &PlayerId),
         (
-            Or<(Changed<Health>, Changed<MaxHealth>, Changed<Boost>)>,
+            Or<(
+                Changed<Health>,
+                Changed<MaxHealth>,
+                Changed<Boost>,
+                Changed<Dash>,
+            )>,
             With<Spaceship>,
             With<SourceEntity>,
         ),
@@ -40,11 +45,13 @@ fn spaceship_stats(
         .iter()
         .find(|(.., &id)| id == local_player_id.0);
 
-    if let Some((max_health, health, boost, _)) = spaceship {
+    if let Some((max_health, health, boost, dash, _)) = spaceship {
         func.data = Some(dict! {
             "health" => **health as f64,
             "max_health" => **max_health as f64,
-            "boost" => (boost.energy / boost.max_energy) as f64
+            "boost" => (boost.energy / boost.max_energy) as f64,
+            "dash_cooldown" => dash.cooldown as f64,
+            "current_cooldown" => dash.current_cooldown as f64,
         });
     } else {
         func.data = None;
