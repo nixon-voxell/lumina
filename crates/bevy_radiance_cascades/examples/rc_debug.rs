@@ -67,7 +67,7 @@ fn setup(
     for y in 0..COUNT {
         for x in 0..COUNT {
             commands.spawn((ColorMesh2dBundle {
-                mesh: Mesh2dHandle(meshes.add(Circle::new(10.0))),
+                mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
                 material: materials.add(Color::linear_rgba(0.0, 0.0, 0.0, 1.0)),
                 transform: Transform::from_translation(
                     Vec3::new((x as f32) * SPACING, (y as f32) * SPACING, 0.0) - OFFSET,
@@ -79,12 +79,12 @@ fn setup(
 
     commands.spawn((
         ColorMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle::new(10.0))),
+            mesh: Mesh2dHandle(meshes.add(Circle::new(20.0))),
             material: materials.add(Color::linear_rgba(1.7, 1.7, 1.7, 1.0)),
             // material: materials.add(Color::linear_rgba(2.0, 2.0, 2.0, 1.0)),
             ..default()
         },
-        Marker,
+        // Marker,
     ));
 }
 
@@ -106,10 +106,10 @@ fn config_update(
     };
 
     let offset = time.delta_seconds() * speed;
-    if kbd_input.pressed(KeyCode::KeyK) {
+    if kbd_input.pressed(KeyCode::ArrowUp) {
         let interval = config.interval();
         config.set_interval(interval + offset);
-    } else if kbd_input.pressed(KeyCode::KeyJ) {
+    } else if kbd_input.pressed(KeyCode::ArrowDown) {
         let interval = config.interval();
         config.set_interval(interval - offset);
     }
@@ -120,8 +120,13 @@ fn marker_update(
     q_windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
 ) {
-    let window = q_windows.single();
-    let (camera, camera_transform) = camera_q.single();
+    let Ok(window) = q_windows.get_single() else {
+        return;
+    };
+    let Ok((camera, camera_transform)) = camera_q.get_single() else {
+        return;
+    };
+
     for mut transform in q_markers.iter_mut() {
         if let Some(position) = window
             .cursor_position()

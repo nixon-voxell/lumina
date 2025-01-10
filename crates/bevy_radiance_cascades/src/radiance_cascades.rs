@@ -531,7 +531,7 @@ impl FromWorld for RadianceCascadesPipeline {
                     // Main texture
                     texture_2d(TextureSampleType::Float { filterable: true }),
                     // Main texture sampler
-                    sampler(SamplerBindingType::Filtering),
+                    sampler(SamplerBindingType::NonFiltering),
                 ),
             ),
         );

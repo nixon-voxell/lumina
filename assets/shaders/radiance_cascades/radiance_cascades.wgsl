@@ -56,8 +56,9 @@ fn radiance_cascades(
 
 #ifdef MERGE
     // TODO: Factor in transparency.
-    if (color.a != 1.0) {
-        color += merge(probe_cell, probe_coord, ray_index);
+    if (color.a != 0.0) {
+        let merge_color = merge(probe_cell, probe_coord, ray_index);
+        color = mix(color, merge_color, color.a);
     }
 #endif
 
@@ -69,22 +70,22 @@ fn radiance_cascades(
 }
 
 fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
-    var radiance = vec4<f32>(0.0);
+    var radiance = vec3<f32>(0.0);
+    var visibility = 1.0;
+
     var volumetric_color = vec3<f32>(1.0);
     var position = origin;
     var covered_range = 0.0;
 
     let level_idx = f32(probe.cascade_index);
-    let raymarch_multiplier = f32(1u << probe.cascade_index);
-    // let raymarch_multiplier = 1.0;
+    let mip_step_size = f32(1u << probe.cascade_index);
+    // let mip_step_size = 1.0;
     let dimensions = vec2<f32>(textureDimensions(tex_main));
 
     var march_count = 0u;
-    let step_size = RAYMARCH_LENGTH * raymarch_multiplier;
-    // let step_size = RAYMARCH_LENGTH;
-    let ray_start = probe.start;
-    // let ray_start = probe.start * 0.5;
-    // let ray_start = 0.0;
+    let step_size = RAYMARCH_LENGTH * mip_step_size;
+    // let ray_start = probe.start;
+    let ray_start = probe.start * 0.5;
     let ray_end = probe.start + probe.range;
 
     for (var r = ray_start; r < ray_end; r += step_size) {
@@ -93,43 +94,45 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
             break;
         }
 
-        let coord = p / dimensions;
-        var color = textureSampleLevel(tex_main, sampler_main, coord, level_idx - 1.0);
-        // var color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
-        let alpha = clamp(color.a, 0.0, 1.0);
-        // Treat values from -1.0 ~ 1.0 as no light
-        // This way, we can handle both negative and postive light
-        let color_sign = sign(color);
-        let color_abs = abs(color);
-
-        var new_radiance = vec4<f32>(0.0);
-        new_radiance.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
-        new_radiance.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
-        new_radiance.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
-
-        let x = 1.0 - level_idx / f32(num_cascades);
-        if alpha > 1.0 - EPSILON {
-            radiance = new_radiance * 1.0;
-            // color = new_color * pow(x, f32(march_count) * step_size / probe.range);
-            // color = new_color * (pow(1.0 - f32(march_count) * step_size / probe.range, 1.0));
-            // color = new_color * vec4<f32>(volumetric_color, 1.0);
-            radiance.a = 1.0;
-            break;
-        }
-
-        if alpha > EPSILON {
-            volumetric_color *= pow(new_radiance.rgb, vec3<f32>(0.1 * alpha));
-        }
-
         // Prevent infinite loop.
-        march_count += 1u;
+        march_count++;
         if march_count > MAX_RAYMARCH {
             break;
         }
+
+        let t = clamp((r - ray_start) / probe.range, 0.0, 1.0);
+        let s = 0.85; let e = 0.07;
+        let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
+        let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
+
+        let coord = p / dimensions;
+        var color = sample_main(coord, level_idx - 1.0);
+
+        var new_rad = mix(color.rgb, vec3<f32>(0.0), start_edge);
+        new_rad = mix(new_rad, vec3<f32>(0.0), end_edge);
+
+        var new_viz = mix(color.a, 1.0, start_edge);
+        new_viz = mix(new_viz, 1.0, end_edge);
+
+        radiance += new_rad * visibility * (level_idx + 1.0);
+        visibility *= pow(new_viz, (level_idx + 1.0) * 0.1);
     }
 
+    return vec4<f32>(radiance, visibility);
+}
 
-    return radiance;
+fn sample_main(coord: vec2<f32>, level: f32) -> vec4<f32> {
+    var color = textureSampleLevel(tex_main, sampler_main, coord, level);
+    // var color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
+    let alpha = 1.0 - clamp(color.a, 0.0, 1.0);
+    // Treat values from -1.0 ~ 1.0 as no light
+    // This way, we can handle both negative and postive light
+    let color_sign = sign(color.rgb);
+    let color_abs = abs(color.rgb);
+
+    let remaped_color = color_sign * max(color_abs - 1.0, vec3<f32>(0.0));
+
+    return vec4<f32>(remaped_color, alpha);
 }
 
 fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<f32> {
