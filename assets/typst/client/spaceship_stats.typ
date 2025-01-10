@@ -61,19 +61,18 @@
 }
 
 #let dash_cooldown_display(
-  current_cooldown,
-  max_cooldown,
+  cooldown,
   icon_path,
   width,
   height,
 ) = {
-  let fill_height = (current_cooldown / max_cooldown) * height
+  let fill_height = cooldown * height
 
   box(width: width, height: height)[
     #image(icon_path, height: height)
 
     // Dark overlay inside the icon filling from bottom to top
-    #if current_cooldown > 0 {
+    #if cooldown > 0 {
       place(top)[
         #rect(
           width: width,
@@ -131,7 +130,6 @@
 
     #place(bottom + right)[
       #dash_cooldown_display(
-        data.current_cooldown,
         data.dash_cooldown,
         "/icons/dash.svg",
         height * 2,

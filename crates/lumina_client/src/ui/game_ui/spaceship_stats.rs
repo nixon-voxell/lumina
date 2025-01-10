@@ -50,8 +50,7 @@ fn spaceship_stats(
             "health" => **health as f64,
             "max_health" => **max_health as f64,
             "boost" => (boost.energy / boost.max_energy) as f64,
-            "dash_cooldown" => dash.cooldown as f64,
-            "current_cooldown" => dash.current_cooldown as f64,
+            "dash_cooldown" => (dash.current_cooldown / dash.cooldown) as f64,
         });
     } else {
         func.data = None;
