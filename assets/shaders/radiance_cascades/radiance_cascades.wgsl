@@ -100,8 +100,8 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
             break;
         }
 
-        let t = clamp((r - ray_start) / probe.range, 0.0, 1.0);
-        let s = 0.85; let e = 0.07;
+        let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
+        let s = 0.85; let e = 0.15;
         let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
         let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 

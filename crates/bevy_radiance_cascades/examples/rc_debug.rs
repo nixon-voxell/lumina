@@ -79,7 +79,7 @@ fn setup(
 
     commands.spawn((
         ColorMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle::new(20.0))),
+            mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
             material: materials.add(Color::linear_rgba(1.7, 1.7, 1.7, 1.0)),
             // material: materials.add(Color::linear_rgba(2.0, 2.0, 2.0, 1.0)),
             ..default()
