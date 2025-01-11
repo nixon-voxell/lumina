@@ -56,6 +56,11 @@ strum = "0.26"
 strum_macros = "0.26"
 thiserror = "1.0"
 
+[workspace.lints.rust]
+# Prevent warning from physics layer from avian2d.
+# Remove this when upgrading to bevy 0.15.
+unexpected_cfgs = "allow"
+
 [workspace.lints.clippy]
 # Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
 # request more than 7 arguments -- which triggers this lint.
