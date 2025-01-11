@@ -1,8 +1,5 @@
-use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::core_2d::graph::{Core2d, Node2d};
 use bevy::core_pipeline::fullscreen_vertex_shader::fullscreen_shader_vertex_state;
-// use bevy::core_pipeline::fxaa::Fxaa;
-use bevy::core_pipeline::smaa::SmaaSettings;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::ecs::query::QueryItem;
 use bevy::prelude::*;
@@ -14,23 +11,21 @@ use bevy::render::view::ViewTarget;
 use bevy::render::{render_graph::*, RenderSet};
 use bevy::render::{Render, RenderApp};
 use bevy::sprite::Mesh2dHandle;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_radiance_cascades::prelude::*;
-use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use bevy_radiance_cascades::FlatlandGiPlugin;
 use binding_types::sampler;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(FlatlandGiPlugin)
         // .add_plugins(DebugPipelinePlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, config_update)
+        .add_systems(Update, (config_update, marker_update))
         .run();
 }
-
-// const X_EXTENT: f32 = 900.0;
-const X_EXTENT: f32 = 100.0;
 
 fn setup(
     mut commands: Commands,
@@ -38,19 +33,10 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn((
-        // Camera2dBundle {
-        //     camera: Camera {
-        //         hdr: true,
-        //         clear_color: ClearColorConfig::Custom(Color::NONE),
-        //         // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
-        //         ..default()
-        //     },
-        //     ..default()
-        // },
         Camera2dBundle {
             camera: Camera {
-                // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
-                clear_color: ClearColorConfig::Custom(Color::NONE),
+                clear_color: Color::WHITE.into(),
+                // clear_color: ClearColorConfig::Custom(Color::NONE),
                 hdr: true,
                 ..default()
             },
@@ -67,64 +53,51 @@ fn setup(
             deband_dither: DebandDither::Enabled,
             ..default()
         },
-        BloomSettings::default(),
-        SmaaSettings::default(),
         RadianceCascadesConfig::default(),
-        // Fxaa::default(),
     ));
 
-    let shapes = [
-        meshes.add(Circle::new(50.0)),
-        // meshes.add(CircularSector::new(50.0, 1.0)),
-        // meshes.add(CircularSegment::new(50.0, 1.25)),
-        // meshes.add(Ellipse::new(25.0, 50.0)),
-        // meshes.add(Annulus::new(25.0, 50.0)),
-        meshes.add(Capsule2d::new(25.0, 50.0)),
-        // meshes.add(Rhombus::new(75.0, 100.0)),
-        // meshes.add(Rectangle::new(50.0, 100.0)),
-        // meshes.add(RegularPolygon::new(50.0, 6)),
-        // meshes.add(Triangle2d::new(
-        //     Vec2::Y * 50.0,
-        //     Vec2::new(-50.0, -50.0),
-        //     Vec2::new(50.0, -50.0),
-        // )),
-    ];
-    let num_shapes = shapes.len();
+    const COUNT: usize = 2;
+    const SPACING: f32 = 250.0;
+    const OFFSET: Vec3 = Vec3::new(
+        (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
+        (COUNT as f32) * 0.5 * SPACING - SPACING * 0.5,
+        0.0,
+    );
 
-    for (i, shape) in shapes.into_iter().enumerate() {
-        // Distribute colors evenly across the rainbow.
-        // let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 1.2);
-        // let color = Color::linear_rgba(2.0, 2.0, 2.0, 1.0);
-
-        let color = if i % 2 == 0 {
-            Color::linear_rgba(2.0, 2.0, 2.0, 1.0)
-        } else {
-            Color::linear_rgba(1.0, 0.0, 0.0, 0.5)
-        };
-
-        let _entity = commands
-            .spawn(ColorMesh2dBundle {
-                mesh: Mesh2dHandle(shape),
-                material: materials.add(color),
-                transform: Transform::from_xyz(
-                    // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                    -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
-                    0.0,
-                    0.0,
-                    // 0.0, 0.0, 0.0,
+    for y in 0..COUNT {
+        for x in 0..COUNT {
+            commands.spawn((ColorMesh2dBundle {
+                mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
+                material: materials.add(Color::linear_rgba(0.0, 0.0, 0.0, 1.0)),
+                transform: Transform::from_translation(
+                    Vec3::new((x as f32) * SPACING, (y as f32) * SPACING, 0.0) - OFFSET,
                 ),
                 ..default()
-            })
-            .id();
+            },));
+        }
     }
+
+    commands.spawn((
+        ColorMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
+            material: materials.add(Color::linear_rgba(1.7, 1.7, 1.7, 1.0)),
+            ..default()
+        },
+        Marker,
+    ));
 }
+
+#[derive(Component)]
+struct Marker;
 
 fn config_update(
     mut q_config: Query<&mut RadianceCascadesConfig>,
     kbd_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let mut config = q_config.single_mut();
+    let Ok(mut config) = q_config.get_single_mut() else {
+        return;
+    };
 
     let speed = match kbd_input.pressed(KeyCode::ShiftLeft) {
         true => 6.0,
@@ -132,12 +105,34 @@ fn config_update(
     };
 
     let offset = time.delta_seconds() * speed;
-    if kbd_input.pressed(KeyCode::KeyK) {
+    if kbd_input.pressed(KeyCode::ArrowUp) {
         let interval = config.interval();
         config.set_interval(interval + offset);
-    } else if kbd_input.pressed(KeyCode::KeyJ) {
+    } else if kbd_input.pressed(KeyCode::ArrowDown) {
         let interval = config.interval();
         config.set_interval(interval - offset);
+    }
+}
+
+fn marker_update(
+    mut q_markers: Query<&mut Transform, With<Marker>>,
+    q_windows: Query<&Window>,
+    camera_q: Query<(&Camera, &GlobalTransform)>,
+) {
+    let Ok(window) = q_windows.get_single() else {
+        return;
+    };
+    let Ok((camera, camera_transform)) = camera_q.get_single() else {
+        return;
+    };
+
+    for mut transform in q_markers.iter_mut() {
+        if let Some(position) = window
+            .cursor_position()
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+        {
+            transform.translation = position.extend(0.0);
+        }
     }
 }
 
@@ -161,15 +156,6 @@ impl Plugin for DebugPipelinePlugin {
             )
             .add_systems(
                 Render,
-                (|mut commands: Commands,
-                  q_textures: Query<(&RadianceCascadesTextures, Entity)>| {
-                    for (tex, entity) in q_textures.iter() {
-                        commands
-                            .entity(entity)
-                            .insert(DebugTexture(tex.mipmap_tex.default_view.clone()));
-                    }
-                })
-                .after(RenderSet::PrepareResources),
                 // (|mut commands: Commands,
                 //   q_textures: Query<(
                 //     &bevy_radiance_cascades::mipmap::MipmapTexture,
@@ -191,7 +177,30 @@ impl Plugin for DebugPipelinePlugin {
                 //         ));
                 //     }
                 // })
-                // .after(RenderSet::PrepareResources),
+                (|mut commands: Commands,
+                  q_textures: Query<(
+                    &bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures,
+                    Entity,
+                )>| {
+                    for (tex, entity) in q_textures.iter() {
+                        commands.entity(entity).insert(DebugTexture(
+                            tex.converge_tex
+                                // tex.main_texture()
+                                .texture
+                                .create_view(&TextureViewDescriptor {
+                                    label: Some("debug_view"),
+                                    format: None,
+                                    dimension: None,
+                                    aspect: TextureAspect::All,
+                                    base_mip_level: 0,
+                                    mip_level_count: Some(1),
+                                    base_array_layer: 0,
+                                    array_layer_count: None,
+                                }),
+                        ));
+                    }
+                })
+                .after(RenderSet::PrepareResources),
             );
     }
 
