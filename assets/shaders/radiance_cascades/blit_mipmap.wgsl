@@ -2,16 +2,21 @@
 
 @group(0) @binding(0) var tex_screen: texture_2d<f32>;
 @group(0) @binding(1) var sampler_screen_filter: sampler;
-@group(0) @binding(2) var sampler_screen_nearest: sampler;
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    var filtered_color = textureSample(tex_screen, sampler_screen_filter, in.uv);
-    let nearest_color = textureSample(tex_screen, sampler_screen_nearest, in.uv);
-    var alpha = filtered_color.a;
-    // filtered_color.a = alpha * 1.1;
+    let dimensions = vec2<f32>(textureDimensions(tex_screen));
+    let pix = (vec2<f32>(1.0) / dimensions) * 1.0;
 
-    return filtered_color;
+    let center = textureSample(tex_screen, sampler_screen_filter, in.uv);
+    let TL = textureSample(tex_screen, sampler_screen_filter, in.uv - pix);
+    let TR = textureSample(tex_screen, sampler_screen_filter, in.uv + vec2<f32>(pix.x, -pix.y));
+    let BL = textureSample(tex_screen, sampler_screen_filter, in.uv + vec2<f32>(-pix.x, pix.y));
+    let BR = textureSample(tex_screen, sampler_screen_filter, in.uv + pix);
+
+    let color = (center + TL + TR + BL + BR) * 0.2;
+
+    return color;
 }
 
 @compute

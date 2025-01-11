@@ -21,7 +21,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(FlatlandGiPlugin)
-        .add_plugins(DebugPipelinePlugin)
+        // .add_plugins(DebugPipelinePlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, (config_update, marker_update))
         .run();
@@ -35,8 +35,8 @@ fn setup(
     commands.spawn((
         Camera2dBundle {
             camera: Camera {
-                // clear_color: Color::Srgba(Srgba::hex("19181A").unwrap().with_alpha(0.0)).into(),
-                clear_color: ClearColorConfig::Custom(Color::NONE),
+                clear_color: Color::WHITE.into(),
+                // clear_color: ClearColorConfig::Custom(Color::NONE),
                 hdr: true,
                 ..default()
             },
@@ -81,10 +81,9 @@ fn setup(
         ColorMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle::new(15.0))),
             material: materials.add(Color::linear_rgba(1.7, 1.7, 1.7, 1.0)),
-            // material: materials.add(Color::linear_rgba(2.0, 2.0, 2.0, 1.0)),
             ..default()
         },
-        // Marker,
+        Marker,
     ));
 }
 

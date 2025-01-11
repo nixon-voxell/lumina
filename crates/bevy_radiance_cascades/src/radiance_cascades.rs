@@ -324,7 +324,7 @@ impl Default for RadianceCascadesConfig {
     fn default() -> Self {
         Self {
             resolution_factor: 1,
-            interval0: 2.0,
+            interval0: 4.0,
         }
     }
 }

@@ -101,12 +101,12 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
-        let s = 0.85; let e = 0.15;
+        let s = 0.85; let e = 0.0;
         let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
         let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 
         let coord = p / dimensions;
-        var color = sample_main(coord, level_idx - 1.0);
+        var color = sample_main(coord, level_idx);
 
         var new_rad = mix(color.rgb, vec3<f32>(0.0), start_edge);
         new_rad = mix(new_rad, vec3<f32>(0.0), end_edge);
@@ -114,16 +114,16 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         var new_viz = mix(color.a, 1.0, start_edge);
         new_viz = mix(new_viz, 1.0, end_edge);
 
-        radiance += new_rad * visibility * (level_idx + 1.0);
-        visibility *= pow(new_viz, (level_idx + 1.0) * 0.1);
+        let level_idx_1 = level_idx;
+        radiance += new_rad * visibility * level_idx_1;
+        visibility *= pow(new_viz, (level_idx_1 * 0.1));
     }
 
     return vec4<f32>(radiance, visibility);
 }
 
 fn sample_main(coord: vec2<f32>, level: f32) -> vec4<f32> {
-    var color = textureSampleLevel(tex_main, sampler_main, coord, level);
-    // var color = textureSampleLevel(tex_main, sampler_main, coord, 0.0);
+    var color = textureSampleLevel(tex_main, sampler_main, coord, level - 1.0);
     let alpha = 1.0 - clamp(color.a, 0.0, 1.0);
     // Treat values from -1.0 ~ 1.0 as no light
     // This way, we can handle both negative and postive light
@@ -191,8 +191,6 @@ fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<
     );
 
     return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
-    // return (TL + TR + BL + BR) * 0.25 * 0.25;
-    // return BL * 0.25 * 0.25;
 }
 
 fn fetch_cascade(
