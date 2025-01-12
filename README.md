@@ -68,3 +68,10 @@ Here is the breakdown of the Lumina tech stack:
 | Asset Management    | [Blenvy](https://github.com/kaosat-dev/Blenvy)                                                           |
 | Input Manager       | [Leafwing Input Manager](https://github.com/Leafwing-Studios/leafwing-input-manager)                     |
 | Coroutine           | [Bevy Coroutine](https://github.com/Maaxed/bevy_coroutine)                                               |
+
+Lumina is unique in several ways in terms of technical challenges.
+It is essentially also a technical playground in hindsight to test new tecnologies to their limits.
+
+- Lumina uses vector graphics for all of its UI components which is rendered using [Vello](https://github.com/linebender/bevy_vello).
+- Lumina's UI system is built entirely using a fairly new language called [Typst](https://typst.app/).
+- Lumina employs a novel approach towards 2d lighting using a global illumination technique called Radiance Cascades.
