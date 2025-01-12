@@ -62,7 +62,7 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
 
     var col = mix(secondary_color, primary_color, pow(effect, 1.5)) * effect;
     col *= ignition_grad;
-    col.a = effect * step(0.1, ignition_grad);
+    col.a *= 1.0 + (1.0 - inv_scale) * 4.0;
 
     return col;
 }
