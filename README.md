@@ -48,3 +48,30 @@ cargo run --example test_name
 ```
 
 With `test_name` being the name of your testing example.
+
+
+## Tech Stack
+
+Lumina is made mainly using the Rust language.
+This means that most of the dependencies used will also be from the Rust ecosystem.
+
+Here is the breakdown of the Lumina tech stack:
+
+| Component           | Tool/Library                                                                                             |
+|---------------------|----------------------------------------------------------------------------------------------------------|
+| Game Engine         | [Bevy](https://bevyengine.org/)                                                                          |
+| UI/UX               | [Velyst](https://github.com/voxell-tech/velyst)                                                          |
+| Global Illumination | Radiance Cascades, an improvement from [here](https://github.com/nixon-voxell/bevy_radiance_cascades)    |
+| Particle System     | [Bevy Enoki](https://github.com/Lommix/bevy_enoki)                                                       |
+| Physics             | [Avian](https://github.com/Jondolf/avian)                                                                |
+| Networking          | [Lightyear](https://github.com/cBournhonesque/lightyear)                                                 |
+| Asset Management    | [Blenvy](https://github.com/kaosat-dev/Blenvy)                                                           |
+| Input Manager       | [Leafwing Input Manager](https://github.com/Leafwing-Studios/leafwing-input-manager)                     |
+| Coroutine           | [Bevy Coroutine](https://github.com/Maaxed/bevy_coroutine)                                               |
+
+Lumina is unique in several ways in terms of technical challenges.
+It is essentially also a technical playground in hindsight to test new tecnologies to their limits.
+
+- Lumina uses vector graphics for all of its UI components which is rendered using [Vello](https://github.com/linebender/bevy_vello).
+- Lumina's UI system is built entirely using a fairly new language called [Typst](https://typst.app/).
+- Lumina employs a novel approach towards 2d lighting using a global illumination technique called Radiance Cascades.
