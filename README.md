@@ -48,3 +48,23 @@ cargo run --example test_name
 ```
 
 With `test_name` being the name of your testing example.
+
+
+## Tech Stack
+
+Lumina is made mainly using the Rust language.
+This means that most of the dependencies used will also be from the Rust ecosystem.
+
+Here is the breakdown of the Lumina tech stack:
+
+| Component           | Tool/Library                                                                                             |
+|---------------------|----------------------------------------------------------------------------------------------------------|
+| Game Engine         | [Bevy](https://bevyengine.org/)                                                                          |
+| UI/UX               | [Velyst](https://github.com/voxell-tech/velyst)                                                          |
+| Global Illumination | Radiance Cascades, an improvement from [here](https://github.com/nixon-voxell/bevy_radiance_cascades)    |
+| Particle System     | [Bevy Enoki](https://github.com/Lommix/bevy_enoki)                                                       |
+| Physics             | [Avian](https://github.com/Jondolf/avian)                                                                |
+| Networking          | [Lightyear](https://github.com/cBournhonesque/lightyear)                                                 |
+| Asset Management    | [Blenvy](https://github.com/kaosat-dev/Blenvy)                                                           |
+| Input Manager       | [Leafwing Input Manager](https://github.com/Leafwing-Studios/leafwing-input-manager)                     |
+| Coroutine           | [Bevy Coroutine](https://github.com/Maaxed/bevy_coroutine)                                               |
