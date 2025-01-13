@@ -10,11 +10,12 @@ pub(crate) struct SandboxPlugin;
 
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        todo!()
+        app.init_resource::<SandboxWorlds>()
+            .add_systems(Update, handle_enter_sandbox);
     }
 }
 
-#[derive(Resource, Deref, DerefMut)]
+#[derive(Resource, Deref, DerefMut, Default)]
 struct SandboxWorlds(HashMap<ClientId, Entity>);
 
 #[derive(Bundle, Default)]
