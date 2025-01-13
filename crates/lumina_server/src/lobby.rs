@@ -6,8 +6,9 @@ use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-pub mod in_game;
-pub mod matchmaking;
+mod in_game;
+mod matchmaking;
+mod sandbox;
 
 use super::LobbyInfos;
 
@@ -17,7 +18,7 @@ impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((matchmaking::MatchmakingPlugin, in_game::InGamePlugin))
             .add_event::<ClientExitLobby>()
-            .add_systems(Startup, spawn_debug_camera)
+            // .add_systems(Startup, spawn_debug_camera)
             .add_systems(
                 Update,
                 (
@@ -31,18 +32,18 @@ impl Plugin for LobbyPlugin {
     }
 }
 
-fn spawn_debug_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Game Camera"),
-        Camera2dBundle {
-            camera: Camera {
-                clear_color: Color::NONE.into(),
-                ..default()
-            },
-            ..default()
-        },
-    ));
-}
+// fn spawn_debug_camera(mut commands: Commands) {
+//     commands.spawn((
+//         Name::new("Game Camera"),
+//         Camera2dBundle {
+//             camera: Camera {
+//                 clear_color: Color::NONE.into(),
+//                 ..default()
+//             },
+//             ..default()
+//         },
+//     ));
+// }
 
 fn cleanup_empty_lobbies(
     mut commands: Commands,

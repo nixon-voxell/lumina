@@ -29,10 +29,7 @@ impl Plugin for LocalLobbyPlugin {
 }
 
 /// Spawn lobby scene.
-fn spawn_lobby(
-    mut commands: Commands,
-    mut main_window_transparency: ResMut<MainWindowTransparency>,
-) {
+fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWindowTransparency>) {
     let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
         .spawn((LobbyType::Local.info(), SpawnBlueprint))
@@ -64,7 +61,7 @@ fn spawn_lobby(
         ))
         .set_parent(lobby_scene);
 
-    **main_window_transparency = 1.0;
+    transparency_evw.send(MainWindowTransparency(1.0));
 }
 
 /// Despawn lobby scene.

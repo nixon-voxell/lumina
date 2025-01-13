@@ -33,6 +33,7 @@ fn handle_matchmaking(
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
+    mut connection_manager: ResMut<ConnectionManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for matchmake in matchmake_evr.read() {
@@ -81,8 +82,15 @@ fn handle_matchmaking(
         // Spawn player.
         commands.spawn(PlayerClient {
             client_id,
-            lobby_entity,
+            world_entity: lobby_entity,
         });
+
+        let room_id = lobby_entity.room_id();
+        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+            &LobbyData { room_id },
+            NetworkTarget::Single(client_id),
+        );
+
         room_manager.add_client(client_id, lobby_entity.room_id());
         lobby_infos.insert(client_id, lobby_entity);
     }

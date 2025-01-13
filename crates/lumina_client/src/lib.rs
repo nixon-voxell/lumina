@@ -20,6 +20,7 @@ mod local_lobby;
 mod matchmaking;
 mod multiplayer_lobby;
 mod player;
+mod sandbox;
 mod source_entity;
 mod typ_animation;
 mod ui;

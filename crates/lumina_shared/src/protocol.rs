@@ -24,6 +24,7 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
+        app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
         app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
@@ -123,6 +124,10 @@ impl GameScore {
     }
 }
 
+/// Enter sandbox level.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct EnterSandbox;
+
 /// Matchmake command (with lobby size encoded) sent from
 /// client to server to find an available lobby to join.
 #[derive(Serialize, Deserialize, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
@@ -134,7 +139,7 @@ pub struct LobbyUpdate {
     pub client_count: u8,
 }
 
-/// Data required from the clients when they joined a lobby.
+/// Room id of the lobby that the client joined.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct LobbyData {
     pub room_id: RoomId,

@@ -29,13 +29,11 @@ impl Plugin for PlayerPlugin {
 fn spawn_players(
     mut commands: Commands,
     q_new_players: Query<(&PlayerClient, Entity), Added<PlayerClient>>,
-    mut connection_manager: ResMut<ConnectionManager>,
-    room_manager: Res<RoomManager>,
 ) {
     for (
         &PlayerClient {
             client_id,
-            lobby_entity,
+            world_entity,
         },
         entity,
     ) in q_new_players.iter()
@@ -48,7 +46,7 @@ fn spawn_players(
                 SpaceshipType::Assassin.config_info(),
                 SpawnBlueprint,
             ))
-            .set_parent(lobby_entity);
+            .set_parent(world_entity);
 
         // Spawn weapon.
         commands
@@ -58,14 +56,7 @@ fn spawn_players(
                 WeaponType::Cannon.config_info(),
                 SpawnBlueprint,
             ))
-            .set_parent(lobby_entity);
-
-        let room_id = lobby_entity.room_id();
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &LobbyData { room_id },
-            room_id,
-            &room_manager,
-        );
+            .set_parent(world_entity);
 
         info!("SERVER: Spawned player for {client_id}");
 
@@ -175,5 +166,6 @@ fn replicate_actions(
 #[derive(Component)]
 pub struct PlayerClient {
     pub client_id: ClientId,
-    pub lobby_entity: Entity,
+    /// The entity that holds the world of the client.
+    pub world_entity: Entity,
 }
