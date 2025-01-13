@@ -2,8 +2,11 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
+use bevy::ui::FocusPolicy;
 use bevy_vello::VelloPlugin;
-use velyst::{prelude::*, typst_element::prelude::*, VelystPlugin};
+use velyst::prelude::*;
+use velyst::typst_element::prelude::*;
+use velyst::VelystPlugin;
 
 pub mod effector_popup;
 pub mod main_window;
@@ -38,7 +41,8 @@ impl Plugin for UiPlugin {
             perf_metrics::PerfMetricsUiPlugin,
             effector_popup::EffectorPopupUiPlugin,
         ))
-        .add_systems(Startup, spawn_ui_camera);
+        .add_systems(Startup, spawn_ui_camera)
+        .add_systems(Update, disable_specific_interactions);
     }
 }
 
@@ -64,6 +68,21 @@ fn spawn_ui_camera(mut commands: Commands) {
         IsDefaultUiCamera,
         RenderLayers::layer(1),
     ));
+}
+
+/// Disable interactions with non-button labels.
+fn disable_specific_interactions(
+    mut commands: Commands,
+    mut q_interactions: Query<(&TypstLabel, Entity), Added<Interaction>>,
+) {
+    for (label, entity) in q_interactions.iter_mut() {
+        if label.as_str().starts_with("btn") == false {
+            commands
+                .entity(entity)
+                .insert(FocusPolicy::Pass)
+                .remove::<Interaction>();
+        }
+    }
 }
 
 pub fn interactable_func<F: InteractableFunc>(
