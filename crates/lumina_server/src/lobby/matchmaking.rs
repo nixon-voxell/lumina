@@ -72,9 +72,13 @@ fn handle_matchmaking(
         // If there is no available lobby to join, create a new one.
         let lobby_entity = lobby_entity.unwrap_or_else(|| {
             let seed = rand::random();
-            let entity = commands
-                .spawn(LobbyBundle::new(client_id, lobby_size, seed))
-                .id();
+            let entity = commands.spawn_empty().id();
+            commands.entity(entity).insert(LobbyBundle::new(
+                client_id,
+                lobby_size,
+                seed,
+                entity.index(),
+            ));
 
             entity
         });

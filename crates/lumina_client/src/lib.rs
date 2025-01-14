@@ -54,6 +54,7 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             effector::EffectorPlugin,
             local_lobby::LocalLobbyPlugin,
+            sandbox::SandboxPlugin,
             matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
             in_game::InGamePlugin,

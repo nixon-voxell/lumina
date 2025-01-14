@@ -26,7 +26,7 @@ fn button_interaction(
         let audio_name = match interaction {
             Interaction::Pressed => "audio/ButtonClick.ogg",
             Interaction::Hovered => "audio/ButtonHover.ogg",
-            Interaction::None => return,
+            Interaction::None => continue,
         };
 
         commands.spawn(AudioBundle {

@@ -1,22 +1,18 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::player::PlayerClient;
+use crate::{player::PlayerClient, LobbyInfos};
 
 pub(crate) struct SandboxPlugin;
 
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SandboxWorlds>()
-            .add_systems(Update, handle_enter_sandbox);
+        app.add_systems(Update, handle_enter_sandbox);
     }
 }
-
-#[derive(Resource, Deref, DerefMut, Default)]
-struct SandboxWorlds(HashMap<ClientId, Entity>);
 
 #[derive(Bundle, Default)]
 struct SandboxBundle {
@@ -27,19 +23,19 @@ struct SandboxBundle {
 fn handle_enter_sandbox(
     mut commands: Commands,
     mut connection_manager: ResMut<ConnectionManager>,
-    mut worlds: ResMut<SandboxWorlds>,
+    mut lobbies: ResMut<LobbyInfos>,
     mut sandbox_evr: EventReader<MessageEvent<EnterSandbox>>,
 ) {
     for sandbox in sandbox_evr.read() {
         let client_id = sandbox.context;
-        let seed = rand::random();
-        let world_entity = commands
-            .spawn(SandboxBundle {
-                world_id: PhysicsWorldId(seed),
-                ..default()
-            })
-            .id();
-        worlds.insert(client_id, world_entity);
+        let world_entity = commands.spawn_empty().id();
+
+        commands.entity(world_entity).insert(SandboxBundle {
+            world_id: PhysicsWorldId(world_entity.index()),
+            ..default()
+        });
+        // Add to the lobby hash map.
+        lobbies.insert(client_id, world_entity);
 
         // Spawn player.
         commands.spawn(PlayerClient {
