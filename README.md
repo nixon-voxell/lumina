@@ -68,6 +68,7 @@ Here is the breakdown of the Lumina tech stack:
 | Asset Management    | [Blenvy](https://github.com/kaosat-dev/Blenvy)                                                           |
 | Input Manager       | [Leafwing Input Manager](https://github.com/Leafwing-Studios/leafwing-input-manager)                     |
 | Coroutine           | [Bevy Coroutine](https://github.com/Maaxed/bevy_coroutine)                                               |
+| Motion Graphics     | [Bevy MotionGfx](https://github.com/voxell-tech/bevy_motiongfx)                                          |
 
 Lumina is unique in several ways in terms of technical challenges.
 It is essentially also a technical playground in hindsight to test new tecnologies to their limits.
