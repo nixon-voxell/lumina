@@ -26,13 +26,10 @@ impl Plugin for MainWindowUiPlugin {
             .render_typst_func::<MainWindowFunc>()
             .init_resource::<MainWindowFunc>()
             .add_event::<MainWindowTransparency>()
+            .add_systems(Last, clear_main_window_body)
             .add_systems(
                 Update,
-                (
-                    main_window_width_height,
-                    fade_transparency.before(VelystSet::Compile),
-                    clear_main_window_body.after(VelystSet::Render),
-                ),
+                (main_window_width_height, fade_transparency).before(VelystSet::Compile),
             );
     }
 }
@@ -74,7 +71,7 @@ fn fade_transparency(
     *animate_time = f32::min(*animate_time + time.delta_seconds(), WINDOW_FADE_DURATION);
 }
 
-/// Cleared and refresh every frame.
+/// Clear the main window and refresh every frame.
 fn clear_main_window_body(mut func: ResMut<MainWindowFunc>) {
     func.body.clear();
 }
