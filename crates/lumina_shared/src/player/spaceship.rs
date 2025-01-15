@@ -282,42 +282,37 @@ fn apply_movement(
         &MovementStat,
         &mut Dash,
         &Spaceship,
-        &Boost,
+        Option<&Boost>,
     )>,
 ) {
     let delta = time.delta_seconds();
+    let delta_velocity = delta * 1.2;
 
-    for (desired_velocity, mut linear, _movement_stat, mut dash, spaceship, boost) in
-        query.iter_mut()
-    {
-        if dash.is_dashing {
-            dash.duration -= delta;
-
-            if dash.duration <= 0.0 {
-                // End the dash and start cooldown
-                dash.is_dashing = false;
-                dash.current_cooldown = dash.cooldown;
-            }
-        } else {
-            // Update cooldown when not dashing
-            if dash.current_cooldown > 0.0 {
+    query.par_iter_mut().for_each(
+        |(desired_velocity, mut linear, _movement_stat, mut dash, spaceship, boost)| {
+            // Handle dash state
+            if dash.is_dashing {
+                dash.duration -= delta;
+                if dash.duration <= 0.0 {
+                    dash.is_dashing = false;
+                    dash.current_cooldown = dash.cooldown;
+                }
+            } else if dash.current_cooldown > 0.0 {
                 dash.current_cooldown -= delta;
             }
-        }
 
-        // Apply normal movement if not dashing
-        if !dash.is_dashing {
-            let max_speed = if boost.is_boosting {
-                spaceship.max_linear_speed * 1.5
-            } else {
-                spaceship.max_linear_speed
-            };
+            // Apply movement if not dashing
+            if !dash.is_dashing {
+                let max_speed = match boost {
+                    Some(boost) if boost.is_boosting => spaceship.max_linear_speed * 1.5,
+                    _ => spaceship.max_linear_speed,
+                };
 
-            // Apply acceleration in the direction of rotation
-            linear.0 += desired_velocity.0 * delta * 1.2;
-            linear.0 = linear.0.clamp_length_max(max_speed);
-        }
-    }
+                linear.0 += desired_velocity.0 * delta_velocity;
+                linear.0 = linear.0.clamp_length_max(max_speed);
+            }
+        },
+    );
 }
 
 pub(super) fn spaceship_health(
