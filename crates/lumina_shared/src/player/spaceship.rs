@@ -189,14 +189,15 @@ fn emit_dash_events(
     mut event_writer: EventWriter<DashEvent>,
 ) {
     for (action, id) in q_actions.iter() {
-        if action.just_pressed(&PlayerAction::Dash) {
-            if let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) {
-                let direction = action
-                    .clamped_axis_pair(&PlayerAction::Move)
-                    .map(|axis| axis.xy())
-                    .unwrap_or_default()
-                    .normalize_or_zero();
+        if !action.just_pressed(&PlayerAction::Dash) {
+            continue;
+        }
 
+        if let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) {
+            if let Some(direction) = action
+                .clamped_axis_pair(&PlayerAction::Move)
+                .map(|axis| axis.xy().normalize_or_zero())
+            {
                 if direction != Vec2::ZERO {
                     event_writer.send(DashEvent { entity, direction });
                 }
