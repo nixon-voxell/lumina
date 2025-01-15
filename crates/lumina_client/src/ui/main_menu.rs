@@ -19,6 +19,7 @@ impl Plugin for MainMenuUiPlugin {
                 connection_msg: "Connecting to server...".to_string(),
                 ..default()
             })
+            .add_systems(OnEnter(Screen::MainMenu), main_window_transparency)
             .add_systems(
                 Update,
                 (
@@ -42,6 +43,10 @@ fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
 fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = false;
     func.connection_msg = "Disconnected...".to_string();
+}
+
+fn main_window_transparency(mut transparency_evw: EventWriter<MainWindowTransparency>) {
+    transparency_evw.send(MainWindowTransparency(0.0));
 }
 
 fn play_btn(interactions: InteractionQuery, mut next_screen_state: ResMut<NextState<Screen>>) {
