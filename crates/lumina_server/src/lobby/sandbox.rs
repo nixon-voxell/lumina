@@ -35,8 +35,6 @@ fn handle_enter_sandbox(
             world_id: PhysicsWorldId(world_entity.index()),
             ..default()
         });
-        // Add to the lobby hash map.
-        lobbies.insert(client_id, world_entity);
 
         // Spawn player.
         commands.spawn(PlayerClient {
@@ -50,5 +48,7 @@ fn handle_enter_sandbox(
         );
 
         room_manager.add_client(client_id, world_entity.room_id());
+        // Add to the lobby hash map.
+        lobbies.insert(client_id, world_entity);
     }
 }
