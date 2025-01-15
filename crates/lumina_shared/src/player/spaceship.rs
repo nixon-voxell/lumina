@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use std::collections::HashMap;
 
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 use crate::action::PlayerAction;
@@ -19,26 +20,28 @@ pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_sets(
-            FixedUpdate,
-            (
-                SpaceshipMovementSet::Input,
-                SpaceshipMovementSet::State,
-                SpaceshipMovementSet::Physics,
+        app.add_event::<DashEvent>()
+            .configure_sets(
+                FixedUpdate,
+                (
+                    SpaceshipMovementSet::Input,
+                    SpaceshipMovementSet::State,
+                    SpaceshipMovementSet::Physics,
+                )
+                    .chain(),
             )
-                .chain(),
-        )
-        .add_systems(
-            FixedUpdate,
-            (
-                handle_movement_input.in_set(SpaceshipMovementSet::Input),
-                handle_dash.in_set(SpaceshipMovementSet::State),
-                handle_boost.in_set(SpaceshipMovementSet::State),
-                apply_movement.in_set(SpaceshipMovementSet::Physics),
-            ),
-        )
-        .add_systems(PreUpdate, init_spaceships)
-        .add_systems(PostUpdate, spaceship_health);
+            .add_systems(
+                FixedUpdate,
+                (
+                    handle_movement_input.in_set(SpaceshipMovementSet::Input),
+                    emit_dash_events.in_set(SpaceshipMovementSet::Input),
+                    handle_dash_events.in_set(SpaceshipMovementSet::State),
+                    handle_boost.in_set(SpaceshipMovementSet::State),
+                    apply_movement.in_set(SpaceshipMovementSet::Physics),
+                ),
+            )
+            .add_systems(PreUpdate, init_spaceships)
+            .add_systems(PostUpdate, spaceship_health);
     }
 }
 
@@ -92,7 +95,7 @@ fn init_spaceships(
                 linear_damping: spaceship.linear_damping,
                 ..default()
             },
-            DesiredVelocity::default(), // Add DesiredVelocity component
+            DesiredVelocity::default(),
         ));
 
         debug!("Initialized Spaceship physics for {spaceship_entity})");
@@ -174,69 +177,76 @@ fn handle_movement_input(
     }
 }
 
-fn handle_dash(
-    time: Res<Time>,
+// Dash Section
+#[derive(Event)]
+pub struct DashEvent {
+    pub entity: Entity,
+    pub direction: Vec2,
+}
+
+fn emit_dash_events(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    player_infos: Res<PlayerInfos>,
+    mut event_writer: EventWriter<DashEvent>,
+) {
+    for (action, id) in q_actions.iter() {
+        if action.just_pressed(&PlayerAction::Dash) {
+            if let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) {
+                let direction = action
+                    .clamped_axis_pair(&PlayerAction::Move)
+                    .map(|axis| axis.xy())
+                    .unwrap_or_default()
+                    .normalize_or_zero();
+
+                if direction != Vec2::ZERO {
+                    event_writer.send(DashEvent { entity, direction });
+                }
+            }
+        }
+    }
+}
+
+fn handle_dash_events(
+    mut events: EventReader<DashEvent>,
     mut q_spaceships: Query<(
         &mut Dash,
         &mut Boost,
         &mut MovementStat,
         &mut LinearVelocity,
     )>,
-    player_infos: Res<PlayerInfos>,
+    time: Res<Time>,
 ) {
+    const DASH_DURATION: f32 = 0.4;
     const DAMPING_FACTOR: f32 = 16.0;
+
     let delta = time.delta_seconds();
     let damp_factor = f32::min(1.0, DAMPING_FACTOR * delta);
 
-    for (action, id) in q_actions.iter() {
-        let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
-            continue;
-        };
+    // Group dash events by entity to avoid multiple dash events for the same entity
+    let mut dash_map = HashMap::new();
+    for event in events.read() {
+        dash_map.insert(event.entity, event.direction);
+    }
 
-        let Ok((mut dash, mut boost, mut movement_stat, mut velocity)) =
+    // Process dash events for each entity
+    for (entity, direction) in dash_map {
+        if let Ok((mut dash, mut boost, mut movement_stat, mut velocity)) =
             q_spaceships.get_mut(entity)
-        else {
-            continue;
-        };
-
-        // Start dash logic
-        if !dash.is_dashing
-            && action.pressed(&PlayerAction::Dash)
-            && boost.energy >= dash.energy_cost
-            && dash.current_cooldown <= 0.0
         {
-            let direction = action
-                .clamped_axis_pair(&PlayerAction::Move)
-                .map(|axis| axis.xy())
-                .unwrap_or_default()
-                .normalize_or_zero();
-
-            if direction != Vec2::ZERO {
+            // Check if the spaceship can dash
+            if boost.energy >= dash.energy_cost && dash.current_cooldown <= 0.0 {
+                // Start the dash
                 dash.is_dashing = true;
                 dash.direction = direction;
-                dash.duration = 0.4; // Dash duration
+                dash.duration = DASH_DURATION;
                 boost.energy -= dash.energy_cost;
-                movement_stat.towards_linear_damping(0.0, damp_factor);
-                velocity.0 = dash.direction * dash.speed;
-            }
-        }
-        // Continue dash logic
-        else if dash.is_dashing {
-            velocity.0 = dash.direction * dash.speed; // Maintain dash speed
-            dash.duration -= delta;
 
-            if dash.duration <= 0.0 {
-                dash.is_dashing = false;
-                dash.current_cooldown = dash.cooldown;
-                dash.direction = Vec2::ZERO;
-                movement_stat.towards_linear_damping(35.0, damp_factor); // Apply braking
+                // Set dash velocity
+                velocity.0 = dash.direction * dash.speed;
+
+                // Reduce linear damping for sharp movement during the dash
+                movement_stat.towards_linear_damping(0.0, damp_factor);
             }
-        }
-        // Handle cooldown and normal movement fallback
-        else if dash.current_cooldown > 0.0 {
-            dash.current_cooldown -= delta;
-            // Allow normal movement
         }
     }
 }
@@ -270,27 +280,43 @@ fn apply_movement(
         &DesiredVelocity,
         &mut LinearVelocity,
         &MovementStat,
-        &Dash,
+        &mut Dash,
         &Spaceship,
         &Boost,
     )>,
 ) {
     let delta = time.delta_seconds();
 
-    for (desired_velocity, mut linear, _movement_stat, dash, spaceship, boost) in query.iter_mut() {
+    for (desired_velocity, mut linear, _movement_stat, mut dash, spaceship, boost) in
+        query.iter_mut()
+    {
         if dash.is_dashing {
-            continue;
+            dash.duration -= delta;
+
+            if dash.duration <= 0.0 {
+                // End the dash and start cooldown
+                dash.is_dashing = false;
+                dash.current_cooldown = dash.cooldown;
+            }
+        } else {
+            // Update cooldown when not dashing
+            if dash.current_cooldown > 0.0 {
+                dash.current_cooldown -= delta;
+            }
         }
 
-        let max_speed = if boost.is_boosting {
-            spaceship.max_linear_speed * 1.5
-        } else {
-            spaceship.max_linear_speed
-        };
+        // Apply normal movement if not dashing
+        if !dash.is_dashing {
+            let max_speed = if boost.is_boosting {
+                spaceship.max_linear_speed * 1.5
+            } else {
+                spaceship.max_linear_speed
+            };
 
-        // Apply acceleration in the direction of rotation
-        linear.0 += desired_velocity.0 * delta * 1.2;
-        linear.0 = linear.0.clamp_length_max(max_speed);
+            // Apply acceleration in the direction of rotation
+            linear.0 += desired_velocity.0 * delta * 1.2;
+            linear.0 = linear.0.clamp_length_max(max_speed);
+        }
     }
 }
 
