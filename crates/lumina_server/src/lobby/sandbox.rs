@@ -23,6 +23,7 @@ struct SandboxBundle {
 fn handle_enter_sandbox(
     mut commands: Commands,
     mut connection_manager: ResMut<ConnectionManager>,
+    mut room_manager: ResMut<RoomManager>,
     mut lobbies: ResMut<LobbyInfos>,
     mut sandbox_evr: EventReader<MessageEvent<EnterSandbox>>,
 ) {
@@ -47,5 +48,7 @@ fn handle_enter_sandbox(
             &EnterSandbox,
             NetworkTarget::Single(client_id),
         );
+
+        room_manager.add_client(client_id, world_entity.room_id());
     }
 }

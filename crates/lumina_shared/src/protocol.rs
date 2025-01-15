@@ -17,6 +17,7 @@ pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<EndGame>();
         // Channels
         app.add_channel::<ReliableChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
@@ -156,7 +157,7 @@ pub struct StartGame {
 }
 
 /// End game command sent from server to client either when 1 team wins or timer runs out.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct EndGame;
 
 /// A simple reliable channel for sending messages through the network reliably.

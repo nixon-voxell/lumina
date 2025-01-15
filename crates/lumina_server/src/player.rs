@@ -68,7 +68,6 @@ fn replicate_spawn<T: Component>(
     mut commands: Commands,
     q_entities: Query<(&PlayerId, Entity), (With<T>, Without<SyncTarget>)>,
     lobby_infos: Res<LobbyInfos>,
-    mut player_infos: ResMut<PlayerInfos>,
     mut room_manager: ResMut<RoomManager>,
 ) {
     for (id, entity) in q_entities.iter() {
@@ -92,7 +91,6 @@ fn replicate_spawn<T: Component>(
         });
 
         room_manager.add_entity(entity, room_id);
-        player_infos[PlayerInfoType::Spaceship].insert(*id, entity);
     }
 }
 

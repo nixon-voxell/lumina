@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_vello::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 pub struct EffectorPopupUiPlugin;
 
