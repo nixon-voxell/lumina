@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use std::collections::HashMap;
 
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 use crate::action::PlayerAction;
@@ -222,22 +221,15 @@ fn handle_dash_events(
     let delta = time.delta_seconds();
     let damp_factor = f32::min(1.0, DAMPING_FACTOR * delta);
 
-    // Group dash events by entity to avoid multiple dash events for the same entity
-    let mut dash_map = HashMap::new();
     for event in events.read() {
-        dash_map.insert(event.entity, event.direction);
-    }
-
-    // Process dash events for each entity
-    for (entity, direction) in dash_map {
         if let Ok((mut dash, mut boost, mut movement_stat, mut velocity)) =
-            q_spaceships.get_mut(entity)
+            q_spaceships.get_mut(event.entity)
         {
             // Check if the spaceship can dash
             if boost.energy >= dash.energy_cost && dash.current_cooldown <= 0.0 {
                 // Start the dash
                 dash.is_dashing = true;
-                dash.direction = direction;
+                dash.direction = event.direction;
                 dash.duration = DASH_DURATION;
                 boost.energy -= dash.energy_cost;
 
