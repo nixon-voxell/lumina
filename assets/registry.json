@@ -20525,6 +20525,11 @@
             "$ref": "#/$defs/f32"
           }
         },
+        "is_boosting": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
         "max_energy": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -20542,7 +20547,8 @@
         "regen_rate",
         "consumption_rate",
         "cooldown_duration",
-        "current_cooldown"
+        "current_cooldown",
+        "is_boosting"
       ],
       "short_name": "Boost",
       "type": "object",

@@ -4,18 +4,41 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
+use super::{PlayerId, PlayerInfoType, PlayerInfos};
 use crate::action::PlayerAction;
 use crate::health::Health;
 
-use super::{PlayerId, PlayerInfoType, PlayerInfos};
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub enum SpaceshipMovementSet {
+    Input,
+    State,
+    Physics,
+}
 
 pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, init_spaceships)
-            .add_systems(FixedUpdate, spaceship_movement)
-            .add_systems(PostUpdate, spaceship_health);
+        app.configure_sets(
+            FixedUpdate,
+            (
+                SpaceshipMovementSet::Input,
+                SpaceshipMovementSet::State,
+                SpaceshipMovementSet::Physics,
+            )
+                .chain(),
+        )
+        .add_systems(
+            FixedUpdate,
+            (
+                handle_movement_input.in_set(SpaceshipMovementSet::Input),
+                handle_dash.in_set(SpaceshipMovementSet::State),
+                handle_boost.in_set(SpaceshipMovementSet::State),
+                apply_movement.in_set(SpaceshipMovementSet::Physics),
+            ),
+        )
+        .add_systems(PreUpdate, init_spaceships)
+        .add_systems(PostUpdate, spaceship_health);
     }
 }
 
@@ -69,219 +92,59 @@ fn init_spaceships(
                 linear_damping: spaceship.linear_damping,
                 ..default()
             },
+            DesiredVelocity::default(), // Add DesiredVelocity component
         ));
 
         debug!("Initialized Spaceship physics for {spaceship_entity})");
     }
 }
 
-/// Perform spaceship movements which includes:
-///
-/// - Acceleration
-/// - Deceleration
-/// - Brake
-/// - Steer
-fn spaceship_movement(
-    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_spaceships: Query<
-        (
-            &mut MovementStat,
-            &mut LinearVelocity,
-            &mut LinearDamping,
-            &mut Rotation,
-            &mut Boost,
-            &mut Dash,
-            &Spaceship,
-            &Visibility,
-        ),
-        With<SourceEntity>,
-    >,
+#[derive(Component, Default, Debug, Clone, Copy)]
+pub struct DesiredVelocity(pub Vec2);
+
+fn handle_movement_input(
     time: Res<Time>,
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_spaceships: Query<(
+        &mut MovementStat,
+        &mut Rotation,
+        &Spaceship,
+        &Boost,
+        &mut DesiredVelocity,
+    )>,
     player_infos: Res<PlayerInfos>,
 ) {
-    // How fast the spaceship accelerates/decelarates.
     const ACCELERATION_FACTOR: f32 = 8.4;
     const DECELERATION_FACTOR: f32 = 12.4;
-    const DAMPING_FACTOR: f32 = 16.0;
 
-    let acceleration_factor = f32::min(1.0, ACCELERATION_FACTOR * time.delta_seconds());
-    let deceleration_factor = f32::min(1.0, DECELERATION_FACTOR * time.delta_seconds());
-    let damping_factor = f32::min(1.0, DAMPING_FACTOR * time.delta_seconds());
+    let delta = time.delta_seconds();
+    let accel_factor = f32::min(1.0, ACCELERATION_FACTOR * delta);
+    let decel_factor = f32::min(1.0, DECELERATION_FACTOR * delta);
 
     for (action, id) in q_actions.iter() {
-        let Some(&spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
+        let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
             continue;
         };
 
-        let Ok((
-            mut movement_stat,
-            mut linear,
-            mut linear_damping,
-            mut rotation,
-            mut boost,
-            mut dash,
-            spaceship,
-            viz,
-        )) = q_spaceships.get_mut(spaceship_entity)
+        let Ok((mut movement_stat, mut rotation, spaceship, boost, mut desired_velocity)) =
+            q_spaceships.get_mut(entity)
         else {
             continue;
         };
 
-        // Cannot move hidden spaceship.
-        if viz == Visibility::Hidden {
-            continue;
-        }
-
         let is_moving = action.pressed(&PlayerAction::Move);
-        let is_dashing = action.pressed(&PlayerAction::Dash);
-        let is_boosting = action.pressed(&PlayerAction::Boost);
 
-        // Update the boost state.
-        boost.update_state(time.delta_seconds(), is_boosting);
-
-        // Handle boosting activation and determine if boosting is active.
-        let boosting_active = is_boosting && boost.can_boost(time.delta_seconds());
-
-        // // Linear damping.
-        // match is_braking {
-        //     true => {
-        //         movement_stat
-        //             .towards_linear_damping(spaceship.brake_linear_damping, damping_factor);
-        //     }
-        //     false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
-        // }
-
-        // Dash activation
-        match (
-            dash.is_dashing,
-            is_dashing,
-            boost.energy >= dash.energy_cost,
-            dash.current_cooldown <= 0.0,
-        ) {
-            // Case 1: Dash is currently active
-            (true, _, _, _) => {
-                dash.duration -= time.delta_seconds();
-                if dash.duration <= 0.0 {
-                    dash.is_dashing = false;
-                    dash.current_cooldown = dash.cooldown;
-                    dash.direction = Vec2::ZERO;
-                    movement_stat.towards_linear_damping(35.0, damping_factor);
-                }
-            }
-
-            // Case 2: Dash is just starting, has energy, and not in cooldown
-            (false, true, true, true) => {
-                let current_direction = action
-                    .clamped_axis_pair(&PlayerAction::Move)
-                    .map(|axis| axis.xy())
-                    .unwrap_or_else(|| Vec2::new(0.0, 0.0))
-                    .normalize_or_zero();
-
-                if current_direction != Vec2::ZERO {
-                    dash.is_dashing = true;
-                    dash.duration = 0.7;
-                    dash.direction = current_direction;
-                    boost.energy -= dash.energy_cost;
-                    linear.0 = dash.direction * dash.speed;
-                    movement_stat.towards_linear_damping(0.0, damping_factor);
-                }
-            }
-
-            // Case 3: Dash is attempted but either in cooldown or insufficient energy
-            (false, true, has_energy, not_in_cooldown) => {
-                if !has_energy || !not_in_cooldown {
-                    if is_moving {
-                        // Calculate the current movement direction
-                        let current_direction = action
-                            .clamped_axis_pair(&PlayerAction::Move)
-                            .map(|axis| axis.xy())
-                            .unwrap_or_else(|| Vec2::ZERO)
-                            .normalize_or_zero();
-
-                        if current_direction != Vec2::ZERO {
-                            // Apply acceleration to maintain velocity
-                            movement_stat.towards_linear_acceleration(
-                                spaceship.linear_acceleration,
-                                acceleration_factor,
-                                deceleration_factor,
-                            );
-
-                            // Update velocity based on the current direction and acceleration
-                            linear.0 += current_direction
-                                * movement_stat.linear_acceleration
-                                * time.delta_seconds();
-                            linear.0 = linear.0.clamp_length_max(spaceship.max_linear_speed);
-                        }
-                    } else {
-                        // If not moving, apply braking behavior
-                        movement_stat.towards_linear_acceleration(
-                            0.0,
-                            acceleration_factor,
-                            deceleration_factor,
-                        );
-                    }
-
-                    // Apply damping to smoothly reduce velocity if necessary
-                    movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor);
-                }
-            }
-
-            // Case 4: Normal movement (not dashing)
-            (false, false, _, _) => {
-                dash.direction = Vec2::ZERO;
-                movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor);
-            }
-        }
-
-        // Update cooldown timer
-        if dash.current_cooldown > 0.0 {
-            dash.current_cooldown -= time.delta_seconds();
-        }
-
-        // Linear acceleration.
-        match (is_moving, is_dashing, boosting_active) {
-            // Moving only.
-            (true, false, false) => {
-                // Apply acceleration for normal movement
-                movement_stat.towards_linear_acceleration(
-                    spaceship.linear_acceleration,
-                    acceleration_factor,
-                    deceleration_factor,
-                );
-            }
-            // // Moving and braking.
-            // (true, true, _) => movement_stat.towards_linear_acceleration(
-            //     spaceship.brake_linear_acceleration,
-            //     acceleration_factor,
-            //     deceleration_factor,
-            // ),
-
-            // Moving and dashing.
-            (true, true, _) => {
-                // // Maintain dash speed without modifying acceleration
-                // linear.0 = dash.direction * dash.speed;
-            }
-            // Moving and boosting.
-            (true, false, true) => movement_stat.towards_linear_acceleration(
-                spaceship.boost_linear_acceleration,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-            // Not even moving, reduce speed to 0.0.
-            (false, ..) => movement_stat.towards_linear_acceleration(
-                0.0,
-                acceleration_factor,
-                deceleration_factor,
-            ),
-        }
-
-        movement_stat.rotation_diff = 0.0;
-        // Angular acceleration.
         if is_moving {
-            movement_stat.linear_acceleration = FloatExt::lerp(
-                movement_stat.linear_acceleration,
-                spaceship.linear_acceleration,
-                acceleration_factor,
+            let target_acceleration = if boost.is_boosting {
+                spaceship.boost_linear_acceleration
+            } else {
+                spaceship.linear_acceleration
+            };
+
+            movement_stat.towards_linear_acceleration(
+                target_acceleration,
+                accel_factor,
+                decel_factor,
             );
 
             let movement = action
@@ -289,27 +152,145 @@ fn spaceship_movement(
                 .map(|axis| axis.xy())
                 .unwrap_or_default()
                 .normalize_or_zero();
-            let desired_angle = movement.to_angle();
 
-            // NOTE: Kept for posterity's sake, just in case.
-            // angular.0 = rotation.angle_between(Rotation::radians(desired_angle))
-            //     * spaceship.rotation_speed
-            //     * time.delta_seconds();
-
-            let prev_rotation = rotation.as_radians();
-            *rotation = rotation.slerp(
-                Rotation::radians(desired_angle),
-                f32::min(1.0, time.delta_seconds() * spaceship.rotation_speed),
-            );
-            movement_stat.rotation_diff = rotation.as_radians() - prev_rotation;
+            if movement != Vec2::ZERO {
+                let desired_angle = movement.to_angle();
+                let prev_rotation = rotation.as_radians();
+                *rotation = rotation.slerp(
+                    Rotation::radians(desired_angle),
+                    f32::min(1.0, delta * spaceship.rotation_speed),
+                );
+                movement_stat.rotation_diff = rotation.as_radians() - prev_rotation;
+            }
+        } else {
+            movement_stat.towards_linear_acceleration(0.0, accel_factor, decel_factor);
+            movement_stat.rotation_diff = 0.0;
         }
 
-        let direction = Vec2::new(rotation.cos, rotation.sin);
-        linear.0 += direction * movement_stat.linear_acceleration * time.delta_seconds();
+        // Set desired velocity based on current rotation
+        let angle = rotation.as_radians();
+        let direction = Vec2::new(angle.cos(), angle.sin());
+        desired_velocity.0 = direction * movement_stat.linear_acceleration() * 1.5;
+    }
+}
 
-        // Clamp the speed.
-        linear.0 = linear.clamp_length_max(spaceship.max_linear_speed);
-        linear_damping.0 = movement_stat.linear_damping;
+fn handle_dash(
+    time: Res<Time>,
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_spaceships: Query<(
+        &mut Dash,
+        &mut Boost,
+        &mut MovementStat,
+        &mut LinearVelocity,
+    )>,
+    player_infos: Res<PlayerInfos>,
+) {
+    const DAMPING_FACTOR: f32 = 16.0;
+    let delta = time.delta_seconds();
+    let damp_factor = f32::min(1.0, DAMPING_FACTOR * delta);
+
+    for (action, id) in q_actions.iter() {
+        let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
+            continue;
+        };
+
+        let Ok((mut dash, mut boost, mut movement_stat, mut velocity)) =
+            q_spaceships.get_mut(entity)
+        else {
+            continue;
+        };
+
+        // Start dash logic
+        if !dash.is_dashing
+            && action.pressed(&PlayerAction::Dash)
+            && boost.energy >= dash.energy_cost
+            && dash.current_cooldown <= 0.0
+        {
+            let direction = action
+                .clamped_axis_pair(&PlayerAction::Move)
+                .map(|axis| axis.xy())
+                .unwrap_or_default()
+                .normalize_or_zero();
+
+            if direction != Vec2::ZERO {
+                dash.is_dashing = true;
+                dash.direction = direction;
+                dash.duration = 0.4; // Dash duration
+                boost.energy -= dash.energy_cost;
+                movement_stat.towards_linear_damping(0.0, damp_factor);
+                velocity.0 = dash.direction * dash.speed;
+            }
+        }
+        // Continue dash logic
+        else if dash.is_dashing {
+            velocity.0 = dash.direction * dash.speed; // Maintain dash speed
+            dash.duration -= delta;
+
+            if dash.duration <= 0.0 {
+                dash.is_dashing = false;
+                dash.current_cooldown = dash.cooldown;
+                dash.direction = Vec2::ZERO;
+                movement_stat.towards_linear_damping(35.0, damp_factor); // Apply braking
+            }
+        }
+        // Handle cooldown and normal movement fallback
+        else if dash.current_cooldown > 0.0 {
+            dash.current_cooldown -= delta;
+            // Allow normal movement
+        }
+    }
+}
+
+fn handle_boost(
+    time: Res<Time>,
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_spaceships: Query<(&mut Boost, &Spaceship)>,
+    player_infos: Res<PlayerInfos>,
+) {
+    let delta = time.delta_seconds();
+
+    for (action, id) in q_actions.iter() {
+        let Some(&entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
+            continue;
+        };
+
+        let Ok((mut boost, _spaceship)) = q_spaceships.get_mut(entity) else {
+            continue;
+        };
+
+        let is_boosting = action.pressed(&PlayerAction::Boost);
+        boost.is_boosting = is_boosting && boost.can_boost(delta);
+        boost.update_state(delta, is_boosting);
+    }
+}
+
+fn apply_movement(
+    time: Res<Time>,
+    mut query: Query<(
+        &DesiredVelocity,
+        &mut LinearVelocity,
+        &MovementStat,
+        &Dash,
+        &Spaceship,
+        &Boost,
+    )>,
+) {
+    let delta = time.delta_seconds();
+
+    for (desired_velocity, mut linear, _movement_stat, dash, spaceship, boost) in query.iter_mut() {
+        if dash.is_dashing {
+            continue;
+        }
+
+        let max_speed = if boost.is_boosting {
+            spaceship.max_linear_speed * 1.5
+        } else {
+            spaceship.max_linear_speed
+        };
+
+        // Apply acceleration in the direction of rotation
+        linear.0 += desired_velocity.0 * delta * 1.2;
+        linear.0 = linear.0.clamp_length_max(max_speed);
     }
 }
 
@@ -415,6 +396,8 @@ pub struct Boost {
     pub cooldown_duration: f32,
     // Remaining cooldown time.
     pub current_cooldown: f32,
+    // Whether the boost is actively being used.
+    pub is_boosting: bool,
 }
 
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
