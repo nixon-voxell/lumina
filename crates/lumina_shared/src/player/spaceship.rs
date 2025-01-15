@@ -137,46 +137,46 @@ fn handle_movement_input(
 
         let is_moving = action.pressed(&PlayerAction::Move);
 
-        if is_moving {
-            let target_acceleration = if boost.is_boosting {
+        // Update linear acceleration based on movement and boost state
+        let target_acceleration = if is_moving {
+            if boost.is_boosting {
                 spaceship.boost_linear_acceleration
             } else {
                 spaceship.linear_acceleration
-            };
-
-            movement_stat.towards_linear_acceleration(
-                target_acceleration,
-                accel_factor,
-                decel_factor,
-            );
-
-            let movement = action
-                .clamped_axis_pair(&PlayerAction::Move)
-                .map(|axis| axis.xy())
-                .unwrap_or_default()
-                .normalize_or_zero();
-
-            if movement != Vec2::ZERO {
-                let desired_angle = movement.to_angle();
-                let prev_rotation = rotation.as_radians();
-                *rotation = rotation.slerp(
-                    Rotation::radians(desired_angle),
-                    f32::min(1.0, delta * spaceship.rotation_speed),
-                );
-                movement_stat.rotation_diff = rotation.as_radians() - prev_rotation;
             }
         } else {
-            movement_stat.towards_linear_acceleration(0.0, accel_factor, decel_factor);
+            0.0
+        };
+
+        movement_stat.towards_linear_acceleration(target_acceleration, accel_factor, decel_factor);
+
+        // Handle rotation if moving
+        if is_moving {
+            if let Some(movement) = action
+                .clamped_axis_pair(&PlayerAction::Move)
+                .map(|axis| axis.xy())
+            {
+                if movement != Vec2::ZERO {
+                    let movement_normalized = movement.normalize_or_zero();
+                    let desired_angle = movement_normalized.to_angle();
+                    let prev_rotation = rotation.as_radians();
+                    *rotation = rotation.slerp(
+                        Rotation::radians(desired_angle),
+                        f32::min(1.0, delta * spaceship.rotation_speed),
+                    );
+                    movement_stat.rotation_diff = rotation.as_radians() - prev_rotation;
+                }
+            }
+        } else {
             movement_stat.rotation_diff = 0.0;
         }
 
-        // Set desired velocity based on current rotation
+        // Update desired velocity based on current rotation
         let angle = rotation.as_radians();
-        let direction = Vec2::new(angle.cos(), angle.sin());
-        desired_velocity.0 = direction * movement_stat.linear_acceleration() * 1.5;
+        let (cos, sin) = (angle.cos(), angle.sin());
+        desired_velocity.0 = Vec2::new(cos, sin) * movement_stat.linear_acceleration() * 1.5;
     }
 }
-
 // Dash Section
 #[derive(Event)]
 pub struct DashEvent {
