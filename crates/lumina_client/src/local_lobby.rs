@@ -4,12 +4,10 @@ use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::MatchmakeEffector;
 use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::effector::effector_interaction;
 use super::ui::Screen;
 
 pub(super) struct LocalLobbyPlugin;
@@ -20,11 +18,7 @@ impl Plugin for LocalLobbyPlugin {
             OnEnter(Screen::LocalLobby),
             (spawn_lobby, despawn_networked_inputs),
         )
-        .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-        .add_systems(
-            Update,
-            matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
-        );
+        .add_systems(OnExit(Screen::LocalLobby), despawn_lobby);
     }
 }
 
@@ -68,11 +62,6 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
 fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>>) {
     let lobby = q_lobby.single();
     commands.entity(lobby).despawn_recursive();
-}
-
-/// Action performed after the matchmake effector is being triggered.
-fn matchmake_effector_trigger(mut _next_screen_state: ResMut<NextState<Screen>>) {
-    // next_screen_state.set(Screen::Matchmaking);
 }
 
 /// Despawn all networked player inputs.

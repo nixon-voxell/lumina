@@ -144,6 +144,7 @@ fn show_effector_popup(
 
             // Show which button to press if it's interactable.
             if is_interactable {
+                // TODO: Keep track of last input device.
                 func.button = Some("E");
             }
 
@@ -218,26 +219,9 @@ pub(super) fn effector_trigger<E: Event + Clone>(
     for effector in evr_interaction.read() {
         let entity = **effector;
         if let Ok(e) = q_effector.get(entity) {
-            // commands.trigger(e.clone());
             commands.trigger_targets(e.clone(), entity);
         }
     }
-}
-
-// TODO: To be replaced with event trigger instead.
-pub(super) fn effector_interaction<E: Event>(
-    q_effector: Query<Entity, With<E>>,
-    mut effector_interaction_evr: EventReader<EffectorInteraction>,
-) -> bool {
-    if let Ok(entity) = q_effector.get_single() {
-        for interacted_effector in effector_interaction_evr.read() {
-            if **interacted_effector == entity {
-                return true;
-            }
-        }
-    }
-
-    false
 }
 
 /// Collided effector that is closest to the player.
