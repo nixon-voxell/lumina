@@ -8,7 +8,7 @@ pub(super) struct PhysicsWorldPlugin;
 impl Plugin for PhysicsWorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostProcessCollisions, filter_collisions)
-            .add_systems(PostProcessCollisions, propagate_component::<PhysicsWorldId>);
+            .add_systems(PostUpdate, propagate_component::<PhysicsWorldId>);
     }
 }
 
