@@ -232,6 +232,7 @@ fn handle_dash_events(
                 dash.is_dashing = true;
                 dash.direction = event.direction;
                 dash.duration = DASH_DURATION;
+                dash.current_cooldown = dash.cooldown;
                 boost.energy -= dash.energy_cost;
 
                 // Set dash velocity
@@ -289,7 +290,6 @@ fn apply_movement(
                 dash.duration -= delta;
                 if dash.duration <= 0.0 {
                     dash.is_dashing = false;
-                    dash.current_cooldown = dash.cooldown;
                 }
             } else if dash.current_cooldown > 0.0 {
                 dash.current_cooldown -= delta;
