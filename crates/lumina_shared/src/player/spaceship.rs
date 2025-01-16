@@ -300,7 +300,7 @@ fn apply_movement(
             // Apply movement if not dashing
             if !dash.is_dashing {
                 let max_speed = match boost {
-                    Some(boost) if boost.is_boosting => spaceship.max_linear_speed * 1.5,
+                    Some(boost) if boost.is_boosting => spaceship.max_linear_speed * 1.2,
                     _ => spaceship.max_linear_speed,
                 };
 
