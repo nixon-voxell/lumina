@@ -1,6 +1,5 @@
 use avian2d::prelude::Position;
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashMap;
 use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
@@ -23,7 +22,6 @@ impl Plugin for LocalLobbyPlugin {
             15.0,
             TimerMode::Repeating,
         )))
-        .insert_resource(PlayerScores::default())
         .add_systems(
             OnEnter(Screen::LocalLobby),
             (spawn_lobby, despawn_networked_inputs),
@@ -44,12 +42,6 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
             // Tesseract
             builder.spawn((
                 TesseractType::Tesseract.config_info(),
-                SpawnBlueprint,
-                PlayerId::LOCAL,
-            ));
-
-            builder.spawn((
-                TesseractType::Tesseract.visual_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
             ));
@@ -116,8 +108,9 @@ fn handle_lumina_spawn_timer(
 fn tesseract_effector_trigger(
     trigger: Trigger<TesseractEffector>,
     mut commands: Commands,
-    mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>,
-    mut player_scores: ResMut<PlayerScores>,
+    mut connection_manager: ResMut<ConnectionManager>,
+    // mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>,
+    // mut player_scores: ResMut<PlayerScores>,
 ) {
     let effector_entity = trigger.entity();
     info!(
@@ -125,22 +118,24 @@ fn tesseract_effector_trigger(
         effector_entity
     );
 
-    // Handle each player near the Tesseract.
-    for (player_id, mut collected_luminas) in q_players.iter_mut() {
-        if collected_luminas.pending > 0 {
-            // Transfer pending Luminas to the player's score.
-            let score = player_scores.scores.entry(*player_id).or_insert(0);
-            *score += collected_luminas.pending;
+    let _ = connection_manager.send_message::<ReliableChannel, _>(&DepositLumina);
 
-            println!(
-                "Player {:?} deposited {} Luminas. Total score: {}",
-                player_id, collected_luminas.pending, *score
-            );
+    // // Handle each player near the Tesseract.
+    // for (player_id, mut collected_luminas) in q_players.iter_mut() {
+    //     if collected_luminas.pending > 0 {
+    //         // Transfer pending Luminas to the player's score.
+    //         let score = player_scores.scores.entry(*player_id).or_insert(0);
+    //         *score += collected_luminas.pending;
 
-            // Reset the player's pending Luminas.
-            collected_luminas.pending = 0;
-        }
-    }
+    //         println!(
+    //             "Player {:?} deposited {} Luminas. Total score: {}",
+    //             player_id, collected_luminas.pending, *score
+    //         );
+
+    //         // Reset the player's pending Luminas.
+    //         collected_luminas.pending = 0;
+    //     }
+    // }
 
     // Clear interaction marker.
     commands
@@ -172,7 +167,7 @@ impl Default for LocalLobbyBundle {
 pub(super) struct LocalLobby;
 
 // TESTING PURPOSES
-#[derive(Resource, Default)]
-pub struct PlayerScores {
-    pub scores: HashMap<PlayerId, u32>, // Tracks scores for each player.
-}
+// #[derive(Resource, Default)]
+// pub struct PlayerScores {
+//     pub scores: HashMap<PlayerId, u32>, // Tracks scores for each player.
+// }

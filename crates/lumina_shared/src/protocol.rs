@@ -25,6 +25,7 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
+        app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
@@ -124,6 +125,10 @@ impl GameScore {
         }
     }
 }
+
+/// Deposit Lumina action sent from client to server.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct DepositLumina;
 
 /// Enter sandbox level.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
