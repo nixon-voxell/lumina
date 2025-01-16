@@ -14,11 +14,9 @@ impl Plugin for LuminaPlugin {
             .add_event::<LuminaCollected>()
             .add_systems(
                 FixedUpdate,
-                (
-                    spawn_lumina,
-                    (lumina_collection, track_lumina_lifetime).chain(),
-                ),
-            );
+                ((lumina_collection, track_lumina_lifetime).chain(),),
+            )
+            .observe(spawn_lumina);
     }
 }
 
@@ -29,31 +27,28 @@ pub struct LuminaCollected {
     pub position: Vec2,
 }
 
-// TODO: Needs to turn to actual Lumina spawning
 /// Spawns Lumina entities based on events.
-fn spawn_lumina(mut commands: Commands, mut spawn_lumina_evr: EventReader<SpawnLumina>) {
-    for event in spawn_lumina_evr.read() {
-        let lumina_entity = commands
-            .spawn((
-                LuminaType::Normal.config_info(),
-                SpawnBlueprint,
-                SourceEntity,
-                GlobalTransform::default(),
-                Transform::from_xyz(event.position.x, event.position.y, 0.1),
-                CollisionLayers::new(GameLayer::Lumina, GameLayer::Spaceship),
-                CollidingEntities::default(),
-                Sensor,
-                RigidBody::Static,
-                Visibility::Visible,
-                Name::new("Lumina"),
-            ))
-            .id();
+fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
+    let event = trigger.event();
 
-        info!(
-            "Spawned Lumina entity {:?} at position {:?}",
-            lumina_entity, event.position
-        );
-    }
+    let lumina_entity = commands
+        .spawn((
+            LuminaType::Normal.config_info(),
+            SpawnBlueprint,
+            SourceEntity,
+            Transform::from_xyz(event.position.x, event.position.y, 0.1),
+            CollisionLayers::new(GameLayer::Lumina, GameLayer::Spaceship),
+            CollidingEntities::default(),
+            Sensor,
+            RigidBody::Static,
+            Name::new("Lumina"),
+        ))
+        .id();
+
+    info!(
+        "Spawned Lumina entity {:?} at position {:?}",
+        lumina_entity, event.position
+    );
 }
 
 /// Handles both collision detection and gameplay effects for Lumina collection.

@@ -36,53 +36,44 @@ impl Plugin for LocalLobbyPlugin {
 
 /// Spawn lobby scene.
 fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWindowTransparency>) {
-    let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
-        .spawn((LobbyType::Local.info(), SpawnBlueprint))
-        .set_parent(lobby_scene);
+        .spawn(LocalLobbyBundle::default())
+        .with_children(|builder| {
+            builder.spawn((LobbyType::Local.info(), SpawnBlueprint));
 
-    // Tesseract
-    commands
-        .spawn((
-            TesseractType::Tesseract.config_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Tesseract
+            builder.spawn((
+                TesseractType::Tesseract.config_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    commands
-        .spawn((
-            TesseractType::Tesseract.visual_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            builder.spawn((
+                TesseractType::Tesseract.visual_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    // Spaceship
-    commands
-        .spawn((
-            SpaceshipType::Assassin.config_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Spaceship
+            builder.spawn((
+                SpaceshipType::Assassin.config_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    // Weapon
-    commands
-        .spawn((
-            WeaponType::Cannon.config_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Weapon
+            builder.spawn((
+                WeaponType::Cannon.config_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    // Action
-    commands
-        .spawn((
-            InputManagerBundle::with_map(PlayerAction::input_map()),
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Action
+            builder.spawn((
+                InputManagerBundle::with_map(PlayerAction::input_map()),
+                PlayerId::LOCAL,
+            ));
+        });
 
     transparency_evw.send(MainWindowTransparency(1.0));
 }
@@ -108,12 +99,12 @@ fn despawn_networked_inputs(
 struct LuminaSpawnTimer(Timer);
 
 fn handle_lumina_spawn_timer(
+    mut commands: Commands,
     time: Res<Time>,
     mut timer: ResMut<LuminaSpawnTimer>,
-    mut spawn_lumina_events: EventWriter<SpawnLumina>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        spawn_lumina_events.send(SpawnLumina {
+        commands.trigger(SpawnLumina {
             position: Position::from_xy(100.0, 100.0),
             lifetime: 300.0,
         });
