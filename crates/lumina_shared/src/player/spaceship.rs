@@ -261,7 +261,10 @@ fn handle_boost(
             continue;
         };
 
-        let is_boosting = action.pressed(&PlayerAction::Boost);
+        let is_moving = action.pressed(&PlayerAction::Move);
+        let boost_pressed = action.pressed(&PlayerAction::Boost);
+        let is_boosting = boost_pressed && is_moving;
+
         boost.is_boosting = is_boosting && boost.can_boost(delta);
         boost.update_state(delta, is_boosting);
     }
