@@ -7,7 +7,6 @@ use lumina_shared::effector::{EffectorPopupMsg, InteractableEffector, MatchmakeE
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 use crate::typ_animation::{LabelScaleFade, TypAnimationPlugin};
 
@@ -43,11 +42,11 @@ fn collect_effector_collisions(
     mut collided_effector: ResMut<CollidedEffector>,
     local_player_info: LocalPlayerInfo,
 ) {
-    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::Spaceship) else {
-        return;
-    };
-
-    let Ok(player_transform) = q_spaceship_transforms.get(spaceship_entity) else {
+    let Some((spaceship_entity, Ok(player_transform))) = local_player_info
+        .get(PlayerInfoType::Spaceship)
+        .map(|entity| (entity, q_spaceship_transforms.get(entity)))
+    else {
+        collided_effector.set_if_neq(CollidedEffector(None));
         return;
     };
 
@@ -88,7 +87,6 @@ fn setup_effector_popup(mut commands: Commands) {
 
 /// Show and animate the effector popup.
 fn show_effector_popup(
-    context: TypstContext<EffectorPopupUi>,
     q_sensors: Query<
         (
             &GlobalTransform,
@@ -108,31 +106,24 @@ fn show_effector_popup(
     // The effector entity that ui is currently positioned at.
     mut curr_effector: Local<Option<Entity>>,
 ) {
-    let Some(scope) = context.get_scope() else {
-        return;
-    };
-
     let Ok(mut popup_style) = q_style.get_single_mut() else {
         return;
     };
     let (mut player, controller) = q_seq_player.single_mut();
 
-    let mut effector_changed = false;
     if *curr_effector != **collided_effector {
         // Hide the effector on change.
         player.time_scale = -1.0;
-
-        // Update target effector when successfully hidden.
-        if controller.curr_time() <= f32::EPSILON {
-            *curr_effector = **collided_effector;
-            effector_changed = true;
-        }
     } else if curr_effector.is_some() {
         // Show the effector.
         player.time_scale = 1.0;
     }
 
-    if effector_changed {
+    if controller.curr_time() < f32::EPSILON {
+        // Update target effector when successfully hidden.
+        *curr_effector = **collided_effector;
+
+        // Setup new effector if exists.
         if let Some((effector_transform, collider, is_interactable, popup_msg)) =
             curr_effector.and_then(|entity| q_sensors.get(entity).ok())
         {
@@ -143,18 +134,16 @@ fn show_effector_popup(
                 Val::Px(translation.y + collider.shape_scaled().0.compute_local_aabb().maxs.y);
 
             // Show which button to press if it's interactable.
-            if is_interactable {
-                func.button = Some("E");
+            match is_interactable {
+                // TODO: Keep track of last input device.
+                true => func.button = Some("E"),
+                false => func.button = None,
             }
 
             // Show popup message if available.
-            if let Some(popup_msg) = popup_msg {
-                func.message = Some(
-                    elem::context(scope.get_func_unchecked("msg_popup"), |args| {
-                        args.push(popup_msg.0.clone());
-                    })
-                    .pack(),
-                );
+            match popup_msg {
+                Some(popup_msg) => func.message = Some(popup_msg.0.clone()),
+                None => func.message = None,
             }
         }
     }
@@ -218,26 +207,9 @@ pub(super) fn effector_trigger<E: Event + Clone>(
     for effector in evr_interaction.read() {
         let entity = **effector;
         if let Ok(e) = q_effector.get(entity) {
-            // commands.trigger(e.clone());
             commands.trigger_targets(e.clone(), entity);
         }
     }
-}
-
-// TODO: To be replaced with event trigger instead.
-pub(super) fn effector_interaction<E: Event>(
-    q_effector: Query<Entity, With<E>>,
-    mut effector_interaction_evr: EventReader<EffectorInteraction>,
-) -> bool {
-    if let Ok(entity) = q_effector.get_single() {
-        for interacted_effector in effector_interaction_evr.read() {
-            if **interacted_effector == entity {
-                return true;
-            }
-        }
-    }
-
-    false
 }
 
 /// Collided effector that is closest to the player.

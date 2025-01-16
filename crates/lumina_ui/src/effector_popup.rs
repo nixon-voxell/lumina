@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_vello::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 pub struct EffectorPopupUiPlugin;
 
@@ -25,8 +24,7 @@ fn setup_scene(mut q_scene: Query<&mut CoordinateSpace, Added<VelystSceneTag<Eff
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "effector_popup", layer = 0)]
 pub struct EffectorPopupFunc {
-    // pub body: Option<Content>,
-    pub message: Option<Content>,
+    pub message: Option<String>,
     pub button: Option<&'static str>,
     pub button_progress: f64,
 }

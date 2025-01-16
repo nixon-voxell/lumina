@@ -25,14 +25,11 @@ impl Plugin for MainWindowUiPlugin {
             .compile_typst_func::<MainWindowUi, MainWindowFunc>()
             .render_typst_func::<MainWindowFunc>()
             .init_resource::<MainWindowFunc>()
-            .init_resource::<MainWindowTransparency>()
+            .add_event::<MainWindowTransparency>()
+            .add_systems(Last, clear_main_window_body)
             .add_systems(
                 Update,
-                (
-                    main_window_width_height,
-                    fade_transparency.before(VelystSet::Compile),
-                    clear_main_window_body.after(VelystSet::Render),
-                ),
+                (main_window_width_height, fade_transparency).before(VelystSet::Compile),
             );
     }
 }
@@ -52,33 +49,35 @@ fn main_window_width_height(
 
 /// Animate transparency fade in and out based on value from [`MainWindowTransparency`].
 fn fade_transparency(
-    transparency: Res<MainWindowTransparency>,
+    mut transparency_evr: EventReader<MainWindowTransparency>,
     time: Res<Time>,
     mut func: ResMut<MainWindowFunc>,
     mut animate_time: Local<f32>,
     mut start_transparency: Local<f32>,
+    mut target_transparency: Local<f32>,
 ) {
-    if transparency.is_changed() {
+    for transparency in transparency_evr.read() {
+        *target_transparency = **transparency;
         *animate_time = 0.0;
         *start_transparency = func.transparency as f32;
     }
 
     func.transparency = f32::lerp(
         *start_transparency,
-        **transparency,
+        *target_transparency,
         ease::cubic::ease_in_out(*animate_time / WINDOW_FADE_DURATION),
     ) as f64;
 
     *animate_time = f32::min(*animate_time + time.delta_seconds(), WINDOW_FADE_DURATION);
 }
 
-/// Cleared and refresh every frame.
+/// Clear the main window and refresh every frame.
 fn clear_main_window_body(mut func: ResMut<MainWindowFunc>) {
     func.body.clear();
 }
 
 /// 1.0 for full transparency and 0.0 for full opaque.
-#[derive(Resource, Default, Debug, Deref, DerefMut)]
+#[derive(Event, Default, Debug, Deref, DerefMut)]
 pub struct MainWindowTransparency(pub f32);
 
 #[derive(TypstFunc, Resource, Default)]

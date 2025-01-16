@@ -8,6 +8,7 @@ use strum::{AsRefStr, EnumCount, EnumIter};
 pub enum LobbyType {
     Local,
     Multiplayer,
+    Sandbox,
 }
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]

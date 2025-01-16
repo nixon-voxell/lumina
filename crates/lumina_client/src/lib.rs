@@ -20,6 +20,7 @@ mod local_lobby;
 mod matchmaking;
 mod multiplayer_lobby;
 mod player;
+mod sandbox;
 mod source_entity;
 mod typ_animation;
 mod ui;
@@ -53,6 +54,7 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             effector::EffectorPlugin,
             local_lobby::LocalLobbyPlugin,
+            sandbox::SandboxPlugin,
             matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
             in_game::InGamePlugin,

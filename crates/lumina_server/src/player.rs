@@ -13,71 +13,53 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            PreUpdate,
-            (
-                spawn_players,
-                replicate_actions.after(MainSet::EmitEvents),
-                replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
-                replicate_spawn::<Spaceship>,
-                replicate_spawn::<Weapon>,
-            ),
-        );
+        app.add_event::<SpawnClientPlayer>()
+            .add_systems(
+                PreUpdate,
+                (
+                    replicate_actions.after(MainSet::EmitEvents),
+                    replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
+                    replicate_spawn::<Spaceship>,
+                    replicate_spawn::<Weapon>,
+                ),
+            )
+            .observe(spawn_players);
     }
 }
 
-fn spawn_players(
-    mut commands: Commands,
-    q_new_players: Query<(&PlayerClient, Entity), Added<PlayerClient>>,
-    mut connection_manager: ResMut<ConnectionManager>,
-    room_manager: Res<RoomManager>,
-) {
-    for (
-        &PlayerClient {
-            client_id,
-            lobby_entity,
-        },
-        entity,
-    ) in q_new_players.iter()
-    {
-        // Spawn spaceship.
-        commands
-            .spawn((
-                PlayerId(client_id),
-                // TODO: Allow player to choose what spaceship to spawn.
-                SpaceshipType::Assassin.config_info(),
-                SpawnBlueprint,
-            ))
-            .set_parent(lobby_entity);
+fn spawn_players(trigger: Trigger<SpawnClientPlayer>, mut commands: Commands) {
+    let &SpawnClientPlayer {
+        client_id,
+        world_entity,
+    } = trigger.event();
 
-        // Spawn weapon.
-        commands
-            .spawn((
-                PlayerId(client_id),
-                // TODO: Allow player to choose what weapon to spawn.
-                WeaponType::Cannon.config_info(),
-                SpawnBlueprint,
-            ))
-            .set_parent(lobby_entity);
+    // Spawn spaceship.
+    commands
+        .spawn((
+            PlayerId(client_id),
+            // TODO: Allow player to choose what spaceship to spawn.
+            SpaceshipType::Assassin.config_info(),
+            SpawnBlueprint,
+        ))
+        .set_parent(world_entity);
 
-        let room_id = lobby_entity.room_id();
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &LobbyData { room_id },
-            room_id,
-            &room_manager,
-        );
+    // Spawn weapon.
+    commands
+        .spawn((
+            PlayerId(client_id),
+            // TODO: Allow player to choose what weapon to spawn.
+            WeaponType::Cannon.config_info(),
+            SpawnBlueprint,
+        ))
+        .set_parent(world_entity);
 
-        info!("SERVER: Spawned player for {client_id}");
-
-        commands.entity(entity).despawn();
-    }
+    info!("SERVER: Spawned player for {client_id}");
 }
 
 fn replicate_spawn<T: Component>(
     mut commands: Commands,
     q_entities: Query<(&PlayerId, Entity), (With<T>, Without<SyncTarget>)>,
     lobby_infos: Res<LobbyInfos>,
-    mut player_infos: ResMut<PlayerInfos>,
     mut room_manager: ResMut<RoomManager>,
 ) {
     for (id, entity) in q_entities.iter() {
@@ -101,7 +83,6 @@ fn replicate_spawn<T: Component>(
         });
 
         room_manager.add_entity(entity, room_id);
-        player_infos[PlayerInfoType::Spaceship].insert(*id, entity);
     }
 }
 
@@ -172,8 +153,9 @@ fn replicate_actions(
     }
 }
 
-#[derive(Component)]
-pub struct PlayerClient {
+#[derive(Event)]
+pub struct SpawnClientPlayer {
     pub client_id: ClientId,
-    pub lobby_entity: Entity,
+    /// The entity that holds the world of the client.
+    pub world_entity: Entity,
 }
