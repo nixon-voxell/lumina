@@ -3,13 +3,14 @@
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
-const RAYMARCH_LENGTH: f32 = 3.0;
+const RAYMARCH_LENGTH: f32 = 0.5;
 const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
-@group(0) @binding(0) var<uniform> probe: Probe;
-@group(0) @binding(1) var tex_main: texture_2d<f32>;
-@group(0) @binding(2) var sampler_main: sampler;
+@group(0) @binding(0) var<uniform> num_cascades: u32;
+@group(0) @binding(1) var<uniform> probe: Probe;
+@group(0) @binding(2) var tex_main: texture_2d<f32>;
+@group(0) @binding(3) var sampler_main: sampler;
 
 @group(1) @binding(0) var tex_radiance_cascades_source: texture_2d<f32>;
 @group(1) @binding(1) var tex_radiance_cascades_destination: texture_storage_2d<rgba16float, write>;
@@ -18,7 +19,7 @@ const EPSILON: f32 = 4.88e-04;
 @workgroup_size(8, 8, 1)
 fn radiance_cascades(
     @builtin(global_invocation_id) global_id: vec3<u32>,
-    @builtin(local_invocation_id) local_id: vec3<u32>
+    @builtin(local_invocation_id) local_id: vec3<u32>,
 ) {
     let base_coord = global_id.xy;
     let dimensions = textureDimensions(tex_radiance_cascades_source);
@@ -42,15 +43,22 @@ fn radiance_cascades(
     let probe_coord = probe_cell * probe.width;
 
     // Center coordinate of the probe grid
-    let probe_coord_center = probe_coord + probe.width / 2;
-    let ray_origin = vec2<f32>(probe_coord_center) + ray_dir * probe.start;
+    let probe_origin = vec2<f32>(probe_coord + probe.width / 2);
 
-    var color = raymarch(ray_origin, ray_dir);
+    // let target_index = 5u;
+    // var color = vec4<f32>(0.0);
+    // if probe.cascade_index == target_index {
+    //     color = raymarch(probe_origin, ray_dir);
+    // }
+
+    var color = raymarch(probe_origin, ray_dir);
+
 
 #ifdef MERGE
     // TODO: Factor in transparency.
-    if (color.a != 1.0) {
-        color += merge(probe_cell, probe_coord, ray_index);
+    if (color.a != 0.0) {
+        let merge_color = merge(probe_cell, probe_coord, ray_index);
+        color = mix(color, merge_color, color.a);
     }
 #endif
 
@@ -62,53 +70,69 @@ fn radiance_cascades(
 }
 
 fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
-    var color = vec4<f32>(0.0);
+    var radiance = vec3<f32>(0.0);
+    var visibility = 1.0;
+
     var volumetric_color = vec3<f32>(1.0);
     var position = origin;
     var covered_range = 0.0;
 
+    let level_idx = f32(probe.cascade_index);
+    let mip_step_size = f32(1u << probe.cascade_index);
+    // let mip_step_size = 1.0;
     let dimensions = vec2<f32>(textureDimensions(tex_main));
-    // let raymarch_count = 
 
-    for (var r = 0u; r < MAX_RAYMARCH; r++) {
-        if (
-            covered_range >= probe.range ||
-            any(position >= dimensions) ||
-            any(position < vec2<f32>(0.0))
-        ) {
+    var march_count = 0u;
+    let step_size = RAYMARCH_LENGTH * mip_step_size;
+    // let ray_start = probe.start;
+    let ray_start = probe.start * 0.5;
+    let ray_end = probe.start + probe.range;
+
+    for (var r = ray_start; r < ray_end; r += step_size) {
+        let p = origin + ray_dir * r;
+        if (any(p >= dimensions) || any(p < vec2<f32>(0.0))) {
             break;
         }
 
-        let coord = vec2<u32>(round(position));
-
-        var new_color = textureLoad(tex_main, coord, 0);
-
-        // Treat values from -1.0 ~ 1.0 as no light
-        // This way, we can handle both negative and postive light
-        let color_sign = sign(new_color);
-        let color_abs = abs(new_color);
-
-        var lighting_color = new_color;
-        lighting_color.r = color_sign.r * max(color_abs.r - 1.0, 0.0);
-        lighting_color.g = color_sign.g * max(color_abs.g - 1.0, 0.0);
-        lighting_color.b = color_sign.b * max(color_abs.b - 1.0, 0.0);
-
-        if new_color.a > (1.0 - EPSILON) {
-            color = lighting_color * vec4<f32>(volumetric_color, 1.0);
+        // Prevent infinite loop.
+        march_count++;
+        if march_count > MAX_RAYMARCH {
             break;
         }
 
-        // if new_color.a > EPSILON {
-        //     volumetric_color *= pow(new_color.rgb, vec3<f32>(0.1 * new_color.a));
-        // }
+        let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
+        let s = 0.85; let e = 0.0;
+        let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
+        let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 
-        position += ray_dir * RAYMARCH_LENGTH;
-        covered_range += RAYMARCH_LENGTH;
+        let coord = p / dimensions;
+        var color = sample_main(coord, level_idx);
+
+        var new_rad = mix(color.rgb, vec3<f32>(0.0), start_edge);
+        new_rad = mix(new_rad, vec3<f32>(0.0), end_edge);
+
+        var new_viz = mix(color.a, 1.0, start_edge);
+        new_viz = mix(new_viz, 1.0, end_edge);
+
+        let level_idx_1 = level_idx;
+        radiance += new_rad * visibility * level_idx_1;
+        visibility *= pow(new_viz, (level_idx_1 * 0.1));
     }
 
-    // color *= 1.0 - pow(covered_range / probe.range, 2.0);
+    return vec4<f32>(radiance, visibility);
+}
 
-    return color;
+fn sample_main(coord: vec2<f32>, level: f32) -> vec4<f32> {
+    var color = textureSampleLevel(tex_main, sampler_main, coord, level - 1.0);
+    let alpha = 1.0 - clamp(color.a, 0.0, 1.0);
+    // Treat values from -1.0 ~ 1.0 as no light
+    // This way, we can handle both negative and postive light
+    let color_sign = sign(color.rgb);
+    let color_abs = abs(color.rgb);
+
+    let remaped_color = color_sign * max(color_abs - 1.0, vec3<f32>(0.0));
+
+    return vec4<f32>(remaped_color, alpha);
 }
 
 fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<f32> {
@@ -166,8 +190,7 @@ fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<
         vec2<f32>(probe_correcetion_offset) * 0.5
     );
 
-    // return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
-    return (TL + TR + BL + BR) * 0.25 * 0.25;
+    return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
 }
 
 fn fetch_cascade(

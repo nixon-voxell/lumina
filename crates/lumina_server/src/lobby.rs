@@ -6,8 +6,9 @@ use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
-pub mod in_game;
-pub mod matchmaking;
+mod in_game;
+mod matchmaking;
+mod sandbox;
 
 use super::LobbyInfos;
 
@@ -15,33 +16,23 @@ pub(super) struct LobbyPlugin;
 
 impl Plugin for LobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((matchmaking::MatchmakingPlugin, in_game::InGamePlugin))
-            .add_event::<ClientExitLobby>()
-            .add_systems(Startup, spawn_debug_camera)
-            .add_systems(
-                Update,
-                (
-                    cleanup_empty_lobbies,
-                    propagate_lobby_status,
-                    handle_disconnections,
-                    handle_exit_lobby,
-                    execute_exit_lobby,
-                ),
-            );
+        app.add_plugins((
+            sandbox::SandboxPlugin,
+            matchmaking::MatchmakingPlugin,
+            in_game::InGamePlugin,
+        ))
+        .add_event::<ClientExitLobby>()
+        .add_systems(
+            Update,
+            (
+                cleanup_empty_lobbies,
+                propagate_lobby_status,
+                handle_disconnections,
+                handle_exit_lobby,
+                execute_exit_lobby,
+            ),
+        );
     }
-}
-
-fn spawn_debug_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Game Camera"),
-        Camera2dBundle {
-            camera: Camera {
-                clear_color: Color::NONE.into(),
-                ..default()
-            },
-            ..default()
-        },
-    ));
 }
 
 fn cleanup_empty_lobbies(
@@ -148,12 +139,12 @@ pub(super) struct LobbyBundle {
 }
 
 impl LobbyBundle {
-    pub fn new(initial_client: ClientId, size: u8, seed: u32) -> Self {
+    pub fn new(initial_client: ClientId, size: u8, seed: u32, world_id: u32) -> Self {
         Self {
             size: LobbySize(size),
             lobby: Lobby(SmallVec::from_slice(&[initial_client])),
             seed: LobbySeed(seed),
-            world_id: PhysicsWorldId(seed),
+            world_id: PhysicsWorldId(world_id),
             spatial: SpatialBundle::default(),
         }
     }

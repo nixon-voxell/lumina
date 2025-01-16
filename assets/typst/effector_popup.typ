@@ -10,7 +10,7 @@
   ]
   let size = measure(button)
   let circum = (size.width * 0.5) * calc.pi * 2 * progress
-  let interacted_color = blue.mix(base6)
+  let interacted_color = blue
 
   text(
     stroke: (
@@ -59,7 +59,7 @@
     if button != none {
       box(button_popup(button, progress: button_progress), inset: 10pt)
     },
-    message,
+    msg_popup(message),
   )
 
   let body = text(body, size: 16pt, weight: "bold")

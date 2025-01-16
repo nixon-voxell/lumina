@@ -5,7 +5,8 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{player::PlayerClient, LobbyInfos};
+use crate::player::SpawnClientPlayer;
+use crate::LobbyInfos;
 
 use super::{Lobby, LobbyBundle, LobbyFull, LobbyInGame, LobbySize};
 
@@ -33,6 +34,7 @@ fn handle_matchmaking(
         (Without<LobbyFull>, Without<LobbyInGame>),
     >,
     mut room_manager: ResMut<RoomManager>,
+    mut connection_manager: ResMut<ConnectionManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
 ) {
     for matchmake in matchmake_evr.read() {
@@ -71,18 +73,29 @@ fn handle_matchmaking(
         // If there is no available lobby to join, create a new one.
         let lobby_entity = lobby_entity.unwrap_or_else(|| {
             let seed = rand::random();
-            let entity = commands
-                .spawn(LobbyBundle::new(client_id, lobby_size, seed))
-                .id();
+            let entity = commands.spawn_empty().id();
+            commands.entity(entity).insert(LobbyBundle::new(
+                client_id,
+                lobby_size,
+                seed,
+                entity.index(),
+            ));
 
             entity
         });
 
         // Spawn player.
-        commands.spawn(PlayerClient {
+        commands.trigger(SpawnClientPlayer {
             client_id,
-            lobby_entity,
+            world_entity: lobby_entity,
         });
+
+        let room_id = lobby_entity.room_id();
+        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+            &LobbyData { room_id },
+            NetworkTarget::Single(client_id),
+        );
+
         room_manager.add_client(client_id, lobby_entity.room_id());
         lobby_infos.insert(client_id, lobby_entity);
     }

@@ -50,6 +50,7 @@ pub enum Screen {
     #[default]
     MainMenu,
     LocalLobby,
+    Sandbox,
     Matchmaking,
     MultiplayerLobby,
     InGame,

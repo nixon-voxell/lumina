@@ -17,6 +17,7 @@ pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<EndGame>();
         // Channels
         app.add_channel::<ReliableChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
@@ -24,6 +25,7 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
+        app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
         app.register_message::<LobbyUpdate>(ChannelDirection::ServerToClient);
@@ -127,6 +129,10 @@ impl GameScore {
     }
 }
 
+/// Enter sandbox level.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct EnterSandbox;
+
 /// Matchmake command (with lobby size encoded) sent from
 /// client to server to find an available lobby to join.
 #[derive(Serialize, Deserialize, Debug, Deref, DerefMut, Clone, Copy, PartialEq)]
@@ -138,7 +144,7 @@ pub struct LobbyUpdate {
     pub client_count: u8,
 }
 
-/// Data required from the clients when they joined a lobby.
+/// Room id of the lobby that the client joined.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct LobbyData {
     pub room_id: RoomId,
@@ -155,7 +161,7 @@ pub struct StartGame {
 }
 
 /// End game command sent from server to client either when 1 team wins or timer runs out.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct EndGame;
 
 /// A simple reliable channel for sending messages through the network reliably.

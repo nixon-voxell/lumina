@@ -11597,6 +11597,31 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_radiance_cascades::radiance_cascades::RadianceCascadesConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_radiance_cascades::radiance_cascades::RadianceCascadesConfig",
+      "properties": {
+        "interval0": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "resolution_factor": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        }
+      },
+      "required": [
+        "resolution_factor",
+        "interval0"
+      ],
+      "short_name": "RadianceCascadesConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_render::alpha::AlphaMode": {
       "isComponent": false,
       "isResource": false,

@@ -16,7 +16,8 @@ use crate::typ_animation::LabelScaleFade;
 use super::lobby::LobbyFunc;
 use super::Screen;
 
-const BUTTONS: &[&str] = &["btn:1v1", "btn:2v2", "btn:3v3"];
+const MATCHMAKE_BTNS: &[&str] = &["btn:1v1", "btn:2v2", "btn:3v3"];
+const SANDBOX_BTN: &str = "btn:sandbox";
 
 pub(super) struct GameModeUiPlugin;
 
@@ -35,6 +36,7 @@ impl Plugin for GameModeUiPlugin {
                         },
                     ),
                     interactable_func::<MainFunc>,
+                    sandbox_btns,
                     matchmacke_btns,
                     cancel_btn,
                 )
@@ -57,9 +59,9 @@ fn show_game_modes(
 }
 
 fn setup_animation(mut commands: Commands) {
-    let sequences = BUTTONS
+    let sequences = ["btn:cancel-matchmake", SANDBOX_BTN]
         .iter()
-        .chain(&["btn:cancel-matchmake"])
+        .chain(MATCHMAKE_BTNS)
         .map(|&btn| {
             let id = commands.spawn(LabelScaleFade::new(btn)).id();
             commands.play_motion(
@@ -76,16 +78,46 @@ fn setup_animation(mut commands: Commands) {
     ));
 }
 
-fn matchmacke_btns(
+fn sandbox_btns(
+    mut commands: Commands,
     interactions: InteractionQuery,
     mut q_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
+    mut transparency_evw: EventWriter<MainWindowTransparency>,
+) {
+    if interactions.pressed(SANDBOX_BTN) {
+        // Hide menu.
+        q_player.single_mut().time_scale = -1.0;
+
+        // Transition to sandbox screen.
+        commands.add(Coroutine::new(move || {
+            let mut res = co_break();
+            res.add_subroutines((
+                wait(std::time::Duration::from_secs_f32(WINDOW_FADE_DURATION)),
+                move |mut connection_manager: ResMut<ConnectionManager>,
+                      mut next_screen_state: ResMut<NextState<Screen>>| {
+                    next_screen_state.set(Screen::Sandbox);
+                    let _ = connection_manager.send_message::<ReliableChannel, _>(&EnterSandbox);
+
+                    co_break()
+                },
+            ));
+            res
+        }));
+
+        transparency_evw.send(MainWindowTransparency(0.0));
+    }
+}
+
+fn matchmacke_btns(
     mut commands: Commands,
-    mut main_window_transparency: ResMut<MainWindowTransparency>,
+    interactions: InteractionQuery,
+    mut q_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
+    mut transparency_evw: EventWriter<MainWindowTransparency>,
 ) {
     let mut player_count = None;
-    for (i, &btn) in BUTTONS.iter().enumerate() {
+    for (i, &btn) in MATCHMAKE_BTNS.iter().enumerate() {
         if interactions.pressed(btn) {
-            player_count = Some(2 * (1 + i as u8));
+            player_count = Some(1 << (i + 1));
             break;
         }
     }
@@ -117,7 +149,7 @@ fn matchmacke_btns(
         res
     }));
 
-    **main_window_transparency = 0.0;
+    transparency_evw.send(MainWindowTransparency(0.0));
 }
 
 fn cancel_btn(

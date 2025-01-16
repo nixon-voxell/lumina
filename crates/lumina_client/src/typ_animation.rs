@@ -14,8 +14,10 @@ impl<T: TypstFunc> Plugin for TypAnimationPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (animate_component::<LabelScaleFade, f32>, animate_label::<T>)
-                .in_set(UpdateSequenceSet),
+            (
+                animate_component::<LabelScaleFade, f32>.in_set(UpdateSequenceSet),
+                animate_label::<T>,
+            ),
         );
     }
 }

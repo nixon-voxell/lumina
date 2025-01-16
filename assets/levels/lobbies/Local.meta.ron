@@ -2,5 +2,9 @@
   assets:
    [ 
     ("SpawnPointA", File ( path: "blueprints/SpawnPointA.glb" )),
+    ("SpotLight", File ( path: "blueprints/SpotLight.glb" )),
+    ("SpotlightGlow", File ( path: "materials/SpotlightGlow.glb" )),
+    ("Bsse0", File ( path: "materials/Bsse0.glb" )),
+    ("Base2", File ( path: "materials/Base2.glb" )),
    ]
 )
