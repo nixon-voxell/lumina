@@ -172,8 +172,8 @@ fn handle_movement_input(
 
         // Update desired velocity based on current rotation
         let angle = rotation.as_radians();
-        let (cos, sin) = (angle.cos(), angle.sin());
-        desired_velocity.0 = Vec2::new(cos, sin) * movement_stat.linear_acceleration() * 1.5;
+        let direction = Vec2::new(angle.cos(), angle.sin());
+        desired_velocity.0 = direction * movement_stat.linear_acceleration();
     }
 }
 // Dash Section
@@ -278,14 +278,12 @@ fn apply_movement(
         &MovementStat,
         &mut Dash,
         &Spaceship,
-        Option<&Boost>,
     )>,
 ) {
     let delta = time.delta_seconds();
-    let delta_velocity = delta * 1.2;
 
     query.par_iter_mut().for_each(
-        |(desired_velocity, mut linear, _movement_stat, mut dash, spaceship, boost)| {
+        |(desired_velocity, mut linear, _movement_stat, mut dash, spaceship)| {
             // Handle dash state
             if dash.is_dashing {
                 dash.duration -= delta;
@@ -299,13 +297,8 @@ fn apply_movement(
 
             // Apply movement if not dashing
             if !dash.is_dashing {
-                let max_speed = match boost {
-                    Some(boost) if boost.is_boosting => spaceship.max_linear_speed * 1.2,
-                    _ => spaceship.max_linear_speed,
-                };
-
-                linear.0 += desired_velocity.0 * delta_velocity;
-                linear.0 = linear.0.clamp_length_max(max_speed);
+                linear.0 += desired_velocity.0 * delta;
+                linear.0 = linear.0.clamp_length_max(spaceship.max_linear_speed);
             }
         },
     );
