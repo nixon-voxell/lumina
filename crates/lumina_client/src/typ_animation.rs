@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
+use bevy_motiongfx::motiongfx_core::UpdateSequenceSet;
 use bevy_motiongfx::prelude::*;
 use bevy_vello::vello::kurbo;
 use velyst::prelude::*;
@@ -13,7 +14,10 @@ impl<T: TypstFunc> Plugin for TypAnimationPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (animate_component::<LabelScaleFade, f32>, animate_label::<T>),
+            (
+                animate_component::<LabelScaleFade, f32>.in_set(UpdateSequenceSet),
+                animate_label::<T>,
+            ),
         );
     }
 }
@@ -24,7 +28,7 @@ impl<T: TypstFunc> Default for TypAnimationPlugin<T> {
     }
 }
 
-// TODO: LabelScaleFade animates across functions, which means it
+// WARN: LabelScaleFade animates across functions, which means it
 // doesn't care which function the label belongs to.
 fn animate_label<T: TypstFunc>(
     q_labels: Query<&LabelScaleFade, Changed<LabelScaleFade>>,

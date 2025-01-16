@@ -1,5 +1,4 @@
 use blenvy::*;
-use lumina_common::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumCount, EnumIter};
 
@@ -9,6 +8,7 @@ use strum::{AsRefStr, EnumCount, EnumIter};
 pub enum LobbyType {
     Local,
     Multiplayer,
+    Sandbox,
 }
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
@@ -51,7 +51,6 @@ pub enum AmmoType {
     // ShortRange,
     // Honing,
 }
-enum_as_usize!(AmmoType);
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]

@@ -14,6 +14,7 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 lumina_common = { path = "crates/lumina_common" }
 lumina_ui = { path = "crates/lumina_ui" }
 lumina_terrain = { path = "crates/lumina_terrain" }
+lumina_vfx = { path = "crates/lumina_vfx" }
 lumina_shared = { path = "crates/lumina_shared" }
 lumina_dev = { path = "crates/lumina_dev" }
 bevy_shader_utils = { path = "crates/bevy_shader_utils" }
@@ -47,12 +48,18 @@ avian2d = { version = "0.1", default-features = false, features = [
 blenvy = "0.1.0-alpha.1"
 bevy_enoki = "0.2.2"
 noisy_bevy = "0.7"
+bevy-inspector-egui = "0.27"
 serde = "1"
 rand = "0.8"
 smallvec = "1"
 strum = "0.26"
 strum_macros = "0.26"
 thiserror = "1.0"
+
+[workspace.lints.rust]
+# Prevent warning from physics layer from avian2d.
+# Remove this when upgrading to bevy 0.15.
+unexpected_cfgs = "allow"
 
 [workspace.lints.clippy]
 # Bevy supplies arguments to systems via dependency injection, so it's natural for systems to

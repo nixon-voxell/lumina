@@ -127,7 +127,7 @@ impl ViewNode for MipmapPipelineNode {
                 &mipmap_pipeline.layout,
                 &BindGroupEntries::sequential((
                     &mipmap_tex.views[target_mip - 1],
-                    &mipmap_pipeline.sampler,
+                    &mipmap_pipeline.filtered_sampler,
                 )),
             );
 
@@ -161,7 +161,7 @@ pub struct MipmapConfig {
 #[derive(Resource)]
 struct MipmapPipeline {
     layout: BindGroupLayout,
-    sampler: Sampler,
+    filtered_sampler: Sampler,
     pipeline_id: CachedRenderPipelineId,
 }
 
@@ -184,7 +184,7 @@ impl FromWorld for MipmapPipeline {
             ),
         );
 
-        let sampler = render_device.create_sampler(&SamplerDescriptor {
+        let filtered_sampler = render_device.create_sampler(&SamplerDescriptor {
             label: Some("rc_mipmap_sampler"),
             address_mode_u: AddressMode::ClampToEdge,
             address_mode_v: AddressMode::ClampToEdge,
@@ -195,7 +195,7 @@ impl FromWorld for MipmapPipeline {
             ..Default::default()
         });
 
-        let shader = world.load_asset("shaders/radiance_cascades/blit.wgsl");
+        let shader = world.load_asset("shaders/radiance_cascades/blit_mipmap.wgsl");
 
         let pipeline_id =
             world
@@ -222,7 +222,7 @@ impl FromWorld for MipmapPipeline {
 
         Self {
             layout,
-            sampler,
+            filtered_sampler,
             pipeline_id,
         }
     }

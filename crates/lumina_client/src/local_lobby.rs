@@ -1,4 +1,3 @@
-use crate::effector::InteractedEffector;
 use avian2d::prelude::Position;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;
@@ -7,15 +6,14 @@ use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::MatchmakeEffector;
 use lumina_shared::effector::TesseractEffector;
 use lumina_shared::player::lumina::CollectedLuminas;
 use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::effector::effector_interaction;
 use super::ui::Screen;
+use crate::effector::InteractedEffector;
 
 pub(super) struct LocalLobbyPlugin;
 
@@ -32,19 +30,12 @@ impl Plugin for LocalLobbyPlugin {
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
         .add_systems(Update, handle_lumina_spawn_timer)
-        .add_systems(
-            Update,
-            matchmake_effector_trigger.run_if(effector_interaction::<MatchmakeEffector>),
-        )
         .observe(tesseract_effector_trigger);
     }
 }
 
 /// Spawn lobby scene.
-fn spawn_lobby(
-    mut commands: Commands,
-    mut main_window_transparency: ResMut<MainWindowTransparency>,
-) {
+fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWindowTransparency>) {
     let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
         .spawn((LobbyType::Local.info(), SpawnBlueprint))
@@ -93,18 +84,13 @@ fn spawn_lobby(
         ))
         .set_parent(lobby_scene);
 
-    **main_window_transparency = 1.0;
+    transparency_evw.send(MainWindowTransparency(1.0));
 }
 
 /// Despawn lobby scene.
 fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<LocalLobby>>) {
     let lobby = q_lobby.single();
     commands.entity(lobby).despawn_recursive();
-}
-
-/// Action performed after the matchmake effector is being triggered.
-fn matchmake_effector_trigger(mut _next_screen_state: ResMut<NextState<Screen>>) {
-    // next_screen_state.set(Screen::Matchmaking);
 }
 
 /// Despawn all networked player inputs.

@@ -10,19 +10,9 @@
   let darken = 50%
 
   let card_btn(lbl, fill, content) = {
+    set box(fill: fill.transparentize(transparency).darken(darken))
     set box(
-      fill: fill
-        .transparentize(
-          transparency
-        )
-        .darken(darken),
-    )
-    set box(
-      fill: fill
-        .transparentize(
-          hovered_transparency
-        )
-        .darken(darken),
+      fill: fill.transparentize(hovered_transparency).darken(darken),
       // outset: 1em * hovered_animation,
       stroke: base7 + 2pt * hovered_animation,
       // radius: 2em * hovered_animation,
@@ -63,6 +53,12 @@
         dir: ltr,
         spacing: 2%,
       )[
+        #card_btn(<btn:sandbox>, base3)[
+          = Sandbox
+          #linebreak()
+          Sandbox mode with a mini tutorial contained.
+        ]
+      ][
         #card_btn(<btn:1v1>, blue)[
           = 1 v 1
           #linebreak()

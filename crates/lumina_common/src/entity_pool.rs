@@ -1,36 +1,13 @@
-use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
-
 use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use strum::EnumCount;
+
+use crate::utils::EnumVariantRes;
 
 /// Stores an array of [`EntityPool`].
 ///
 /// Note: Number of pools needs to match the number of variants in `T`.
-#[derive(Resource, Debug)]
-pub struct EntityPools<T: EnumCount>(Vec<EntityPool>, PhantomData<T>);
-
-impl<T: EnumCount> Default for EntityPools<T> {
-    fn default() -> Self {
-        Self(vec![EntityPool::default(); T::COUNT], PhantomData)
-    }
-}
-
-impl<T: EnumCount + Into<usize>> Index<T> for EntityPools<T> {
-    type Output = EntityPool;
-
-    fn index(&self, index: T) -> &Self::Output {
-        &self.0[index.into()]
-    }
-}
-
-impl<T: EnumCount + Into<usize>> IndexMut<T> for EntityPools<T> {
-    fn index_mut(&mut self, index: T) -> &mut Self::Output {
-        &mut self.0[index.into()]
-    }
-}
+pub type EntityPools<T> = EnumVariantRes<T, EntityPool>;
 
 /// A double [`EntityHashSet`] for storing both used and unused entities.
 #[derive(Default, Debug, Clone)]
@@ -82,17 +59,6 @@ impl EntityPool {
 
         self.unused.insert(entity);
     }
-}
-
-#[macro_export]
-macro_rules! enum_as_usize {
-    ($e:ty) => {
-        impl From<$e> for usize {
-            fn from(value: $e) -> Self {
-                value as usize
-            }
-        }
-    };
 }
 
 /// Reference entity map.

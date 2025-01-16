@@ -15,43 +15,46 @@ pub(super) struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<GameEndEvent>().add_systems(
+        app.add_systems(
             Update,
             (
                 init_spaceship_positions,
                 respawn_spaceships,
                 init_game,
-                update_game_score,
-                update_game_timer,
-                end_game,
+                track_game_score,
+                track_game_timer,
             ),
-        );
+        )
+        .observe(end_game);
     }
 }
 
 fn end_game(
+    trigger: Trigger<EndGame>,
     mut commands: Commands,
     q_lobbies: Query<&Lobby>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
-    mut evr_game_end: EventReader<GameEndEvent>,
     mut evw_client_exit: EventWriter<ClientExitLobby>,
 ) {
-    for &GameEndEvent(entity) in evr_game_end.read() {
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
-            &EndGame,
-            entity.room_id(),
-            &room_manager,
-        );
+    let entity = trigger.entity();
 
-        if let Ok(lobby) = q_lobbies.get(entity) {
-            for id in lobby.iter() {
-                evw_client_exit.send(ClientExitLobby(*id));
-            }
-        }
+    // Entity must be a lobby entity for logic beneath to work.
+    let Ok(lobby) = q_lobbies.get(entity) else {
+        return;
+    };
 
-        commands.entity(entity).remove::<LobbyInGame>();
+    for id in lobby.iter() {
+        evw_client_exit.send(ClientExitLobby(*id));
     }
+
+    let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+        &EndGame,
+        entity.room_id(),
+        &room_manager,
+    );
+
+    commands.entity(entity).remove::<LobbyInGame>();
 }
 
 /// Respawn the spaceship by resetting its position and health to the initial values
@@ -99,11 +102,12 @@ fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>
     }
 }
 
-fn update_game_score(
+/// Track game score and end game when either one of the team wins.
+fn track_game_score(
+    mut commands: Commands,
     q_game_scores: Query<(&GameScore, Entity), (Changed<GameScore>, With<LobbyInGame>)>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
-    mut evw_game_end: EventWriter<GameEndEvent>,
 ) {
     for (game_score, entity) in q_game_scores.iter() {
         let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
@@ -117,22 +121,24 @@ fn update_game_score(
             .iter()
             .any(|&score| score >= game_score.max_score)
         {
-            evw_game_end.send(GameEndEvent(entity));
+            commands.trigger_targets(EndGame, entity);
         }
     }
 }
 
-fn update_game_timer(
+/// Track game timer and end game when timer reaches zero.
+fn track_game_timer(
+    mut commands: Commands,
     mut q_game_timers: Query<(&mut GameTimer, Entity), With<LobbyInGame>>,
     time: Res<Time>,
-    mut evw_game_end: EventWriter<GameEndEvent>,
 ) {
     for (mut game_timer, entity) in q_game_timers.iter_mut() {
         **game_timer -= time.delta_seconds();
 
-        if **game_timer < 0.0 {
-            evw_game_end.send(GameEndEvent(entity));
+        if **game_timer > 0.0 {
+            continue;
         }
+        commands.trigger_targets(EndGame, entity);
     }
 }
 
@@ -188,6 +194,3 @@ pub struct InitPosition(pub Vec2);
 /// Time left for a game (in seconds).
 #[derive(Component, Deref, DerefMut)]
 pub struct GameTimer(f32);
-
-#[derive(Event, Deref)]
-pub struct GameEndEvent(Entity);

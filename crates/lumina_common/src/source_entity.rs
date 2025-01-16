@@ -13,6 +13,7 @@ impl Plugin for SourceEntityPlugin {
 }
 
 /// Entity that represents the final source of reference.
+/// This is needed to support both local and replicated entities.
 ///
 /// Any children that follows will also have this component added to them.
 #[derive(Component, Default, Clone, Copy)]

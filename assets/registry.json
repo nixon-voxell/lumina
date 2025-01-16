@@ -4380,82 +4380,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "bevy_asset::handle::Handle<lumina_client::player::ammo::AmmoHitMaterial>": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "bevy_asset::handle::Handle<lumina_client::player::ammo::AmmoHitMaterial>",
-      "oneOf": [
-        {
-          "items": false,
-          "long_name": "Strong",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
-              }
-            }
-          ],
-          "short_name": "Strong",
-          "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": false,
-          "long_name": "Weak",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_client::player::ammo::AmmoHitMaterial>"
-              }
-            }
-          ],
-          "short_name": "Weak",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "Handle<AmmoHitMaterial>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "bevy_asset::handle::Handle<lumina_client::player::weapon::MuzzleFlashMaterial>",
-      "oneOf": [
-        {
-          "items": false,
-          "long_name": "Strong",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
-              }
-            }
-          ],
-          "short_name": "Strong",
-          "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": false,
-          "long_name": "Weak",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>"
-              }
-            }
-          ],
-          "short_name": "Weak",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "Handle<MuzzleFlashMaterial>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "bevy_asset::handle::Handle<lumina_terrain::config::TerrainConfigAsset>": {
       "isComponent": true,
       "isResource": false,
@@ -4491,6 +4415,120 @@
         }
       ],
       "short_name": "Handle<TerrainConfigAsset>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<lumina_vfx::material2d::BoosterMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_vfx::material2d::BoosterMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_vfx::material2d::BoosterMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<BoosterMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<lumina_vfx::particle::AmmoHitMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_vfx::particle::AmmoHitMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_vfx::particle::AmmoHitMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<AmmoHitMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::handle::Handle<lumina_vfx::particle::MuzzleFlashMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_vfx::particle::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_vfx::particle::MuzzleFlashMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<MuzzleFlashMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -5866,98 +5904,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "bevy_asset::id::AssetId<lumina_client::player::ammo::AmmoHitMaterial>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "bevy_asset::id::AssetId<lumina_client::player::ammo::AmmoHitMaterial>",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "long_name": "Index",
-          "properties": {
-            "index": {
-              "long_name": "index",
-              "type": {
-                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
-              }
-            }
-          },
-          "required": [
-            "index"
-          ],
-          "short_name": "Index",
-          "type": "object",
-          "typeInfo": "Struct"
-        },
-        {
-          "additionalProperties": false,
-          "long_name": "Uuid",
-          "properties": {
-            "uuid": {
-              "long_name": "uuid",
-              "type": {
-                "$ref": "#/$defs/uuid::Uuid"
-              }
-            }
-          },
-          "required": [
-            "uuid"
-          ],
-          "short_name": "Uuid",
-          "type": "object",
-          "typeInfo": "Struct"
-        }
-      ],
-      "short_name": "AssetId<AmmoHitMaterial>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "bevy_asset::id::AssetId<lumina_client::player::weapon::MuzzleFlashMaterial>",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "long_name": "Index",
-          "properties": {
-            "index": {
-              "long_name": "index",
-              "type": {
-                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
-              }
-            }
-          },
-          "required": [
-            "index"
-          ],
-          "short_name": "Index",
-          "type": "object",
-          "typeInfo": "Struct"
-        },
-        {
-          "additionalProperties": false,
-          "long_name": "Uuid",
-          "properties": {
-            "uuid": {
-              "long_name": "uuid",
-              "type": {
-                "$ref": "#/$defs/uuid::Uuid"
-              }
-            }
-          },
-          "required": [
-            "uuid"
-          ],
-          "short_name": "Uuid",
-          "type": "object",
-          "typeInfo": "Struct"
-        }
-      ],
-      "short_name": "AssetId<MuzzleFlashMaterial>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>": {
       "isComponent": false,
       "isResource": false,
@@ -6001,6 +5947,144 @@
         }
       ],
       "short_name": "AssetId<TerrainConfigAsset>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_vfx::material2d::BoosterMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_vfx::material2d::BoosterMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<BoosterMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_vfx::particle::AmmoHitMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_vfx::particle::AmmoHitMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<AmmoHitMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_vfx::particle::MuzzleFlashMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_vfx::particle::MuzzleFlashMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<MuzzleFlashMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -11510,6 +11594,31 @@
       "properties": {},
       "required": [],
       "short_name": "NoRadiance",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_radiance_cascades::radiance_cascades::RadianceCascadesConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_radiance_cascades::radiance_cascades::RadianceCascadesConfig",
+      "properties": {
+        "interval0": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "resolution_factor": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        }
+      },
+      "required": [
+        "resolution_factor",
+        "interval0"
+      ],
+      "short_name": "RadianceCascadesConfig",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -20640,6 +20749,84 @@
         "fire_radius"
       ],
       "short_name": "Weapon",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_vfx::OneShotEffect": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_vfx::OneShotEffect",
+      "properties": {},
+      "required": [],
+      "short_name": "OneShotEffect",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_vfx::material2d::BoosterMaterial": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_vfx::material2d::BoosterMaterial",
+      "properties": {
+        "ignition": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "inv_scale": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "primary_color": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        },
+        "rotation": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "secondary_color": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        }
+      },
+      "required": [
+        "primary_color",
+        "secondary_color",
+        "rotation",
+        "inv_scale",
+        "ignition"
+      ],
+      "short_name": "BoosterMaterial",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_vfx::particle::InPlaceVfxType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_vfx::particle::InPlaceVfxType",
+      "oneOf": [
+        "GunSparks",
+        "MuzzleFlash",
+        "BoosterFlakes"
+      ],
+      "short_name": "InPlaceVfxType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_vfx::particle::MuzzleFlashMaterial": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_vfx::particle::MuzzleFlashMaterial",
+      "properties": {},
+      "required": [],
+      "short_name": "MuzzleFlashMaterial",
       "type": "object",
       "typeInfo": "Struct"
     },

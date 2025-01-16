@@ -67,8 +67,8 @@ fn init_spaceships(
                 ..default()
             },
             MovementStat {
-                linear_acceleration: 0.0,
                 linear_damping: spaceship.linear_damping,
+                ..default()
             },
             // Initialize the CollectedLuminas component.
             CollectedLuminas::default(),
@@ -102,8 +102,8 @@ fn spaceship_movement(
     player_infos: Res<PlayerInfos>,
 ) {
     // How fast the spaceship accelerates/decelarates.
-    const ACCELERATION_FACTOR: f32 = 10.0;
-    const DECELERATION_FACTOR: f32 = 20.0;
+    const ACCELERATION_FACTOR: f32 = 8.4;
+    const DECELERATION_FACTOR: f32 = 12.4;
     const DAMPING_FACTOR: f32 = 16.0;
 
     let acceleration_factor = f32::min(1.0, ACCELERATION_FACTOR * time.delta_seconds());
@@ -137,13 +137,13 @@ fn spaceship_movement(
         let is_braking = action.pressed(&PlayerAction::Brake);
         let is_boosting = action.pressed(&PlayerAction::Boost);
 
-        // Update the boost state
+        // Update the boost state.
         boost.update_state(time.delta_seconds(), is_boosting);
 
-        // Handle boosting activation and determine if boosting is active
+        // Handle boosting activation and determine if boosting is active.
         let boosting_active = is_boosting && boost.can_boost(time.delta_seconds());
 
-        // Linear damping
+        // Linear damping.
         match is_braking {
             true => {
                 movement_stat
@@ -152,27 +152,27 @@ fn spaceship_movement(
             false => movement_stat.towards_linear_damping(spaceship.linear_damping, damping_factor),
         }
 
-        // Linear acceleration
+        // Linear acceleration.
         match (is_moving, is_braking, boosting_active) {
-            // Moving only
+            // Moving only.
             (true, false, false) => movement_stat.towards_linear_acceleration(
                 spaceship.linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
-            // Moving and braking
+            // Moving and braking.
             (true, true, _) => movement_stat.towards_linear_acceleration(
                 spaceship.brake_linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
-            // Moving and boosting
+            // Moving and boosting.
             (true, false, true) => movement_stat.towards_linear_acceleration(
                 spaceship.boost_linear_acceleration,
                 acceleration_factor,
                 deceleration_factor,
             ),
-            // Not even moving, reduce speed to 0.0
+            // Not even moving, reduce speed to 0.0.
             (false, ..) => movement_stat.towards_linear_acceleration(
                 0.0,
                 acceleration_factor,
@@ -180,7 +180,8 @@ fn spaceship_movement(
             ),
         }
 
-        // Angular acceleration
+        movement_stat.rotation_diff = 0.0;
+        // Angular acceleration.
         if is_moving {
             movement_stat.linear_acceleration = FloatExt::lerp(
                 movement_stat.linear_acceleration,
@@ -195,16 +196,23 @@ fn spaceship_movement(
                 .normalize_or_zero();
             let desired_angle = movement.to_angle();
 
+            // NOTE: Kept for posterity's sake, just in case.
+            // angular.0 = rotation.angle_between(Rotation::radians(desired_angle))
+            //     * spaceship.rotation_speed
+            //     * time.delta_seconds();
+
+            let prev_rotation = rotation.as_radians();
             *rotation = rotation.slerp(
                 Rotation::radians(desired_angle),
                 f32::min(1.0, time.delta_seconds() * spaceship.rotation_speed),
             );
+            movement_stat.rotation_diff = rotation.as_radians() - prev_rotation;
         }
 
         let direction = Vec2::new(rotation.cos, rotation.sin);
         linear.0 += direction * movement_stat.linear_acceleration * time.delta_seconds();
 
-        // Clamp the speed
+        // Clamp the speed.
         linear.0 = linear.clamp_length_max(spaceship.max_linear_speed);
         linear_damping.0 = movement_stat.linear_damping;
     }
@@ -251,6 +259,7 @@ pub struct Spaceship {
 pub struct MovementStat {
     linear_acceleration: f32,
     linear_damping: f32,
+    rotation_diff: f32,
 }
 
 impl MovementStat {
@@ -272,13 +281,17 @@ impl MovementStat {
         self.linear_damping = FloatExt::lerp(self.linear_damping, target, factor);
     }
 
-    // pub fn linear_acceleration(&self) -> f32 {
-    //     self.linear_acceleration
-    // }
+    pub fn linear_acceleration(&self) -> f32 {
+        self.linear_acceleration
+    }
 
-    // pub fn linear_damping(&self) -> f32 {
-    //     self.linear_damping
-    // }
+    pub fn linear_damping(&self) -> f32 {
+        self.linear_damping
+    }
+
+    pub fn rotation_diff(&self) -> f32 {
+        self.rotation_diff
+    }
 }
 
 #[derive(Bundle, Default)]
@@ -295,16 +308,16 @@ pub struct SpaceshipPhysicsBundle {
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct Boost {
-    // Energy level
+    // Energy level.
     pub energy: f32,
-    // Maximum energy level
+    // Maximum energy level.
     pub max_energy: f32,
-    // Energy regeneration rate
+    // Energy regeneration rate.
     pub regen_rate: f32,
-    // Energy consumption rate
+    // Energy consumption rate.
     pub consumption_rate: f32,
-    // Cooldown time in seconds
+    // Cooldown duration in seconds before energy regenerates.
     pub cooldown_duration: f32,
-    // Remaining cooldown time
+    // Remaining cooldown time.
     pub current_cooldown: f32,
 }

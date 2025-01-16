@@ -2,7 +2,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
-use bevy_enoki::prelude::*;
 use bevy_motiongfx::MotionGfxPlugin;
 use bevy_shader_utils::ShaderUtilsPlugin;
 use blenvy::BlenvyPlugin;
@@ -21,6 +20,7 @@ mod local_lobby;
 mod matchmaking;
 mod multiplayer_lobby;
 mod player;
+mod sandbox;
 mod source_entity;
 mod typ_animation;
 mod ui;
@@ -42,10 +42,10 @@ impl Plugin for ClientPlugin {
             },
             CoroutinePlugin,
             ShaderUtilsPlugin,
-            EnokiPlugin,
             MotionGfxPlugin,
         ))
         .add_plugins((
+            lumina_vfx::VfxPlugin,
             source_entity::SourceEntityPlugin,
             blueprint_visual::BlueprintVisualPlugin,
             audio::AudioPlugin,
@@ -54,6 +54,7 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             effector::EffectorPlugin,
             local_lobby::LocalLobbyPlugin,
+            sandbox::SandboxPlugin,
             matchmaking::MatchmakingPlugin,
             multiplayer_lobby::MultiplayerLobbyPlugin,
             in_game::InGamePlugin,

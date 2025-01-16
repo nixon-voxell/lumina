@@ -14,24 +14,14 @@ impl Plugin for SpaceshipStatsPlugin {
         app.register_typst_asset::<SpaceshipStats>()
             .compile_typst_func::<SpaceshipStats, MainFunc>()
             .init_resource::<MainFunc>()
-            .add_systems(
-                Update,
-                (
-                    push_to_main_window::<MainFunc>(),
-                    spaceship_stats, //.run_if(in_state(Screen::InGame)),
-                ),
-            );
+            .add_systems(Update, (push_to_main_window::<MainFunc>(), spaceship_stats));
     }
 }
 
 fn spaceship_stats(
     q_spaceships: Query<
         (&MaxHealth, &Health, &Boost, &PlayerId),
-        (
-            Or<(Changed<Health>, Changed<MaxHealth>, Changed<Boost>)>,
-            With<Spaceship>,
-            With<SourceEntity>,
-        ),
+        (With<Spaceship>, With<SourceEntity>),
     >,
     local_player_id: Res<LocalPlayerId>,
     mut func: ResMut<MainFunc>,
