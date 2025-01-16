@@ -20,7 +20,7 @@ impl Plugin for SpaceshipStatsPlugin {
 
 fn spaceship_stats(
     q_spaceships: Query<
-        (&MaxHealth, &Health, &Boost, &PlayerId),
+        (&MaxHealth, &Health, &Boost, &Dash, &PlayerId),
         (With<Spaceship>, With<SourceEntity>),
     >,
     local_player_id: Res<LocalPlayerId>,
