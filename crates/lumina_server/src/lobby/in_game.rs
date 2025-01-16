@@ -43,7 +43,7 @@ fn start_game(
                 seed,
                 entity,
                 layers: CollisionLayers::ALL,
-                world_id: PhysicsWorldId(seed),
+                world_id: PhysicsWorldId(entity.index()),
             });
 
             let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(

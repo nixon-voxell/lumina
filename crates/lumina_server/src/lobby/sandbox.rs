@@ -1,10 +1,12 @@
 use bevy::prelude::*;
+use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{player::PlayerClient, LobbyInfos};
+use crate::player::SpawnClientPlayer;
+use crate::LobbyInfos;
 
 pub(crate) struct SandboxPlugin;
 
@@ -12,12 +14,6 @@ impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, handle_enter_sandbox);
     }
-}
-
-#[derive(Bundle, Default)]
-struct SandboxBundle {
-    pub world_id: PhysicsWorldId,
-    pub spatial: SpatialBundle,
 }
 
 fn handle_enter_sandbox(
@@ -31,13 +27,19 @@ fn handle_enter_sandbox(
         let client_id = sandbox.context;
         let world_entity = commands.spawn_empty().id();
 
-        commands.entity(world_entity).insert(SandboxBundle {
-            world_id: PhysicsWorldId(world_entity.index()),
-            ..default()
-        });
+        commands
+            .entity(world_entity)
+            .insert(SandboxBundle {
+                world_id: PhysicsWorldId(world_entity.index()),
+                ..default()
+            })
+            .with_children(|builder| {
+                // Spawn the sandbox level.
+                builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
+            });
 
         // Spawn player.
-        commands.spawn(PlayerClient {
+        commands.trigger(SpawnClientPlayer {
             client_id,
             world_entity,
         });
@@ -51,4 +53,10 @@ fn handle_enter_sandbox(
         // Add to the lobby hash map.
         lobbies.insert(client_id, world_entity);
     }
+}
+
+#[derive(Bundle, Default)]
+struct SandboxBundle {
+    pub world_id: PhysicsWorldId,
+    pub spatial: SpatialBundle,
 }

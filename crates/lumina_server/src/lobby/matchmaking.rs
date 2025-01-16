@@ -5,7 +5,8 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{player::PlayerClient, LobbyInfos};
+use crate::player::SpawnClientPlayer;
+use crate::LobbyInfos;
 
 use super::{Lobby, LobbyBundle, LobbyFull, LobbyInGame, LobbySize};
 
@@ -84,7 +85,7 @@ fn handle_matchmaking(
         });
 
         // Spawn player.
-        commands.spawn(PlayerClient {
+        commands.trigger(SpawnClientPlayer {
             client_id,
             world_entity: lobby_entity,
         });
