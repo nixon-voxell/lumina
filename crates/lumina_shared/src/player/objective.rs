@@ -1,17 +1,19 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
+use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
-use super::{GameLayer, PlayerId};
 use crate::blueprints::LuminaType;
+use crate::player::{GameLayer, PlayerId};
 
-pub struct LuminaPlugin;
+pub struct ObjectivePlugin;
 
-impl Plugin for LuminaPlugin {
+impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnLumina>()
             .add_event::<LuminaCollected>()
+            .add_systems(Update, init_lumina)
             .add_systems(
                 FixedUpdate,
                 ((lumina_collection, track_lumina_lifetime).chain(),),
@@ -27,6 +29,15 @@ pub struct LuminaCollected {
     pub position: Vec2,
 }
 
+fn init_lumina(mut commands: Commands, q_lumina: Query<Entity, Added<LuminaType>>) {
+    for entity in q_lumina.iter() {
+        commands.entity(entity).insert(CollisionLayers::new(
+            GameLayer::Lumina,
+            GameLayer::Spaceship,
+        ));
+    }
+}
+
 /// Spawns Lumina entities based on trigger events.
 fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
     let event = trigger.event();
@@ -35,12 +46,7 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
         .spawn((
             LuminaType::Normal.config_info(),
             SpawnBlueprint,
-            SourceEntity,
-            Transform::from_xyz(event.position.x, event.position.y, 0.1),
-            CollisionLayers::new(GameLayer::Lumina, GameLayer::Spaceship),
-            CollidingEntities::default(),
-            Sensor,
-            RigidBody::Static,
+            Transform::from_xyz(event.position.x, event.position.y, 1.0),
         ))
         .id();
 
@@ -53,26 +59,27 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
 /// Handles both collision detection and gameplay effects for Lumina collection.
 fn lumina_collection(
     mut commands: Commands,
-    q_luminas: Query<(Entity, &CollidingEntities), With<LuminaStat>>, // Only Luminas.
-    mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>, // Only players with CollectedLuminas.
+    q_luminas: Query<(Entity, &CollidingEntities), (With<LuminaStat>, With<SourceEntity>)>,
+    mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>,
 ) {
     for (lumina_entity, colliding_entities) in q_luminas.iter() {
         // Filter for players that collided with the Lumina.
         for &player_entity in colliding_entities.iter() {
             if let Ok((player_id, mut collected_luminas)) = q_players.get_mut(player_entity) {
-                println!(
-                    "Player {:?} collected Lumina {:?}",
-                    player_id, lumina_entity
-                );
+                if **collected_luminas < CollectedLuminas::MAX {
+                    // Increment the player's pending Lumina count.
+                    **collected_luminas += 1;
+                    // Despawn the Lumina entity.
+                    commands.entity(lumina_entity).despawn();
 
-                // Increment the player's pending Lumina count.
-                collected_luminas.pending += 1;
+                    info!(
+                        "Player {:?} collected Lumina {:?}",
+                        player_id, lumina_entity
+                    );
 
-                // Despawn the Lumina entity.
-                commands.entity(lumina_entity).despawn();
-
-                // Only allow one player to collect the Lumina.
-                break;
+                    // Only allow one player to collect the Lumina.
+                    break;
+                }
             }
         }
     }
@@ -107,8 +114,23 @@ pub struct SpawnLumina {
     pub lifetime: f32,
 }
 
-#[derive(Component, Default)]
-pub struct CollectedLuminas {
-    // Count of Luminas collected by this player.
-    pub pending: u32,
+/// Number of luminas collected by player.
+#[derive(
+    Component,
+    Reflect,
+    Serialize,
+    Deserialize,
+    Deref,
+    DerefMut,
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+)]
+#[reflect(Component)]
+pub struct CollectedLuminas(u8);
+
+impl CollectedLuminas {
+    pub const MAX: u8 = 15;
 }

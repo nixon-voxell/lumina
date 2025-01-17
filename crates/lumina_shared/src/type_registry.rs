@@ -8,7 +8,7 @@ use crate::effector::{
 };
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
-use crate::player::lumina::LuminaStat;
+use crate::player::objective::LuminaStat;
 use crate::player::prelude::*;
 use crate::player::spaceship::Boost;
 use crate::prelude::LuminaType;

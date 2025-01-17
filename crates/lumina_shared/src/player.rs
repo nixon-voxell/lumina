@@ -14,14 +14,14 @@ use weapon::Weapon;
 use super::action::PlayerAction;
 
 pub mod ammo;
-pub mod lumina;
+pub mod objective;
 pub mod spaceship;
 pub mod spawn_point;
 pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoHit, AmmoStat, FireAmmo};
-    pub use super::lumina::{LuminaCollected, LuminaStat, SpawnLumina};
+    pub use super::objective::{LuminaCollected, LuminaStat, SpawnLumina};
     pub use super::spaceship::{Boost, MovementStat, Spaceship};
     pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
     pub use super::weapon::{Weapon, WeaponStat};
@@ -37,7 +37,7 @@ impl Plugin for PlayerPlugin {
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
             spawn_point::SpawnPointPlugin,
-            lumina::LuminaPlugin,
+            objective::ObjectivePlugin,
         ));
 
         app.init_resource::<PlayerInfos>()

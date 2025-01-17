@@ -1,34 +1,24 @@
-use avian2d::prelude::Position;
 use bevy::prelude::*;
 use blenvy::*;
 use client::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::TesseractEffector;
-use lumina_shared::player::lumina::CollectedLuminas;
 use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
 use super::Screen;
-use crate::effector::InteractedEffector;
 
 pub(super) struct LocalLobbyPlugin;
 
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(LuminaSpawnTimer(Timer::from_seconds(
-            15.0,
-            TimerMode::Repeating,
-        )))
-        .add_systems(
+        app.add_systems(
             OnEnter(Screen::LocalLobby),
             (spawn_lobby, despawn_networked_inputs),
         )
-        .add_systems(OnExit(Screen::LocalLobby), despawn_lobby)
-        .add_systems(Update, handle_lumina_spawn_timer)
-        .observe(tesseract_effector_trigger);
+        .add_systems(OnExit(Screen::LocalLobby), despawn_lobby);
     }
 }
 
@@ -83,62 +73,6 @@ fn despawn_networked_inputs(
     }
 }
 
-#[derive(Resource)]
-struct LuminaSpawnTimer(Timer);
-
-fn handle_lumina_spawn_timer(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut timer: ResMut<LuminaSpawnTimer>,
-) {
-    if timer.0.tick(time.delta()).just_finished() {
-        commands.trigger(SpawnLumina {
-            position: Position::from_xy(100.0, 100.0),
-            lifetime: 300.0,
-        });
-    }
-}
-
-// TODO: Move this to sandbox.
-/// Action performed after the tesseract effector is being triggered.
-fn tesseract_effector_trigger(
-    trigger: Trigger<TesseractEffector>,
-    mut commands: Commands,
-    mut connection_manager: ResMut<ConnectionManager>,
-    // mut q_players: Query<(&PlayerId, &mut CollectedLuminas)>,
-    // mut player_scores: ResMut<PlayerScores>,
-) {
-    let effector_entity = trigger.entity();
-    info!(
-        "Tesseract effector triggered by entity {:?}",
-        effector_entity
-    );
-
-    let _ = connection_manager.send_message::<ReliableChannel, _>(&DepositLumina);
-
-    // // Handle each player near the Tesseract.
-    // for (player_id, mut collected_luminas) in q_players.iter_mut() {
-    //     if collected_luminas.pending > 0 {
-    //         // Transfer pending Luminas to the player's score.
-    //         let score = player_scores.scores.entry(*player_id).or_insert(0);
-    //         *score += collected_luminas.pending;
-
-    //         println!(
-    //             "Player {:?} deposited {} Luminas. Total score: {}",
-    //             player_id, collected_luminas.pending, *score
-    //         );
-
-    //         // Reset the player's pending Luminas.
-    //         collected_luminas.pending = 0;
-    //     }
-    // }
-
-    // Clear interaction marker.
-    commands
-        .entity(effector_entity)
-        .remove::<InteractedEffector>();
-}
-
 #[derive(Bundle)]
 pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
@@ -161,9 +95,3 @@ impl Default for LocalLobbyBundle {
 #[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
 pub(super) struct LocalLobby;
-
-// TESTING PURPOSES
-// #[derive(Resource, Default)]
-// pub struct PlayerScores {
-//     pub scores: HashMap<PlayerId, u32>, // Tracks scores for each player.
-// }

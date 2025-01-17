@@ -7,7 +7,7 @@ use server::RoomId;
 use strum::EnumCount;
 
 use crate::action::PlayerAction;
-use crate::blueprints::{SpaceshipType, WeaponType};
+use crate::blueprints::{LuminaType, SpaceshipType, WeaponType};
 use crate::health::{Health, MaxHealth};
 use crate::player::prelude::*;
 
@@ -41,43 +41,47 @@ impl Plugin for ProtocolPlugin {
         // Components
         // Health
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Health>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
+
+        // Lumina
+        app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<TeamType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<Boost>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple)
+            .add_interpolation(ComponentSyncMode::Simple);
 
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
@@ -92,10 +96,10 @@ impl Plugin for ProtocolPlugin {
             .add_correction_fn(rotation::lerp);
 
         app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)

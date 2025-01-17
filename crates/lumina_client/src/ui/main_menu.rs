@@ -61,7 +61,7 @@ fn reconnect_btn(
     mut func: ResMut<MainMenuFunc>,
 ) {
     if interactions.pressed("btn:reconnect") {
-        next_connection_state.set(Connection::Connect);
+        next_connection_state.set(Connection::Connecting);
         func.connection_msg = "Connecting to server...".to_string();
     }
 }

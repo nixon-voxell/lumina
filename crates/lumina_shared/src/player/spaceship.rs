@@ -6,7 +6,7 @@ use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
 use crate::health::Health;
-use crate::player::lumina::CollectedLuminas;
+use crate::player::objective::CollectedLuminas;
 
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 

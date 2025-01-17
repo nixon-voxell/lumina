@@ -18,6 +18,7 @@ mod effector;
 mod player;
 mod screens;
 mod source_entity;
+mod tesseract;
 mod typ_animation;
 mod ui;
 
@@ -50,11 +51,12 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             effector::EffectorPlugin,
             screens::ScreensPlugins,
+            tesseract::TesseractPugin,
             typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
         .enable_state_scoped_entities::<Connection>()
-        .add_systems(OnEnter(Connection::Connect), connect_server)
+        .add_systems(OnEnter(Connection::Connecting), connect_server)
         .add_systems(
             PreUpdate,
             (handle_connection, handle_disconnection).after(MainSet::Receive),
@@ -146,7 +148,7 @@ fn client_config(client_id: u64, settings: &LuminaSettings) -> ClientConfig {
 #[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Connection {
     #[default]
-    Connect,
+    Connecting,
     Connected,
     Disconnected,
 }

@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
@@ -52,6 +53,23 @@ fn handle_enter_sandbox(
         room_manager.add_client(client_id, world_entity.room_id());
         // Add to the lobby hash map.
         lobbies.insert(client_id, world_entity);
+    }
+}
+
+fn handle_lumina_spawn_timer(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut timer: Local<Option<Timer>>,
+) {
+    if let Some(timer) = &mut *timer {
+        if timer.tick(time.delta()).just_finished() {
+            commands.trigger(SpawnLumina {
+                position: Position::from_xy(100.0, 100.0),
+                lifetime: 300.0,
+            });
+        }
+    } else {
+        *timer = Some(Timer::from_seconds(15.0, TimerMode::Repeating));
     }
 }
 
