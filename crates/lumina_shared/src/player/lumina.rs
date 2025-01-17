@@ -27,7 +27,7 @@ pub struct LuminaCollected {
     pub position: Vec2,
 }
 
-/// Spawns Lumina entities based on events.
+/// Spawns Lumina entities based on trigger events.
 fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
     let event = trigger.event();
 
@@ -41,7 +41,6 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
             CollidingEntities::default(),
             Sensor,
             RigidBody::Static,
-            Name::new("Lumina"),
         ))
         .id();
 

@@ -15,12 +15,8 @@ mod audio;
 mod blueprint_visual;
 mod camera;
 mod effector;
-mod in_game;
-mod local_lobby;
-mod matchmaking;
-mod multiplayer_lobby;
 mod player;
-mod sandbox;
+mod screens;
 mod source_entity;
 mod typ_animation;
 mod ui;
@@ -53,11 +49,7 @@ impl Plugin for ClientPlugin {
             player::PlayerPlugin,
             camera::CameraPlugin,
             effector::EffectorPlugin,
-            local_lobby::LocalLobbyPlugin,
-            sandbox::SandboxPlugin,
-            matchmaking::MatchmakingPlugin,
-            multiplayer_lobby::MultiplayerLobbyPlugin,
-            in_game::InGamePlugin,
+            screens::ScreensPlugins,
             typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
@@ -71,7 +63,7 @@ impl Plugin for ClientPlugin {
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]
         app.add_plugins(lumina_dev::log_transition::<Connection>)
-            .add_plugins(lumina_dev::log_transition::<ui::Screen>);
+            .add_plugins(lumina_dev::log_transition::<screens::Screen>);
     }
 }
 

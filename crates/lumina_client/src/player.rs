@@ -3,7 +3,8 @@ use bevy::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
-use super::ui::Screen;
+use crate::screens::Screen;
+
 use super::Connection;
 
 mod aim;

@@ -11,7 +11,7 @@ use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::ui::Screen;
+use super::Screen;
 use crate::effector::InteractedEffector;
 
 pub(super) struct LocalLobbyPlugin;
@@ -40,11 +40,7 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
             builder.spawn((LobbyType::Local.info(), SpawnBlueprint));
 
             // Tesseract
-            builder.spawn((
-                TesseractType::Tesseract.config_info(),
-                SpawnBlueprint,
-                PlayerId::LOCAL,
-            ));
+            builder.spawn((TesseractType::Tesseract.config_info(), SpawnBlueprint));
 
             // Spaceship
             builder.spawn((
@@ -103,7 +99,7 @@ fn handle_lumina_spawn_timer(
     }
 }
 
-// TESTING PURPOSES
+// TODO: Move this to sandbox.
 /// Action performed after the tesseract effector is being triggered.
 fn tesseract_effector_trigger(
     trigger: Trigger<TesseractEffector>,

@@ -8,9 +8,8 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 use lumina_ui::prelude::*;
 
-use crate::in_game::TerrainEntity;
-
-use super::ui::Screen;
+use super::in_game::TerrainEntity;
+use super::Screen;
 
 pub(super) struct MultiplayerLobbyPlugin;
 
