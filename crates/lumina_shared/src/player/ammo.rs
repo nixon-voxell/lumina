@@ -117,13 +117,18 @@ fn ammo_collision(
             &mut AmmoStat,
             &AmmoDamage,
             Ref<CollidingEntities>,
+            &Visibility,
             &PlayerId,
         ),
-        Changed<CollidingEntities>,
+        (Changed<CollidingEntities>, Without<AmmoRef>),
     >,
     mut evw_ammo_hit: EventWriter<AmmoHit>,
 ) {
-    for (position, mut stat, &AmmoDamage(damage), colliding, id) in q_ammos.iter_mut() {
+    for (position, mut stat, &AmmoDamage(damage), colliding, viz, id) in q_ammos.iter_mut() {
+        // Skip already hidden ammos.
+        if viz == Visibility::Hidden {
+            continue;
+        }
         // No collisions.
         if colliding.is_added() || colliding.len() == 0 {
             continue;

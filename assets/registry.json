@@ -20364,7 +20364,8 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::LuminaType",
       "oneOf": [
-        "Normal"
+        "Normal",
+        "MineSpot"
       ],
       "short_name": "LuminaType",
       "type": "string",

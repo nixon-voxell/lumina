@@ -106,6 +106,7 @@ pub enum TesseractType {
 #[strum(prefix = "levels/luminas/")]
 pub enum LuminaType {
     Normal,
+    MineSpot,
     // Exploding,
     // Timed,
     // Golden,
