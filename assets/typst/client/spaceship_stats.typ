@@ -67,20 +67,35 @@
   height,
 ) = {
   let fill_height = cooldown * height
-
+  let border_radius = 6pt
+  
   box(width: width, height: height)[
-    #image(icon_path, height: height)
-
-    // Dark overlay inside the icon filling from bottom to top
-    #if cooldown > 0 {
-      place(top)[
-        #rect(
-          width: width,
-          height: fill_height,
-          fill: black.transparentize(40%),
-        )
-      ]
-    }
+    // Semi-transparent rounded background
+    #place[
+      #rect(
+        width: width,
+        height: height,
+        fill: base7.transparentize(90%),
+        radius: border_radius,
+        stroke: (paint: base7.transparentize(50%), thickness: 1pt)
+      )
+    ]
+    
+    // Icon and cooldown overlay
+    #place[
+      #image(icon_path, height: height)
+      
+      // Dark overlay inside the icon filling from bottom to top
+      #if cooldown > 0 {
+        place(top)[
+          #rect(
+            width: width,
+            height: fill_height,
+            fill: black.transparentize(20%),
+          )
+        ]
+      }
+    ]
   ]
 }
 
