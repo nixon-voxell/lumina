@@ -20364,8 +20364,7 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::LuminaType",
       "oneOf": [
-        "Normal",
-        "MineSpot"
+        "Normal"
       ],
       "short_name": "LuminaType",
       "type": "string",
@@ -20400,7 +20399,8 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::TesseractType",
       "oneOf": [
-        "Tesseract"
+        "Tesseract",
+        "MineSpot"
       ],
       "short_name": "TesseractType",
       "type": "string",

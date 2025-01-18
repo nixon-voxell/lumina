@@ -10,7 +10,6 @@ impl Plugin for BlueprintVisualPlugin {
         app.spawn_blueprint_visual::<SpaceshipType, ()>()
             .spawn_blueprint_visual::<WeaponType, ()>()
             .spawn_blueprint_visual::<AmmoType, Without<AmmoRef>>()
-            .spawn_blueprint_visual::<LuminaType, ()>()
-            .spawn_blueprint_visual::<TesseractType, ()>();
+            .spawn_blueprint_visual::<LuminaType, ()>();
     }
 }

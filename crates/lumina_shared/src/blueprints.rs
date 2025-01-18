@@ -99,6 +99,7 @@ pub enum AmmoType {
 #[strum(prefix = "levels/tesseracts/")]
 pub enum TesseractType {
     Tesseract,
+    MineSpot,
 }
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
@@ -106,7 +107,6 @@ pub enum TesseractType {
 #[strum(prefix = "levels/luminas/")]
 pub enum LuminaType {
     Normal,
-    MineSpot,
     // Exploding,
     // Timed,
     // Golden,

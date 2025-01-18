@@ -11,7 +11,6 @@ impl Plugin for SourceEntityPlugin {
     fn build(&self, app: &mut App) {
         app.set_source::<Spaceship, With<Predicted>>()
             .set_source::<Weapon, With<Predicted>>()
-            .set_source::<ActionState<PlayerAction>, With<Predicted>>()
-            .set_source::<TesseractType, ()>();
+            .set_source::<ActionState<PlayerAction>, With<Predicted>>();
     }
 }
