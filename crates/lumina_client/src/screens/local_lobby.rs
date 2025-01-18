@@ -29,9 +29,6 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
         .with_children(|builder| {
             builder.spawn((LobbyType::Local.info(), SpawnBlueprint));
 
-            // Tesseract
-            builder.spawn((TesseractType::Tesseract.config_info(), SpawnBlueprint));
-
             // Spaceship
             builder.spawn((
                 SpaceshipType::Assassin.config_info(),

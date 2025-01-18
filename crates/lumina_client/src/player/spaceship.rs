@@ -30,6 +30,7 @@ fn booster_vfx(
     q_spaceships: Query<(&Spaceship, &MovementStat, &InPlaceVfxMap, Entity), With<SourceEntity>>,
     mut q_states: Query<&mut ParticleSpawnerState>,
     mut q_boosters: Query<&mut BoosterMaterial, With<SourceEntity>>,
+    time: Res<Time>,
 ) {
     for (spaceship, movement, vfx_map, entity) in q_spaceships.iter() {
         // Ignition.
@@ -55,7 +56,9 @@ fn booster_vfx(
             booster.inv_scale = FloatExt::lerp(1.0, 0.6, boost_acc / boost_acc_size);
 
             // Rotation.
-            booster.rotation = f32::clamp(movement.rotation_diff() * 4.0, -FRAC_PI_4, FRAC_PI_4);
+            booster.rotation += movement.rotation_diff();
+            booster.rotation = f32::clamp(booster.rotation, -FRAC_PI_4, FRAC_PI_4);
+            booster.rotation = booster.rotation.lerp(0.0, time.delta_seconds() * 6.0);
         }
 
         if let Some(mut state) = vfx_map

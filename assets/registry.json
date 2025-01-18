@@ -20334,6 +20334,31 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::TesseractType>": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::TesseractType>",
+      "properties": {
+        "blueprint": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::TesseractType"
+          }
+        },
+        "spawn_type": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::SpawnType"
+          }
+        }
+      },
+      "required": [
+        "blueprint",
+        "spawn_type"
+      ],
+      "short_name": "BlueprintSpawner<TesseractType>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::blueprints::LuminaType": {
       "isComponent": true,
       "isResource": false,
@@ -20353,6 +20378,19 @@
         "Assassin"
       ],
       "short_name": "SpaceshipType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_shared::blueprints::SpawnType": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::SpawnType",
+      "oneOf": [
+        "Raw",
+        "Config",
+        "Visual"
+      ],
+      "short_name": "SpawnType",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -20546,11 +20584,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::lumina::LuminaStat": {
+    "lumina_shared::player::objective::LuminaStat": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::player::lumina::LuminaStat",
+      "long_name": "lumina_shared::player::objective::LuminaStat",
       "properties": {
         "lifetime": {
           "type": {

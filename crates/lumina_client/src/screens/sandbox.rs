@@ -39,12 +39,19 @@ fn handle_enter_sandbox(
         **local_player_id = PlayerId(**local_client_id);
         transparency_evw.send(MainWindowTransparency(1.0));
 
-        commands.spawn(Sandbox).with_children(|builder| {
-            builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
-            builder.spawn((TesseractType::Tesseract.config_info(), SpawnBlueprint));
-        });
+        commands
+            .spawn(SandboxBundle::default())
+            .with_children(|builder| {
+                builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
+            });
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Sandbox;
+
+#[derive(Bundle, Default)]
+struct SandboxBundle {
+    pub sandbox: Sandbox,
+    pub spatial: SpatialBundle,
+}

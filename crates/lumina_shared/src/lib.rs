@@ -36,6 +36,7 @@ impl Plugin for SharedPlugin {
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 effector::EffectorPlugin,
+                blueprints::BlueprintsPlugin,
             ));
     }
 }

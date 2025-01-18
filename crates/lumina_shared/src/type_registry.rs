@@ -11,13 +11,13 @@ use crate::player::ammo::AmmoRef;
 use crate::player::objective::LuminaStat;
 use crate::player::prelude::*;
 use crate::player::spaceship::Boost;
-use crate::prelude::LuminaType;
+use crate::prelude::{BlueprintSpawner, LuminaType};
 
 pub(super) struct TypeRegistryPlugin;
 
 impl Plugin for TypeRegistryPlugin {
     fn build(&self, app: &mut App) {
-        app
+        app.register_type::<BlueprintSpawner<TesseractType>>()
             // Radiance
             .register_type::<NoRadiance>()
             // Health
