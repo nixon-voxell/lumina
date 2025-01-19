@@ -101,7 +101,7 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
-        let s = 0.85; let e = 0.0;
+        let s = 0.86; let e = -0.5;
         let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
         let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 
@@ -114,9 +114,8 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         var new_viz = mix(color.a, 1.0, start_edge);
         new_viz = mix(new_viz, 1.0, end_edge);
 
-        let level_idx_1 = level_idx;
-        radiance += new_rad * visibility * level_idx_1;
-        visibility *= pow(new_viz, (level_idx_1 * 0.1));
+        radiance += new_rad * visibility * level_idx;
+        visibility *= pow(new_viz, (level_idx * 0.2));
     }
 
     return vec4<f32>(radiance, visibility);

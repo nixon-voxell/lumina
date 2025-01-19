@@ -36,7 +36,7 @@ fn start_game(
             seed: start_game.message().seed,
             entity: **terrain_entity,
             layers: CollisionLayers::ALL,
-            world_id: PhysicsWorldId::default(),
+            world_id: WorldIdx::default(),
         });
 
         next_screen_state.set(Screen::InGame);

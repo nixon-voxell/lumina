@@ -1,4 +1,5 @@
 use avian2d::prelude::*;
+use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
@@ -133,4 +134,13 @@ pub struct CollectedLuminas(u8);
 
 impl CollectedLuminas {
     pub const MAX: u8 = 15;
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ObjectiveArea {
+    /// Area cooldown duration after all luminas have been mined.
+    pub cooldown: f32,
+    #[reflect(ignore)]
+    pub ores: EntityHashSet,
 }

@@ -15,7 +15,8 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnClientPlayer>()
+        app.add_plugins(objective::ObjectivePlugin)
+            .add_event::<SpawnClientPlayer>()
             .add_systems(
                 PreUpdate,
                 (

@@ -3,11 +3,12 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
+use lumina_common::prelude::*;
 use server::RoomId;
 use strum::EnumCount;
 
 use crate::action::PlayerAction;
-use crate::blueprints::{LuminaType, SpaceshipType, WeaponType};
+use crate::blueprints::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::prelude::*;
 
@@ -39,15 +40,20 @@ impl Plugin for ProtocolPlugin {
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
 
         // Components
-        // Health
+        // Game
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Health>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
-        // Lumina
         app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<OreType>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<Transform>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
         // Player
@@ -80,6 +86,14 @@ impl Plugin for ProtocolPlugin {
 
         // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
+
+        app.register_component::<PrimitiveRigidbody>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
+
+        app.register_component::<MeshRigidbody>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
 

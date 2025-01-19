@@ -239,7 +239,7 @@ pub struct TileColliderBundle {
     pub collider: Collider,
     pub rigidbody: RigidBody,
     pub layers: CollisionLayers,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
 }
 
 impl TileColliderBundle {

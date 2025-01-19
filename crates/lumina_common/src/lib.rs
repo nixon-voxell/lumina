@@ -15,7 +15,8 @@ pub mod prelude {
     pub use crate::blueprint_visual::*;
     pub use crate::entity_pool::*;
     pub use crate::math_utils::*;
-    pub use crate::physics::world::PhysicsWorldId;
+    pub use crate::physics::world::WorldIdx;
+    pub use crate::physics::{MeshRigidbody, PrimitiveRigidbody};
     pub use crate::settings::LuminaSettings;
     pub use crate::source_entity::{SetSourceAppExt, SourceEntity};
     pub use crate::utils::*;

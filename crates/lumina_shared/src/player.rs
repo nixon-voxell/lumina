@@ -21,7 +21,7 @@ pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoHit, AmmoStat, FireAmmo};
-    pub use super::objective::{LuminaCollected, LuminaStat, SpawnLumina};
+    pub use super::objective::{LuminaCollected, LuminaStat, ObjectiveArea, SpawnLumina};
     pub use super::spaceship::{Boost, MovementStat, Spaceship};
     pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
     pub use super::weapon::{Weapon, WeaponStat};

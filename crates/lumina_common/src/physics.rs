@@ -5,6 +5,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
+use lightyear::prelude::*;
 
 use crate::settings::LuminaSettings;
 
@@ -48,7 +49,7 @@ impl Plugin for PhysicsPlugin {
 
 fn convert_primitive_rigidbody(
     mut commands: Commands,
-    q_rigidbodies: Query<(&PrimitiveRigidbody, Entity)>,
+    q_rigidbodies: Query<(&PrimitiveRigidbody, Entity), Added<PrimitiveRigidbody>>,
 ) {
     for (rigidbody, entity) in q_rigidbodies.iter() {
         match Collider::try_from_constructor(rigidbody.collider_constructor.clone()) {
@@ -64,18 +65,21 @@ fn convert_primitive_rigidbody(
             None => error!("Unable to convert ColliderConstructor into Collider for {entity}."),
         }
 
-        commands.entity(entity).remove::<PrimitiveRigidbody>();
+        // commands.entity(entity).remove::<PrimitiveRigidbody>();
     }
 }
 
 fn convert_mesh_rigidbody(
     mut commands: Commands,
-    q_rigidbodies: Query<(
-        &MeshRigidbody,
-        Option<&Mesh2dHandle>,
-        Option<&Handle<Mesh>>,
-        Entity,
-    )>,
+    q_rigidbodies: Query<
+        (
+            &MeshRigidbody,
+            Option<&Mesh2dHandle>,
+            Option<&Handle<Mesh>>,
+            Entity,
+        ),
+        Added<MeshRigidbody>,
+    >,
     meshes: Res<Assets<Mesh>>,
 ) {
     for (rigidbody, mesh2d, mesh3d, entity) in q_rigidbodies.iter() {
@@ -109,7 +113,7 @@ fn convert_mesh_rigidbody(
             None => error!("Unable to generate Collider from Mesh for {entity}."),
         }
 
-        commands.entity(entity).remove::<MeshRigidbody>();
+        // commands.entity(entity).remove::<MeshRigidbody>();
     }
 }
 
@@ -162,7 +166,7 @@ pub fn convex_hull_from_mesh(mesh: &Mesh) -> Option<Collider> {
         .and_then(|(vertices, _)| SharedShape::convex_hull(&vertices).map(|shape| shape.into()))
 }
 
-#[derive(Component, Reflect, Debug, Clone)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct PrimitiveRigidbody {
     pub rigidbody: RigidBody,
@@ -170,7 +174,7 @@ pub struct PrimitiveRigidbody {
     pub collider_constructor: ColliderConstructor,
 }
 
-#[derive(Component, Reflect, Default, Debug, Clone)]
+#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct MeshRigidbody {
     pub rigidbody: RigidBody,
@@ -178,7 +182,7 @@ pub struct MeshRigidbody {
     pub collider_type: MeshCollider,
 }
 
-#[derive(Reflect, Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MeshCollider {
     #[default]
     ConvexHull,

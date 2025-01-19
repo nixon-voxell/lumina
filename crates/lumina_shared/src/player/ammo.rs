@@ -167,7 +167,7 @@ fn ammo_collision(
 #[derive(Event)]
 pub struct FireAmmo {
     pub player_id: PlayerId,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub ammo_type: AmmoType,
     pub position: Vec2,
     pub direction: Vec2,
@@ -210,7 +210,7 @@ impl InitAmmoBundle {
 #[derive(Bundle)]
 pub struct FireAmmoBundle {
     pub player_id: PlayerId,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub stat: AmmoStat,
     pub damage: AmmoDamage,
     pub position: Position,

@@ -31,7 +31,7 @@ fn handle_enter_sandbox(
         commands
             .entity(world_entity)
             .insert(SandboxBundle {
-                world_id: PhysicsWorldId(world_entity.index()),
+                world_id: WorldIdx::from_entity(world_entity),
                 ..default()
             })
             .with_children(|builder| {
@@ -56,25 +56,25 @@ fn handle_enter_sandbox(
     }
 }
 
-fn handle_lumina_spawn_timer(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut timer: Local<Option<Timer>>,
-) {
-    if let Some(timer) = &mut *timer {
-        if timer.tick(time.delta()).just_finished() {
-            commands.trigger(SpawnLumina {
-                position: Position::from_xy(100.0, 100.0),
-                lifetime: 300.0,
-            });
-        }
-    } else {
-        *timer = Some(Timer::from_seconds(15.0, TimerMode::Repeating));
-    }
-}
+// fn handle_lumina_spawn_timer(
+//     mut commands: Commands,
+//     time: Res<Time>,
+//     mut timer: Local<Option<Timer>>,
+// ) {
+//     if let Some(timer) = &mut *timer {
+//         if timer.tick(time.delta()).just_finished() {
+//             commands.trigger(SpawnLumina {
+//                 position: Position::from_xy(100.0, 100.0),
+//                 lifetime: 300.0,
+//             });
+//         }
+//     } else {
+//         *timer = Some(Timer::from_seconds(15.0, TimerMode::Repeating));
+//     }
+// }
 
 #[derive(Bundle, Default)]
 struct SandboxBundle {
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub spatial: SpatialBundle,
 }

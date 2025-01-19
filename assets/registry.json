@@ -18016,6 +18016,33 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>",
+      "oneOf": [
+        {
+          "long_name": "None"
+        },
+        {
+          "items": false,
+          "long_name": "Some",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/lumina_shared::blueprints::NetworkIdentityTarget"
+              }
+            }
+          ],
+          "short_name": "Some",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Option<NetworkIdentityTarget>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "core::option::Option<petgraph::graph::NodeIndex>": {
       "isComponent": false,
       "isResource": false,
@@ -20334,6 +20361,36 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::OreType>": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::OreType>",
+      "properties": {
+        "blueprint": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::OreType"
+          }
+        },
+        "spawn_type": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::SpawnType"
+          }
+        },
+        "target": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>"
+          }
+        }
+      },
+      "required": [
+        "blueprint",
+        "spawn_type"
+      ],
+      "short_name": "BlueprintSpawner<OreType>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::TesseractType>": {
       "additionalProperties": false,
       "isComponent": true,
@@ -20349,6 +20406,11 @@
           "type": {
             "$ref": "#/$defs/lumina_shared::blueprints::SpawnType"
           }
+        },
+        "target": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>"
+          }
         }
       },
       "required": [
@@ -20356,6 +20418,31 @@
         "spawn_type"
       ],
       "short_name": "BlueprintSpawner<TesseractType>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::blueprints::DespawnOnSpawn": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::DespawnOnSpawn",
+      "properties": {
+        "recursive": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "target": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::NetworkIdentityTarget"
+          }
+        }
+      },
+      "required": [
+        "target",
+        "recursive"
+      ],
+      "short_name": "DespawnOnSpawn",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -20367,6 +20454,31 @@
         "Normal"
       ],
       "short_name": "LuminaType",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_shared::blueprints::NetworkIdentityTarget": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::NetworkIdentityTarget",
+      "oneOf": [
+        "Client",
+        "Server"
+      ],
+      "short_name": "NetworkIdentityTarget",
+      "type": "string",
+      "typeInfo": "Enum"
+    },
+    "lumina_shared::blueprints::OreType": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::OreType",
+      "oneOf": [
+        "Small",
+        "Medium",
+        "Large"
+      ],
+      "short_name": "OreType",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -20399,8 +20511,7 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::TesseractType",
       "oneOf": [
-        "Tesseract",
-        "MineSpot"
+        "Tesseract"
       ],
       "short_name": "TesseractType",
       "type": "string",
@@ -20601,6 +20712,25 @@
         "lifetime"
       ],
       "short_name": "LuminaStat",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::objective::ObjectiveArea": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::objective::ObjectiveArea",
+      "properties": {
+        "cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "cooldown"
+      ],
+      "short_name": "ObjectiveArea",
       "type": "object",
       "typeInfo": "Struct"
     },

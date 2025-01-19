@@ -75,7 +75,7 @@ pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
-    world_id: PhysicsWorldId,
+    world_id: WorldIdx,
 }
 
 impl Default for LocalLobbyBundle {
@@ -84,7 +84,7 @@ impl Default for LocalLobbyBundle {
             local_lobby: LocalLobby,
             spatial: SpatialBundle::default(),
             source: SourceEntity,
-            world_id: PhysicsWorldId::default(),
+            world_id: WorldIdx::default(),
         }
     }
 }
