@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use lightyear::prelude::client::Confirmed;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
@@ -35,20 +36,13 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 Update,
                 (set_physics_world::<RigidBody>, set_physics_world::<Weapon>),
-            )
-            .add_systems(Update, test_ore);
-    }
-}
-
-fn test_ore(q_ores: Query<Entity, Added<OreType>>) {
-    for entity in q_ores.iter() {
-        println!("\n\n\n{entity}\n\n\n");
+            );
     }
 }
 
 fn set_physics_world<T: Component>(
     mut commands: Commands,
-    q_entities: Query<Entity, (Added<T>, Without<WorldIdx>)>,
+    q_entities: Query<Entity, (Added<T>, (Without<WorldIdx>, Without<Confirmed>))>,
 ) {
     for entity in q_entities.iter() {
         commands.entity(entity).insert(WorldIdx::default());

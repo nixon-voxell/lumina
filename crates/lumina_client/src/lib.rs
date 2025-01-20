@@ -88,7 +88,6 @@ fn handle_connection(
 }
 
 fn handle_disconnection(
-    mut commands: Commands,
     mut disconnect_evr: EventReader<DisconnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
@@ -96,7 +95,6 @@ fn handle_disconnection(
         warn!("Disconnected: {:?}", event.reason);
 
         next_connection_state.set(Connection::Disconnected);
-        commands.remove_resource::<LocalClientId>();
     }
 }
 

@@ -13,14 +13,17 @@ impl Plugin for PhysicsWorldPlugin {
     }
 }
 
-fn filter_collisions(mut collisions: ResMut<Collisions>, q_world_id: Query<Option<&WorldIdx>>) {
+fn filter_collisions(
+    mut collisions: ResMut<Collisions>,
+    q_world_id: Query<&WorldIdx, With<RigidBody>>,
+) {
     collisions.retain(|contacts| {
         match (
-            q_world_id.get(contacts.entity1).ok().flatten(),
-            q_world_id.get(contacts.entity2).ok().flatten(),
+            q_world_id.get(contacts.entity1),
+            q_world_id.get(contacts.entity2),
         ) {
             // Ids must match.
-            (Some(id0), Some(id1)) => *id0 == *id1,
+            (Ok(id0), Ok(id1)) => *id0 == *id1,
             // World Id must exists for collision to work.
             _ => false,
         }
