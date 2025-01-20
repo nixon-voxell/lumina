@@ -2,7 +2,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use bevy_coroutine::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_motiongfx::MotionGfxPlugin;
 use bevy_shader_utils::ShaderUtilsPlugin;
 use blenvy::BlenvyPlugin;
@@ -67,7 +66,7 @@ impl Plugin for ClientPlugin {
         #[cfg(feature = "dev")]
         app.add_plugins(lumina_dev::log_transition::<Connection>)
             .add_plugins(lumina_dev::log_transition::<screens::Screen>)
-            .add_plugins(WorldInspectorPlugin::new());
+            .add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new());
     }
 }
 
