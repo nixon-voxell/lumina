@@ -1,9 +1,11 @@
+use std::f32::consts::TAU;
+
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::prelude::*;
+use lumina_shared::{player::objective::LuminaSpawnArea, prelude::*};
 use server::*;
 
 pub(super) struct ObjectivePlugin;
@@ -16,9 +18,10 @@ impl Plugin for ObjectivePlugin {
                 (
                     setup_objective_area,
                     replicate_setup_ores,
+                    setup_lumina_spawn_area,
                     replicate_lumina,
                     track_lumina_lifetime,
-                    update_used_ores,
+                    ore_destruction,
                     reset_objective_area,
                 ),
             )
@@ -62,6 +65,9 @@ fn replicate_setup_ores(
 
                 // Set area target and replicate.
                 commands.entity(entity).insert((
+                    // Hidden since it will not be available on spawn.
+                    // (will be replaced with some dulling effect instead)
+                    Visibility::Hidden,
                     ObjectiveAreaTarget(parent),
                     Replicate {
                         sync: SyncTarget {
@@ -81,15 +87,67 @@ fn replicate_setup_ores(
     }
 }
 
-/// Move ores with 0.0 health or less into the used pool.
-fn update_used_ores(
-    q_ores: Query<(&Health, &ObjectiveAreaTarget, Entity), (With<OreType>, Changed<Health>)>,
-    mut q_areas: Query<&mut ObjectiveArea>,
+/// Setup [LuminaSpawnArea] with their respective [OreType] parent.
+fn setup_lumina_spawn_area(
+    mut commands: Commands,
+    q_spawn_area: Query<
+        (&Parent, Entity),
+        (With<LuminaSpawnArea>, Without<LuminaSpawnAreaInitialized>),
+    >,
+    q_ores: Query<(), With<OreType>>,
+    q_children: Query<&Children>,
 ) {
-    for (health, area, entity) in q_ores.iter() {
+    for (parent, entity) in q_spawn_area.iter() {
+        // Find the ore that shares the same parent.
+        for child in q_children.iter_descendants(parent.get()) {
+            if q_ores.contains(child) {
+                commands.entity(child).insert(LuminaSpawnAreaTarget(entity));
+                // Initialized, do not query for this entity again.
+                commands.entity(entity).insert(LuminaSpawnAreaInitialized);
+                // There should only be one Ore beside the LuminaSpawnArea in the hierarchy.
+                break;
+            }
+        }
+    }
+}
+
+/// Move ores with 0.0 health or less into the used pool and spawn lumina.
+fn ore_destruction(
+    mut commands: Commands,
+    q_ores: Query<
+        (
+            &Health,
+            &ObjectiveAreaTarget,
+            &OreType,
+            &LuminaSpawnAreaTarget,
+            &WorldIdx,
+            Entity,
+        ),
+        Changed<Health>,
+    >,
+    mut q_areas: Query<&mut ObjectiveArea>,
+    q_spawn_areas: Query<(&GlobalTransform, &LuminaSpawnArea)>,
+) {
+    for (health, area_target, ore, lumina_spawn_target, &world_id, entity) in q_ores.iter() {
         if **health <= 0.0 {
-            if let Ok(mut area) = q_areas.get_mut(area.0) {
+            if let Ok(mut area) = q_areas.get_mut(area_target.0) {
                 area.ores.set_used(entity);
+            }
+
+            if let Ok((transform, spawn_area)) = q_spawn_areas.get(lumina_spawn_target.0) {
+                let translation = transform.translation().xy();
+
+                let value = ore.rand_value();
+                for _ in 0..value {
+                    let radian = rand::random::<f32>() % TAU;
+                    let dir = Vec2::from_angle(radian);
+                    let distance = rand::random::<f32>() % spawn_area.radius;
+
+                    commands.trigger(SpawnLumina {
+                        position: Position(translation + (dir * distance)),
+                        world_id,
+                    });
+                }
             }
         }
     }
@@ -192,8 +250,13 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
             LuminaType::Normal.config_info(),
             SpawnBlueprint,
             Transform::from_xyz(event.position.x, event.position.y, 1.0),
+            event.world_id,
         ))
         .id();
+
+    if let Some(sandbox_entity) = event.world_id.0 {
+        commands.entity(lumina_entity).set_parent(sandbox_entity);
+    }
 
     info!(
         "Spawned Lumina entity {:?} at position {:?}",
@@ -205,7 +268,14 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
 pub struct SpawnLumina {
     // Position where the Lumina will appear.
     pub position: Position,
+    pub world_id: WorldIdx,
 }
+
+#[derive(Component)]
+pub struct LuminaSpawnAreaTarget(Entity);
+
+#[derive(Component)]
+pub struct LuminaSpawnAreaInitialized;
 
 /// Reset objective area after the timer stops.
 #[derive(Component, Deref, DerefMut)]

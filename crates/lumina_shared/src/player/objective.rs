@@ -1,4 +1,3 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -18,20 +17,17 @@ impl Plugin for ObjectivePlugin {
 
 /// Disable ore visibility & physics if health is 0.0 or below and vice versa.
 fn ore_visibility(
-    mut commands: Commands,
-    mut q_ores: Query<(&mut Visibility, &Health, Entity), (With<OreType>, With<SourceEntity>)>,
+    // mut commands: Commands,
+    mut q_ores: Query<(&mut Visibility, &Health), (With<OreType>, With<SourceEntity>)>,
 ) {
-    for (mut viz, health, entity) in q_ores.iter_mut() {
+    for (mut viz, health) in q_ores.iter_mut() {
         match **health <= 0.0 {
             true => {
-                if viz.set_if_neq(Visibility::Hidden) {
-                    commands.entity(entity).remove::<RigidBody>();
-                }
+                // TODO: Replace with some dulling effect instead.
+                viz.set_if_neq(Visibility::Hidden);
             }
             false => {
-                if viz.set_if_neq(Visibility::Inherited) {
-                    commands.entity(entity).insert(RigidBody::Static);
-                }
+                viz.set_if_neq(Visibility::Inherited);
             }
         }
     }
@@ -70,6 +66,12 @@ pub struct LuminaStat {
 pub struct LuminaCollected {
     pub player_id: PlayerId,
     pub position: Vec2,
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct LuminaSpawnArea {
+    pub radius: f32,
 }
 
 #[derive(Component, Reflect)]

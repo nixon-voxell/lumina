@@ -6,7 +6,7 @@ use crate::blueprints::*;
 use crate::effector::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
-use crate::player::objective::{LuminaStat, ObjectiveArea};
+use crate::player::objective::{LuminaSpawnArea, LuminaStat, ObjectiveArea};
 use crate::player::prelude::*;
 use crate::player::spaceship::Boost;
 
@@ -30,6 +30,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<LuminaType>()
             .register_type::<LuminaStat>()
             .register_type::<ObjectiveArea>()
+            .register_type::<LuminaSpawnArea>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()

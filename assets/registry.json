@@ -21243,6 +21243,25 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::player::objective::LuminaSpawnArea": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::objective::LuminaSpawnArea",
+      "properties": {
+        "radius": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "radius"
+      ],
+      "short_name": "LuminaSpawnArea",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::player::objective::LuminaStat": {
       "additionalProperties": false,
       "isComponent": true,
