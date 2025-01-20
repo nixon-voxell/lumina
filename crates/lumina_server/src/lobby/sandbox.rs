@@ -1,4 +1,3 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
@@ -6,6 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
+use crate::player::objective::ObjectiveAreaManager;
 use crate::player::SpawnClientPlayer;
 use crate::LobbyInfos;
 
@@ -13,7 +13,7 @@ pub(crate) struct SandboxPlugin;
 
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_enter_sandbox);
+        app.add_systems(Update, (handle_enter_sandbox, check_manager));
     }
 }
 
@@ -56,6 +56,14 @@ fn handle_enter_sandbox(
     }
 }
 
+fn check_manager(
+    q_manager: Query<&ObjectiveAreaManager, (With<Sandbox>, Changed<ObjectiveAreaManager>)>,
+) {
+    for manager in q_manager.iter() {
+        println!("\n\nManager: {manager:?}");
+    }
+}
+
 // fn handle_lumina_spawn_timer(
 //     mut commands: Commands,
 //     time: Res<Time>,
@@ -73,8 +81,13 @@ fn handle_enter_sandbox(
 //     }
 // }
 
+#[derive(Component, Default)]
+struct Sandbox;
+
 #[derive(Bundle, Default)]
 struct SandboxBundle {
+    pub sandbox: Sandbox,
     pub world_id: WorldIdx,
     pub spatial: SpatialBundle,
+    pub objective_manager: ObjectiveAreaManager,
 }

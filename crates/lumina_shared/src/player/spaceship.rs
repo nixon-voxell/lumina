@@ -6,7 +6,7 @@ use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
 use crate::health::Health;
-use crate::player::objective::CollectedLuminas;
+use crate::player::objective::CollectedLumina;
 
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
@@ -71,7 +71,7 @@ fn init_spaceships(
                 ..default()
             },
             // Initialize the CollectedLuminas component.
-            CollectedLuminas::default(),
+            CollectedLumina::default(),
         ));
 
         debug!("Initialized Spaceship physics for {spaceship_entity})");

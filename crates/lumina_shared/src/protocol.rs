@@ -10,6 +10,7 @@ use strum::EnumCount;
 use crate::action::PlayerAction;
 use crate::blueprints::*;
 use crate::health::{Health, MaxHealth};
+use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
@@ -83,6 +84,9 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once)
             .add_interpolation(ComponentSyncMode::Once);
+
+        app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
 
         // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
