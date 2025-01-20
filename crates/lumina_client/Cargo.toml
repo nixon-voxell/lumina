@@ -27,6 +27,7 @@ bevy_motiongfx = { workspace = true }
 bevy_coroutine = { workspace = true }
 strum = { workspace = true }
 rand = { workspace = true }
+bevy-inspector-egui = { workspace = true, optional = true }
 
 [features]
 default = [
@@ -37,6 +38,7 @@ dev = [
   # Improve compile times for dev builds by linking Bevy as a dynamic library.
   "bevy/dynamic_linking",
   "dep:lumina_dev",
+  "dep:bevy-inspector-egui",
   "lumina_common/dev"
 ]
 dev_native = [

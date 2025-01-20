@@ -4054,6 +4054,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy-inspector-egui",
  "bevy_coroutine",
  "bevy_enoki",
  "bevy_motiongfx",

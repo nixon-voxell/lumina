@@ -5,7 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::player::objective::ObjectiveAreaManager;
+use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
 use crate::player::SpawnClientPlayer;
 use crate::LobbyInfos;
 
@@ -13,7 +13,7 @@ pub(crate) struct SandboxPlugin;
 
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (handle_enter_sandbox, check_manager));
+        app.add_systems(Update, (handle_enter_sandbox, manage_sandbox_areas));
     }
 }
 
@@ -56,30 +56,32 @@ fn handle_enter_sandbox(
     }
 }
 
-fn check_manager(
-    q_manager: Query<&ObjectiveAreaManager, (With<Sandbox>, Changed<ObjectiveAreaManager>)>,
+/// Reset sandbox objectives 5 seconds after they are depleted.
+fn manage_sandbox_areas(
+    mut commands: Commands,
+    // Manage sandbox managers only.
+    q_manager: Query<&ObjectiveAreaManager, With<Sandbox>>,
+    // Do no reset already resetting areas.
+    q_areas: Query<&ObjectiveArea, Without<ResetObjectiveArea>>,
 ) {
     for manager in q_manager.iter() {
-        println!("\n\nManager: {manager:?}");
+        for area_entity in manager.areas.iter() {
+            if let Ok(area) = q_areas.get(*area_entity) {
+                let depleted = area.ores.unused().is_empty();
+
+                if depleted {
+                    // Reset in 5 seconds.
+                    commands
+                        .entity(*area_entity)
+                        .insert(ResetObjectiveArea(Timer::from_seconds(
+                            5.0,
+                            TimerMode::Once,
+                        )));
+                }
+            }
+        }
     }
 }
-
-// fn handle_lumina_spawn_timer(
-//     mut commands: Commands,
-//     time: Res<Time>,
-//     mut timer: Local<Option<Timer>>,
-// ) {
-//     if let Some(timer) = &mut *timer {
-//         if timer.tick(time.delta()).just_finished() {
-//             commands.trigger(SpawnLumina {
-//                 position: Position::from_xy(100.0, 100.0),
-//                 lifetime: 300.0,
-//             });
-//         }
-//     } else {
-//         *timer = Some(Timer::from_seconds(15.0, TimerMode::Repeating));
-//     }
-// }
 
 #[derive(Component, Default)]
 struct Sandbox;

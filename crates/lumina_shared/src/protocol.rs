@@ -49,12 +49,9 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
+            .add_interpolation(ComponentSyncMode::Once); // Completely controlled by the server.
 
         app.register_component::<OreType>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
-        app.register_component::<Transform>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
         // Player

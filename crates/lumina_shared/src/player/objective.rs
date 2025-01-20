@@ -1,12 +1,10 @@
 use avian2d::prelude::*;
-use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
-use crate::blueprints::LuminaType;
 use crate::health::Health;
-use crate::player::{GameLayer, PlayerId};
+use crate::player::PlayerId;
 use crate::prelude::OreType;
 
 pub struct ObjectivePlugin;
@@ -14,21 +12,11 @@ pub struct ObjectivePlugin;
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LuminaCollected>()
-            .add_systems(Update, (lumina_collision_layer, ore_visibility));
+            .add_systems(PostUpdate, ore_visibility);
     }
 }
 
-/// Initialize lumina's collision layer.
-fn lumina_collision_layer(mut commands: Commands, q_lumina: Query<Entity, Added<LuminaType>>) {
-    for entity in q_lumina.iter() {
-        commands.entity(entity).insert(CollisionLayers::new(
-            GameLayer::Lumina,
-            GameLayer::Spaceship,
-        ));
-    }
-}
-
-/// Disable ore visibility if health is 0.0 or below and vice versa.
+/// Disable ore visibility & physics if health is 0.0 or below and vice versa.
 fn ore_visibility(
     mut commands: Commands,
     mut q_ores: Query<(&mut Visibility, &Health, Entity), (With<OreType>, With<SourceEntity>)>,
@@ -87,12 +75,8 @@ pub struct LuminaCollected {
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ObjectiveArea {
-    /// Area cooldown duration after all luminas have been mined.
-    pub cooldown: f32,
-    /// Ores that are not mined yet ([Health] is still greater than 0.0).
+    /// Ores that are not mined yet ([Health] is still greater than 0.0)
+    /// will stay in unused pool and vice versa.
     #[reflect(ignore)]
-    pub unused_ores: EntityHashSet,
-    /// Ores that are already being mined ([Health] is lesser or equal to 0.0).
-    #[reflect(ignore)]
-    pub used_ores: EntityHashSet,
+    pub ores: EntityPool,
 }

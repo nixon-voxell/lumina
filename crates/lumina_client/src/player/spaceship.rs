@@ -17,6 +17,8 @@ pub(super) struct SpaceshipPlugin;
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InPlaceVfxMapPlugin::<Spaceship>::default())
+            // Interpolated spaceship doesn't need any collider.
+            .remove_physics_creator::<(With<Spaceship>, With<Interpolated>)>()
             .add_systems(
                 Update,
                 (spawn_networked_action, cache_team_type, booster_vfx),

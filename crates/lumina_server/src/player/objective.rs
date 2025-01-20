@@ -18,6 +18,8 @@ impl Plugin for ObjectivePlugin {
                     replicate_setup_ores,
                     replicate_lumina,
                     track_lumina_lifetime,
+                    update_used_ores,
+                    reset_objective_area,
                 ),
             )
             .add_systems(FixedUpdate, lumina_collection)
@@ -54,9 +56,9 @@ fn replicate_setup_ores(
         for parent in q_parents.iter_ancestors(entity) {
             if let Ok(mut area) = q_areas.get_mut(parent) {
                 // Initialize ores as used and have them managed by the ObjectiveAreaManager.
-                area.used_ores.insert(entity);
-                // Used ores have 0.0 health which makes it dark.
-                **health = 0.0;
+                area.ores.insert_new_used(entity);
+                // Used ores have 0.0 health.
+                **health.bypass_change_detection() = 0.0;
 
                 // Set area target and replicate.
                 commands.entity(entity).insert((
@@ -64,7 +66,7 @@ fn replicate_setup_ores(
                     Replicate {
                         sync: SyncTarget {
                             prediction: NetworkTarget::All,
-                            interpolation: NetworkTarget::All,
+                            interpolation: NetworkTarget::None,
                         },
                         relevance_mode: NetworkRelevanceMode::InterestManagement,
                         ..default()
@@ -79,6 +81,20 @@ fn replicate_setup_ores(
     }
 }
 
+/// Move ores with 0.0 health or less into the used pool.
+fn update_used_ores(
+    q_ores: Query<(&Health, &ObjectiveAreaTarget, Entity), (With<OreType>, Changed<Health>)>,
+    mut q_areas: Query<&mut ObjectiveArea>,
+) {
+    for (health, area, entity) in q_ores.iter() {
+        if **health <= 0.0 {
+            if let Ok(mut area) = q_areas.get_mut(area.0) {
+                area.ores.set_used(entity);
+            }
+        }
+    }
+}
+
 /// Replicate [LuminaType] to clients.
 fn replicate_lumina(
     mut commands: Commands,
@@ -88,7 +104,7 @@ fn replicate_lumina(
     for (world_id, entity) in q_lumina.iter() {
         commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
-                prediction: NetworkTarget::All,
+                prediction: NetworkTarget::None,
                 interpolation: NetworkTarget::All,
             },
             relevance_mode: NetworkRelevanceMode::InterestManagement,
@@ -124,6 +140,30 @@ fn lumina_collection(
                     break;
                 }
             }
+        }
+    }
+}
+
+/// Reset objective area after timer ends.
+fn reset_objective_area(
+    mut commands: Commands,
+    mut q_areas: Query<(&mut ObjectiveArea, &mut ResetObjectiveArea, Entity)>,
+    mut q_ores: Query<(&mut Health, &MaxHealth), With<OreType>>,
+    time: Res<Time>,
+) {
+    for (mut area, mut reset, area_entity) in q_areas.iter_mut() {
+        if reset.tick(time.delta()).finished() {
+            // Reset all ores' health to max health in this area.
+            for ore_entity in area.ores.used().iter() {
+                if let Ok((mut health, max_health)) = q_ores.get_mut(*ore_entity) {
+                    info!("Replenished health for Ore: {ore_entity}");
+                    **health = **max_health;
+                }
+            }
+
+            // Objective area has been reset, no longer needs to be keep tracked.
+            commands.entity(area_entity).remove::<ResetObjectiveArea>();
+            area.ores.set_all_unused();
         }
     }
 }
@@ -165,9 +205,11 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
 pub struct SpawnLumina {
     // Position where the Lumina will appear.
     pub position: Position,
-    // Duration the Lumina will stay in the world.
-    pub lifetime: f32,
 }
+
+/// Reset objective area after the timer stops.
+#[derive(Component, Deref, DerefMut)]
+pub struct ResetObjectiveArea(pub Timer);
 
 #[derive(Component)]
 pub struct ObjectiveAreaTarget(Entity);
@@ -175,5 +217,5 @@ pub struct ObjectiveAreaTarget(Entity);
 #[derive(Component, Default, Debug)]
 pub struct ObjectiveAreaManager {
     pub areas: Vec<Entity>,
-    pub selected_area: usize,
+    // pub selected_area: usize,
 }
