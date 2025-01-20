@@ -123,13 +123,15 @@ fn ore_destruction(
             &WorldIdx,
             Entity,
         ),
-        Changed<Health>,
+        (Changed<Health>, Without<OreDestroyed>),
     >,
     mut q_areas: Query<&mut ObjectiveArea>,
     q_spawn_areas: Query<(&GlobalTransform, &LuminaSpawnArea)>,
 ) {
     for (health, area_target, ore, lumina_spawn_target, &world_id, entity) in q_ores.iter() {
         if **health <= 0.0 {
+            commands.entity(entity).insert(OreDestroyed);
+
             if let Ok(mut area) = q_areas.get_mut(area_target.0) {
                 area.ores.set_used(entity);
             }
@@ -162,6 +164,7 @@ fn replicate_lumina(
     for (world_id, entity) in q_lumina.iter() {
         commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
+                // TODO: Make lumina predicted instead of interpolated.
                 prediction: NetworkTarget::None,
                 interpolation: NetworkTarget::All,
             },
@@ -212,10 +215,11 @@ fn reset_objective_area(
     for (mut area, mut reset, area_entity) in q_areas.iter_mut() {
         if reset.tick(time.delta()).finished() {
             // Reset all ores' health to max health in this area.
-            for ore_entity in area.ores.used().iter() {
-                if let Ok((mut health, max_health)) = q_ores.get_mut(*ore_entity) {
-                    info!("Replenished health for Ore: {ore_entity}");
+            for &ore_entity in area.ores.used().iter() {
+                if let Ok((mut health, max_health)) = q_ores.get_mut(ore_entity) {
                     **health = **max_health;
+                    commands.entity(ore_entity).remove::<OreDestroyed>();
+                    info!("Replenished health for Ore: {ore_entity}");
                 }
             }
 
@@ -271,9 +275,16 @@ pub struct SpawnLumina {
     pub world_id: WorldIdx,
 }
 
+/// Marker component when the Ore is being destroyed.
+/// Must be removed when it's being replenished.
+#[derive(Component)]
+pub struct OreDestroyed;
+
 #[derive(Component)]
 pub struct LuminaSpawnAreaTarget(Entity);
 
+/// Marker component for initialized lumina spawn area,
+/// specifically when it found its counterpart Ore.
 #[derive(Component)]
 pub struct LuminaSpawnAreaInitialized;
 
