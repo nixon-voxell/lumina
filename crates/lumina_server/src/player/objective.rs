@@ -68,6 +68,7 @@ fn replicate_setup_ores(
                     // Hidden since it will not be available on spawn.
                     // (will be replaced with some dulling effect instead)
                     Visibility::Hidden,
+                    OreDestroyed,
                     ObjectiveAreaTarget(parent),
                     Replicate {
                         sync: SyncTarget {
