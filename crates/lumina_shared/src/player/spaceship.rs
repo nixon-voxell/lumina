@@ -4,9 +4,9 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
-use crate::action::PlayerAction;
 use crate::health::Health;
 use crate::player::objective::CollectedLumina;
+use crate::{action::PlayerAction, player::GameLayer};
 
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
@@ -58,12 +58,14 @@ fn init_spaceships(
 
     for (spaceship, spaceship_entity) in q_spaceships.iter() {
         commands.entity(spaceship_entity).insert((
+            // TODO: Modularize this using Blenvy!!!
             SpaceshipPhysicsBundle {
                 rigidbody: RigidBody::Dynamic,
                 linear_damping: LinearDamping(spaceship.linear_damping),
                 angular_damping: AngularDamping(spaceship.angular_damping),
                 collider: collider.clone(),
                 mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
+                collision_layer: CollisionLayers::new(GameLayer::Spaceship, LayerMask::ALL),
                 ..default()
             },
             MovementStat {
@@ -303,6 +305,7 @@ pub struct SpaceshipPhysicsBundle {
     pub angular_damping: AngularDamping,
     pub collider: Collider,
     pub mass_properties: MassPropertiesBundle,
+    pub collision_layer: CollisionLayers,
 }
 
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq)]

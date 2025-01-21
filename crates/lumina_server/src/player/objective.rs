@@ -164,7 +164,6 @@ fn replicate_lumina(
     for (world_id, entity) in q_lumina.iter() {
         commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
-                // TODO: Make lumina predicted instead of interpolated.
                 prediction: NetworkTarget::All,
                 interpolation: NetworkTarget::All,
             },
@@ -179,11 +178,10 @@ fn replicate_lumina(
 /// Handles both collision detection and gameplay effects for Lumina collection.
 fn lumina_collection(
     mut commands: Commands,
-    q_luminas: Query<(Entity, &CollidingEntities), (With<LuminaStat>, With<SourceEntity>)>,
+    q_luminas: Query<(Entity, &CollidingEntities), (Changed<CollidingEntities>, With<LuminaStat>)>,
     mut q_players: Query<(&PlayerId, &mut CollectedLumina)>,
 ) {
     for (lumina_entity, colliding_entities) in q_luminas.iter() {
-        println!("{lumina_entity} lumina has colliding entities component.");
         // Filter for players that collided with the Lumina.
         for &player_entity in colliding_entities.iter() {
             if let Ok((player_id, mut collected_luminas)) = q_players.get_mut(player_entity) {
