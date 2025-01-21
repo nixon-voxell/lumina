@@ -13,6 +13,6 @@ impl Plugin for SourceEntityPlugin {
             .set_source::<Weapon, With<Predicted>>()
             .set_source::<ActionState<PlayerAction>, With<Predicted>>()
             .set_source::<OreType, With<Predicted>>()
-            .set_source::<LuminaType, With<Interpolated>>();
+            .set_source::<LuminaType, With<Predicted>>();
     }
 }

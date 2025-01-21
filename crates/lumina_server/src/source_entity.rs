@@ -13,6 +13,7 @@ impl Plugin for SourceEntityPlugin {
             .set_source::<Weapon, With<SyncTarget>>()
             .set_source::<ActionState<PlayerAction>, With<SyncTarget>>()
             .set_source::<ObjectiveArea, With<SyncTarget>>()
-            .set_source::<OreType, With<SyncTarget>>();
+            .set_source::<OreType, With<SyncTarget>>()
+            .set_source::<LuminaType, With<SyncTarget>>();
     }
 }

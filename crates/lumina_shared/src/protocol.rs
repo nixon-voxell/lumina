@@ -49,7 +49,7 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
-            .add_interpolation(ComponentSyncMode::Once); // Completely controlled by the server.
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<OreType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
@@ -91,12 +91,10 @@ impl Plugin for ProtocolPlugin {
             .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<PrimitiveRigidbody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<MeshRigidbody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)

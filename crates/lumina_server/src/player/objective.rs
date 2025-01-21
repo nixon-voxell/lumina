@@ -21,11 +21,10 @@ impl Plugin for ObjectivePlugin {
                     setup_lumina_spawn_area,
                     replicate_lumina,
                     track_lumina_lifetime,
-                    ore_destruction,
                     reset_objective_area,
                 ),
             )
-            .add_systems(FixedUpdate, lumina_collection)
+            .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
             .observe(spawn_lumina);
     }
 }
@@ -61,7 +60,7 @@ fn replicate_setup_ores(
                 // Initialize ores as used and have them managed by the ObjectiveAreaManager.
                 area.ores.insert_new_used(entity);
                 // Used ores have 0.0 health.
-                **health.bypass_change_detection() = 0.0;
+                **health = 0.0;
 
                 // Set area target and replicate.
                 commands.entity(entity).insert((
@@ -166,7 +165,7 @@ fn replicate_lumina(
         commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
                 // TODO: Make lumina predicted instead of interpolated.
-                prediction: NetworkTarget::None,
+                prediction: NetworkTarget::All,
                 interpolation: NetworkTarget::All,
             },
             relevance_mode: NetworkRelevanceMode::InterestManagement,
@@ -184,6 +183,7 @@ fn lumina_collection(
     mut q_players: Query<(&PlayerId, &mut CollectedLumina)>,
 ) {
     for (lumina_entity, colliding_entities) in q_luminas.iter() {
+        println!("{lumina_entity} lumina has colliding entities component.");
         // Filter for players that collided with the Lumina.
         for &player_entity in colliding_entities.iter() {
             if let Ok((player_id, mut collected_luminas)) = q_players.get_mut(player_entity) {
@@ -270,7 +270,7 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
 }
 
 #[derive(Event)]
-pub struct SpawnLumina {
+struct SpawnLumina {
     // Position where the Lumina will appear.
     pub position: Position,
     pub world_id: WorldIdx,
@@ -282,19 +282,19 @@ pub struct SpawnLumina {
 pub struct OreDestroyed;
 
 #[derive(Component)]
-pub struct LuminaSpawnAreaTarget(Entity);
+struct LuminaSpawnAreaTarget(Entity);
 
 /// Marker component for initialized lumina spawn area,
 /// specifically when it found its counterpart Ore.
 #[derive(Component)]
-pub struct LuminaSpawnAreaInitialized;
+struct LuminaSpawnAreaInitialized;
 
 /// Reset objective area after the timer stops.
 #[derive(Component, Deref, DerefMut)]
 pub struct ResetObjectiveArea(pub Timer);
 
 #[derive(Component)]
-pub struct ObjectiveAreaTarget(Entity);
+struct ObjectiveAreaTarget(Entity);
 
 #[derive(Component, Default, Debug)]
 pub struct ObjectiveAreaManager {

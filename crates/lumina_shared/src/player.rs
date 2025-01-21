@@ -122,6 +122,5 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
 pub enum GameLayer {
     Spaceship,
     Ammo,
-    Wall,
     Lumina,
 }

@@ -1,17 +1,20 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::health::Health;
 use crate::player::PlayerId;
-use crate::prelude::OreType;
+use crate::prelude::{LuminaType, OreType};
+
+use super::GameLayer;
 
 pub struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LuminaCollected>()
-            .add_systems(PostUpdate, ore_visibility);
+            .add_systems(Update, (ore_visibility, setup_lumina_col_layer));
     }
 }
 
@@ -30,6 +33,20 @@ fn ore_visibility(
                 viz.set_if_neq(Visibility::Inherited);
             }
         }
+    }
+}
+
+/// Setup lumina collision layer such that it can only collide with spaceships.
+/// (Particularly avoiding ammos)
+fn setup_lumina_col_layer(
+    mut commands: Commands,
+    q_luminas: Query<Entity, (With<LuminaType>, Added<SourceEntity>)>,
+) {
+    for entity in q_luminas.iter() {
+        commands.entity(entity).insert(CollisionLayers::new(
+            GameLayer::Lumina,
+            [GameLayer::Spaceship],
+        ));
     }
 }
 

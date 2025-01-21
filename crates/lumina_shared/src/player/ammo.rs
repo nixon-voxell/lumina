@@ -193,7 +193,7 @@ impl InitAmmoBundle {
             ammo_type,
             mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
             collider,
-            layers: CollisionLayers::new(GameLayer::Ammo, [GameLayer::Spaceship, GameLayer::Wall]),
+            layers: CollisionLayers::new(GameLayer::Ammo, [GameLayer::Spaceship]),
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
             spatial: SpatialBundle {
