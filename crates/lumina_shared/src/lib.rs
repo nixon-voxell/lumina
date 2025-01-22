@@ -37,6 +37,7 @@ impl Plugin for SharedPlugin {
                 player::PlayerPlugin,
                 effector::EffectorPlugin,
                 blueprints::BlueprintsPlugin,
+                health::HealthPlugin,
             ));
     }
 }

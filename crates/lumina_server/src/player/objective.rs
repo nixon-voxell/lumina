@@ -5,7 +5,9 @@ use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::{player::objective::LuminaSpawnArea, prelude::*};
+use lumina_shared::health::init_health;
+use lumina_shared::player::objective::LuminaSpawnArea;
+use lumina_shared::prelude::*;
 use server::*;
 
 pub(super) struct ObjectivePlugin;
@@ -17,13 +19,14 @@ impl Plugin for ObjectivePlugin {
                 Update,
                 (
                     setup_objective_area,
-                    replicate_setup_ores,
+                    replicate_ores,
                     setup_lumina_spawn_area,
                     replicate_lumina,
                     track_lumina_lifetime,
                     reset_objective_area,
                 ),
             )
+            .add_systems(PostUpdate, setup_ores.before(init_health))
             .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
             .observe(spawn_lumina);
     }
@@ -47,26 +50,21 @@ fn setup_objective_area(
 }
 
 /// Replicate and setup [OreType] with their respective [ObjectiveArea] parent.
-fn replicate_setup_ores(
+fn replicate_ores(
     mut commands: Commands,
-    mut q_ores: Query<(&mut Health, &WorldIdx, Entity), (With<OreType>, Added<WorldIdx>)>,
+    mut q_ores: Query<(&WorldIdx, Entity), (With<OreType>, Added<WorldIdx>)>,
     q_parents: Query<&Parent>,
     mut q_areas: Query<&mut ObjectiveArea>,
     mut room_manager: ResMut<RoomManager>,
 ) {
-    for (mut health, world_id, entity) in q_ores.iter_mut() {
+    for (world_id, entity) in q_ores.iter_mut() {
         for parent in q_parents.iter_ancestors(entity) {
             if let Ok(mut area) = q_areas.get_mut(parent) {
                 // Initialize ores as used and have them managed by the ObjectiveAreaManager.
                 area.ores.insert_new_used(entity);
-                // Used ores have 0.0 health.
-                **health = 0.0;
 
                 // Set area target and replicate.
                 commands.entity(entity).insert((
-                    // Hidden since it will not be available on spawn.
-                    // (will be replaced with some dulling effect instead)
-                    Visibility::Hidden,
                     OreDestroyed,
                     ObjectiveAreaTarget(parent),
                     Replicate {
@@ -84,6 +82,21 @@ fn replicate_setup_ores(
                 break;
             }
         }
+    }
+}
+
+/// Apply initial stats and setup [OreType] with their respective [ObjectiveArea] parent.
+fn setup_ores(mut commands: Commands, q_entities: Query<Entity, Added<OreType>>) {
+    for entity in q_entities.iter() {
+        commands.entity(entity).insert((
+            // Hidden since it will not be available on spawn.
+            // (will be replaced with some dulling effect instead)
+            Visibility::Hidden,
+            // Ores are spawned with no health.
+            Health::new(0.0),
+            // Which means it's destroyed.
+            OreDestroyed,
+        ));
     }
 }
 
