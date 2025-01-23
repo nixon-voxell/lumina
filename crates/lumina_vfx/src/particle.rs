@@ -178,7 +178,7 @@ pub enum DespawnVfxType {
 ///         vfx_type: DespawnVfxType::AmmoHit,
 ///         transform: Transform::default(),
 ///         material: DEFAULT_MATERIAL,
-///     })
+///     });
 /// }
 /// ```
 #[derive(Event)]

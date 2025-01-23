@@ -148,8 +148,6 @@ fn prepare_rc_buffers(
             let start = config.interval0 * (1.0 - f32::powi(4.0, c as i32)) / -3.0;
             let range = config.interval0 * f32::powi(4.0, c as i32);
 
-            // TODO: calculate the number of pixels to raymarch directly here?
-
             let probe = Probe {
                 cascade_index: c as u32,
                 width,

@@ -40,9 +40,13 @@ fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = true;
 }
 
-fn disconnected_from_server(mut func: ResMut<MainMenuFunc>) {
+fn disconnected_from_server(
+    mut func: ResMut<MainMenuFunc>,
+    mut next_screen_state: ResMut<NextState<Screen>>,
+) {
     func.connected = false;
     func.connection_msg = "Disconnected...".to_string();
+    next_screen_state.set(Screen::MainMenu);
 }
 
 fn main_window_transparency(mut transparency_evw: EventWriter<MainWindowTransparency>) {
@@ -61,7 +65,7 @@ fn reconnect_btn(
     mut func: ResMut<MainMenuFunc>,
 ) {
     if interactions.pressed("btn:reconnect") {
-        next_connection_state.set(Connection::Connect);
+        next_connection_state.set(Connection::Connecting);
         func.connection_msg = "Connecting to server...".to_string();
     }
 }

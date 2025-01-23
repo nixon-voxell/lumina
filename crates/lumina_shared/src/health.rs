@@ -1,9 +1,26 @@
-use bevy::ecs::component::{ComponentHooks, StorageType};
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
+pub(super) struct HealthPlugin;
+
+impl Plugin for HealthPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(PostUpdate, init_health);
+    }
+}
+
+/// Initialized [Health] from [MaxHealth] if not exist.
+pub fn init_health(
+    mut commands: Commands,
+    q_entities: Query<(&MaxHealth, Entity), (Added<MaxHealth>, Without<Health>)>,
+) {
+    for (max_health, entity) in q_entities.iter() {
+        commands.entity(entity).insert(Health(**max_health));
+    }
+}
+
 /// The maximum health of the entity.
-#[derive(Reflect, Deref, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Deref, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 pub struct MaxHealth(f32);
 
@@ -13,22 +30,15 @@ impl MaxHealth {
     }
 }
 
-impl Component for MaxHealth {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, entity, _| {
-            let max_health = **world.entity(entity).get::<Self>().unwrap();
-
-            let mut commands = world.commands();
-            commands.entity(entity).insert(Health(max_health));
-        });
-    }
-}
-
 /// The current health of the entity.
 #[derive(
     Component, Reflect, Deref, DerefMut, Serialize, Deserialize, Debug, Clone, Copy, PartialEq,
 )]
 #[reflect(Component)]
 pub struct Health(f32);
+
+impl Health {
+    pub fn new(health: f32) -> Self {
+        Self(health)
+    }
+}

@@ -14,12 +14,14 @@ use weapon::Weapon;
 use super::action::PlayerAction;
 
 pub mod ammo;
+pub mod objective;
 pub mod spaceship;
 pub mod spawn_point;
 pub mod weapon;
 
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoHit, AmmoStat, FireAmmo};
+    pub use super::objective::{CollectedLumina, LuminaCollected, LuminaStat, ObjectiveArea};
     pub use super::spaceship::{Boost, Dash, MovementStat, Spaceship};
     pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
     pub use super::weapon::{Weapon, WeaponStat};
@@ -35,6 +37,7 @@ impl Plugin for PlayerPlugin {
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
             spawn_point::SpawnPointPlugin,
+            objective::ObjectivePlugin,
         ));
 
         app.init_resource::<PlayerInfos>()
@@ -119,5 +122,5 @@ impl<const COUNT: usize> Default for PlayerInfos<COUNT> {
 pub enum GameLayer {
     Spaceship,
     Ammo,
-    Wall,
+    Lumina,
 }

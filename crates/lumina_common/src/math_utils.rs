@@ -1,3 +1,7 @@
+pub const PRIME0: u64 = 92837111;
+pub const PRIME1: u64 = 689287499;
+pub const PRIME2: u64 = 283923481;
+
 /// A flattened 2d [`Vec`].
 #[derive(Default, Debug, Clone)]
 pub struct Vec2d<T> {
@@ -128,6 +132,10 @@ impl XorShift32 {
 
         state
     }
+}
+
+pub fn hash_coords_2d(x: u64, y: u64) -> u64 {
+    (x * PRIME1) ^ (y * PRIME2)
 }
 
 // TODO: Add test for Vec2d!

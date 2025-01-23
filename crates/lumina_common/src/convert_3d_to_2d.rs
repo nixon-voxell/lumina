@@ -49,9 +49,7 @@ fn convert_std_to_color_material(
         match color_material_map.get(&std_material_handle.id()) {
             Some(color_material) => {
                 // Reuse the same material handle if a map exists.
-                commands
-                    .entity(entity)
-                    .insert(Handle::Weak(*color_material));
+                commands.entity(entity).insert(color_material.clone_weak());
             }
             None => {
                 // Create a new color material handle if a map does not exists.
@@ -62,9 +60,10 @@ fn convert_std_to_color_material(
 
                 let color_material_handle =
                     color_materials.add(std_to_color_material(std_material));
-                color_material_map.insert(std_material_handle.id(), color_material_handle.id());
+                let weak_handle = color_material_handle.clone_weak();
+                color_material_map.insert(std_material_handle.id(), color_material_handle);
 
-                commands.entity(entity).insert(color_material_handle);
+                commands.entity(entity).insert(weak_handle);
             }
         }
 
@@ -90,7 +89,7 @@ fn material_change_update(
 
             if let Some(color_material) = color_material_map
                 .get(id)
-                .and_then(|handle| color_materials.get_mut(*handle))
+                .and_then(|handle| color_materials.get_mut(handle))
             {
                 *color_material = std_to_color_material(std_material);
             }
@@ -102,7 +101,7 @@ fn material_change_update(
 
 /// Mapping of corresponding [`StandardMaterial`] to [`ColorMaterial`].
 #[derive(Resource, Default, Deref, DerefMut)]
-pub struct ColorMaterialMap(HashMap<AssetId<StandardMaterial>, AssetId<ColorMaterial>>);
+pub struct ColorMaterialMap(HashMap<AssetId<StandardMaterial>, Handle<ColorMaterial>>);
 
 pub fn std_to_color_material(std_material: &StandardMaterial) -> ColorMaterial {
     ColorMaterial {

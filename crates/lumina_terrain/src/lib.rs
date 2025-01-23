@@ -73,7 +73,7 @@ pub struct GenerateTerrain {
     /// The entity that is supposed to hold the [`map::TerrainMapBundle`].
     pub entity: Entity,
     pub layers: CollisionLayers,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
 }
 
 #[derive(Event, Debug, Deref, Clone, Copy)]

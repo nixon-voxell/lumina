@@ -5,7 +5,7 @@ use lumina_shared::prelude::*;
 use lumina_terrain::prelude::*;
 
 use crate::player::CachedGameStat;
-use crate::ui::Screen;
+use crate::screens::Screen;
 
 pub(super) struct InGamePlugin;
 

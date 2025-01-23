@@ -44,7 +44,6 @@ fn attack_vfx(
 
         for vfx_entity in vfx_map.values() {
             if let Ok(mut vfx_state) = q_states.get_mut(*vfx_entity) {
-                info!("Fired: {vfx_entity}");
                 vfx_state.active = true;
             }
         }

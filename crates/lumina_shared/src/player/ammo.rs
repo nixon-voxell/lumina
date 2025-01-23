@@ -117,13 +117,18 @@ fn ammo_collision(
             &mut AmmoStat,
             &AmmoDamage,
             Ref<CollidingEntities>,
+            &Visibility,
             &PlayerId,
         ),
-        Changed<CollidingEntities>,
+        (Changed<CollidingEntities>, Without<AmmoRef>),
     >,
     mut evw_ammo_hit: EventWriter<AmmoHit>,
 ) {
-    for (position, mut stat, &AmmoDamage(damage), colliding, id) in q_ammos.iter_mut() {
+    for (position, mut stat, &AmmoDamage(damage), colliding, viz, id) in q_ammos.iter_mut() {
+        // Skip already hidden ammos.
+        if viz == Visibility::Hidden {
+            continue;
+        }
         // No collisions.
         if colliding.is_added() || colliding.len() == 0 {
             continue;
@@ -162,7 +167,7 @@ fn ammo_collision(
 #[derive(Event)]
 pub struct FireAmmo {
     pub player_id: PlayerId,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub ammo_type: AmmoType,
     pub position: Vec2,
     pub direction: Vec2,
@@ -188,7 +193,7 @@ impl InitAmmoBundle {
             ammo_type,
             mass_properties: MassPropertiesBundle::new_computed(&collider, 1.0),
             collider,
-            layers: CollisionLayers::new(GameLayer::Ammo, [GameLayer::Spaceship, GameLayer::Wall]),
+            layers: CollisionLayers::new(GameLayer::Ammo, [GameLayer::Spaceship]),
             rigidbody: RigidBody::Dynamic,
             sensor: Sensor,
             spatial: SpatialBundle {
@@ -205,7 +210,7 @@ impl InitAmmoBundle {
 #[derive(Bundle)]
 pub struct FireAmmoBundle {
     pub player_id: PlayerId,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub stat: AmmoStat,
     pub damage: AmmoDamage,
     pub position: Position,
