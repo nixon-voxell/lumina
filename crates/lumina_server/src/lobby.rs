@@ -134,17 +134,17 @@ pub(super) struct LobbyBundle {
     pub lobby: Lobby,
     pub size: LobbySize,
     pub seed: LobbySeed,
-    pub world_id: PhysicsWorldId,
+    pub world_id: WorldIdx,
     pub spatial: SpatialBundle,
 }
 
 impl LobbyBundle {
-    pub fn new(initial_client: ClientId, size: u8, seed: u32, world_id: u32) -> Self {
+    pub fn new(initial_client: ClientId, size: u8, seed: u32, world_entity: Entity) -> Self {
         Self {
             size: LobbySize(size),
             lobby: Lobby(SmallVec::from_slice(&[initial_client])),
             seed: LobbySeed(seed),
-            world_id: PhysicsWorldId(world_id),
+            world_id: WorldIdx::from_entity(world_entity),
             spatial: SpatialBundle::default(),
         }
     }

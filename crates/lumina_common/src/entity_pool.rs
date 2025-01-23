@@ -17,6 +17,16 @@ pub struct EntityPool {
 }
 
 impl EntityPool {
+    pub fn used(&self) -> &EntityHashSet {
+        &self.used
+    }
+
+    pub fn unused(&self) -> &EntityHashSet {
+        &self.unused
+    }
+}
+
+impl EntityPool {
     pub fn insert_new_used(&mut self, entity: Entity) -> bool {
         self.used.insert(entity)
     }
@@ -47,7 +57,7 @@ impl EntityPool {
         }
     }
 
-    /// Set ammo as unused (normally used when ammo becomes irrelevant).
+    /// Set entity as unused.
     ///
     /// # Returns
     ///
@@ -58,6 +68,33 @@ impl EntityPool {
         }
 
         self.unused.insert(entity);
+    }
+
+    /// Set entity as used.
+    ///
+    /// # Returns
+    ///
+    /// True if successful, false if unsuccessful.
+    pub fn set_used(&mut self, entity: Entity) {
+        if self.unused.remove(&entity) == false {
+            error!("{entity} was not from the pool!");
+        }
+
+        self.used.insert(entity);
+    }
+
+    /// Drain all used entities and insert them into the unused set.
+    pub fn set_all_unused(&mut self) {
+        for entity in self.used.drain() {
+            self.unused.insert(entity);
+        }
+    }
+
+    /// Drain all unused entities and insert them into the used set.
+    pub fn set_all_used(&mut self) {
+        for entity in self.unused.drain() {
+            self.used.insert(entity);
+        }
     }
 }
 

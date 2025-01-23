@@ -66,6 +66,6 @@
   let size = measure(body)
 
   place(dx: -size.width * 0.5, dy: -size.height - 10pt)[
-    #box()[#body] <body>
+    #box(inset: 2pt)[#body] <body>
   ]
 }

@@ -3,9 +3,10 @@ use client::*;
 use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 
-use super::player::LocalPlayerId;
-use super::ui::Screen;
-use super::LocalClientId;
+use crate::player::LocalPlayerId;
+use crate::LocalClientId;
+
+use super::Screen;
 
 pub(super) struct MatchmakingPlugin;
 

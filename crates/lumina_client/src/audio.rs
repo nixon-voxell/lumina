@@ -2,7 +2,7 @@ use bevy::audio::*;
 use bevy::prelude::*;
 use lumina_shared::prelude::*;
 
-use crate::ui::Screen;
+use crate::screens::Screen;
 
 pub(super) struct AudioPlugin;
 

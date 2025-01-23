@@ -8,7 +8,7 @@ use lumina_shared::player::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::ui::Screen;
+use super::Screen;
 
 pub(super) struct LocalLobbyPlugin;
 
@@ -24,36 +24,31 @@ impl Plugin for LocalLobbyPlugin {
 
 /// Spawn lobby scene.
 fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWindowTransparency>) {
-    let lobby_scene = commands.spawn(LocalLobbyBundle::default()).id();
     commands
-        .spawn((LobbyType::Local.info(), SpawnBlueprint))
-        .set_parent(lobby_scene);
+        .spawn(LocalLobbyBundle::default())
+        .with_children(|builder| {
+            builder.spawn((LobbyType::Local.info(), SpawnBlueprint));
 
-    // Spaceship
-    commands
-        .spawn((
-            SpaceshipType::Assassin.config_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Spaceship
+            builder.spawn((
+                SpaceshipType::Assassin.config_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    // Weapon
-    commands
-        .spawn((
-            WeaponType::Cannon.config_info(),
-            SpawnBlueprint,
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Weapon
+            builder.spawn((
+                WeaponType::Cannon.config_info(),
+                SpawnBlueprint,
+                PlayerId::LOCAL,
+            ));
 
-    // Action
-    commands
-        .spawn((
-            InputManagerBundle::with_map(PlayerAction::input_map()),
-            PlayerId::LOCAL,
-        ))
-        .set_parent(lobby_scene);
+            // Action
+            builder.spawn((
+                InputManagerBundle::with_map(PlayerAction::input_map()),
+                PlayerId::LOCAL,
+            ));
+        });
 
     transparency_evw.send(MainWindowTransparency(1.0));
 }
@@ -80,7 +75,7 @@ pub(super) struct LocalLobbyBundle {
     local_lobby: LocalLobby,
     spatial: SpatialBundle,
     source: SourceEntity,
-    world_id: PhysicsWorldId,
+    world_id: WorldIdx,
 }
 
 impl Default for LocalLobbyBundle {
@@ -89,7 +84,7 @@ impl Default for LocalLobbyBundle {
             local_lobby: LocalLobby,
             spatial: SpatialBundle::default(),
             source: SourceEntity,
-            world_id: PhysicsWorldId::default(),
+            world_id: WorldIdx::default(),
         }
     }
 }

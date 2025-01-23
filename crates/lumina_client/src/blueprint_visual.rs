@@ -9,6 +9,8 @@ impl Plugin for BlueprintVisualPlugin {
     fn build(&self, app: &mut App) {
         app.spawn_blueprint_visual::<SpaceshipType, ()>()
             .spawn_blueprint_visual::<WeaponType, ()>()
-            .spawn_blueprint_visual::<AmmoType, Without<AmmoRef>>();
+            .spawn_blueprint_visual::<AmmoType, Without<AmmoRef>>()
+            .spawn_blueprint_visual::<LuminaType, ()>()
+            .spawn_blueprint_visual::<OreType, ()>();
     }
 }

@@ -3,7 +3,6 @@ use bevy_coroutine::prelude::*;
 use bevy_motiongfx::prelude::*;
 use client::*;
 use lightyear::prelude::*;
-use lumina_shared::effector::MatchmakeEffector;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;

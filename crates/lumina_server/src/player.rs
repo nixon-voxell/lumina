@@ -9,18 +9,21 @@ use server::*;
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
+pub(super) mod objective;
+
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnClientPlayer>()
+        app.add_plugins(objective::ObjectivePlugin)
+            .add_event::<SpawnClientPlayer>()
             .add_systems(
                 PreUpdate,
                 (
                     replicate_actions.after(MainSet::EmitEvents),
                     replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
-                    replicate_spawn::<Spaceship>,
-                    replicate_spawn::<Weapon>,
+                    replicate_item_spawn::<Spaceship>,
+                    replicate_item_spawn::<Weapon>,
                 ),
             )
             .observe(spawn_players);
@@ -56,7 +59,9 @@ fn spawn_players(trigger: Trigger<SpawnClientPlayer>, mut commands: Commands) {
     info!("SERVER: Spawned player for {client_id}");
 }
 
-fn replicate_spawn<T: Component>(
+/// Replicate a player's item back other clients while granting
+/// prediction to all clients and no interpolation to target client.
+fn replicate_item_spawn<T: Component>(
     mut commands: Commands,
     q_entities: Query<(&PlayerId, Entity), (With<T>, Without<SyncTarget>)>,
     lobby_infos: Res<LobbyInfos>,
@@ -86,7 +91,7 @@ fn replicate_spawn<T: Component>(
     }
 }
 
-/// Replicate action back to other clients.
+/// Replicate action back to other clients with prediction turned on for all clients.
 fn replicate_action_spawn(
     mut commands: Commands,
     q_actions: Query<(&PlayerId, Entity), (Added<ActionState<PlayerAction>>, Added<Replicated>)>,

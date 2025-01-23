@@ -99,6 +99,8 @@ fn remove_color_material<M: AssetFromComponent>(
     q_entities: Query<Entity, Added<M>>,
 ) {
     for entity in q_entities.iter() {
-        commands.entity(entity).remove::<Handle<ColorMaterial>>();
+        commands
+            .entity(entity)
+            .remove::<(Handle<ColorMaterial>, Handle<StandardMaterial>)>();
     }
 }

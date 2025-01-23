@@ -2,12 +2,11 @@ use bevy::prelude::*;
 use bevy_radiance_cascades::prelude::*;
 use lumina_common::physics::{MeshRigidbody, PrimitiveRigidbody};
 
-use crate::blueprints::{AmmoType, SpaceshipType, WeaponType};
-use crate::effector::{
-    Effector, EffectorPopupMsg, InteractableEffector, MatchmakeEffector, TutorialEffector,
-};
+use crate::blueprints::*;
+use crate::effector::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
+use crate::player::objective::{LuminaSpawnArea, LuminaStat, ObjectiveArea};
 use crate::player::prelude::*;
 use crate::player::spaceship::Boost;
 
@@ -18,11 +17,20 @@ impl Plugin for TypeRegistryPlugin {
         app
             // Radiance
             .register_type::<NoRadiance>()
-            // Health
+            // Blueprint
+            .register_type::<BlueprintSpawner<TesseractType>>()
+            .register_type::<BlueprintSpawner<OreType>>()
+            .register_type::<DespawnOnSpawn>()
+            // Game
             .register_type::<MaxHealth>()
             .register_type::<Health>()
-            // Game
             .register_type::<SpawnPoint>()
+            .register_type::<TesseractType>()
+            .register_type::<OreType>()
+            .register_type::<LuminaType>()
+            .register_type::<LuminaStat>()
+            .register_type::<ObjectiveArea>()
+            .register_type::<LuminaSpawnArea>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()
@@ -37,7 +45,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<InteractableEffector>()
             .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
-            .register_type::<TutorialEffector>()
+            .register_type::<TesseractEffector>()
             // Physics
             .register_type::<PrimitiveRigidbody>()
             .register_type::<MeshRigidbody>();

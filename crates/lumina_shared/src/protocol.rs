@@ -3,12 +3,14 @@ use bevy::prelude::*;
 use client::ComponentSyncMode;
 use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
+use lumina_common::prelude::*;
 use server::RoomId;
 use strum::EnumCount;
 
 use crate::action::PlayerAction;
-use crate::blueprints::{SpaceshipType, WeaponType};
+use crate::blueprints::*;
 use crate::health::{Health, MaxHealth};
+use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
@@ -25,6 +27,7 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
+        app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
@@ -38,45 +41,60 @@ impl Plugin for ProtocolPlugin {
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
 
         // Components
-        // Health
+        // Game
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Health>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
+
+        app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<OreType>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<TeamType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<Boost>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple)
+            .add_interpolation(ComponentSyncMode::Simple);
 
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
 
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
+
+        app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
 
         // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Once)
-            .add_interpolation(client::ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once)
+            .add_interpolation(ComponentSyncMode::Once);
+
+        app.register_component::<PrimitiveRigidbody>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<MeshRigidbody>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
@@ -91,10 +109,10 @@ impl Plugin for ProtocolPlugin {
             .add_correction_fn(rotation::lerp);
 
         app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
@@ -124,6 +142,10 @@ impl GameScore {
         }
     }
 }
+
+/// Deposit Lumina action sent from client to server.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct DepositLumina;
 
 /// Enter sandbox level.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]

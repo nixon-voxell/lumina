@@ -87,13 +87,7 @@ fn weapon_direction(
 fn weapon_attack(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_weapons: Query<
-        (
-            &Transform,
-            &Weapon,
-            &mut WeaponStat,
-            &PlayerId,
-            &PhysicsWorldId,
-        ),
+        (&Transform, &Weapon, &mut WeaponStat, &PlayerId, &WorldIdx),
         With<SourceEntity>,
     >,
     mut fire_ammo_evw: EventWriter<FireAmmo>,
