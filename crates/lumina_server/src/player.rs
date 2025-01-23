@@ -9,7 +9,7 @@ use server::*;
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
-pub mod objective;
+pub(super) mod objective;
 
 pub(super) struct PlayerPlugin;
 

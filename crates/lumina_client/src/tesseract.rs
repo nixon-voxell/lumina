@@ -20,10 +20,6 @@ fn deposit_tesseract(
     mut connection_manager: ResMut<ConnectionManager>,
 ) {
     let effector_entity = trigger.entity();
-    info!(
-        "Tesseract effector triggered by entity {:?}",
-        effector_entity
-    );
 
     let _ = connection_manager.send_message::<ReliableChannel, _>(&DepositLumina);
 

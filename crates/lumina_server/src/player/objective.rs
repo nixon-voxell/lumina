@@ -24,11 +24,31 @@ impl Plugin for ObjectivePlugin {
                     replicate_lumina,
                     track_lumina_lifetime,
                     reset_objective_area,
+                    lumina_deposition,
                 ),
             )
             .add_systems(PostUpdate, setup_ores.before(init_health))
             .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
             .observe(spawn_lumina);
+    }
+}
+
+/// Listen for messages from clients that are triggering a [DepositLumina] event.
+fn lumina_deposition(
+    mut q_collected_luminas: Query<&mut CollectedLumina>,
+    mut evr_deposit: EventReader<MessageEvent<DepositLumina>>,
+    player_info: Res<PlayerInfos>,
+) {
+    for deposit in evr_deposit.read() {
+        let deposit_client = *deposit.context();
+
+        if let Some(mut collected_lumina) = player_info[PlayerInfoType::Spaceship]
+            .get(&PlayerId(deposit_client))
+            .and_then(|&e| q_collected_luminas.get_mut(e).ok())
+        {
+            info!("{deposit_client:?} triggered a deposit event with {collected_lumina:?}!");
+            **collected_lumina = 0;
+        }
     }
 }
 
