@@ -53,50 +53,45 @@ fn setup_objective_area(
 fn replicate_ores(
     mut commands: Commands,
     mut q_ores: Query<(&WorldIdx, Entity), (With<OreType>, Added<WorldIdx>)>,
-    q_parents: Query<&Parent>,
-    mut q_areas: Query<&mut ObjectiveArea>,
     mut room_manager: ResMut<RoomManager>,
 ) {
     for (world_id, entity) in q_ores.iter_mut() {
+        // Set area target and replicate.
+        commands.entity(entity).insert((Replicate {
+            sync: SyncTarget {
+                prediction: NetworkTarget::All,
+                interpolation: NetworkTarget::None,
+            },
+            relevance_mode: NetworkRelevanceMode::InterestManagement,
+            ..default()
+        },));
+
+        room_manager.add_entity(entity, world_id.room_id());
+    }
+}
+
+/// Apply initial stats and setup [OreType] with their respective [ObjectiveArea] parent.
+fn setup_ores(
+    mut commands: Commands,
+    q_entities: Query<Entity, Added<OreType>>,
+    q_parents: Query<&Parent>,
+    mut q_areas: Query<&mut ObjectiveArea>,
+) {
+    for entity in q_entities.iter() {
         for parent in q_parents.iter_ancestors(entity) {
             if let Ok(mut area) = q_areas.get_mut(parent) {
                 // Initialize ores as used and have them managed by the ObjectiveAreaManager.
                 area.ores.insert_new_used(entity);
 
-                // Set area target and replicate.
                 commands.entity(entity).insert((
-                    OreDestroyed,
                     ObjectiveAreaTarget(parent),
-                    Replicate {
-                        sync: SyncTarget {
-                            prediction: NetworkTarget::All,
-                            interpolation: NetworkTarget::None,
-                        },
-                        relevance_mode: NetworkRelevanceMode::InterestManagement,
-                        ..default()
-                    },
+                    // Ores are spawned with no health.
+                    Health::new(0.0),
+                    // Which means it's destroyed.
+                    OreDestroyed,
                 ));
-
-                room_manager.add_entity(entity, world_id.room_id());
-                // There should only be one ObjectiveArea parenting an Ore.
-                break;
             }
         }
-    }
-}
-
-/// Apply initial stats and setup [OreType] with their respective [ObjectiveArea] parent.
-fn setup_ores(mut commands: Commands, q_entities: Query<Entity, Added<OreType>>) {
-    for entity in q_entities.iter() {
-        commands.entity(entity).insert((
-            // Hidden since it will not be available on spawn.
-            // (will be replaced with some dulling effect instead)
-            Visibility::Hidden,
-            // Ores are spawned with no health.
-            Health::new(0.0),
-            // Which means it's destroyed.
-            OreDestroyed,
-        ));
     }
 }
 
@@ -191,23 +186,20 @@ fn replicate_lumina(
 /// Handles both collision detection and gameplay effects for Lumina collection.
 fn lumina_collection(
     mut commands: Commands,
-    q_luminas: Query<(Entity, &CollidingEntities), (Changed<CollidingEntities>, With<LuminaStat>)>,
+    q_luminas: Query<(&CollidingEntities, Entity), (Changed<CollidingEntities>, With<LuminaStat>)>,
     mut q_players: Query<(&PlayerId, &mut CollectedLumina)>,
 ) {
-    for (lumina_entity, colliding_entities) in q_luminas.iter() {
+    for (colliding_entities, entity) in q_luminas.iter() {
         // Filter for players that collided with the Lumina.
         for &player_entity in colliding_entities.iter() {
             if let Ok((player_id, mut collected_luminas)) = q_players.get_mut(player_entity) {
                 if **collected_luminas < CollectedLumina::MAX {
                     // Increment the player's pending Lumina count.
                     **collected_luminas += 1;
-                    // Despawn the Lumina entity.
-                    commands.entity(lumina_entity).despawn();
+                    info!("Player {:?} collected Lumina {:?}", player_id, entity);
 
-                    info!(
-                        "Player {:?} collected Lumina {:?}",
-                        player_id, lumina_entity
-                    );
+                    // Despawn the Lumina entity.
+                    commands.entity(entity).despawn();
 
                     // Only allow one player to collect the Lumina.
                     break;
@@ -248,11 +240,11 @@ fn track_lumina_lifetime(
     mut q_lumina: Query<(&mut LuminaStat, Entity)>,
     time: Res<Time>,
 ) {
-    for (mut lumina_stat, lumina_entity) in q_lumina.iter_mut() {
-        lumina_stat.lifetime -= time.delta_seconds();
-        if lumina_stat.lifetime <= 0.0 {
-            // Despawn the Lumina entity when its lifetime expires.
-            commands.entity(lumina_entity).despawn();
+    for (mut stat, entity) in q_lumina.iter_mut() {
+        stat.lifetime -= time.delta_seconds();
+
+        if stat.lifetime <= 0.0 {
+            commands.entity(entity).despawn();
         }
     }
 }
