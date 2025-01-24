@@ -22,7 +22,10 @@ pub mod weapon;
 pub mod prelude {
     pub use super::ammo::{Ammo, AmmoDamage, AmmoHit, AmmoStat, FireAmmo};
     pub use super::objective::{CollectedLumina, LuminaCollected, LuminaStat, ObjectiveArea};
-    pub use super::spaceship::{Boost, Dash, MovementStat, Spaceship};
+    pub use super::spaceship::{
+        DashCooldown, DashEffect, Energy, RotationDiff, Spaceship, TargetAcceleration,
+        TargetDamping,
+    };
     pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
     pub use super::weapon::{Weapon, WeaponStat};
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};

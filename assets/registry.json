@@ -20889,6 +20889,7 @@
         "Move",
         "Dash",
         "Boost",
+        "Brake",
         "Interact",
         "Attack",
         "Aim"
@@ -21292,35 +21293,102 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::Boost": {
+    "lumina_shared::player::spaceship::BoostConfig": {
       "additionalProperties": false,
-      "isComponent": true,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::Boost",
+      "long_name": "lumina_shared::player::spaceship::BoostConfig",
       "properties": {
-        "consumption_rate": {
+        "energy_consumption": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "cooldown_duration": {
+        "linear_acceleration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "linear_acceleration",
+        "energy_consumption"
+      ],
+      "short_name": "BoostConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::BrakeConfig": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::BrakeConfig",
+      "properties": {
+        "brake_linear_damping": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "current_cooldown": {
+        "linear_damping": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "linear_damping",
+        "brake_linear_damping"
+      ],
+      "short_name": "BrakeConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::DashConfig": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::DashConfig",
+      "properties": {
+        "cooldown": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "energy": {
+        "duration": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "is_boosting": {
+        "energy_consumption": {
           "type": {
-            "$ref": "#/$defs/bool"
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "duration",
+        "cooldown",
+        "energy_consumption",
+        "impulse"
+      ],
+      "short_name": "DashConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::EnergyConfig": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::EnergyConfig",
+      "properties": {
+        "cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
           }
         },
         "max_energy": {
@@ -21335,105 +21403,21 @@
         }
       },
       "required": [
-        "energy",
         "max_energy",
         "regen_rate",
-        "consumption_rate",
-        "cooldown_duration",
-        "current_cooldown",
-        "is_boosting"
+        "cooldown"
       ],
-      "short_name": "Boost",
+      "short_name": "EnergyConfig",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::Dash": {
+    "lumina_shared::player::spaceship::MovementConfig": {
       "additionalProperties": false,
-      "isComponent": true,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::Dash",
+      "long_name": "lumina_shared::player::spaceship::MovementConfig",
       "properties": {
-        "cooldown": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "current_cooldown": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "direction": {
-          "type": {
-            "$ref": "#/$defs/glam::Vec2"
-          }
-        },
-        "duration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "energy_cost": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "is_dashing": {
-          "type": {
-            "$ref": "#/$defs/bool"
-          }
-        },
-        "speed": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        }
-      },
-      "required": [
-        "direction",
-        "duration",
-        "cooldown",
-        "current_cooldown",
-        "energy_cost",
-        "speed",
-        "is_dashing"
-      ],
-      "short_name": "Dash",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::player::spaceship::Spaceship": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::Spaceship",
-      "properties": {
-        "angular_damping": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "boost_linear_acceleration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "brake_linear_acceleration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "brake_linear_damping": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
         "linear_acceleration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "linear_damping": {
           "type": {
             "$ref": "#/$defs/f32"
           }
@@ -21451,13 +21435,51 @@
       },
       "required": [
         "linear_acceleration",
-        "rotation_speed",
-        "boost_linear_acceleration",
-        "brake_linear_acceleration",
         "max_linear_speed",
-        "linear_damping",
-        "angular_damping",
-        "brake_linear_damping"
+        "rotation_speed"
+      ],
+      "short_name": "MovementConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::Spaceship": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::Spaceship",
+      "properties": {
+        "boost": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::BoostConfig"
+          }
+        },
+        "brake": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::BrakeConfig"
+          }
+        },
+        "dash": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::DashConfig"
+          }
+        },
+        "energy": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::EnergyConfig"
+          }
+        },
+        "movement": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::MovementConfig"
+          }
+        }
+      },
+      "required": [
+        "movement",
+        "brake",
+        "boost",
+        "dash",
+        "energy"
       ],
       "short_name": "Spaceship",
       "type": "object",

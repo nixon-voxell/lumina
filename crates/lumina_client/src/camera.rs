@@ -151,19 +151,16 @@ fn spaceship_velocity_zoom_shake(
 ) {
     const MAX_ZOOM: f32 = 1.6;
 
-    let Some(spaceship_entity) = local_player_info.get(PlayerInfoType::Spaceship) else {
-        return;
-    };
+    if let Some((spaceship_velocity, Spaceship { movement, .. })) = local_player_info
+        .get(PlayerInfoType::Spaceship)
+        .and_then(|e| q_spaceships.get(e).ok())
+    {
+        // Apply ease to zoom more towards maximal velocity and vice versa.
+        let velocity_factor =
+            ease::quad::ease_in_out(spaceship_velocity.length() / movement.max_linear_speed);
 
-    let Ok((spaceship_velocity, spaceship)) = q_spaceships.get(spaceship_entity) else {
-        return;
-    };
-
-    // Apply ease to zoom more towards maximal velocity and vice versa.
-    let velocity_factor =
-        ease::quad::ease_in_out(spaceship_velocity.length() / spaceship.max_linear_speed);
-
-    camera_zoom.target_zoom = f32::lerp(1.0, MAX_ZOOM, velocity_factor);
+        camera_zoom.target_zoom = f32::lerp(1.0, MAX_ZOOM, velocity_factor);
+    }
 }
 
 fn main_window_zoom(main_window_func: Res<MainWindowFunc>, mut camera_zoom: ResMut<CameraZoom>) {

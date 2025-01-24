@@ -56,35 +56,28 @@ impl Plugin for ProtocolPlugin {
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<TeamType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<Boost>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Simple)
-            .add_interpolation(ComponentSyncMode::Simple);
+        app.register_component::<Energy>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<Dash>(ChannelDirection::ServerToClient)
-            .add_prediction(client::ComponentSyncMode::Simple)
-            .add_interpolation(client::ComponentSyncMode::Simple);
+        app.register_component::<DashCooldown>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
