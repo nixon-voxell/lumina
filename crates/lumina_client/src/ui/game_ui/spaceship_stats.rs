@@ -20,21 +20,33 @@ impl Plugin for SpaceshipStatsPlugin {
 
 fn spaceship_stats(
     q_spaceships: Query<
-        (&MaxHealth, &Health, &Boost, &PlayerId),
-        (With<Spaceship>, With<SourceEntity>),
+        (
+            &MaxHealth,
+            &Health,
+            Option<&DashCooldown>,
+            &Energy,
+            &Spaceship,
+            &PlayerId,
+        ),
+        With<SourceEntity>,
     >,
     local_player_id: Res<LocalPlayerId>,
     mut func: ResMut<MainFunc>,
 ) {
-    let spaceship = q_spaceships
+    if let Some((max_health, health, dash_cooldown, energy, spaceship, _)) = q_spaceships
         .iter()
-        .find(|(.., &id)| id == local_player_id.0);
+        .find(|(.., &id)| id == local_player_id.0)
+    {
+        let dash_cooldown = match dash_cooldown {
+            Some(dash_cooldown) => 1.0 - dash_cooldown.elapsed_secs() / spaceship.dash.cooldown,
+            None => 0.0,
+        } as f64;
 
-    if let Some((max_health, health, boost, _)) = spaceship {
         func.data = Some(dict! {
             "health" => **health as f64,
             "max_health" => **max_health as f64,
-            "boost" => (boost.energy / boost.max_energy) as f64
+            "boost" => (energy.energy / spaceship.energy.max_energy) as f64,
+            "dash_cooldown" => dash_cooldown,
         });
     } else {
         func.data = None;

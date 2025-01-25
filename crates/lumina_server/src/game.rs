@@ -48,7 +48,7 @@ fn end_game(
         evw_client_exit.send(ClientExitLobby(*id));
     }
 
-    let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+    let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
         &EndGame,
         entity.room_id(),
         &room_manager,
@@ -110,7 +110,7 @@ fn track_game_score(
     room_manager: Res<RoomManager>,
 ) {
     for (game_score, entity) in q_game_scores.iter() {
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+        let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
             game_score,
             entity.room_id(),
             &room_manager,

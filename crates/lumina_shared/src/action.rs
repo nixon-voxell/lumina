@@ -34,8 +34,9 @@ impl ReplicateActionBundle {
 #[derive(Actionlike, Serialize, Deserialize, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 pub enum PlayerAction {
     Move,
-    Brake,
+    Dash,
     Boost,
+    Brake,
     Interact,
     Attack,
     Aim,
@@ -46,18 +47,20 @@ impl PlayerAction {
     pub fn input_map() -> InputMap<Self> {
         let mut input_map = InputMap::default();
 
-        // Default gamepad input bindings
+        // Gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
-        input_map.insert(Self::Brake, GamepadButtonType::LeftTrigger);
+        input_map.insert(Self::Dash, GamepadButtonType::LeftTrigger);
         input_map.insert(Self::Boost, GamepadButtonType::LeftTrigger2);
-        input_map.insert(Self::Interact, GamepadButtonType::South);
+        input_map.insert(Self::Brake, GamepadButtonType::South);
+        input_map.insert(Self::Interact, GamepadButtonType::West);
         input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
         input_map.insert(Self::Aim, DualAxis::right_stick());
 
-        // Default kbm input bindings
+        // KbM input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
-        input_map.insert(Self::Brake, KeyCode::Space);
-        input_map.insert(Self::Boost, MouseButton::Right);
+        input_map.insert(Self::Dash, KeyCode::Space);
+        input_map.insert(Self::Boost, KeyCode::ShiftLeft);
+        input_map.insert(Self::Brake, KeyCode::ControlLeft);
         input_map.insert(Self::Interact, KeyCode::KeyE);
         input_map.insert(Self::Attack, MouseButton::Left);
 

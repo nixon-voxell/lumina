@@ -95,7 +95,7 @@ fn sandbox_btns(
                 move |mut connection_manager: ResMut<ConnectionManager>,
                       mut next_screen_state: ResMut<NextState<Screen>>| {
                     next_screen_state.set(Screen::Sandbox);
-                    let _ = connection_manager.send_message::<ReliableChannel, _>(&EnterSandbox);
+                    let _ = connection_manager.send_message::<OrdReliableChannel, _>(&EnterSandbox);
 
                     co_break()
                 },
@@ -138,8 +138,8 @@ fn matchmacke_btns(
                   mut lobby_func: ResMut<LobbyFunc>| {
                 next_screen_state.set(Screen::Matchmaking);
 
-                let _ =
-                    connection_manager.send_message::<ReliableChannel, _>(&Matchmake(player_count));
+                let _ = connection_manager
+                    .send_message::<OrdReliableChannel, _>(&Matchmake(player_count));
                 lobby_func.max_player_count = player_count;
 
                 co_break()

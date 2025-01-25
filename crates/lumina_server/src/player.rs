@@ -20,7 +20,7 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 PreUpdate,
                 (
-                    replicate_actions.after(MainSet::EmitEvents),
+                    replicate_actions.before(MainSet::Send),
                     replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                     replicate_item_spawn::<Spaceship>,
                     replicate_item_spawn::<Weapon>,

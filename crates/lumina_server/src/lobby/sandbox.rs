@@ -45,7 +45,7 @@ fn handle_enter_sandbox(
             world_entity,
         });
 
-        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+        let _ = connection_manager.send_message_to_target::<OrdReliableChannel, _>(
             &EnterSandbox,
             NetworkTarget::Single(client_id),
         );

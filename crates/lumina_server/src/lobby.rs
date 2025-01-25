@@ -59,7 +59,7 @@ fn propagate_lobby_status(
         let client_count = lobby.len() as u8;
 
         // Send message to clients to notify about the changes.
-        let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+        let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
             &LobbyUpdate { client_count },
             entity.room_id(),
             &room_manager,

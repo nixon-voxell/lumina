@@ -34,7 +34,7 @@ fn exit_lobby_btn(
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
     if interactions.pressed("btn:exit-lobby") {
-        let _ = connection_manager.send_message::<ReliableChannel, _>(&ExitLobby);
+        let _ = connection_manager.send_message::<OrdReliableChannel, _>(&ExitLobby);
 
         next_screen_state.set(Screen::MainMenu);
     }
