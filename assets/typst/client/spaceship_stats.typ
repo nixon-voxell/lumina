@@ -66,35 +66,27 @@
   width,
   height,
 ) = {
-  let fill_height = cooldown * height
-  let border_radius = 6pt
-  
-  box(width: width, height: height)[
-    // Semi-transparent rounded background
-    #place[
-      #rect(
-        width: width,
-        height: height,
-        fill: base7.transparentize(90%),
-        radius: border_radius,
-        stroke: (paint: base7.transparentize(50%), thickness: 1pt)
-      )
-    ]
-    
+  let fill_height = cooldown * 100%
+  let border_radius = 0.4em
+
+  box(
+    width: width,
+    height: height,
+    fill: base7.transparentize(90%),
+    radius: border_radius,
+    stroke: (paint: base7.transparentize(50%), thickness: 0.1em),
+    clip: true,
+  )[
     // Icon and cooldown overlay
-    #place[
-      #image(icon_path, height: height)
-      
-      // Dark overlay inside the icon filling from bottom to top
-      #if cooldown > 0 {
-        place(top)[
-          #rect(
-            width: width,
-            height: fill_height,
-            fill: black.transparentize(20%),
-          )
-        ]
-      }
+    #box(inset: 0.3em, image(icon_path))
+
+    // Dark overlay inside the icon filling from bottom to top
+    #place(bottom)[
+      #rect(
+        width: 100%,
+        height: fill_height,
+        fill: black.transparentize(10%),
+      )
     ]
   ]
 }
@@ -148,7 +140,7 @@
         data.dash_cooldown,
         "/icons/dash.svg",
         height * 2,
-        height * 2
+        height * 2,
       )
     ]
   ]

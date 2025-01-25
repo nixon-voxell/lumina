@@ -38,7 +38,7 @@ fn spaceship_stats(
         .find(|(.., &id)| id == local_player_id.0)
     {
         let dash_cooldown = match dash_cooldown {
-            Some(dash_cooldown) => dash_cooldown.elapsed_secs() / spaceship.dash.cooldown,
+            Some(dash_cooldown) => 1.0 - dash_cooldown.elapsed_secs() / spaceship.dash.cooldown,
             None => 0.0,
         } as f64;
 

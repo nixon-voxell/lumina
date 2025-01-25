@@ -88,7 +88,7 @@ fn handle_matchmaking(
         });
 
         let room_id = lobby_entity.room_id();
-        let _ = connection_manager.send_message_to_target::<ReliableChannel, _>(
+        let _ = connection_manager.send_message_to_target::<OrdReliableChannel, _>(
             &LobbyData { room_id },
             NetworkTarget::Single(client_id),
         );

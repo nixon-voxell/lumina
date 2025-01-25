@@ -21,7 +21,7 @@ fn deposit_tesseract(
 ) {
     let effector_entity = trigger.entity();
 
-    let _ = connection_manager.send_message::<ReliableChannel, _>(&DepositLumina);
+    let _ = connection_manager.send_message::<OrdReliableChannel, _>(&DepositLumina);
 
     // Clear interaction marker.
     commands

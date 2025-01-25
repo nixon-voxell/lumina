@@ -157,7 +157,8 @@ fn spaceship_velocity_zoom_shake(
     {
         // Apply ease to zoom more towards maximal velocity and vice versa.
         let velocity_factor =
-            ease::quad::ease_in_out(spaceship_velocity.length() / movement.max_linear_speed);
+            ease::quad::ease_in_out(spaceship_velocity.length() / movement.max_linear_speed)
+                .clamp(0.0, 1.0);
 
         camera_zoom.target_zoom = f32::lerp(1.0, MAX_ZOOM, velocity_factor);
     }

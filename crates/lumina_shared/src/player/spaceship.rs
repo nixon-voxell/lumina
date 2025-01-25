@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -74,7 +72,6 @@ fn spaceship_actions(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_spaceships: Query<&mut SpaceshipAction, (With<Spaceship>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
-    time: Res<Time>,
 ) {
     for (player_action, id) in q_actions.iter() {
         if let Some(mut action) = player_infos[PlayerInfoType::Spaceship]
@@ -91,17 +88,8 @@ fn spaceship_actions(
                 )
                 .flatten();
             action.is_boosting = player_action.pressed(&PlayerAction::Boost);
+            action.is_dash = player_action.just_pressed(&PlayerAction::Dash);
             action.is_braking = player_action.pressed(&PlayerAction::Brake);
-
-            action.dash_timer.tick(time.delta());
-
-            if player_action.just_pressed(&PlayerAction::Dash) {
-                println!("\n\nDashed.");
-                action.dash_timer.reset();
-            }
-
-            action.is_dash = !action.dash_timer.finished();
-            println!("{}", action.is_dash);
         }
     }
 }
@@ -288,12 +276,14 @@ fn dash_effect(
 
 fn dash_cooldown(
     mut commands: Commands,
-    mut q_cooldowns: Query<(&mut DashCooldown, Entity), With<SourceEntity>>,
+    mut q_cooldowns: Query<(&mut DashCooldown, &PlayerId, Entity), With<SourceEntity>>,
     time: Res<Time>,
     network_identity: NetworkIdentity,
 ) {
-    for (mut cooldown, entity) in q_cooldowns.iter_mut() {
-        if cooldown.tick(time.delta()).finished() && network_identity.is_server() {
+    for (mut cooldown, player_id, entity) in q_cooldowns.iter_mut() {
+        if cooldown.tick(time.delta()).finished()
+            && (network_identity.is_server() || player_id.is_local())
+        {
             commands.entity(entity).remove::<DashCooldown>();
         }
     }
@@ -366,7 +356,7 @@ pub struct SpaceshipMovementBundle {
     pub energy: Energy,
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Default, Debug, Clone)]
 pub struct SpaceshipAction {
     /// Normalized direction of the player's action.
     pub movement_direction: Option<Vec2>,
@@ -374,29 +364,8 @@ pub struct SpaceshipAction {
     pub is_boosting: bool,
     /// Is [PlayerAction::Dash] being just pressed?
     pub is_dash: bool,
-    dash_timer: Timer,
     /// Is [PlayerAction::Brake] being pressed?
     pub is_braking: bool,
-}
-
-impl SpaceshipAction {
-    // Amount of time a one time action should linger.
-    const ACTION_LINGER: f32 = 0.5;
-}
-
-impl Default for SpaceshipAction {
-    fn default() -> Self {
-        let mut dash_timer = Timer::from_seconds(Self::ACTION_LINGER, TimerMode::Once);
-        dash_timer.tick(Duration::from_secs_f32(Self::ACTION_LINGER * 2.0));
-
-        Self {
-            movement_direction: None,
-            is_boosting: false,
-            is_dash: false,
-            dash_timer,
-            is_braking: false,
-        }
-    }
 }
 
 #[derive(Component, Deref, DerefMut, Default, Debug, Clone, Copy, PartialEq)]

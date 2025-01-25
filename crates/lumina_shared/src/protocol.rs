@@ -21,13 +21,12 @@ impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<EndGame>();
         // Channels
-        app.add_channel::<ReliableChannel>(ChannelSettings {
+        app.add_channel::<OrdReliableChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
             ..default()
         });
 
         // Messages
-        app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
@@ -36,6 +35,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
         app.register_message::<EndGame>(ChannelDirection::ServerToClient);
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
+        app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -140,10 +140,6 @@ impl GameScore {
     }
 }
 
-/// Deposit Lumina action sent from client to server.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct DepositLumina;
-
 /// Enter sandbox level.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct EnterSandbox;
@@ -175,10 +171,14 @@ pub struct StartGame {
     pub seed: u32,
 }
 
+/// Deposit Lumina action sent from client to server.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct DepositLumina;
+
 /// End game command sent from server to client either when 1 team wins or timer runs out.
 #[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct EndGame;
 
-/// A simple reliable channel for sending messages through the network reliably.
+/// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]
-pub struct ReliableChannel;
+pub struct OrdReliableChannel;

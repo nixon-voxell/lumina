@@ -46,7 +46,7 @@ fn start_game(
                 world_id: WorldIdx::from_entity(entity),
             });
 
-            let _ = connection_manager.send_message_to_room::<ReliableChannel, _>(
+            let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
                 &StartGame { seed },
                 entity.room_id(),
                 &room_manager,
