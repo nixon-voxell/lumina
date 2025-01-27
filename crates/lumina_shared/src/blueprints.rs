@@ -125,6 +125,7 @@ pub enum LobbyType {
 #[strum(prefix = "levels/spaceships/")]
 pub enum SpaceshipType {
     Assassin,
+    Defender,
     // Tank,
     // Support,
 }

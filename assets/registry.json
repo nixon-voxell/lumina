@@ -21035,7 +21035,8 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::SpaceshipType",
       "oneOf": [
-        "Assassin"
+        "Assassin",
+        "Defender"
       ],
       "short_name": "SpaceshipType",
       "type": "string",
