@@ -101,12 +101,12 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         }
 
         let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
-        let s = 0.86; let e = -0.5;
+        let s = 0.85; let e = -0.4;
         let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
         let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 
         let coord = p / dimensions;
-        var color = sample_main(coord, level_idx);
+        var color = sample_main(coord, level_idx + 1);
 
         var new_rad = mix(color.rgb, vec3<f32>(0.0), start_edge);
         new_rad = mix(new_rad, vec3<f32>(0.0), end_edge);
@@ -115,7 +115,11 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         new_viz = mix(new_viz, 1.0, end_edge);
 
         radiance += new_rad * visibility * level_idx;
-        visibility *= pow(new_viz, (level_idx * 0.2));
+        visibility *= pow(new_viz, (level_idx * 0.1));
+
+        if visibility < EPSILON {
+            break;
+        }
     }
 
     return vec4<f32>(radiance, visibility);
@@ -190,6 +194,7 @@ fn merge(probe_cell: vec2<u32>, probe_coord: vec2<u32>, ray_index: u32) -> vec4<
     );
 
     return mix(mix(TL, TR, weight.x), mix(BL, BR, weight.x), weight.y) * 0.25;
+    // return (TL + TR + BL + BR) * 0.25 * 0.25;
 }
 
 fn fetch_cascade(

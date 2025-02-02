@@ -7,6 +7,7 @@ use bevy::utils::HashMap;
 use bevy_enoki::prelude::*;
 use bevy_enoki::EnokiPlugin;
 use lumina_common::prelude::*;
+use smallvec::SmallVec;
 use strum::{AsRefStr, EnumCount, EnumIter, IntoEnumIterator};
 
 pub(super) struct ParticleVfxPlugin;
@@ -131,7 +132,11 @@ fn map_in_place_vfx<T: Component>(
             };
 
             debug!("Mapped: {vfx:?} from {vfx_entity} to {map_entity}");
-            map.insert(*vfx, vfx_entity);
+            if let Some(entities) = map.get_mut(vfx) {
+                entities.push(vfx_entity);
+            } else {
+                map.insert(*vfx, SmallVec::from_elem(vfx_entity, 1));
+            }
 
             // Only find the first parent with the required component.
             break;
@@ -141,7 +146,7 @@ fn map_in_place_vfx<T: Component>(
 
 /// Mappings to vfx entities that is part of the children hierarchy of the current entity.
 #[derive(Component, Deref, DerefMut, Default)]
-pub struct InPlaceVfxMap(HashMap<InPlaceVfxType, Entity>);
+pub struct InPlaceVfxMap(HashMap<InPlaceVfxType, SmallVec<[Entity; 1]>>);
 
 pub type InPlaceVfxAssets = EnumVariantRes<InPlaceVfxType, Handle<Particle2dEffect>>;
 
