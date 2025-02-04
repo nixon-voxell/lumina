@@ -20807,8 +20807,39 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_common::physics::MassRigidbody": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_common::physics::MassRigidbody",
+      "properties": {
+        "density": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::mass_properties::ColliderDensity"
+          }
+        },
+        "radius": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "density",
+        "radius"
+      ],
+      "short_name": "MassRigidbody",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_common::physics::MeshCollider": {
-      "isComponent": false,
+      "isComponent": true,
       "isResource": false,
       "long_name": "lumina_common::physics::MeshCollider",
       "oneOf": [

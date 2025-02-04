@@ -93,6 +93,12 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<MeshRigidbody>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
+        app.register_component::<MeshCollider>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<MassRigidbody>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
             .add_interpolation(ComponentSyncMode::Full)

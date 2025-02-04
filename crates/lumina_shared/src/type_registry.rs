@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_radiance_cascades::prelude::*;
-use lumina_common::physics::{MeshRigidbody, PrimitiveRigidbody};
 
 use crate::blueprints::*;
 use crate::effector::*;
@@ -46,9 +45,6 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<InteractableEffector>()
             .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
-            .register_type::<TesseractEffector>()
-            // Physics
-            .register_type::<PrimitiveRigidbody>()
-            .register_type::<MeshRigidbody>();
+            .register_type::<TesseractEffector>();
     }
 }
