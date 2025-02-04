@@ -44,11 +44,14 @@ impl Plugin for PhysicsPlugin {
             .add_systems(
                 Last,
                 (
-                    convert_primitive_rigidbody,
-                    convert_mesh_rigidbody,
-                    convert_mesh_collider,
                     convert_mass_rigidbody,
-                ),
+                    (
+                        convert_primitive_rigidbody,
+                        convert_mesh_rigidbody,
+                        convert_mesh_collider,
+                    ),
+                )
+                    .chain(),
             );
     }
 }
@@ -121,18 +124,22 @@ fn convert_mesh_rigidbody(
 
 fn convert_mesh_collider(
     mut commands: Commands,
-    q_rigidbodies: Query<
+    q_mesh_colliders: Query<
         (
             &MeshCollider,
             Option<&Mesh2dHandle>,
             Option<&Handle<Mesh>>,
             Entity,
+            Has<RigidBody>,
         ),
-        Added<MeshRigidbody>,
+        Added<MeshCollider>,
     >,
+    q_parents: Query<&Parent>,
+    q_rigidbodies: Query<&RigidBody>,
     meshes: Res<Assets<Mesh>>,
 ) {
-    for (mesh_collider, mesh2d, mesh3d, entity) in q_rigidbodies.iter() {
+    for (mesh_collider, mesh2d, mesh3d, entity, has_rigidbody) in q_mesh_colliders.iter() {
+        println!("\n\n\n");
         let Some(mesh_handle) = mesh3d.or(mesh2d.map(|mesh2d| &**mesh2d)) else {
             warn!("Configured with Trimesh collider but wasn't attached with any Mesh.");
             commands.entity(entity).remove::<MeshRigidbody>();
@@ -150,10 +157,26 @@ fn convert_mesh_collider(
             MeshCollider::Trimesh => trimesh_from_mesh(mesh),
         };
 
+        // Collider can only be used with a rigidbody.
+        let entity = match has_rigidbody {
+            true => entity,
+            false => {
+                let Some(entity) = q_parents
+                    .iter_ancestors(entity)
+                    .find(|e| q_rigidbodies.contains(*e))
+                else {
+                    warn!("Unable to find parent with RigidBody for {entity}");
+                    continue;
+                };
+
+                entity
+            }
+        };
+
         match collider {
             Some(collider) => {
                 commands.entity(entity).insert(collider);
-                debug!("Generated mesh collider for {entity}.")
+                info!("Generated mesh collider for {entity}.")
             }
             None => error!("Unable to generate Collider from Mesh for {entity}."),
         }
@@ -162,13 +185,12 @@ fn convert_mesh_collider(
 
 fn convert_mass_rigidbody(
     mut commands: Commands,
-    q_rigidbodies: Query<(&MassRigidbody, Entity), Added<MeshRigidbody>>,
+    q_rigidbodies: Query<(&MassRigidbody, Entity), Added<MassRigidbody>>,
 ) {
     for (mass_rigidbody, entity) in q_rigidbodies.iter() {
         let collider = Collider::circle(mass_rigidbody.radius);
         commands.entity(entity).insert((
             MassPropertiesBundle::new_computed(&collider, *mass_rigidbody.density),
-            collider,
             mass_rigidbody.rigidbody,
         ));
 
