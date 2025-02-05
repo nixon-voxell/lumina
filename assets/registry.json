@@ -21140,7 +21140,8 @@
         "Brake",
         "Interact",
         "Attack",
-        "Aim"
+        "Aim",
+        "Ability"
       ],
       "short_name": "PlayerAction",
       "type": "string",
@@ -21542,11 +21543,54 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::BoostConfig": {
+    "lumina_shared::player::spaceship::Spaceship": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::Spaceship",
+      "properties": {
+        "boost": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::BoostConfig"
+          }
+        },
+        "brake": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::BrakeConfig"
+          }
+        },
+        "dash": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::DashConfig"
+          }
+        },
+        "energy": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::EnergyConfig"
+          }
+        },
+        "movement": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::MovementConfig"
+          }
+        }
+      },
+      "required": [
+        "movement",
+        "brake",
+        "boost",
+        "dash",
+        "energy"
+      ],
+      "short_name": "Spaceship",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::movement::BoostConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::BoostConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::BoostConfig",
       "properties": {
         "energy_consumption": {
           "type": {
@@ -21567,11 +21611,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::BrakeConfig": {
+    "lumina_shared::player::spaceship::movement::BrakeConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::BrakeConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::BrakeConfig",
       "properties": {
         "brake_linear_damping": {
           "type": {
@@ -21592,11 +21636,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::DashConfig": {
+    "lumina_shared::player::spaceship::movement::DashConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::DashConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::DashConfig",
       "properties": {
         "cooldown": {
           "type": {
@@ -21629,11 +21673,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::EnergyConfig": {
+    "lumina_shared::player::spaceship::movement::EnergyConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::EnergyConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::EnergyConfig",
       "properties": {
         "cooldown": {
           "type": {
@@ -21660,11 +21704,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::MovementConfig": {
+    "lumina_shared::player::spaceship::movement::MovementConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::MovementConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::MovementConfig",
       "properties": {
         "linear_acceleration": {
           "type": {
@@ -21688,49 +21732,6 @@
         "rotation_speed"
       ],
       "short_name": "MovementConfig",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::player::spaceship::Spaceship": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::Spaceship",
-      "properties": {
-        "boost": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::BoostConfig"
-          }
-        },
-        "brake": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::BrakeConfig"
-          }
-        },
-        "dash": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::DashConfig"
-          }
-        },
-        "energy": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::EnergyConfig"
-          }
-        },
-        "movement": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::MovementConfig"
-          }
-        }
-      },
-      "required": [
-        "movement",
-        "brake",
-        "boost",
-        "dash",
-        "energy"
-      ],
-      "short_name": "Spaceship",
       "type": "object",
       "typeInfo": "Struct"
     },
