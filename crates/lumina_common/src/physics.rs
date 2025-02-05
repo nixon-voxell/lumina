@@ -22,8 +22,8 @@ impl Plugin for PhysicsPlugin {
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
-            // #[cfg(feature = "dev")]
-            // PhysicsDebugPlugin::default(),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
         ))
         .add_plugins((
             physics_interp::PhysicsInterpPlugin,
@@ -139,7 +139,6 @@ fn convert_mesh_collider(
     meshes: Res<Assets<Mesh>>,
 ) {
     for (mesh_collider, mesh2d, mesh3d, entity, has_rigidbody) in q_mesh_colliders.iter() {
-        println!("\n\n\n");
         let Some(mesh_handle) = mesh3d.or(mesh2d.map(|mesh2d| &**mesh2d)) else {
             warn!("Configured with Trimesh collider but wasn't attached with any Mesh.");
             commands.entity(entity).remove::<MeshRigidbody>();
@@ -176,7 +175,7 @@ fn convert_mesh_collider(
         match collider {
             Some(collider) => {
                 commands.entity(entity).insert(collider);
-                info!("Generated mesh collider for {entity}.")
+                debug!("Generated mesh collider for {entity}.")
             }
             None => error!("Unable to generate Collider from Mesh for {entity}."),
         }

@@ -126,8 +126,6 @@ pub enum LobbyType {
 pub enum SpaceshipType {
     Assassin,
     Defender,
-    // Tank,
-    // Support,
 }
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]

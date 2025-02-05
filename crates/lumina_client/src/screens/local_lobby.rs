@@ -40,7 +40,7 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
 
             // Spaceship
             builder.spawn((
-                SpaceshipType::Assassin.config_info(),
+                SpaceshipType::Defender.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
                 SpaceshipEntityMarker,
