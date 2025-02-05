@@ -22,8 +22,8 @@ impl Plugin for PhysicsPlugin {
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
-            // #[cfg(feature = "dev")]
-            // PhysicsDebugPlugin::default(),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
         ))
         .add_plugins((
             physics_interp::PhysicsInterpPlugin,
