@@ -2,7 +2,6 @@ use std::f32::consts::FRAC_PI_4;
 
 use bevy::prelude::*;
 use bevy_enoki::prelude::*;
-use bevy_motiongfx::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -63,8 +62,7 @@ fn booster_vfx(
                 continue;
             };
 
-            booster.ignition = ease::cubic::ease_in_out(ignition);
-
+            booster.ignition = booster.ignition.lerp(ignition, time.delta_seconds() * 4.0);
             booster.inv_scale = FloatExt::lerp(1.0, 0.6, boost_acc / boost_acc_size);
 
             // Rotation.

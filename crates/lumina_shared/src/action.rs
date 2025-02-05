@@ -40,6 +40,7 @@ pub enum PlayerAction {
     Interact,
     Attack,
     Aim,
+    Ability,
 }
 
 impl PlayerAction {
@@ -55,6 +56,7 @@ impl PlayerAction {
         input_map.insert(Self::Interact, GamepadButtonType::West);
         input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
         input_map.insert(Self::Aim, DualAxis::right_stick());
+        input_map.insert(Self::Ability, GamepadButtonType::East);
 
         // KbM input bindings
         input_map.insert(Self::Move, VirtualDPad::wasd());
@@ -63,6 +65,7 @@ impl PlayerAction {
         input_map.insert(Self::Brake, KeyCode::ControlLeft);
         input_map.insert(Self::Interact, KeyCode::KeyE);
         input_map.insert(Self::Attack, MouseButton::Left);
+        input_map.insert(Self::Ability, KeyCode::KeyQ);
 
         input_map
     }
