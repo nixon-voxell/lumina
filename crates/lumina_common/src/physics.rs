@@ -139,7 +139,6 @@ fn convert_mesh_collider(
     meshes: Res<Assets<Mesh>>,
 ) {
     for (mesh_collider, mesh2d, mesh3d, entity, has_rigidbody) in q_mesh_colliders.iter() {
-        println!("\n\n\n");
         let Some(mesh_handle) = mesh3d.or(mesh2d.map(|mesh2d| &**mesh2d)) else {
             warn!("Configured with Trimesh collider but wasn't attached with any Mesh.");
             commands.entity(entity).remove::<MeshRigidbody>();
