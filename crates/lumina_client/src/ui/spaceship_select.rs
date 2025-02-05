@@ -7,8 +7,12 @@ use velyst::prelude::*;
 use velyst::typst::foundations;
 use velyst::typst_element::prelude::*;
 
+use crate::client::ConnectionManager;
 use crate::effector::InteractedEffector;
 use crate::typ_animation::LabelScaleFade;
+use crate::LocalClientId;
+
+use lumina_shared::protocol::SelectSpaceship;
 
 use super::Screen;
 
@@ -52,11 +56,7 @@ fn show_spaceship_select(
     trigger: Trigger<SpaceshipSelectEffector>,
     mut commands: Commands,
     mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
-    mut selected_ship: ResMut<SelectedSpaceship>,
 ) {
-    // Reset selected ship when showing selection UI
-    selected_ship.0 = None;
-
     commands
         .entity(trigger.entity())
         .remove::<InteractedEffector>();
@@ -68,16 +68,23 @@ fn handle_spaceship_selection(
     mut selected: ResMut<SelectedSpaceship>,
     mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
     mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut connection_manager: ResMut<ConnectionManager>,
+    _local_client_id: Res<LocalClientId>,
 ) {
     for &(btn, ship_type) in SPACESHIP_BTNS {
         if interactions.pressed(btn) {
             selected.0 = Some(ship_type);
-            // Reverse the spaceship selection UI animation (fade out just that UI)
             q_player.single_mut().time_scale = -1.0;
-            // Instead of setting full transparency (black), keep the main lobby visible.
             transparency_evw.send(MainWindowTransparency(1.0));
 
-            info!("Spaceship selected: {:?}", ship_type);
+            let join_msg = SelectSpaceship {
+                spaceship: ship_type,
+            };
+            if let Err(e) = connection_manager.send_message::<OrdReliableChannel, _>(&join_msg) {
+                error!("Failed to send JoinLobby message: {:?}", e);
+            } else {
+                info!("Spaceship selected: {:?}", ship_type);
+            }
             break;
         }
     }

@@ -4,6 +4,9 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_shared::protocol::SelectSpaceship;
+use std::collections::HashMap;
+
 use server::*;
 
 use super::lobby::Lobby;
@@ -13,10 +16,16 @@ pub(super) mod objective;
 
 pub(super) struct PlayerPlugin;
 
+#[derive(Resource, Default)]
+pub struct PlayerSelections {
+    pub spaceship: HashMap<ClientId, SpaceshipType>,
+}
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(objective::ObjectivePlugin)
             .add_event::<SpawnClientPlayer>()
+            .init_resource::<PlayerSelections>()
             .add_systems(
                 PreUpdate,
                 (
@@ -24,24 +33,50 @@ impl Plugin for PlayerPlugin {
                     replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
                     replicate_item_spawn::<Spaceship>,
                     replicate_item_spawn::<Weapon>,
+                    process_spaceship_selection,
                 ),
             )
             .observe(spawn_players);
     }
 }
 
-fn spawn_players(trigger: Trigger<SpawnClientPlayer>, mut commands: Commands) {
+fn process_spaceship_selection(
+    mut events: EventReader<MessageEvent<SelectSpaceship>>,
+    mut selections: ResMut<PlayerSelections>,
+) {
+    for event in events.read() {
+        let client_id = event.context();
+        let spaceship = event.message().spaceship;
+        selections.spaceship.insert(*client_id, spaceship);
+        info!(
+            "Server: Stored spaceship selection for client {}: {:?}",
+            client_id, spaceship
+        );
+    }
+}
+
+fn spawn_players(
+    trigger: Trigger<SpawnClientPlayer>,
+    mut commands: Commands,
+    selections: Res<PlayerSelections>,
+) {
     let &SpawnClientPlayer {
         client_id,
         world_entity,
     } = trigger.event();
 
-    // Spawn spaceship.
+    // Look up the player's selected spaceship; default to Assassin if none was provided.
+    let spaceship_type = selections
+        .spaceship
+        .get(&client_id)
+        .copied()
+        .unwrap_or(SpaceshipType::Assassin);
+
+    // Spawn the spaceship using the chosen configuration.
     commands
         .spawn((
             PlayerId(client_id),
-            // TODO: Allow player to choose what spaceship to spawn.
-            SpaceshipType::Assassin.config_info(),
+            spaceship_type.config_info(),
             SpawnBlueprint,
         ))
         .set_parent(world_entity);
@@ -56,7 +91,10 @@ fn spawn_players(trigger: Trigger<SpawnClientPlayer>, mut commands: Commands) {
         ))
         .set_parent(world_entity);
 
-    info!("SERVER: Spawned player for {client_id}");
+    info!(
+        "SERVER: Spawned player {} with spaceship: {:?}",
+        client_id, spaceship_type
+    );
 }
 
 /// Replicate a player's item back other clients while granting
