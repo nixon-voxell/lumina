@@ -42,7 +42,7 @@ fn attack_vfx(
             continue;
         };
 
-        for vfx_entity in vfx_map.values() {
+        for vfx_entity in vfx_map.values().flat_map(|entities| entities.iter()) {
             if let Ok(mut vfx_state) = q_states.get_mut(*vfx_entity) {
                 vfx_state.active = true;
             }

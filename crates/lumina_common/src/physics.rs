@@ -22,8 +22,8 @@ impl Plugin for PhysicsPlugin {
                 // PhysicsPlugins::default()
                 // 1 pixel is 10 units
                 .with_length_unit(10.0),
-            // #[cfg(feature = "dev")]
-            // PhysicsDebugPlugin::default(),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
         ))
         .add_plugins((
             physics_interp::PhysicsInterpPlugin,
@@ -41,7 +41,18 @@ impl Plugin for PhysicsPlugin {
                 transform_to_position: false,
                 position_to_transform: true,
             })
-            .add_systems(Last, (convert_primitive_rigidbody, convert_mesh_rigidbody));
+            .add_systems(
+                Last,
+                (
+                    convert_mass_rigidbody,
+                    (
+                        convert_primitive_rigidbody,
+                        convert_mesh_rigidbody,
+                        convert_mesh_collider,
+                    ),
+                )
+                    .chain(),
+            );
     }
 }
 
@@ -58,12 +69,10 @@ fn convert_primitive_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
-                debug!("Generated primitive collider for {entity}.")
+                debug!("Generated primitive rigidbody for {entity}.")
             }
             None => error!("Unable to convert ColliderConstructor into Collider for {entity}."),
         }
-
-        // commands.entity(entity).remove::<PrimitiveRigidbody>();
     }
 }
 
@@ -106,12 +115,85 @@ fn convert_mesh_rigidbody(
                     rigidbody.rigidbody,
                 ));
 
+                debug!("Generated mesh rigidbody for {entity}.")
+            }
+            None => error!("Unable to generate Collider from Mesh for {entity}."),
+        }
+    }
+}
+
+fn convert_mesh_collider(
+    mut commands: Commands,
+    q_mesh_colliders: Query<
+        (
+            &MeshCollider,
+            Option<&Mesh2dHandle>,
+            Option<&Handle<Mesh>>,
+            Entity,
+            Has<RigidBody>,
+        ),
+        Added<MeshCollider>,
+    >,
+    q_parents: Query<&Parent>,
+    q_rigidbodies: Query<&RigidBody>,
+    meshes: Res<Assets<Mesh>>,
+) {
+    for (mesh_collider, mesh2d, mesh3d, entity, has_rigidbody) in q_mesh_colliders.iter() {
+        let Some(mesh_handle) = mesh3d.or(mesh2d.map(|mesh2d| &**mesh2d)) else {
+            warn!("Configured with Trimesh collider but wasn't attached with any Mesh.");
+            commands.entity(entity).remove::<MeshRigidbody>();
+            continue;
+        };
+
+        let Some(mesh) = meshes.get(mesh_handle) else {
+            // Early continue if mesh is not available yet.
+            continue;
+        };
+
+        // Generate collider from mesh
+        let collider = match mesh_collider {
+            MeshCollider::ConvexHull => convex_hull_from_mesh(mesh),
+            MeshCollider::Trimesh => trimesh_from_mesh(mesh),
+        };
+
+        // Collider can only be used with a rigidbody.
+        let entity = match has_rigidbody {
+            true => entity,
+            false => {
+                let Some(entity) = q_parents
+                    .iter_ancestors(entity)
+                    .find(|e| q_rigidbodies.contains(*e))
+                else {
+                    warn!("Unable to find parent with RigidBody for {entity}");
+                    continue;
+                };
+
+                entity
+            }
+        };
+
+        match collider {
+            Some(collider) => {
+                commands.entity(entity).insert(collider);
                 debug!("Generated mesh collider for {entity}.")
             }
             None => error!("Unable to generate Collider from Mesh for {entity}."),
         }
+    }
+}
 
-        // commands.entity(entity).remove::<MeshRigidbody>();
+fn convert_mass_rigidbody(
+    mut commands: Commands,
+    q_rigidbodies: Query<(&MassRigidbody, Entity), Added<MassRigidbody>>,
+) {
+    for (mass_rigidbody, entity) in q_rigidbodies.iter() {
+        let collider = Collider::circle(mass_rigidbody.radius);
+        commands.entity(entity).insert((
+            MassPropertiesBundle::new_computed(&collider, *mass_rigidbody.density),
+            mass_rigidbody.rigidbody,
+        ));
+
+        debug!("Generated mass rigidbody for {entity}.")
     }
 }
 
@@ -164,6 +246,17 @@ pub fn convex_hull_from_mesh(mesh: &Mesh) -> Option<Collider> {
         .and_then(|(vertices, _)| SharedShape::convex_hull(&vertices).map(|shape| shape.into()))
 }
 
+/// A [`RigidBody`] with an approximated mass via
+/// a defined density and radius of a [`Collider::circle`].
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[reflect(Component)]
+pub struct MassRigidbody {
+    pub rigidbody: RigidBody,
+    pub density: ColliderDensity,
+    pub radius: f32,
+}
+
+/// A [`RigidBody`] with a primitive shape [`Collider`].
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct PrimitiveRigidbody {
@@ -172,6 +265,7 @@ pub struct PrimitiveRigidbody {
     pub collider_constructor: ColliderConstructor,
 }
 
+/// A [`RigidBody`] with a [`Collider`] that conforms to the shape of the [`Mesh`].
 #[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct MeshRigidbody {
@@ -180,7 +274,10 @@ pub struct MeshRigidbody {
     pub collider_type: MeshCollider,
 }
 
-#[derive(Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq,
+)]
+#[reflect(Component)]
 pub enum MeshCollider {
     #[default]
     ConvexHull,

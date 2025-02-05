@@ -6,6 +6,7 @@ use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 
 pub mod action;
+pub mod blueprint_collider;
 pub mod blueprints;
 pub mod effector;
 pub mod health;
@@ -30,7 +31,6 @@ impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_framepace::FramepacePlugin)
             .add_plugins((
-                type_registry::TypeRegistryPlugin,
                 lumina_ui::UiPlugin,
                 lumina_terrain::TerrainPlugin,
                 protocol::ProtocolPlugin,
@@ -38,6 +38,8 @@ impl Plugin for SharedPlugin {
                 effector::EffectorPlugin,
                 blueprints::BlueprintsPlugin,
                 health::HealthPlugin,
+                type_registry::TypeRegistryPlugin,
+                blueprint_collider::BlueprintColliderPlugin,
             ));
     }
 }

@@ -75,7 +75,7 @@ pub(super) fn calculate_cascade_count(
         commands.entity(entity).insert((
             CascadeCount(cascade_count),
             MipmapConfig {
-                mip_count: cascade_count as u32,
+                mip_count: 1 + cascade_count as u32,
             },
         ));
     }

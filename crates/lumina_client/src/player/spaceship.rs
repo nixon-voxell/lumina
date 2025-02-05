@@ -57,6 +57,7 @@ fn booster_vfx(
         let boost_acc = f32::max(0.0, **acceleration - movement.linear_acceleration);
         let boost_acc_size = boost.linear_acceleration;
 
+        // TODO: Make a map to the entities.
         for child in q_childrens.iter_descendants(entity) {
             let Ok(mut booster) = q_boosters.get_mut(child) else {
                 continue;
@@ -72,13 +73,14 @@ fn booster_vfx(
             booster.rotation = booster.rotation.lerp(0.0, time.delta_seconds() * 6.0);
         }
 
-        if let Some(mut state) = vfx_map
-            .get(&InPlaceVfxType::BoosterFlakes)
-            .and_then(|e| q_states.get_mut(*e).ok())
-        {
-            match ignition > 0.5 {
-                true => state.active = true,
-                false => state.active = false,
+        if let Some(vfx_entities) = vfx_map.get(&InPlaceVfxType::BoosterFlakes) {
+            for vfx_entity in vfx_entities.iter() {
+                if let Ok(mut state) = q_states.get_mut(*vfx_entity) {
+                    match ignition > 0.5 {
+                        true => state.active = true,
+                        false => state.active = false,
+                    }
+                }
             }
         }
     }

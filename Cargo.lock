@@ -4174,6 +4174,7 @@ dependencies = [
  "bevy",
  "bevy_enoki",
  "lumina_common",
+ "smallvec",
  "strum",
  "strum_macros",
 ]
