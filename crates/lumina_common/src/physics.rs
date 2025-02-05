@@ -176,7 +176,7 @@ fn convert_mesh_collider(
         match collider {
             Some(collider) => {
                 commands.entity(entity).insert(collider);
-                info!("Generated mesh collider for {entity}.")
+                debug!("Generated mesh collider for {entity}.")
             }
             None => error!("Unable to generate Collider from Mesh for {entity}."),
         }
