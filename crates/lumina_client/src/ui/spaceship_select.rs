@@ -1,8 +1,6 @@
 use bevy::prelude::*;
-use bevy_coroutine::prelude::*;
 use bevy_motiongfx::prelude::*;
-use client::*;
-use lightyear::prelude::*;
+
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
@@ -12,11 +10,16 @@ use velyst::typst_element::prelude::*;
 use crate::effector::InteractedEffector;
 use crate::typ_animation::LabelScaleFade;
 
-use super::lobby::LobbyFunc;
 use super::Screen;
 
-const SPACESHIP_BTNS: &[&str] = &["btn:defender", "btn:assassin"];
+const SPACESHIP_BTNS: &[(&str, SpaceshipType)] = &[
+    ("btn:defender", SpaceshipType::Defender),
+    ("btn:assassin", SpaceshipType::Assassin),
+];
 const CANCEL_BTN: &str = "btn:cancel-spaceship";
+
+#[derive(Resource, Default)]
+pub struct SelectedSpaceship(pub Option<SpaceshipType>);
 
 pub(super) struct SpaceshipSelectUiPlugin;
 
@@ -24,6 +27,7 @@ impl Plugin for SpaceshipSelectUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<SpaceshipSelect>()
             .compile_typst_func::<SpaceshipSelect, SpaceshipFunc>()
+            .init_resource::<SelectedSpaceship>()
             .init_resource::<SpaceshipFunc>()
             .add_systems(Startup, setup_animation)
             .add_systems(
@@ -35,10 +39,10 @@ impl Plugin for SpaceshipSelectUiPlugin {
                         },
                     ),
                     interactable_func::<SpaceshipFunc>,
-                    spaceship_btns,
+                    handle_spaceship_selection,
                     cancel_btn,
                 )
-                    .run_if(in_state(Screen::LocalLobby)), // Remain in lobby.
+                    .run_if(in_state(Screen::LocalLobby)),
             )
             .observe(show_spaceship_select);
     }
@@ -48,20 +52,42 @@ fn show_spaceship_select(
     trigger: Trigger<SpaceshipSelectEffector>,
     mut commands: Commands,
     mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
+    mut selected_ship: ResMut<SelectedSpaceship>,
 ) {
-    // Remove the effector once it triggers.
+    // Reset selected ship when showing selection UI
+    selected_ship.0 = None;
+
     commands
         .entity(trigger.entity())
         .remove::<InteractedEffector>();
     q_player.single_mut().time_scale = 1.0;
 }
 
+fn handle_spaceship_selection(
+    interactions: InteractionQuery,
+    mut selected: ResMut<SelectedSpaceship>,
+    mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
+    mut transparency_evw: EventWriter<MainWindowTransparency>,
+) {
+    for &(btn, ship_type) in SPACESHIP_BTNS {
+        if interactions.pressed(btn) {
+            selected.0 = Some(ship_type);
+            // Reverse the spaceship selection UI animation (fade out just that UI)
+            q_player.single_mut().time_scale = -1.0;
+            // Instead of setting full transparency (black), keep the main lobby visible.
+            transparency_evw.send(MainWindowTransparency(1.0));
+
+            info!("Spaceship selected: {:?}", ship_type);
+            break;
+        }
+    }
+}
+
 fn setup_animation(mut commands: Commands) {
     // Set up animations for cancel and spaceship buttons.
-    let sequences = [CANCEL_BTN]
-        .iter()
-        .chain(SPACESHIP_BTNS)
-        .map(|&btn| {
+    let sequences = std::iter::once(CANCEL_BTN)
+        .chain(SPACESHIP_BTNS.iter().map(|(btn, _)| *btn))
+        .map(|btn| {
             let id = commands.spawn(LabelScaleFade::new(btn)).id();
             commands.play_motion(
                 Action::<_, LabelScaleFade>::new_f32lerp(id, 0.0, 1.0, |label| &mut label.time)
@@ -75,34 +101,6 @@ fn setup_animation(mut commands: Commands) {
         SequencePlayerBundle::from_sequence(sequences.flow(0.1)),
         SpaceshipMainAnimation,
     ));
-}
-
-fn spaceship_btns(
-    mut commands: Commands,
-    interactions: InteractionQuery,
-    mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
-) {
-    let mut selected_ship = None;
-    for &btn in SPACESHIP_BTNS {
-        if interactions.pressed(btn) {
-            selected_ship = Some(btn);
-            break;
-        }
-    }
-
-    let Some(selected_ship) = selected_ship else {
-        return;
-    };
-
-    // Reverse animation to hide the selection UI.
-    q_player.single_mut().time_scale = -1.0;
-
-    // Log the selection. Later, you can integrate your messaging and resource updates here.
-    info!("Spaceship selected: {}", selected_ship);
-    // TODO: Integrate spaceship selection handling (e.g., update LobbyFunc, send a message) later.
-
-    transparency_evw.send(MainWindowTransparency(0.0));
 }
 
 fn cancel_btn(

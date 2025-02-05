@@ -10,13 +10,22 @@ use lumina_ui::prelude::*;
 
 use super::Screen;
 
+use crate::ui::spaceship_select::SelectedSpaceship;
 pub(super) struct LocalLobbyPlugin;
+
+// Define the marker component
+#[derive(Component)]
+struct SpaceshipEntityMarker;
 
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(Screen::LocalLobby),
             (spawn_lobby, despawn_networked_inputs),
+        )
+        .add_systems(
+            Update,
+            update_spaceship_config.run_if(in_state(Screen::LocalLobby)),
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby);
     }
@@ -34,6 +43,7 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
                 SpaceshipType::Assassin.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
+                SpaceshipEntityMarker,
             ));
 
             // Weapon
@@ -51,6 +61,36 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
         });
 
     transparency_evw.send(MainWindowTransparency(1.0));
+}
+
+/// Update spaceship configuration when a new selection is made
+fn update_spaceship_config(
+    mut commands: Commands,
+    selected_ship: Res<SelectedSpaceship>,
+    query: Query<Entity, With<SpaceshipEntityMarker>>,
+    q_lobby: Query<Entity, With<LocalLobby>>,
+) {
+    if selected_ship.is_changed() {
+        if let Some(ship_type) = selected_ship.0 {
+            if let (Ok(entity), Ok(lobby)) = (query.get_single(), q_lobby.get_single()) {
+                // Queue despawn of old entity
+                commands.entity(entity).despawn_recursive();
+
+                // Spawn new entity as child of lobby
+                commands.entity(lobby).with_children(|parent| {
+                    parent.spawn((
+                        ship_type.config_info(),
+                        SpawnBlueprint,
+                        PlayerId::LOCAL,
+                        SpaceshipEntityMarker,
+                        TransformBundle::default(),
+                    ));
+                });
+
+                info!("Updated spaceship to: {:?}", ship_type);
+            }
+        }
+    }
 }
 
 /// Despawn lobby scene.
