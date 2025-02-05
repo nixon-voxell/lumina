@@ -22,7 +22,7 @@ impl Plugin for SpaceshipPlugin {
             movement::SpaceshipMovementPlugin,
             ability::SpaceshipAbilityPlugin,
         ))
-        .add_systems(FixedPreUpdate, spaceship_actions)
+        .add_systems(FixedUpdate, spaceship_actions)
         .add_systems(PreUpdate, init_spaceships)
         .add_systems(PostUpdate, spaceship_health);
     }

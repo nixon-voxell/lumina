@@ -24,7 +24,8 @@ impl Plugin for SpaceshipMovementPlugin {
                 ),
                 (apply_acceleration, dash_effect, dash_cooldown, regen_energy),
             )
-                .chain(),
+                .chain()
+                .before(super::spaceship_actions),
         )
         .add_systems(PreUpdate, init_energy);
     }
