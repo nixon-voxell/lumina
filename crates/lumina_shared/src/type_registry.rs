@@ -40,6 +40,8 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Ammo>()
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()
+            .register_type::<ShadowAbilityConfig>()
+            .register_type::<HealAbilityConfig>()
             // Effector
             .register_type::<EffectorPopupMsg>()
             .register_type::<InteractableEffector>()

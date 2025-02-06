@@ -9,6 +9,7 @@ use crate::health::Health;
 use crate::player::objective::CollectedLumina;
 use crate::player::{GameLayer, PlayerId, PlayerInfoType, PlayerInfos};
 
+pub use ability::*;
 pub use movement::*;
 
 mod ability;
