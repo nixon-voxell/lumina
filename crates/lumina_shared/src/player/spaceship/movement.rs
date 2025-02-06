@@ -316,7 +316,7 @@ pub struct DashEffect {
 }
 
 /// Cooldown timer based on [`DashConfig::cooldown`].
-/// While this component is still in effect, [`PlayerAction::Dash`] cannot be used.
+/// While this component is still in effect, [dash action][crate::action::PlayerAction::Dash] cannot be used.
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct DashCooldown(Timer);
 
