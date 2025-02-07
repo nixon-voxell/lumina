@@ -35,7 +35,7 @@ impl Plugin for GameModeUiPlugin {
                         },
                     ),
                     interactable_func::<MainFunc>,
-                    (sandbox_btn, matchmacke_btns, cancel_btn).run_if(panel_open),
+                    (sandbox_btn, matchmacke_btns, cancel_btn).run_if(is_panel_open),
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )
@@ -158,7 +158,7 @@ fn cancel_btn(
     }
 }
 
-fn panel_open(q_seq_player: Query<&SequencePlayer, With<MainFuncAnimation>>) -> bool {
+fn is_panel_open(q_seq_player: Query<&SequencePlayer, With<MainFuncAnimation>>) -> bool {
     q_seq_player.single().time_scale > 0.0
 }
 

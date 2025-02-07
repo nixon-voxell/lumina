@@ -128,10 +128,10 @@ impl Default for LocalLobbyBundle {
     }
 }
 
-#[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
+#[derive(Component, Default)]
 pub(super) struct LocalLobby;
 
-// Define the marker component
+// Define the marker component.
 #[derive(Component)]
 struct SpaceshipEntityMarker;
