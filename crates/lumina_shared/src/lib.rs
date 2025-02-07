@@ -18,7 +18,7 @@ mod type_registry;
 pub mod prelude {
     pub use crate::action::PlayerAction;
     pub use crate::blueprints::*;
-    pub use crate::effector::{MatchmakeEffector, TesseractEffector};
+    pub use crate::effector::{MatchmakeEffector, SpaceshipSelectEffector, TesseractEffector};
     pub use crate::health::{Health, MaxHealth};
     pub use crate::player::prelude::*;
     pub use crate::protocol::*;

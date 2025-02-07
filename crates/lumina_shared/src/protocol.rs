@@ -36,6 +36,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<EndGame>(ChannelDirection::ServerToClient);
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
         app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
+        app.register_message::<SelectSpaceship>(ChannelDirection::ClientToServer);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -185,3 +186,7 @@ pub struct EndGame;
 /// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]
 pub struct OrdReliableChannel;
+
+/// Select spaceship command sent from client to server.
+#[derive(Event, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
+pub struct SelectSpaceship(pub SpaceshipType);

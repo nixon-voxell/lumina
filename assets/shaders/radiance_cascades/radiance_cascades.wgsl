@@ -3,8 +3,8 @@
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
-const RAYMARCH_LENGTH: f32 = 0.5;
-const MAX_RAYMARCH: u32 = 128;
+const RAYMARCH_LENGTH: f32 = 1.0;
+const MAX_RAYMARCH: u32 = 64;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> num_cascades: u32;
@@ -45,12 +45,6 @@ fn radiance_cascades(
     // Center coordinate of the probe grid
     let probe_origin = vec2<f32>(probe_coord + probe.width / 2);
 
-    // let target_index = 5u;
-    // var color = vec4<f32>(0.0);
-    // if probe.cascade_index == target_index {
-    //     color = raymarch(probe_origin, ray_dir);
-    // }
-
     var color = raymarch(probe_origin, ray_dir);
 
 
@@ -84,9 +78,10 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
     var march_count = 0u;
     let step_size = RAYMARCH_LENGTH * mip_step_size;
-    // let ray_start = probe.start;
     let ray_start = probe.start * 0.5;
     let ray_end = probe.start + probe.range;
+
+    let ray_length = ray_end - ray_start;
 
     for (var r = ray_start; r < ray_end; r += step_size) {
         let p = origin + ray_dir * r;
@@ -100,13 +95,13 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
             break;
         }
 
-        let t = clamp((r - ray_start) / (ray_end - ray_start), 0.0, 1.0);
-        let s = 0.85; let e = -0.4;
+        let t = clamp((r - ray_start) / ray_length, 0.0, 1.0);
+        let s = 0.85; let e = -1.5;
         let start_edge = clamp(((1.0 - t) - s) / (1.0 - s), 0.0, 1.0);
         let end_edge = clamp((t - e) / (1.0 - e), 0.0, 1.0);
 
         let coord = p / dimensions;
-        var color = sample_main(coord, level_idx + 1);
+        var color = sample_main(coord, level_idx);
 
         var new_rad = mix(color.rgb, vec3<f32>(0.0), start_edge);
         new_rad = mix(new_rad, vec3<f32>(0.0), end_edge);
@@ -115,7 +110,7 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
         new_viz = mix(new_viz, 1.0, end_edge);
 
         radiance += new_rad * visibility * level_idx;
-        visibility *= pow(new_viz, (level_idx * 0.1));
+        visibility *= pow(new_viz, (level_idx * 0.3));
 
         if visibility < EPSILON {
             break;
@@ -126,7 +121,7 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 }
 
 fn sample_main(coord: vec2<f32>, level: f32) -> vec4<f32> {
-    var color = textureSampleLevel(tex_main, sampler_main, coord, level - 1.0);
+    var color = textureSampleLevel(tex_main, sampler_main, coord, level);
     let alpha = 1.0 - clamp(color.a, 0.0, 1.0);
     // Treat values from -1.0 ~ 1.0 as no light
     // This way, we can handle both negative and postive light
