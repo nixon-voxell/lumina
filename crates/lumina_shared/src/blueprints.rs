@@ -120,10 +120,13 @@ pub enum LobbyType {
     Sandbox,
 }
 
-#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(
+    Component, Reflect, AsRefStr, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq,
+)]
 #[reflect(Component)]
 #[strum(prefix = "levels/spaceships/")]
 pub enum SpaceshipType {
+    #[default]
     Assassin,
     Defender,
 }

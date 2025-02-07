@@ -21397,6 +21397,17 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::effector::SpaceshipSelectEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::effector::SpaceshipSelectEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "SpaceshipSelectEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::effector::TesseractEffector": {
       "additionalProperties": false,
       "isComponent": true,

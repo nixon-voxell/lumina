@@ -47,6 +47,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<InteractableEffector>()
             .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
-            .register_type::<TesseractEffector>();
+            .register_type::<TesseractEffector>()
+            .register_type::<SpaceshipSelectEffector>();
     }
 }

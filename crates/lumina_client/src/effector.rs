@@ -4,7 +4,8 @@ use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::effector::{
-    EffectorPopupMsg, InteractableEffector, MatchmakeEffector, TesseractEffector,
+    EffectorPopupMsg, InteractableEffector, MatchmakeEffector, SpaceshipSelectEffector,
+    TesseractEffector,
 };
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
@@ -30,6 +31,7 @@ impl Plugin for EffectorPlugin {
                     interact_effector,
                     effector_trigger::<MatchmakeEffector>,
                     effector_trigger::<TesseractEffector>,
+                    effector_trigger::<SpaceshipSelectEffector>,
                 ),
             );
     }

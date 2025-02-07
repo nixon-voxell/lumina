@@ -14,7 +14,8 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let BL = textureSample(tex_screen, sampler_screen_filter, in.uv + vec2<f32>(-pix.x, pix.y));
     let BR = textureSample(tex_screen, sampler_screen_filter, in.uv + pix);
 
-    let color = (center + TL + TR + BL + BR) * 0.2;
+    // let color = (center + TL + TR + BL + BR) * 0.2;
+    let color = center * 0.3 + (TL + TR + BL + BR) * 0.175;
 
     return color;
 }
