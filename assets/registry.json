@@ -21320,7 +21320,7 @@
       "long_name": "lumina_shared::blueprints::WeaponType",
       "oneOf": [
         "Cannon",
-        "Missle"
+        "GattlingGun"
       ],
       "short_name": "WeaponType",
       "type": "string",
