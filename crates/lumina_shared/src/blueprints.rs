@@ -133,7 +133,7 @@ pub enum SpaceshipType {
 #[strum(prefix = "levels/weapons/")]
 pub enum WeaponType {
     Cannon,
-    // Missle,
+    Missle,
     // GattlingGun,
 }
 
