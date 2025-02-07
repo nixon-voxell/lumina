@@ -35,9 +35,7 @@ impl Plugin for GameModeUiPlugin {
                         },
                     ),
                     interactable_func::<MainFunc>,
-                    sandbox_btns,
-                    matchmacke_btns,
-                    cancel_btn,
+                    (sandbox_btn, matchmacke_btns, cancel_btn).run_if(panel_open),
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )
@@ -77,15 +75,15 @@ fn setup_animation(mut commands: Commands) {
     ));
 }
 
-fn sandbox_btns(
+fn sandbox_btn(
     mut commands: Commands,
     interactions: InteractionQuery,
-    mut q_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
+    mut q_seq_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
     mut transparency_evw: EventWriter<MainWindowTransparency>,
 ) {
     if interactions.pressed(SANDBOX_BTN) {
         // Hide menu.
-        q_player.single_mut().time_scale = -1.0;
+        q_seq_player.single_mut().time_scale = -1.0;
 
         // Transition to sandbox screen.
         commands.add(Coroutine::new(move || {
@@ -110,7 +108,7 @@ fn sandbox_btns(
 fn matchmacke_btns(
     mut commands: Commands,
     interactions: InteractionQuery,
-    mut q_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
+    mut q_seq_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
     mut transparency_evw: EventWriter<MainWindowTransparency>,
 ) {
     let mut player_count = None;
@@ -126,7 +124,7 @@ fn matchmacke_btns(
     };
 
     // Hide menu.
-    q_player.single_mut().time_scale = -1.0;
+    q_seq_player.single_mut().time_scale = -1.0;
 
     // Transition to matchmakinig screen.
     commands.add(Coroutine::new(move || {
@@ -158,6 +156,10 @@ fn cancel_btn(
     if interactions.pressed("btn:cancel-matchmake") {
         q_player.single_mut().time_scale = -1.0;
     }
+}
+
+fn panel_open(q_seq_player: Query<&SequencePlayer, With<MainFuncAnimation>>) -> bool {
+    q_seq_player.single().time_scale > 0.0
 }
 
 #[derive(Component)]
