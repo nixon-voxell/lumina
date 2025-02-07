@@ -45,7 +45,7 @@ fn handle_spaceship_selection(
 ) {
     for event in events.read() {
         let client_id = event.context();
-        let spaceship = event.message().spaceship;
+        let spaceship = event.message().0;
         selection.insert(*client_id, spaceship);
         info!(
             "Server: Cached spaceship selection for client {}: {:?}",

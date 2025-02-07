@@ -188,7 +188,5 @@ pub struct EndGame;
 pub struct OrdReliableChannel;
 
 /// Select spaceship command sent from client to server.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct SelectSpaceship {
-    pub spaceship: SpaceshipType,
-}
+#[derive(Serialize, Deserialize, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
+pub struct SelectSpaceship(pub SpaceshipType);

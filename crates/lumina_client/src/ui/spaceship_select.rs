@@ -22,16 +22,13 @@ const SPACESHIP_BTNS: &[(&str, SpaceshipType)] = &[
 ];
 const CANCEL_BTN: &str = "btn:cancel-spaceship";
 
-#[derive(Resource, Default)]
-pub struct SelectedSpaceship(pub Option<SpaceshipType>);
-
 pub(super) struct SpaceshipSelectUiPlugin;
 
 impl Plugin for SpaceshipSelectUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<SpaceshipSelect>()
             .compile_typst_func::<SpaceshipSelect, SpaceshipFunc>()
-            .init_resource::<SelectedSpaceship>()
+            .init_resource::<ClientSpaceshipSelection>()
             .init_resource::<SpaceshipFunc>()
             .add_systems(Startup, setup_animation)
             .add_systems(
@@ -65,7 +62,7 @@ fn show_spaceship_select(
 
 fn handle_spaceship_selection(
     interactions: InteractionQuery,
-    mut selected: ResMut<SelectedSpaceship>,
+    mut selected: ResMut<ClientSpaceshipSelection>,
     mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
     mut transparency_evw: EventWriter<MainWindowTransparency>,
     mut connection_manager: ResMut<ConnectionManager>,
@@ -73,15 +70,14 @@ fn handle_spaceship_selection(
 ) {
     for &(btn, ship_type) in SPACESHIP_BTNS {
         if interactions.pressed(btn) {
-            selected.0 = Some(ship_type);
+            selected.0 = ship_type;
             q_player.single_mut().time_scale = -1.0;
             transparency_evw.send(MainWindowTransparency(1.0));
 
-            let join_msg = SelectSpaceship {
-                spaceship: ship_type,
-            };
-            if let Err(e) = connection_manager.send_message::<OrdReliableChannel, _>(&join_msg) {
-                error!("Failed to send JoinLobby message: {:?}", e);
+            // Construct the message using the new tuple struct.
+            let select_msg = SelectSpaceship(ship_type);
+            if let Err(e) = connection_manager.send_message::<OrdReliableChannel, _>(&select_msg) {
+                error!("Failed to send SelectSpaceship message: {:?}", e);
             } else {
                 info!("Spaceship selected: {:?}", ship_type);
             }
@@ -142,3 +138,12 @@ impl InteractableFunc for SpaceshipFunc {
 #[derive(TypstPath)]
 #[typst_path = "typst/client/spaceship_select.typ"]
 struct SpaceshipSelect;
+
+#[derive(Resource)]
+pub struct ClientSpaceshipSelection(pub SpaceshipType);
+
+impl Default for ClientSpaceshipSelection {
+    fn default() -> Self {
+        Self(SpaceshipType::Assassin)
+    }
+}
