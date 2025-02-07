@@ -13,10 +13,6 @@ use super::Screen;
 use crate::ui::spaceship_select::ClientSpaceshipSelection;
 pub(super) struct LocalLobbyPlugin;
 
-// Define the marker component
-#[derive(Component)]
-struct SpaceshipEntityMarker;
-
 impl Plugin for LocalLobbyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -24,11 +20,8 @@ impl Plugin for LocalLobbyPlugin {
             (spawn_lobby, despawn_networked_inputs),
         )
         .add_systems(
-            Update,
-            (
-                update_spaceship_config.run_if(in_state(Screen::LocalLobby)),
-                cleanup_marked_entities,
-            ),
+            PostUpdate,
+            update_spaceship_config.run_if(in_state(Screen::LocalLobby)),
         )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby);
     }
@@ -47,7 +40,7 @@ fn spawn_lobby(
 
             // Spaceship
             builder.spawn((
-                selected_ship.0.config_info(),
+                selected_ship.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
                 SpaceshipEntityMarker,
@@ -73,16 +66,16 @@ fn spawn_lobby(
 /// Update spaceship configuration when a new selection is made
 fn update_spaceship_config(
     mut commands: Commands,
-    selected_ship: Res<ClientSpaceshipSelection>,
-    spaceship_query: Query<Entity, With<SpaceshipEntityMarker>>,
-    lobby_query: Query<Entity, With<LocalLobby>>,
+    mut select_spaceship_evr: EventReader<SelectSpaceship>,
+    q_spaceships: Query<Entity, With<SpaceshipEntityMarker>>,
+    q_local_lobby: Query<Entity, With<LocalLobby>>,
 ) {
-    if selected_ship.is_changed() {
+    for select_spaceship in select_spaceship_evr.read() {
         // Spawn new spaceship entities for each lobby.
-        for lobby in lobby_query.iter() {
+        if let Ok(lobby) = q_local_lobby.get_single() {
             commands.entity(lobby).with_children(|parent| {
                 parent.spawn((
-                    selected_ship.0.config_info(),
+                    select_spaceship.0.config_info(),
                     SpawnBlueprint,
                     PlayerId::LOCAL,
                     SpaceshipEntityMarker,
@@ -90,17 +83,12 @@ fn update_spaceship_config(
                 ));
             });
         }
-        // Instead of despawning immediately, mark all existing spaceship entities for removal.
-        for spaceship_entity in spaceship_query.iter() {
-            commands.entity(spaceship_entity).insert(MarkedForDespawn);
-        }
-        info!("Updated spaceship to: {:?}", selected_ship.0);
-    }
-}
 
-fn cleanup_marked_entities(mut commands: Commands, query: Query<Entity, With<MarkedForDespawn>>) {
-    for entity in query.iter() {
-        commands.entity(entity).despawn_recursive();
+        for spaceship_entity in q_spaceships.iter() {
+            commands.entity(spaceship_entity).despawn_recursive();
+        }
+
+        info!("Updated spaceship to: {:?}", **select_spaceship);
     }
 }
 
@@ -144,5 +132,6 @@ impl Default for LocalLobbyBundle {
 /// Tag for the parent entity of the lobby scene.
 pub(super) struct LocalLobby;
 
+// Define the marker component
 #[derive(Component)]
-struct MarkedForDespawn;
+struct SpaceshipEntityMarker;

@@ -26,22 +26,25 @@ pub(super) struct SpaceshipSelectUiPlugin;
 
 impl Plugin for SpaceshipSelectUiPlugin {
     fn build(&self, app: &mut App) {
-        app.register_typst_asset::<SpaceshipSelect>()
-            .compile_typst_func::<SpaceshipSelect, SpaceshipFunc>()
+        app.add_event::<SelectSpaceship>()
+            .register_typst_asset::<SpaceshipSelect>()
+            .compile_typst_func::<SpaceshipSelect, SpaceshipSelectFunc>()
             .init_resource::<ClientSpaceshipSelection>()
-            .init_resource::<SpaceshipFunc>()
+            .init_resource::<SpaceshipSelectFunc>()
             .add_systems(Startup, setup_animation)
             .add_systems(
                 Update,
                 (
-                    push_to_main_window::<SpaceshipFunc>().run_if(
-                        |q_controller: Query<&SequenceController, With<SpaceshipMainAnimation>>| {
+                    push_to_main_window::<SpaceshipSelectFunc>().run_if(
+                        |q_controller: Query<
+                            &SequenceController,
+                            With<SpaceshipSelectFuncAnim>,
+                        >| {
                             q_controller.single().curr_time() > f32::EPSILON
                         },
                     ),
-                    interactable_func::<SpaceshipFunc>,
-                    handle_spaceship_selection,
-                    cancel_btn,
+                    interactable_func::<SpaceshipSelectFunc>,
+                    (handle_spaceship_selection, cancel_btn).run_if(panel_is_open),
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )
@@ -52,7 +55,7 @@ impl Plugin for SpaceshipSelectUiPlugin {
 fn show_spaceship_select(
     trigger: Trigger<SpaceshipSelectEffector>,
     mut commands: Commands,
-    mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
+    mut q_player: Query<&mut SequencePlayer, With<SpaceshipSelectFuncAnim>>,
 ) {
     commands
         .entity(trigger.entity())
@@ -63,24 +66,25 @@ fn show_spaceship_select(
 fn handle_spaceship_selection(
     interactions: InteractionQuery,
     mut selected: ResMut<ClientSpaceshipSelection>,
-    mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
+    mut q_player: Query<&mut SequencePlayer, With<SpaceshipSelectFuncAnim>>,
+    mut select_spaceship_evw: EventWriter<SelectSpaceship>,
     mut transparency_evw: EventWriter<MainWindowTransparency>,
     mut connection_manager: ResMut<ConnectionManager>,
     _local_client_id: Res<LocalClientId>,
 ) {
     for &(btn, ship_type) in SPACESHIP_BTNS {
         if interactions.pressed(btn) {
-            selected.0 = ship_type;
+            **selected = ship_type;
             q_player.single_mut().time_scale = -1.0;
             transparency_evw.send(MainWindowTransparency(1.0));
 
             // Construct the message using the new tuple struct.
             let select_msg = SelectSpaceship(ship_type);
-            if let Err(e) = connection_manager.send_message::<OrdReliableChannel, _>(&select_msg) {
-                error!("Failed to send SelectSpaceship message: {:?}", e);
-            } else {
-                info!("Spaceship selected: {:?}", ship_type);
+            match connection_manager.send_message::<OrdReliableChannel, _>(&select_msg) {
+                Err(e) => error!("Failed to send SelectSpaceship message: {:?}", e),
+                Ok(_) => info!("Spaceship selected: {:?}", ship_type),
             }
+            select_spaceship_evw.send(select_msg);
             break;
         }
     }
@@ -102,25 +106,29 @@ fn setup_animation(mut commands: Commands) {
 
     commands.spawn((
         SequencePlayerBundle::from_sequence(sequences.flow(0.1)),
-        SpaceshipMainAnimation,
+        SpaceshipSelectFuncAnim,
     ));
 }
 
 fn cancel_btn(
     interactions: InteractionQuery,
-    mut q_player: Query<&mut SequencePlayer, With<SpaceshipMainAnimation>>,
+    mut q_player: Query<&mut SequencePlayer, With<SpaceshipSelectFuncAnim>>,
 ) {
     if interactions.pressed(CANCEL_BTN) {
         q_player.single_mut().time_scale = -1.0;
     }
 }
 
+fn panel_is_open(q_seq_player: Query<&SequencePlayer, With<SpaceshipSelectFuncAnim>>) -> bool {
+    q_seq_player.single().time_scale > 0.0
+}
+
 #[derive(Component)]
-pub struct SpaceshipMainAnimation;
+pub struct SpaceshipSelectFuncAnim;
 
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "spaceship_main", layer = 1)]
-struct SpaceshipFunc {
+struct SpaceshipSelectFunc {
     data: foundations::Dict,
     #[typst_func(named)]
     hovered_button: Option<TypLabel>,
@@ -128,7 +136,7 @@ struct SpaceshipFunc {
     hovered_animation: f64,
 }
 
-impl InteractableFunc for SpaceshipFunc {
+impl InteractableFunc for SpaceshipSelectFunc {
     fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
         self.hovered_button = hovered_button;
         self.hovered_animation = hovered_animation;
@@ -139,7 +147,7 @@ impl InteractableFunc for SpaceshipFunc {
 #[typst_path = "typst/client/spaceship_select.typ"]
 struct SpaceshipSelect;
 
-#[derive(Resource)]
+#[derive(Resource, Deref, DerefMut)]
 pub struct ClientSpaceshipSelection(pub SpaceshipType);
 
 impl Default for ClientSpaceshipSelection {
