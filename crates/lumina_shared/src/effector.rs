@@ -57,3 +57,7 @@ pub struct MatchmakeEffector;
 #[derive(Event, Reflect, Clone, Copy)]
 #[reflect(Component)]
 pub struct TesseractEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct SpaceshipSelectEffector;
