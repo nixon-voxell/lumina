@@ -12,11 +12,12 @@ pub(super) struct SpaceshipAbilityPlugin;
 impl Plugin for SpaceshipAbilityPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 ability_tracker_systems::<ShadowAbility>(),
                 ability_tracker_systems::<HealAbility>(),
-            ),
+            )
+                .after(super::spaceship_actions),
         );
     }
 }

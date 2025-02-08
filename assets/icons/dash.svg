@@ -1,2 +1,16 @@
-<?xml version="1.0" ?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 64 64" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#65c8d0;}.cls-2{fill:#fcdd7c;}.cls-3{fill:#e7685d;}</style></defs><path class="cls-1" d="M32,54A22,22,0,0,0,54,32h6A28,28,0,0,1,32,60"/><path class="cls-1" d="M32,10A22,22,0,0,0,10,32H4A28,28,0,0,1,32,4"/><polygon class="cls-2" points="23 50 32 33 18 33 34 18 46 18 30 29 42 29 23 50"/><polygon class="cls-3" points="32 12 32 2 42 7 32 12"/><polygon class="cls-3" points="32 52 32 62 22 57 32 52"/></svg>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 viewBox="0 0 423.753 423.753" xml:space="preserve">
+<polygon style="fill:#FFE53C;" points="365.873,183.753 73.873,415.753 189.873,231.753 57.873,231.753 341.873,7.753 
+	228.273,183.753 "/>
+<path style="fill:#C39215;" d="M73.873,423.753c-2,0-4-0.8-5.2-2c-2.8-2.8-3.6-6.8-1.6-10.4l108.4-171.6h-117.6
+	c-3.6,0-6.4-2-7.6-5.2s0-6.8,2.8-8.8l284-224c3.2-2.4,7.6-2.4,10.4,0.4c2.8,2.8,3.6,6.8,1.2,10.4l-105.6,163.2h122.8
+	c3.6,0,6.4,2,7.6,5.2s0,6.8-2.4,8.8l-292,232C77.473,423.353,75.473,423.753,73.873,423.753z M81.073,223.753h108.8
+	c2.8,0,5.6,1.6,7.2,4c1.6,2.4,1.2,5.6-0.4,8l-90.8,144.4l237.2-188.4h-114.8c-2.8,0-5.6-1.6-7.2-4s-1.2-5.6,0.4-8l87.6-136
+	L81.073,223.753z"/>
+<g>
+	<polygon style="fill:#F8D133;" points="109.873,375.753 341.873,191.753 285.873,191.753 	"/>
+	<path style="fill:#F8D133;" d="M313.873,39.753l-128,144h17.2c9.2,0,18-4.8,23.2-12.4L313.873,39.753z"/>
+</g>
+</svg>

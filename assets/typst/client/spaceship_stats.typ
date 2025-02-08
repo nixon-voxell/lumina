@@ -60,11 +60,12 @@
   ]
 }
 
-#let dash_cooldown_display(
+#let effect_cooldown_display(
   cooldown,
   icon_path,
   width,
   height,
+  bg_color: base7,
 ) = {
   let fill_height = cooldown * 100%
   let border_radius = 0.4em
@@ -72,13 +73,13 @@
   box(
     width: width,
     height: height,
-    fill: base7.transparentize(90%),
+    fill: bg_color.transparentize(90%),
     radius: border_radius,
-    stroke: (paint: base7.transparentize(50%), thickness: 0.1em),
+    stroke: (paint: bg_color.transparentize(50%), thickness: 0.1em),
     clip: true,
   )[
     // Icon and cooldown overlay
-    #box(inset: 0.3em, image(icon_path))
+    #box(inset: 0.5em, image(icon_path))
 
     // Dark overlay inside the icon filling from bottom to top
     #place(bottom)[
@@ -136,11 +137,22 @@
     ]
 
     #place(bottom + right)[
-      #dash_cooldown_display(
-        data.dash_cooldown,
-        "/icons/dash.svg",
-        height * 2,
-        height * 2,
+      #stack(
+        dir: ltr,
+        spacing: 1em,
+        effect_cooldown_display(
+          data.dash_cooldown,
+          "/icons/dash.svg",
+          height * 2,
+          height * 2,
+        ),
+        effect_cooldown_display(
+          data.ability_cooldown,
+          "/icons/" + data.ability_icon + ".svg",
+          height * 3,
+          height * 3,
+          bg_color: if data.ability_active { blue } else { base7 },
+        ),
       )
     ]
   ]
