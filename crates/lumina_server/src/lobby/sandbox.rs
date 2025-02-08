@@ -50,6 +50,16 @@ fn handle_enter_sandbox(
             NetworkTarget::Single(client_id),
         );
 
+        // Send `LobbyData` with a generated room ID
+        let room_id = world_entity.room_id();
+
+        let _ = connection_manager.send_message_to_target::<OrdReliableChannel, _>(
+            &LobbyData {
+                room_id: room_id.into(),
+            },
+            NetworkTarget::Single(client_id),
+        );
+
         room_manager.add_client(client_id, world_entity.room_id());
         // Add to the lobby hash map.
         lobbies.insert(client_id, world_entity);

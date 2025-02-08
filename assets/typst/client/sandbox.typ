@@ -4,6 +4,7 @@
 #let sandbox(
   hovered_button,
   hovered_animation,
+  room_id,
 ) = {
   interactable_window(
     hovered_button: hovered_button,
@@ -15,6 +16,12 @@
       #place(center + top)[
         #set text(size: 24pt)
         = Sandbox Mode
+      ]
+
+      #place(bottom + right)[
+        #set text(size: 12pt)
+
+        Room Id: #room_id
       ]
 
       #place(top + right)[

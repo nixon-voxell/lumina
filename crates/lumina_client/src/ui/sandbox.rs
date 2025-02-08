@@ -12,7 +12,8 @@ pub(super) struct SandboxUiPlugin;
 
 impl Plugin for SandboxUiPlugin {
     fn build(&self, app: &mut App) {
-        app.register_typst_asset::<SandboxUi>()
+        app.add_event::<MessageEvent<LobbyData>>()
+            .register_typst_asset::<SandboxUi>()
             .compile_typst_func::<SandboxUi, SandboxFunc>()
             .init_resource::<SandboxFunc>()
             .add_systems(
@@ -23,7 +24,8 @@ impl Plugin for SandboxUiPlugin {
                     exit_sandbox_btn,
                 )
                     .run_if(in_state(Screen::Sandbox)),
-            );
+            )
+            .add_systems(Update, handle_sandbox_data);
     }
 }
 
@@ -38,11 +40,22 @@ fn exit_sandbox_btn(
     }
 }
 
+fn handle_sandbox_data(
+    mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
+    mut sandbox_func: ResMut<SandboxFunc>,
+) {
+    for event in lobby_data_evr.read() {
+        let data = event.message();
+        sandbox_func.room_id = Some(data.room_id.0);
+    }
+}
+
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "sandbox", layer = 1)]
 pub(super) struct SandboxFunc {
     hovered_button: Option<TypLabel>,
     hovered_animation: f64,
+    pub room_id: Option<u64>,
 }
 
 impl InteractableFunc for SandboxFunc {
