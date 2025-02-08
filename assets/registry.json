@@ -21612,9 +21612,15 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
+        },
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
+        "duration",
         "cooldown",
         "ability"
       ],
@@ -21637,9 +21643,15 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
+        },
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
+        "duration",
         "cooldown",
         "ability"
       ],
@@ -21653,11 +21665,6 @@
       "isResource": false,
       "long_name": "lumina_shared::player::spaceship::ability::HealAbility",
       "properties": {
-        "duration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
         "radius": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -21665,8 +21672,7 @@
         }
       },
       "required": [
-        "radius",
-        "duration"
+        "radius"
       ],
       "short_name": "HealAbility",
       "type": "object",
@@ -21678,12 +21684,12 @@
       "isResource": false,
       "long_name": "lumina_shared::player::spaceship::ability::ShadowAbility",
       "properties": {
-        "duration": {
+        "strength": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "strength": {
+        "transition_duration": {
           "type": {
             "$ref": "#/$defs/f32"
           }
@@ -21691,7 +21697,7 @@
       },
       "required": [
         "strength",
-        "duration"
+        "transition_duration"
       ],
       "short_name": "ShadowAbility",
       "type": "object",

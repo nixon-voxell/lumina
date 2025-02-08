@@ -1,21 +1,31 @@
 use bevy::prelude::*;
 use bevy::sprite::Mesh2dHandle;
 use bevy::utils::HashMap;
+use blenvy::*;
 
 pub(super) struct Convert3dTo2dPlugin;
 
 impl Plugin for Convert3dTo2dPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ColorMaterialMap>().add_systems(
-            Update,
-            (
-                convert_3d_to_2d_mesh,
-                convert_std_to_color_material,
-                material_change_update,
-            ),
-        );
+        app.init_resource::<ColorMaterialMap>()
+            .configure_sets(
+                Update,
+                Convert3dTo2dSet.in_set(GltfBlueprintsSet::AfterSpawn),
+            )
+            .add_systems(
+                Update,
+                (
+                    convert_3d_to_2d_mesh,
+                    convert_std_to_color_material,
+                    material_change_update,
+                )
+                    .in_set(Convert3dTo2dSet),
+            );
     }
 }
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub struct Convert3dTo2dSet;
 
 /// Convert all 3d [`Handle<Mesh>`] to 2d [`Mesh2dHandle`].
 fn convert_3d_to_2d_mesh(

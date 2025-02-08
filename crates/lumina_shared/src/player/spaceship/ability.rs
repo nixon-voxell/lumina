@@ -1,4 +1,5 @@
-use bevy::{ecs::schedule::SystemConfigs, prelude::*};
+use bevy::ecs::schedule::SystemConfigs;
+use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
@@ -13,34 +14,10 @@ impl Plugin for SpaceshipAbilityPlugin {
         app.add_systems(
             Update,
             (
-                init_shadow_ability,
                 ability_tracker_systems::<ShadowAbility>(),
                 ability_tracker_systems::<HealAbility>(),
             ),
         );
-    }
-}
-
-fn init_shadow_ability(
-    mut commands: Commands,
-    q_spaceships: Query<Entity, (Added<SourceEntity>, With<ShadowAbilityConfig>)>,
-    q_children: Query<&Children>,
-    q_color_materials: Query<&Handle<ColorMaterial>>,
-    color_materials: Res<Assets<ColorMaterial>>,
-) {
-    for entity in q_spaceships.iter() {
-        let mut origin_colors = OriginColors::default();
-        for (color_material, child) in q_children.iter_descendants(entity).filter_map(|e| {
-            q_color_materials
-                .get(e)
-                .ok()
-                .and_then(|handle| color_materials.get(handle))
-                .map(|color_material| (color_material, e))
-        }) {
-            origin_colors.push((child, color_material.color));
-        }
-
-        commands.entity(entity).insert(origin_colors);
     }
 }
 
@@ -107,7 +84,7 @@ fn track_ability_cooldown<T: Send + Sync + 'static>(
     mut q_abilities: Query<
         (&mut AbilityCooldown, &PlayerId, Entity),
         (
-            Without<AbilityCooldown>,
+            Without<AbilityEffect>,
             With<AbilityConfig<T>>,
             With<SourceEntity>,
         ),
@@ -115,8 +92,8 @@ fn track_ability_cooldown<T: Send + Sync + 'static>(
     time: Res<Time>,
     network_identity: NetworkIdentity,
 ) {
-    for (mut effect, player_id, entity) in q_abilities.iter_mut() {
-        if effect.tick(time.delta()).finished()
+    for (mut cooldown, player_id, entity) in q_abilities.iter_mut() {
+        if cooldown.tick(time.delta()).finished()
             // Only server or local player can remove the cooldown for correct syncing.
             && (network_identity.is_server() || player_id.is_local())
         {
@@ -137,6 +114,12 @@ pub struct AbilityConfig<T> {
     ability: T,
 }
 
+impl<T> AbilityConfig<T> {
+    pub fn ability(&self) -> &T {
+        &self.ability
+    }
+}
+
 /// Cooldown timer based on [`AbilityConfig::cooldown`].
 /// While this component is still in effect, [ability action][crate::action::PlayerAction::Ability] cannot be used.
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
@@ -151,19 +134,12 @@ pub struct AbilityEffect(Timer);
 pub struct ShadowAbility {
     /// A color multiplier for the spaceship's material. (Should be a negative value).
     pub strength: f32,
-    /// Duration of the ability in seconds.
-    pub duration: f32,
+    /// Transition duration of the spaceship's material colors.
+    pub transition_duration: f32,
 }
 
 #[derive(Serialize, Reflect, Deserialize, Debug, Clone, PartialEq)]
 pub struct HealAbility {
     /// Radius of the ability.
     pub radius: f32,
-    /// Duration of the ability in seconds.
-    pub duration: f32,
 }
-
-/// Original color of the material.
-/// Used for spaceship with [`ShadowAbilityConfig`].
-#[derive(Component, Deref, DerefMut, Default, Debug, Clone)]
-pub struct OriginColors(Vec<(Entity, Color)>);
