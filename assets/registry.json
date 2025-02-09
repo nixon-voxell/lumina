@@ -21669,10 +21669,16 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
+        },
+        "transition_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
-        "radius"
+        "radius",
+        "transition_duration"
       ],
       "short_name": "HealAbility",
       "type": "object",

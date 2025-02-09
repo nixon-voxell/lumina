@@ -51,7 +51,7 @@ fn apply_ability_effect<T: Send + Sync + 'static>(
         commands
             .entity(entity)
             .insert(AbilityEffect(Timer::from_seconds(
-                ability.cooldown,
+                ability.duration,
                 TimerMode::Once,
             )));
     }
@@ -143,4 +143,6 @@ pub struct ShadowAbility {
 pub struct HealAbility {
     /// Radius of the ability.
     pub radius: f32,
+    /// Transition duration of the healing radius.
+    pub transition_duration: f32,
 }
