@@ -21665,6 +21665,11 @@
       "isResource": false,
       "long_name": "lumina_shared::player::spaceship::ability::HealAbility",
       "properties": {
+        "healing_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
         "radius": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -21678,7 +21683,8 @@
       },
       "required": [
         "radius",
-        "transition_duration"
+        "transition_duration",
+        "healing_rate"
       ],
       "short_name": "HealAbility",
       "type": "object",

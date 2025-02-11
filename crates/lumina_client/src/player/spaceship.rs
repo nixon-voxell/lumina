@@ -21,8 +21,8 @@ impl Plugin for SpaceshipPlugin {
             .add_systems(
                 Update,
                 (
-                    init_shadow_ability_colors.after(Convert3dTo2dSet),
-                    apply_shadow_effect,
+                    init_shadow_ability.after(Convert3dTo2dSet),
+                    apply_shadow_ability,
                 ),
             )
             .add_systems(
@@ -94,7 +94,7 @@ fn booster_vfx(
 }
 
 /// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].
-fn init_shadow_ability_colors(
+fn init_shadow_ability(
     mut commands: Commands,
     q_spaceships: Query<Entity, (With<SourceEntity>, With<ShadowAbilityConfig>)>,
     q_children: Query<&Children>,
@@ -137,7 +137,7 @@ fn init_shadow_ability_colors(
 }
 
 /// Apply shadow ability effect for spaceships.
-fn apply_shadow_effect(
+fn apply_shadow_ability(
     q_spaceships: Query<
         (
             &ShadowAbilityConfig,
