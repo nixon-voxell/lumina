@@ -224,14 +224,22 @@ impl<T> AbilityConfig<T> {
     pub fn ability(&self) -> &T {
         &self.ability
     }
+
+    pub fn duration(&self) -> f32 {
+        self.duration
+    }
+
+    pub fn cooldown(&self) -> f32 {
+        self.cooldown
+    }
 }
 
-/// Cooldown timer based on [`AbilityConfig::cooldown`].
+/// Cooldown timer based on [`AbilityConfig::cooldown()`].
 /// While this component is still in effect, [ability action][crate::action::PlayerAction::Ability] cannot be used.
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct AbilityCooldown(Timer);
 
-/// Effect timer based on [`AbilityConfig::duration`].
+/// Effect timer based on [`AbilityConfig::duration()`].
 /// While this component is still in effect, [ability action][crate::action::PlayerAction::Ability] cannot be used.
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct AbilityEffect(Timer);

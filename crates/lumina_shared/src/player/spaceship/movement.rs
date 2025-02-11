@@ -3,6 +3,9 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
+// For doc links
+#[allow(unused_imports)]
+use crate::action::PlayerAction;
 use crate::player::PlayerId;
 
 use super::{Spaceship, SpaceshipAction};
