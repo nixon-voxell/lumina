@@ -74,6 +74,18 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<DashCooldown>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full);
 
+        app.register_component::<ShadowAbilityConfig>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<HealAbilityConfig>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<AbilityEffect>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<AbilityCooldown>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 

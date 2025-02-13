@@ -4173,6 +4173,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_enoki",
+ "bevy_shader_utils",
  "lumina_common",
  "smallvec",
  "strum",

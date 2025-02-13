@@ -44,7 +44,7 @@ impl Plugin for SpaceshipSelectUiPlugin {
                         },
                     ),
                     interactable_func::<SpaceshipSelectFunc>,
-                    (handle_spaceship_selection, cancel_btn).run_if(panel_is_open),
+                    (handle_spaceship_selection, cancel_btn).run_if(is_panel_open),
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )
@@ -119,7 +119,7 @@ fn cancel_btn(
     }
 }
 
-fn panel_is_open(q_seq_player: Query<&SequencePlayer, With<SpaceshipSelectFuncAnim>>) -> bool {
+fn is_panel_open(q_seq_player: Query<&SequencePlayer, With<SpaceshipSelectFuncAnim>>) -> bool {
     q_seq_player.single().time_scale > 0.0
 }
 

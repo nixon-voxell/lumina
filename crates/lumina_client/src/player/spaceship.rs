@@ -1,14 +1,20 @@
 use std::f32::consts::FRAC_PI_4;
 
 use bevy::prelude::*;
+use bevy::render::view::RenderLayers;
+use bevy::sprite::Mesh2dHandle;
 use bevy_enoki::prelude::*;
 use bevy_motiongfx::prelude::*;
+use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_common::utils::ColorPalette;
 use lumina_shared::action::ReplicateActionBundle;
 use lumina_shared::prelude::*;
 use lumina_vfx::prelude::*;
+
+use crate::camera::MainPrepassTexture;
 
 use super::{CachedGameStat, LocalPlayerId};
 
@@ -18,9 +24,195 @@ impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InPlaceVfxMapPlugin::<Spaceship>::default())
             .add_systems(
-                FixedPostUpdate,
-                (spawn_networked_action, cache_team_type, booster_vfx),
+                Update,
+                (
+                    spawn_networked_action,
+                    cache_team_type,
+                    booster_vfx,
+                    init_shadow_vfx.after(Convert3dTo2dSet),
+                    apply_shadow_vfx,
+                    init_heal_vfx,
+                    update_heal_prepass_texture.run_if(resource_changed::<MainPrepassTexture>),
+                    apply_heal_vfx_effect,
+                    apply_heal_vfx_cooldown,
+                    update_heal_vfx,
+                ),
             );
+    }
+}
+
+/// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].
+fn init_shadow_vfx(
+    mut commands: Commands,
+    q_spaceships: Query<Entity, (With<SourceEntity>, With<ShadowAbilityConfig>)>,
+    q_children: Query<&Children>,
+    q_color_materials: Query<&Handle<ColorMaterial>>,
+    color_materials: Res<Assets<ColorMaterial>>,
+    mut blueprint_evr: EventReader<BlueprintEvent>,
+) {
+    for bp_event in blueprint_evr.read() {
+        if let BlueprintEvent::InstanceReady {
+            entity,
+            blueprint_name,
+            ..
+        } = bp_event
+        {
+            if blueprint_name != &SpaceshipType::Assassin.visual_info().name {
+                continue;
+            }
+
+            // Check if our target entity is a source entity and contains the ability config.
+            if q_spaceships.contains(*entity) == false {
+                continue;
+            }
+
+            // Initialize origin colors of the materials.
+            let mut origin_colors = OriginColors::default();
+            for (color_material, child) in q_children.iter_descendants(*entity).filter_map(|e| {
+                q_color_materials
+                    .get(e)
+                    .ok()
+                    .and_then(|handle| color_materials.get(handle))
+                    .map(|color_material| (color_material, e))
+            }) {
+                origin_colors.push((child, color_material.color));
+            }
+
+            commands.entity(*entity).insert(origin_colors);
+            info!("Setup origin colors for {entity}");
+        }
+    }
+}
+
+/// Apply shadow ability effect for spaceships.
+fn apply_shadow_vfx(
+    q_spaceships: Query<
+        (
+            &ShadowAbilityConfig,
+            Option<&AbilityEffect>,
+            Option<&AbilityCooldown>,
+            &OriginColors,
+        ),
+        (
+            With<SourceEntity>,
+            Or<(With<AbilityEffect>, With<AbilityCooldown>)>,
+        ),
+    >,
+    q_color_materials: Query<&Handle<ColorMaterial>>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
+) {
+    for (ability, effect, cooldown, origin_colors) in q_spaceships.iter() {
+        for (entity, origin_color) in origin_colors.iter() {
+            let Some(color_material) = q_color_materials
+                .get(*entity)
+                .ok()
+                .and_then(|handle| color_materials.get_mut(handle))
+            else {
+                continue;
+            };
+
+            let shadow_ability = ability.ability();
+            let strength = shadow_ability.strength;
+            let mut transition = 0.0;
+
+            if let Some(effect) = effect {
+                transition = ease::cubic::ease_in_out(
+                    (effect.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
+                );
+            } else if let Some(cooldown) = cooldown {
+                transition = ease::cubic::ease_in_out(
+                    1.0 - (cooldown.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
+                );
+            }
+
+            color_material.color =
+                origin_color.lerp_that(Color::linear_rgb(strength, strength, strength), transition);
+        }
+    }
+}
+
+fn init_heal_vfx(
+    mut commands: Commands,
+    q_spaceships: Query<(&HealAbilityConfig, Entity), Added<SourceEntity>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    prepass_texture: Res<MainPrepassTexture>,
+    color_palette: Res<ColorPalette>,
+) {
+    for (config, entity) in q_spaceships.iter() {
+        let mesh_handle =
+            Mesh2dHandle(meshes.add(Rectangle::from_length(config.ability().radius * 2.0)));
+
+        let vfx_entity = commands
+            .spawn((
+                ColorMesh2dBundle {
+                    mesh: mesh_handle,
+                    transform: Transform::from_xyz(0.0, 0.0, -1.0),
+                    ..default()
+                },
+                HealAbilityMaterial {
+                    color0: color_palette.green.to_linear() * 2.0,
+                    color1: color_palette.blue.to_linear() * 2.0,
+                    time: 0.0,
+                    screen_texture: prepass_texture.image_handle().clone_weak(),
+                },
+                RenderLayers::layer(2),
+            ))
+            .set_parent(entity)
+            .id();
+
+        commands.entity(entity).insert(HealVfx {
+            entity: vfx_entity,
+            time: 0.0,
+        });
+    }
+}
+
+fn update_heal_prepass_texture(
+    mut q_heal_ability_mats: Query<&mut HealAbilityMaterial>,
+    prepass_texture: Res<MainPrepassTexture>,
+) {
+    for mut material in q_heal_ability_mats.iter_mut() {
+        material.screen_texture = prepass_texture.image_handle().clone_weak();
+    }
+}
+
+fn apply_heal_vfx_effect(
+    mut q_spaceships: Query<
+        (&mut HealVfx, Ref<AbilityEffect>, &HealAbilityConfig),
+        With<SourceEntity>,
+    >,
+    time: Res<Time>,
+) {
+    for (mut vfx, effect, config) in q_spaceships.iter_mut() {
+        vfx.time += time.delta_seconds() * config.ability().animation_speed;
+        vfx.time = vfx.time.min(1.0);
+        if effect.is_added() {
+            vfx.time = 0.0;
+        }
+    }
+}
+
+fn apply_heal_vfx_cooldown(
+    mut q_spaceships: Query<
+        (&mut HealVfx, &HealAbilityConfig),
+        (With<AbilityCooldown>, With<SourceEntity>),
+    >,
+    time: Res<Time>,
+) {
+    for (mut vfx, config) in q_spaceships.iter_mut() {
+        vfx.time -= time.delta_seconds() * config.ability().animation_speed;
+        vfx.time = vfx.time.max(0.0);
+    }
+}
+
+fn update_heal_vfx(
+    mut q_spaceships: Query<&HealVfx, (Changed<HealVfx>, With<SourceEntity>)>,
+    mut q_materials: Query<&mut HealAbilityMaterial>,
+) {
+    for vfx in q_spaceships.iter_mut() {
+        if let Ok(mut material) = q_materials.get_mut(vfx.entity) {
+            material.time = ease::quint::ease_out(vfx.time);
+        }
     }
 }
 
@@ -63,8 +255,7 @@ fn booster_vfx(
                 continue;
             };
 
-            booster.ignition = ease::cubic::ease_in_out(ignition);
-
+            booster.ignition = booster.ignition.lerp(ignition, time.delta_seconds() * 4.0);
             booster.inv_scale = FloatExt::lerp(1.0, 0.6, boost_acc / boost_acc_size);
 
             // Rotation.
@@ -113,4 +304,16 @@ fn spawn_networked_action(
             player_infos[PlayerInfoType::Action].insert(*id, action_entity);
         }
     }
+}
+
+/// Original color of the material.
+/// Used for spaceship with [`ShadowAbilityConfig`].
+#[derive(Component, Deref, DerefMut, Default, Debug, Clone)]
+pub struct OriginColors(Vec<(Entity, Color)>);
+
+/// Vfx stats for the [`HealAbilityConfig`],
+#[derive(Component, Debug, Clone, Copy)]
+pub struct HealVfx {
+    entity: Entity,
+    time: f32,
 }
