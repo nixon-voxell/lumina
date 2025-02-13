@@ -7,7 +7,7 @@ mod particle;
 mod type_registry;
 
 pub mod prelude {
-    pub use crate::material2d::BoosterMaterial;
+    pub use crate::material2d::{BoosterMaterial, HealAbilityMaterial};
     pub use crate::particle::{AmmoHitMaterial, MuzzleFlashMaterial};
     pub use crate::particle::{DespawnVfx, DespawnVfxEffects, DespawnVfxType};
     pub use crate::particle::{
@@ -23,6 +23,7 @@ impl Plugin for VfxPlugin {
             material2d::Material2dVfxPlugin,
             particle::ParticleVfxPlugin,
             type_registry::TypeRegistryPlugin,
+            bevy_shader_utils::ShaderUtilsPlugin,
         ))
         .add_systems(Update, init_oneshot_effect);
     }

@@ -4646,6 +4646,44 @@
       "type": "object",
       "typeInfo": "Enum"
     },
+    "bevy_asset::handle::Handle<lumina_vfx::material2d::HealAbilityMaterial>": {
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_asset::handle::Handle<lumina_vfx::material2d::HealAbilityMaterial>",
+      "oneOf": [
+        {
+          "items": false,
+          "long_name": "Strong",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
+              }
+            }
+          ],
+          "short_name": "Strong",
+          "type": "array",
+          "typeInfo": "Tuple"
+        },
+        {
+          "items": false,
+          "long_name": "Weak",
+          "prefixItems": [
+            {
+              "type": {
+                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_vfx::material2d::HealAbilityMaterial>"
+              }
+            }
+          ],
+          "short_name": "Weak",
+          "type": "array",
+          "typeInfo": "Tuple"
+        }
+      ],
+      "short_name": "Handle<HealAbilityMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "bevy_asset::handle::Handle<lumina_vfx::particle::AmmoHitMaterial>": {
       "isComponent": true,
       "isResource": false,
@@ -6183,6 +6221,52 @@
         }
       ],
       "short_name": "AssetId<BoosterMaterial>",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
+    "bevy_asset::id::AssetId<lumina_vfx::material2d::HealAbilityMaterial>": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_asset::id::AssetId<lumina_vfx::material2d::HealAbilityMaterial>",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "long_name": "Index",
+          "properties": {
+            "index": {
+              "long_name": "index",
+              "type": {
+                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
+              }
+            }
+          },
+          "required": [
+            "index"
+          ],
+          "short_name": "Index",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Uuid",
+          "properties": {
+            "uuid": {
+              "long_name": "uuid",
+              "type": {
+                "$ref": "#/$defs/uuid::Uuid"
+              }
+            }
+          },
+          "required": [
+            "uuid"
+          ],
+          "short_name": "Uuid",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "AssetId<HealAbilityMaterial>",
       "type": "object",
       "typeInfo": "Enum"
     },
@@ -21140,7 +21224,8 @@
         "Brake",
         "Interact",
         "Attack",
-        "Aim"
+        "Aim",
+        "Ability"
       ],
       "short_name": "PlayerAction",
       "type": "string",
@@ -21554,11 +21639,172 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::BoostConfig": {
+    "lumina_shared::player::spaceship::Spaceship": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::Spaceship",
+      "properties": {
+        "boost": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::BoostConfig"
+          }
+        },
+        "brake": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::BrakeConfig"
+          }
+        },
+        "dash": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::DashConfig"
+          }
+        },
+        "energy": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::EnergyConfig"
+          }
+        },
+        "movement": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::movement::MovementConfig"
+          }
+        }
+      },
+      "required": [
+        "movement",
+        "brake",
+        "boost",
+        "dash",
+        "energy"
+      ],
+      "short_name": "Spaceship",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::ability::AbilityConfig<lumina_shared::player::spaceship::ability::HealAbility>": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::ability::AbilityConfig<lumina_shared::player::spaceship::ability::HealAbility>",
+      "properties": {
+        "ability": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::ability::HealAbility"
+          }
+        },
+        "cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "duration",
+        "cooldown",
+        "ability"
+      ],
+      "short_name": "AbilityConfig<HealAbility>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::ability::AbilityConfig<lumina_shared::player::spaceship::ability::ShadowAbility>": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::ability::AbilityConfig<lumina_shared::player::spaceship::ability::ShadowAbility>",
+      "properties": {
+        "ability": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::spaceship::ability::ShadowAbility"
+          }
+        },
+        "cooldown": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "duration",
+        "cooldown",
+        "ability"
+      ],
+      "short_name": "AbilityConfig<ShadowAbility>",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::ability::HealAbility": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::BoostConfig",
+      "long_name": "lumina_shared::player::spaceship::ability::HealAbility",
+      "properties": {
+        "animation_speed": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "healing_rate": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "radius": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "radius",
+        "animation_speed",
+        "healing_rate"
+      ],
+      "short_name": "HealAbility",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::ability::ShadowAbility": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::ability::ShadowAbility",
+      "properties": {
+        "strength": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "transition_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "strength",
+        "transition_duration"
+      ],
+      "short_name": "ShadowAbility",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::spaceship::movement::BoostConfig": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::spaceship::movement::BoostConfig",
       "properties": {
         "energy_consumption": {
           "type": {
@@ -21579,11 +21825,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::BrakeConfig": {
+    "lumina_shared::player::spaceship::movement::BrakeConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::BrakeConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::BrakeConfig",
       "properties": {
         "brake_linear_damping": {
           "type": {
@@ -21604,11 +21850,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::DashConfig": {
+    "lumina_shared::player::spaceship::movement::DashConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::DashConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::DashConfig",
       "properties": {
         "cooldown": {
           "type": {
@@ -21641,11 +21887,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::EnergyConfig": {
+    "lumina_shared::player::spaceship::movement::EnergyConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::EnergyConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::EnergyConfig",
       "properties": {
         "cooldown": {
           "type": {
@@ -21672,11 +21918,11 @@
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::player::spaceship::MovementConfig": {
+    "lumina_shared::player::spaceship::movement::MovementConfig": {
       "additionalProperties": false,
       "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::MovementConfig",
+      "long_name": "lumina_shared::player::spaceship::movement::MovementConfig",
       "properties": {
         "linear_acceleration": {
           "type": {
@@ -21700,49 +21946,6 @@
         "rotation_speed"
       ],
       "short_name": "MovementConfig",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::player::spaceship::Spaceship": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::player::spaceship::Spaceship",
-      "properties": {
-        "boost": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::BoostConfig"
-          }
-        },
-        "brake": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::BrakeConfig"
-          }
-        },
-        "dash": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::DashConfig"
-          }
-        },
-        "energy": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::EnergyConfig"
-          }
-        },
-        "movement": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::player::spaceship::MovementConfig"
-          }
-        }
-      },
-      "required": [
-        "movement",
-        "brake",
-        "boost",
-        "dash",
-        "energy"
-      ],
-      "short_name": "Spaceship",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -21874,6 +22077,43 @@
         "ignition"
       ],
       "short_name": "BoosterMaterial",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_vfx::material2d::HealAbilityMaterial": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_vfx::material2d::HealAbilityMaterial",
+      "properties": {
+        "color0": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        },
+        "color1": {
+          "type": {
+            "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
+          }
+        },
+        "screen_texture": {
+          "type": {
+            "$ref": "#/$defs/bevy_asset::handle::Handle<bevy_render::texture::image::Image>"
+          }
+        },
+        "time": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "color0",
+        "color1",
+        "time",
+        "screen_texture"
+      ],
+      "short_name": "HealAbilityMaterial",
       "type": "object",
       "typeInfo": "Struct"
     },
