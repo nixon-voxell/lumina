@@ -21404,7 +21404,8 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::WeaponType",
       "oneOf": [
-        "Cannon"
+        "Cannon",
+        "GattlingGun"
       ],
       "short_name": "WeaponType",
       "type": "string",

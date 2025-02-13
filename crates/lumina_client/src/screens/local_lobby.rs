@@ -46,11 +46,16 @@ fn spawn_lobby(
                 SpaceshipEntityMarker,
             ));
 
-            // Weapon
+            // Spawn weapon based on spaceship type
+            let weapon_type = match selected_ship.0 {
+                SpaceshipType::Assassin => WeaponType::Cannon,
+                SpaceshipType::Defender => WeaponType::GattlingGun,
+            };
             builder.spawn((
-                WeaponType::Cannon.config_info(),
+                weapon_type.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
+                WeaponEntityMarker,
             ));
 
             // Action
@@ -68,24 +73,41 @@ fn update_spaceship_config(
     mut commands: Commands,
     mut select_spaceship_evr: EventReader<SelectSpaceship>,
     q_spaceships: Query<Entity, With<SpaceshipEntityMarker>>,
+    q_weapons: Query<Entity, With<WeaponEntityMarker>>,
     q_local_lobby: Query<Entity, With<LocalLobby>>,
 ) {
     for select_spaceship in select_spaceship_evr.read() {
-        // Spawn new spaceship entities for each lobby.
+        let spaceship_type = &select_spaceship.0;
+        let weapon_type = match spaceship_type {
+            SpaceshipType::Assassin => WeaponType::Cannon,
+            SpaceshipType::Defender => WeaponType::GattlingGun,
+        };
+
+        // Despawn old spaceships and weapons
+        for entity in q_spaceships.iter().chain(q_weapons.iter()) {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        // Spawn new entities under the lobby
         if let Ok(lobby) = q_local_lobby.get_single() {
             commands.entity(lobby).with_children(|parent| {
+                // Spawn new spaceship
                 parent.spawn((
-                    select_spaceship.0.config_info(),
+                    spaceship_type.config_info(),
                     SpawnBlueprint,
                     PlayerId::LOCAL,
                     SpaceshipEntityMarker,
                     TransformBundle::default(),
                 ));
-            });
-        }
 
-        for spaceship_entity in q_spaceships.iter() {
-            commands.entity(spaceship_entity).despawn_recursive();
+                // Spawn new weapon
+                parent.spawn((
+                    weapon_type.config_info(),
+                    SpawnBlueprint,
+                    PlayerId::LOCAL,
+                    WeaponEntityMarker,
+                ));
+            });
         }
 
         info!("Updated spaceship to: {:?}", **select_spaceship);
@@ -132,6 +154,8 @@ impl Default for LocalLobbyBundle {
 #[derive(Component, Default)]
 pub(super) struct LocalLobby;
 
-// Define the marker component.
 #[derive(Component)]
 struct SpaceshipEntityMarker;
+
+#[derive(Component)]
+struct WeaponEntityMarker;

@@ -77,7 +77,13 @@ fn spawn_players(
     // Look up the player's selected spaceship; default to Assassin if none was provided.
     let spaceship_type = selections.get(&client_id).copied().unwrap_or_default();
 
-    // Spawn the spaceship using the chosen configuration.
+    // Determine the weapon type based on the selected spaceship.
+    let weapon_type = match spaceship_type {
+        SpaceshipType::Assassin => WeaponType::Cannon,
+        SpaceshipType::Defender => WeaponType::GattlingGun,
+    };
+
+    // Spawn the spaceship using its configuration.
     commands
         .spawn((
             PlayerId(client_id),
@@ -86,19 +92,18 @@ fn spawn_players(
         ))
         .set_parent(world_entity);
 
-    // Spawn weapon.
+    // Spawn the weapon using the chosen weapon type.
     commands
         .spawn((
             PlayerId(client_id),
-            // TODO: Will depend on selected spaceship type!!!
-            WeaponType::Cannon.config_info(),
+            weapon_type.config_info(),
             SpawnBlueprint,
         ))
         .set_parent(world_entity);
 
     info!(
-        "SERVER: Spawned player {} with spaceship: {:?}",
-        client_id, spaceship_type
+        "SERVER: Spawned player {} with spaceship: {:?} and weapon: {:?}",
+        client_id, spaceship_type, weapon_type
     );
 }
 
