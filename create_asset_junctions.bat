@@ -8,6 +8,11 @@ mklink /J assets\ ..\..\assets\
 
 cd ../..
 
+cd crates\lumina_vfx
+mklink /J assets\ ..\..\assets\
+
+cd ../..
+
 cd crates\bevy_radiance_cascades
 mklink /J assets\ ..\..\assets\
 

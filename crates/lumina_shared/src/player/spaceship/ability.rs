@@ -172,7 +172,7 @@ fn track_ability_effect<T: Send + Sync + 'static>(
     time: Res<Time>,
 ) {
     for (mut effect, config, entity) in q_abilities.iter_mut() {
-        if effect.tick(time.delta()).finished() {
+        if effect.finished() {
             commands
                 .entity(entity)
                 .remove::<AbilityEffect>()
@@ -181,6 +181,7 @@ fn track_ability_effect<T: Send + Sync + 'static>(
                     TimerMode::Once,
                 )));
         }
+        effect.tick(time.delta());
     }
 }
 
@@ -199,12 +200,13 @@ fn track_ability_cooldown<T: Send + Sync + 'static>(
     network_identity: NetworkIdentity,
 ) {
     for (mut cooldown, player_id, entity) in q_abilities.iter_mut() {
-        if cooldown.tick(time.delta()).finished()
+        if cooldown.finished()
             // Only server or local player can remove the cooldown for correct syncing.
             && (network_identity.is_server() || player_id.is_local())
         {
             commands.entity(entity).remove::<AbilityCooldown>();
         }
+        cooldown.tick(time.delta());
     }
 }
 
@@ -256,8 +258,8 @@ pub struct ShadowAbility {
 pub struct HealAbility {
     /// Radius of the ability.
     pub radius: f32,
-    /// Transition duration of the healing radius.
-    pub transition_duration: f32,
+    /// Animation speed of the vfx.
+    pub animation_speed: f32,
     /// The amount of healing per second.
     pub healing_rate: f32,
 }

@@ -15,7 +15,28 @@ impl Plugin for Material2dVfxPlugin {
         app.add_plugins((
             material_from_component_plugin::<BoosterMaterial>,
             // material_from_component_plugin::<PortalMaterial>,
+            material_from_component_plugin::<HealAbilityMaterial>,
         ));
+    }
+}
+
+#[derive(Component, Reflect, Asset, AsBindGroup, Debug, Clone)]
+#[reflect(Component)]
+pub struct HealAbilityMaterial {
+    #[uniform(0)]
+    pub color0: LinearRgba,
+    #[uniform(1)]
+    pub color1: LinearRgba,
+    #[uniform(2)]
+    pub time: f32,
+    #[texture(3)]
+    #[sampler(4)]
+    pub screen_texture: Handle<Image>,
+}
+
+impl Material2d for HealAbilityMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/vfx/heal_ability.wgsl".into()
     }
 }
 

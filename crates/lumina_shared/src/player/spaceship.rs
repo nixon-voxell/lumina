@@ -76,12 +76,11 @@ fn spaceship_actions(
 
 pub(super) fn spaceship_health(
     mut q_spaceships: Query<
-        (&Health, &mut Visibility, Entity),
+        (&Health, &mut Visibility),
         (Changed<Health>, With<Spaceship>, With<SourceEntity>),
     >,
 ) {
-    for (health, mut viz, entity) in q_spaceships.iter_mut() {
-        info!("{entity} spaceship health: {health:?}");
+    for (health, mut viz) in q_spaceships.iter_mut() {
         match **health <= 0.0 {
             true => *viz = Visibility::Hidden,
             false => *viz = Visibility::Inherited,
