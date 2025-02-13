@@ -118,7 +118,8 @@ fn setup_vfx(
             ..default()
         },
         HealAbilityMaterial {
-            color: LinearRgba::GREEN,
+            color0: LinearRgba::GREEN,
+            color1: LinearRgba::BLUE,
             time: 0.0,
             screen_texture: camera_texture.0.clone_weak(),
         },
