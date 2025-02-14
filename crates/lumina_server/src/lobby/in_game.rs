@@ -1,5 +1,6 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
+use blenvy::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
@@ -39,12 +40,13 @@ fn start_game(
         // When the countdown reaches zero, start the game.
         if countdown_timer.0 <= 0.0 {
             // Generate terrain and send messages to notify clients.
-            generate_terrain_evw.send(GenerateTerrain {
-                seed,
-                entity,
-                layers: CollisionLayers::ALL,
-                world_id: WorldIdx::from_entity(entity),
-            });
+            commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
+            // generate_terrain_evw.send(GenerateTerrain {
+            //     seed,
+            //     entity,
+            //     layers: CollisionLayers::ALL,
+            //     world_id: WorldIdx::from_entity(entity),
+            // });
 
             let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
                 &StartGame { seed },

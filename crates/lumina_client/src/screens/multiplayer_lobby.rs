@@ -26,18 +26,20 @@ impl Plugin for MultiplayerLobbyPlugin {
 
 /// Wait for [`StartGame`] command from server.
 fn start_game(
+    mut commands: Commands,
     mut start_game_evr: EventReader<MessageEvent<StartGame>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
-    terrain_entity: Res<TerrainEntity>,
-    mut generate_terrain_evw: EventWriter<GenerateTerrain>,
+    // terrain_entity: Res<TerrainEntity>,
+    // mut generate_terrain_evw: EventWriter<GenerateTerrain>,
 ) {
-    for start_game in start_game_evr.read() {
-        generate_terrain_evw.send(GenerateTerrain {
-            seed: start_game.message().seed,
-            entity: **terrain_entity,
-            layers: CollisionLayers::ALL,
-            world_id: WorldIdx::default(),
-        });
+    for _ in start_game_evr.read() {
+        commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
+        // generate_terrain_evw.send(GenerateTerrain {
+        //     seed: start_game.message().seed,
+        //     entity: **terrain_entity,
+        //     layers: CollisionLayers::ALL,
+        //     world_id: WorldIdx::default(),
+        // });
 
         next_screen_state.set(Screen::InGame);
     }
