@@ -1,14 +1,11 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_terrain::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::in_game::TerrainEntity;
 use super::Screen;
 
 pub(super) struct MultiplayerLobbyPlugin;
@@ -29,18 +26,10 @@ fn start_game(
     mut commands: Commands,
     mut start_game_evr: EventReader<MessageEvent<StartGame>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
-    // terrain_entity: Res<TerrainEntity>,
-    // mut generate_terrain_evw: EventWriter<GenerateTerrain>,
 ) {
     for _ in start_game_evr.read() {
+        // Spawn map and move in to in game screen.
         commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
-        // generate_terrain_evw.send(GenerateTerrain {
-        //     seed: start_game.message().seed,
-        //     entity: **terrain_entity,
-        //     layers: CollisionLayers::ALL,
-        //     world_id: WorldIdx::default(),
-        // });
-
         next_screen_state.set(Screen::InGame);
     }
 }
