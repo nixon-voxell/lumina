@@ -25,13 +25,7 @@ fn init_spaceships_at_spawn_points(
     mut commands: Commands,
     q_spawn_points: Query<(&GlobalTransform, &SpawnPoint, Entity), Without<SpawnPointUsed>>,
     mut q_spaceship: Query<
-        (
-            &mut Position,
-            &mut Rotation,
-            &PlayerId,
-            Has<server::SyncTarget>,
-            Entity,
-        ),
+        (&mut Position, &mut Rotation, &PlayerId, Entity),
         (
             With<Spaceship>,
             With<SourceEntity>,
@@ -39,12 +33,13 @@ fn init_spaceships_at_spawn_points(
             Without<TeamType>,
         ),
     >,
+    network_identity: NetworkIdentity,
 ) {
     let mut spawn_points = q_spawn_points.iter();
 
-    for (mut position, mut rotation, id, is_server, entity) in q_spaceship.iter_mut() {
+    for (mut position, mut rotation, id, entity) in q_spaceship.iter_mut() {
         // If we are in multiplayer mode, let the sever handle the spawn position.
-        if *id != PlayerId::LOCAL && is_server == false {
+        if id.is_local() == false && network_identity.is_client() {
             return;
         }
 
