@@ -120,6 +120,13 @@ pub enum LobbyType {
     Sandbox,
 }
 
+#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[reflect(Component)]
+#[strum(prefix = "levels/maps/")]
+pub enum MapType {
+    AbandonedFactory,
+}
+
 #[derive(
     Component, Reflect, AsRefStr, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq,
 )]

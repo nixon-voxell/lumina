@@ -258,12 +258,22 @@ pub struct PrimitiveRigidbody {
 }
 
 /// A [`RigidBody`] with a [`Collider`] that conforms to the shape of the [`Mesh`].
-#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
-#[reflect(Component)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[reflect(Component, Default)]
 pub struct MeshRigidbody {
     pub rigidbody: RigidBody,
     pub density: ColliderDensity,
     pub collider_type: MeshCollider,
+}
+
+impl Default for MeshRigidbody {
+    fn default() -> Self {
+        Self {
+            rigidbody: RigidBody::Static,
+            density: ColliderDensity(1.0),
+            collider_type: MeshCollider::Trimesh,
+        }
+    }
 }
 
 #[derive(

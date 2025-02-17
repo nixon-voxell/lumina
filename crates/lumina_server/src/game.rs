@@ -96,9 +96,10 @@ fn respawn_spaceships(
 /// Initialize [`GameScore`] and [`GameTimer`].
 fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>>) {
     for entity in q_lobbies.iter() {
-        commands
-            .entity(entity)
-            .insert((GameScore::new(15), GameTimer(60.0 * 2.5)));
+        commands.entity(entity).insert((
+            GameScore::new(15),
+            GameTimer(Timer::from_seconds(60.0 * 2.5, TimerMode::Once)),
+        ));
     }
 }
 
@@ -133,15 +134,13 @@ fn track_game_timer(
     time: Res<Time>,
 ) {
     for (mut game_timer, entity) in q_game_timers.iter_mut() {
-        **game_timer -= time.delta_seconds();
-
-        if **game_timer > 0.0 {
-            continue;
+        if game_timer.tick(time.delta()).just_finished() {
+            commands.trigger_targets(EndGame, entity);
         }
-        commands.trigger_targets(EndGame, entity);
     }
 }
 
+// TODO: Utilize spawn points instead!
 /// Updates the position of newly spawned spaceships based on their assigned team type.
 fn init_spaceship_positions(
     mut commands: Commands,
@@ -193,4 +192,4 @@ pub struct InitPosition(pub Vec2);
 
 /// Time left for a game (in seconds).
 #[derive(Component, Deref, DerefMut)]
-pub struct GameTimer(f32);
+pub struct GameTimer(Timer);
