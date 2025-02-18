@@ -26,7 +26,9 @@ pub mod prelude {
         AbilityCooldown, AbilityEffect, DashCooldown, DashEffect, Energy, HealAbilityConfig,
         RotationDiff, ShadowAbilityConfig, Spaceship, TargetAcceleration, TargetDamping,
     };
-    pub use super::spawn_point::{SpawnPoint, SpawnPointEntity, SpawnPointUsed, TeamType};
+    pub use super::spawn_point::{
+        SpawnPoint, SpawnPointEntity, SpawnPointParent, SpawnPointUsed, TeamType,
+    };
     pub use super::weapon::{Weapon, WeaponStat};
     pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
 }

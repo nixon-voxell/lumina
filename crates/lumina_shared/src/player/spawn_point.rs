@@ -16,7 +16,8 @@ impl Plugin for SpawnPointPlugin {
             init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
         )
         .observe(on_add_spawned)
-        .observe(on_remove_spawned);
+        .observe(on_remove_spawned)
+        .observe(on_add_spawn_point);
     }
 }
 
@@ -64,6 +65,27 @@ fn init_spaceships_at_spawn_points(
     }
 }
 
+fn on_add_spawn_point(
+    trigger: Trigger<OnAdd, SpawnPoint>,
+    q_spawns: Query<(&SpawnPoint, &Parent)>,
+    mut q_spawn_parents: Query<&mut SpawnPointParent>,
+) {
+    let entity = trigger.entity();
+    let Ok((spawns, parent)) = q_spawns.get(entity) else {
+        error!("SpawnPoint spawned without a parent!");
+        return;
+    };
+
+    let Ok(mut spawn_parent) = q_spawn_parents.get_mut(parent.get()) else {
+        error!("SpawnPoint spawned without SpawnPointParent!");
+        return;
+    };
+
+    if spawn_parent[spawns.0 as usize].insert_new_unused(entity) == false {
+        warn!("Same SpawnPoint added twice!")
+    }
+}
+
 /// When a [`SpawnPointEntity`] is being added,
 /// consume it so that it can't be used again.
 fn on_add_spawned(
@@ -90,15 +112,26 @@ fn on_remove_spawned(
 
     if let Some(mut cmd) = commands.get_entity(entity) {
         cmd.remove::<SpawnPointUsed>();
-        println!("\n\nspawn point {} marked as unused!", trigger.entity());
+        println!("\n\nspawn point {} marked as unused!", entity);
     }
 }
 
+/// Parent entity that holds all the [`SpawnPoint`]s.
+/// All spawn points should be a direct [`Children`] of this entity.
+#[derive(Component, Reflect, Default, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct SpawnPointParent(#[reflect(ignore)] EntityPools<TeamType>);
+
+/// Spawn point for player spaceships. This should be placed as
+/// a child under the entity with the [`SpawnPointParent`] component.
+///
+/// The spawn point also specifies what team it belongs to.
 #[derive(Component, Reflect, Deref)]
 #[reflect(Component)]
 pub struct SpawnPoint(TeamType);
 
 #[derive(
+    Component,
     Reflect,
     EnumCount,
     EnumIter,
@@ -111,7 +144,7 @@ pub struct SpawnPoint(TeamType);
     Eq,
     Clone,
     Copy,
-    Component,
+    Hash,
 )]
 pub enum TeamType {
     A,

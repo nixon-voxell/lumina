@@ -52,12 +52,13 @@ fn start_game(
                 .remove::<CountdownTimer>();
 
             for spaceship_entity in q_spaceships.iter() {
+                println!("\n\nremove spaceship spawn point for {spaceship_entity}");
                 commands
                     .entity(spaceship_entity)
                     .remove::<SpawnPointEntity>();
             }
 
-            info!("Game started for lobby {:?} ", entity);
+            info!("Game started for lobby {entity}!");
         }
     }
 }

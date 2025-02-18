@@ -23,6 +23,7 @@ impl Plugin for TypeRegistryPlugin {
             // Game
             .register_type::<MaxHealth>()
             .register_type::<Health>()
+            .register_type::<SpawnPointParent>()
             .register_type::<SpawnPoint>()
             .register_type::<TesseractType>()
             .register_type::<OreType>()
