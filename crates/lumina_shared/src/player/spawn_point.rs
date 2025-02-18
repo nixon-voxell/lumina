@@ -86,9 +86,11 @@ fn on_remove_spawned(
     query: Query<&SpawnPointEntity>,
 ) {
     let entity = **query.get(trigger.entity()).unwrap();
+    println!("\n\nspawn point {} removed!", trigger.entity());
 
     if let Some(mut cmd) = commands.get_entity(entity) {
         cmd.remove::<SpawnPointUsed>();
+        println!("\n\nspawn point {} marked as unused!", trigger.entity());
     }
 }
 

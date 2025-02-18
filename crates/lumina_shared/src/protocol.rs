@@ -19,7 +19,7 @@ pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<EndGame>();
+        app.add_event::<StartGame>().add_event::<EndGame>();
         // Channels
         app.add_channel::<OrdReliableChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
@@ -182,18 +182,16 @@ pub struct LobbyData {
 pub struct ExitLobby;
 
 /// Start game command sent from server to client when the lobby room is full.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub struct StartGame {
-    pub seed: u32,
-}
-
-/// Deposit Lumina action sent from client to server.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct DepositLumina;
+#[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct StartGame;
 
 /// End game command sent from server to client either when 1 team wins or timer runs out.
 #[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct EndGame;
+
+/// Deposit Lumina action sent from client to server.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct DepositLumina;
 
 /// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]

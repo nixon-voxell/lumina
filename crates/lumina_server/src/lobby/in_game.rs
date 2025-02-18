@@ -5,7 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use super::{LobbyFull, LobbyInGame, LobbySeed};
+use super::{LobbyFull, LobbyInGame};
 
 pub(super) struct InGamePlugin;
 
@@ -18,29 +18,29 @@ impl Plugin for InGamePlugin {
 fn start_countdown(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyFull>>) {
     for entity in q_lobbies.iter() {
         // Initialize the countdown timer for 5 seconds if it's not already set
-        commands.entity(entity).insert(CountdownTimer(5.0));
+        commands
+            .entity(entity)
+            .insert(CountdownTimer(Timer::from_seconds(5.0, TimerMode::Once)));
     }
 }
 
 /// Manages the countdown and starts the game for each lobby individually
 fn start_game(
     mut commands: Commands,
-    mut q_lobbies: Query<(&mut CountdownTimer, &LobbySeed, Entity), With<LobbyFull>>,
+    mut q_lobbies: Query<(&mut CountdownTimer, Entity), With<LobbyFull>>,
+    q_spaceships: Query<Entity, (With<Spaceship>, With<SourceEntity>, With<SpawnPointEntity>)>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
     time: Res<Time>,
 ) {
-    for (mut countdown_timer, &LobbySeed(seed), entity) in q_lobbies.iter_mut() {
-        // Decrease the timer by the actual time elapsed (in seconds)
-        countdown_timer.0 -= time.delta_seconds();
-
+    for (mut countdown_timer, entity) in q_lobbies.iter_mut() {
         // When the countdown reaches zero, start the game.
-        if countdown_timer.0 <= 0.0 {
+        if countdown_timer.tick(time.delta()).just_finished() {
             // Spawn map and send messages to notify clients.
             commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
 
             let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
-                &StartGame { seed },
+                &StartGame,
                 entity.room_id(),
                 &room_manager,
             );
@@ -51,11 +51,17 @@ fn start_game(
                 // Remove the countdown timer after the game starts.
                 .remove::<CountdownTimer>();
 
-            info!("Game started for lobby {:?} with seed {:?}", entity, seed);
+            for spaceship_entity in q_spaceships.iter() {
+                commands
+                    .entity(spaceship_entity)
+                    .remove::<SpawnPointEntity>();
+            }
+
+            info!("Game started for lobby {:?} ", entity);
         }
     }
 }
 
 /// Countdown before the game starts (in seconds).
-#[derive(Component)]
-pub struct CountdownTimer(pub f32);
+#[derive(Component, Deref, DerefMut)]
+pub struct CountdownTimer(Timer);
