@@ -37,7 +37,9 @@ fn start_game(
         // When the countdown reaches zero, start the game.
         if countdown_timer.tick(time.delta()).just_finished() {
             // Spawn map and send messages to notify clients.
-            commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
+            commands
+                .spawn((MapType::AbandonedFactory.info(), SpawnBlueprint))
+                .set_parent(entity);
 
             let _ = connection_manager.send_message_to_room::<OrdReliableChannel, _>(
                 &StartGame,
