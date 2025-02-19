@@ -17,35 +17,67 @@ impl Plugin for SpawnPointPlugin {
         )
         .observe(on_add_spawned)
         .observe(on_remove_spawned)
-        .observe(on_add_spawn_point);
+        .observe(on_add_spawn_point)
+        .observe(on_spawn_point_freed);
     }
 }
 
 /// Initialize spaceships and assign them to available spawn points.
 fn init_spaceships_at_spawn_points(
     mut commands: Commands,
+    mut q_spawn_parents: Query<&mut SpawnPointParent>,
     q_spawn_points: Query<(&GlobalTransform, &SpawnPoint, Entity), Without<SpawnPointUsed>>,
     mut q_spaceship: Query<
-        (&mut Position, &mut Rotation, &PlayerId, Entity),
+        (
+            &mut Position,
+            &mut Rotation,
+            &PlayerId,
+            Option<&TeamType>,
+            Entity,
+        ),
         (
             With<Spaceship>,
             With<SourceEntity>,
             Without<SpawnPointEntity>,
-            Without<TeamType>,
         ),
     >,
     network_identity: NetworkIdentity,
 ) {
-    let mut spawn_points = q_spawn_points.iter();
+    #[cfg(debug_assertions)]
+    if q_spawn_parents.iter().len() > 1 {
+        error!("More than 1 spawn parents exists!");
+    }
 
-    for (mut position, mut rotation, id, entity) in q_spaceship.iter_mut() {
+    // There should always only be one spawn parent at a single scene.
+    let Ok(mut spawn_parent) = q_spawn_parents.get_single_mut() else {
+        return;
+    };
+
+    for (mut position, mut rotation, id, team_type, spaceship_entity) in q_spaceship.iter_mut() {
         // If we are in multiplayer mode, let the sever handle the spawn position.
         if id.is_local() == false && network_identity.is_client() {
             return;
         }
 
-        // Retrieve the next available spawn point and its transform.
-        let Some((spawn_transform, spawn_point, spawn_point_entity)) = spawn_points.next() else {
+        let spawn_point = match team_type {
+            // Get the desired spawn point based on the appointed team type.
+            Some(team_type) => spawn_parent[*team_type as usize].get_unused(),
+            // Get a spawn point that has the least player in it.
+            None => {
+                let team_a_size = spawn_parent[TeamType::A as usize].used().len();
+                let team_b_size = spawn_parent[TeamType::B as usize].used().len();
+
+                match team_a_size > team_b_size {
+                    true => spawn_parent[TeamType::B as usize].get_unused(),
+                    false => spawn_parent[TeamType::A as usize].get_unused(),
+                }
+            }
+        };
+
+        let Some((spawn_transform, &SpawnPoint(team_type), spawn_point_entity)) =
+            spawn_point.and_then(|e| q_spawn_points.get(e).ok())
+        else {
+            error!("Unable to find spawn point for {spaceship_entity}!");
             return;
         };
 
@@ -59,9 +91,8 @@ fn init_spaceships_at_spawn_points(
 
         // Associate the spaceship with the spawn point, mark it as used, and assign its team type
         commands
-            .entity(entity)
-            .insert((SpawnPointEntity(spawn_point_entity), **spawn_point));
-        commands.entity(spawn_point_entity).insert(SpawnPointUsed); // Mark spawn point as used
+            .entity(spaceship_entity)
+            .insert((SpawnPointEntity(spawn_point_entity), team_type));
     }
 }
 
@@ -93,9 +124,12 @@ fn on_add_spawned(
     mut commands: Commands,
     query: Query<&SpawnPointEntity>,
 ) {
-    let entity = **query.get(trigger.entity()).unwrap();
+    let spaceship_entity = trigger.entity();
+    let spawn_point_entity = **query.get(trigger.entity()).unwrap();
 
-    commands.entity(entity).insert(SpawnPointUsed);
+    commands
+        .entity(spawn_point_entity)
+        .insert(SpawnPointUsed(spaceship_entity));
 }
 
 // FIXME: This will cause a panic!
@@ -107,12 +141,38 @@ fn on_remove_spawned(
     mut commands: Commands,
     query: Query<&SpawnPointEntity>,
 ) {
-    let entity = **query.get(trigger.entity()).unwrap();
-    println!("\n\nspawn point {} removed!", trigger.entity());
+    let spawn_point_entity = **query.get(trigger.entity()).unwrap();
 
-    if let Some(mut cmd) = commands.get_entity(entity) {
+    if let Some(mut cmd) = commands.get_entity(spawn_point_entity) {
         cmd.remove::<SpawnPointUsed>();
-        println!("\n\nspawn point {} marked as unused!", entity);
+    }
+}
+
+/// Set the spawn point entity as unused in [`SpawnPointParent`] when
+/// [`SpawnPointUsed`] is being removed.
+///
+/// Remove [`SpawnPointEntity`] from the associated spaceship.
+fn on_spawn_point_freed(
+    trigger: Trigger<OnRemove, SpawnPointUsed>,
+    mut commands: Commands,
+    q_parents: Query<(&SpawnPoint, &SpawnPointUsed, &Parent)>,
+    mut q_spawn_parents: Query<&mut SpawnPointParent>,
+) {
+    let spawn_point_entity = trigger.entity();
+    let Ok((&SpawnPoint(team_type), &SpawnPointUsed(spaceship_entity), parent)) =
+        q_parents.get(spawn_point_entity)
+    else {
+        return;
+    };
+
+    // Spawn point no longer exists.
+    commands
+        .entity(spaceship_entity)
+        .remove::<SpawnPointEntity>();
+
+    if let Ok(mut spawn_parent) = q_spawn_parents.get_mut(parent.get()) {
+        // Free as unused.
+        spawn_parent[team_type as usize].set_unused(spawn_point_entity);
     }
 }
 
@@ -160,8 +220,8 @@ impl TeamType {
     }
 }
 
-#[derive(Component)]
-pub struct SpawnPointUsed;
+#[derive(Component, Deref)]
+pub struct SpawnPointUsed(pub Entity);
 
 /// When a spawn point is being used, the entity shall acquire
 /// this component and remember which spawn point it has consumed.
