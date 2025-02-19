@@ -11,14 +11,14 @@ pub(super) struct SpawnPointPlugin;
 
 impl Plugin for SpawnPointPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            PostUpdate,
-            init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
-        )
-        .observe(on_add_spawned)
-        .observe(on_remove_spawned)
-        .observe(on_add_spawn_point)
-        .observe(on_spawn_point_freed);
+        app.add_systems(Update, init_spawn_point_to_parent)
+            .add_systems(
+                PostUpdate,
+                init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
+            )
+            .observe(on_add_spawned)
+            .observe(on_remove_spawned)
+            .observe(on_spawn_point_freed);
     }
 }
 
@@ -96,24 +96,20 @@ fn init_spaceships_at_spawn_points(
     }
 }
 
-fn on_add_spawn_point(
-    trigger: Trigger<OnAdd, SpawnPoint>,
-    q_spawns: Query<(&SpawnPoint, &Parent)>,
+fn init_spawn_point_to_parent(
+    q_spawns: Query<(&SpawnPoint, &Parent, Entity), Added<SpawnPoint>>,
     mut q_spawn_parents: Query<&mut SpawnPointParent>,
 ) {
-    let entity = trigger.entity();
-    let Ok((spawns, parent)) = q_spawns.get(entity) else {
-        error!("SpawnPoint spawned without a parent!");
-        return;
-    };
+    for (&SpawnPoint(team_type), parent, entity) in q_spawns.iter() {
+        let Ok(mut spawn_parent) = q_spawn_parents.get_mut(parent.get()) else {
+            error!("SpawnPoint ({entity}) spawned without SpawnPointParent!");
+            return;
+        };
 
-    let Ok(mut spawn_parent) = q_spawn_parents.get_mut(parent.get()) else {
-        error!("SpawnPoint spawned without SpawnPointParent!");
-        return;
-    };
-
-    if spawn_parent[spawns.0 as usize].insert_new_unused(entity) == false {
-        warn!("Same SpawnPoint added twice!")
+        if spawn_parent[team_type as usize].insert_new_unused(entity) == false {
+            warn!("Same SpawnPoint ({entity}) added twice!")
+        }
+        info!("Initialized SpawnPoint ({entity})");
     }
 }
 
@@ -166,9 +162,9 @@ fn on_spawn_point_freed(
     };
 
     // Spawn point no longer exists.
-    commands
-        .entity(spaceship_entity)
-        .remove::<SpawnPointEntity>();
+    if let Some(mut cmd) = commands.get_entity(spaceship_entity) {
+        cmd.remove::<SpawnPointEntity>();
+    }
 
     if let Ok(mut spawn_parent) = q_spawn_parents.get_mut(parent.get()) {
         // Free as unused.
