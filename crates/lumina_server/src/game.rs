@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_terrain::prelude::*;
 use server::*;
 
 use crate::{
@@ -18,7 +17,6 @@ impl Plugin for GamePlugin {
         app.add_systems(
             Update,
             (
-                init_spaceship_positions,
                 respawn_spaceships,
                 init_game,
                 track_game_score,
@@ -63,7 +61,8 @@ fn respawn_spaceships(
         (
             &Visibility,
             &mut Position,
-            &InitPosition,
+            &mut Rotation,
+            &SpawnPointEntity,
             &MaxHealth,
             &mut Health,
             &TeamType,
@@ -71,14 +70,23 @@ fn respawn_spaceships(
         ),
         (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
     >,
+    q_global_transforms: Query<&GlobalTransform>,
     mut q_game_scores: Query<&mut GameScore>,
     lobby_infos: Res<LobbyInfos>,
 ) {
     // Spaceship becomes Visibility::Hidden when health drops to 0.
-    for (_, mut position, position_initialized, max_health, mut health, team_type, id) in
-        q_spaceships
-            .iter_mut()
-            .filter(|(viz, ..)| *viz == Visibility::Hidden)
+    for (
+        _,
+        mut position,
+        mut rotation,
+        &SpawnPointEntity(spawn_point_entity),
+        max_health,
+        mut health,
+        team_type,
+        id,
+    ) in q_spaceships
+        .iter_mut()
+        .filter(|(viz, ..)| *viz == Visibility::Hidden)
     {
         if let Some(mut game_score) = lobby_infos
             .get(&**id)
@@ -87,8 +95,16 @@ fn respawn_spaceships(
             game_score.scores[team_type.invert() as usize] += 1;
         }
 
+        let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
+            .get(spawn_point_entity)
+            .map(|transform| transform.to_scale_rotation_translation())
+        else {
+            return;
+        };
+
         // Reset position and health.
-        position.0 = position_initialized.0;
+        position.0 = spawn_translation.xy();
+        *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
         **health = **max_health;
     }
 }
@@ -96,9 +112,10 @@ fn respawn_spaceships(
 /// Initialize [`GameScore`] and [`GameTimer`].
 fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>>) {
     for entity in q_lobbies.iter() {
-        commands
-            .entity(entity)
-            .insert((GameScore::new(15), GameTimer(60.0 * 2.5)));
+        commands.entity(entity).insert((
+            GameScore::new(15),
+            GameTimer(Timer::from_seconds(60.0 * 2.5, TimerMode::Once)),
+        ));
     }
 }
 
@@ -133,64 +150,12 @@ fn track_game_timer(
     time: Res<Time>,
 ) {
     for (mut game_timer, entity) in q_game_timers.iter_mut() {
-        **game_timer -= time.delta_seconds();
-
-        if **game_timer > 0.0 {
-            continue;
+        if game_timer.tick(time.delta()).just_finished() {
+            commands.trigger_targets(EndGame, entity);
         }
-        commands.trigger_targets(EndGame, entity);
     }
 }
-
-/// Updates the position of newly spawned spaceships based on their assigned team type.
-fn init_spaceship_positions(
-    mut commands: Commands,
-    mut q_spaceship: Query<
-        (&mut Position, &TeamType, &PlayerId, Entity),
-        (With<Spaceship>, With<SourceEntity>, Without<InitPosition>),
-    >,
-    q_in_game_lobbies: Query<(), With<LobbyInGame>>,
-    terrain_config: TerrainConfig,
-    lobby_infos: Res<LobbyInfos>,
-) {
-    // Ensure the terrain config is available
-    let Some(terrain_config) = terrain_config.get() else {
-        return;
-    };
-
-    // Retrieve map corners (bottom-left and upper-right) based on terrain configuration
-    let (bottom_left, upper_right) =
-        TerrainStates::get_map_corners_without_noise_surr(terrain_config);
-
-    for (mut spaceship_position, team_type, id, spaceship_entity) in q_spaceship.iter_mut() {
-        // Skip if the spaceship is not part of an in-game lobby
-        if lobby_infos
-            .get(&**id)
-            .is_some_and(|lobby_entity| q_in_game_lobbies.contains(*lobby_entity))
-            == false
-        {
-            continue;
-        }
-
-        // Determine the position based on team type
-        let new_position = match team_type {
-            TeamType::A => Vec2::new(bottom_left.x, bottom_left.y),
-            TeamType::B => Vec2::new(upper_right.x, upper_right.y),
-        };
-
-        *spaceship_position = Position(new_position);
-
-        // Store the initial position in the PositionInitialized component
-        commands
-            .entity(spaceship_entity)
-            .insert(InitPosition(new_position));
-    }
-}
-
-/// Initial spawn position of the spaceships.
-#[derive(Component)]
-pub struct InitPosition(pub Vec2);
 
 /// Time left for a game (in seconds).
 #[derive(Component, Deref, DerefMut)]
-pub struct GameTimer(f32);
+pub struct GameTimer(Timer);

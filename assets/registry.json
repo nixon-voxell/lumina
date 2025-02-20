@@ -21965,6 +21965,16 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
+    "lumina_shared::player::spawn_point::SpawnPointParent": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_shared::player::spawn_point::SpawnPointParent",
+      "prefixItems": [],
+      "short_name": "SpawnPointParent",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
     "lumina_shared::player::spawn_point::TeamType": {
       "isComponent": false,
       "isResource": false,

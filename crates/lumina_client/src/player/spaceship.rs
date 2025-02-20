@@ -47,7 +47,7 @@ fn init_shadow_vfx(
     q_spaceships: Query<Entity, (With<SourceEntity>, With<ShadowAbilityConfig>)>,
     q_children: Query<&Children>,
     q_color_materials: Query<&Handle<ColorMaterial>>,
-    color_materials: Res<Assets<ColorMaterial>>,
+    mut color_materials: ResMut<Assets<ColorMaterial>>,
     mut blueprint_evr: EventReader<BlueprintEvent>,
 ) {
     for bp_event in blueprint_evr.read() {
@@ -68,14 +68,24 @@ fn init_shadow_vfx(
 
             // Initialize origin colors of the materials.
             let mut origin_colors = OriginColors::default();
-            for (color_material, child) in q_children.iter_descendants(*entity).filter_map(|e| {
-                q_color_materials
-                    .get(e)
-                    .ok()
-                    .and_then(|handle| color_materials.get(handle))
-                    .map(|color_material| (color_material, e))
-            }) {
+            let entity_color_pairs = q_children
+                .iter_descendants(*entity)
+                .filter_map(|e| {
+                    q_color_materials
+                        .get(e)
+                        .ok()
+                        .and_then(|handle| color_materials.get(handle))
+                        .map(|color_material| (e, color_material.clone()))
+                })
+                .collect::<Vec<_>>();
+
+            for (child, color_material) in entity_color_pairs {
                 origin_colors.push((child, color_material.color));
+                // Create a new instance of the material so that it would only affect
+                // this specific instance instead of being shared with other materials.
+                commands
+                    .entity(child)
+                    .insert(color_materials.add(color_material));
             }
 
             commands.entity(*entity).insert(origin_colors);
@@ -93,15 +103,26 @@ fn apply_shadow_vfx(
             Option<&AbilityCooldown>,
             &OriginColors,
         ),
-        (
-            With<SourceEntity>,
-            Or<(With<AbilityEffect>, With<AbilityCooldown>)>,
-        ),
+        With<SourceEntity>,
     >,
     q_color_materials: Query<&Handle<ColorMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (ability, effect, cooldown, origin_colors) in q_spaceships.iter() {
+        let shadow_ability = ability.ability();
+        let strength = shadow_ability.strength;
+        let mut transition = 0.0;
+
+        if let Some(effect) = effect {
+            transition = ease::cubic::ease_in_out(
+                (effect.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
+            );
+        } else if let Some(cooldown) = cooldown {
+            transition = ease::cubic::ease_in_out(
+                1.0 - (cooldown.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
+            );
+        }
+
         for (entity, origin_color) in origin_colors.iter() {
             let Some(color_material) = q_color_materials
                 .get(*entity)
@@ -110,20 +131,6 @@ fn apply_shadow_vfx(
             else {
                 continue;
             };
-
-            let shadow_ability = ability.ability();
-            let strength = shadow_ability.strength;
-            let mut transition = 0.0;
-
-            if let Some(effect) = effect {
-                transition = ease::cubic::ease_in_out(
-                    (effect.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
-                );
-            } else if let Some(cooldown) = cooldown {
-                transition = ease::cubic::ease_in_out(
-                    1.0 - (cooldown.elapsed_secs() / shadow_ability.transition_duration).min(1.0),
-                );
-            }
 
             color_material.color =
                 origin_color.lerp_that(Color::linear_rgb(strength, strength, strength), transition);
