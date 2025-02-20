@@ -23,6 +23,7 @@ impl Plugin for TypeRegistryPlugin {
             // Game
             .register_type::<MaxHealth>()
             .register_type::<Health>()
+            .register_type::<SpawnPointParent>()
             .register_type::<SpawnPoint>()
             .register_type::<TesseractType>()
             .register_type::<OreType>()
@@ -40,11 +41,14 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Ammo>()
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()
+            .register_type::<ShadowAbilityConfig>()
+            .register_type::<HealAbilityConfig>()
             // Effector
             .register_type::<EffectorPopupMsg>()
             .register_type::<InteractableEffector>()
             .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
-            .register_type::<TesseractEffector>();
+            .register_type::<TesseractEffector>()
+            .register_type::<SpaceshipSelectEffector>();
     }
 }

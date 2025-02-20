@@ -19,7 +19,7 @@ pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<EndGame>();
+        app.add_event::<StartGame>().add_event::<EndGame>();
         // Channels
         app.add_channel::<OrdReliableChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
@@ -36,6 +36,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<EndGame>(ChannelDirection::ServerToClient);
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
         app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
+        app.register_message::<SelectSpaceship>(ChannelDirection::ClientToServer);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -71,6 +72,18 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<DashCooldown>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<ShadowAbilityConfig>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<HealAbilityConfig>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<AbilityEffect>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<AbilityCooldown>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<Weapon>(ChannelDirection::ServerToClient)
@@ -169,19 +182,21 @@ pub struct LobbyData {
 pub struct ExitLobby;
 
 /// Start game command sent from server to client when the lobby room is full.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub struct StartGame {
-    pub seed: u32,
-}
-
-/// Deposit Lumina action sent from client to server.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct DepositLumina;
+#[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
+pub struct StartGame;
 
 /// End game command sent from server to client either when 1 team wins or timer runs out.
 #[derive(Event, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct EndGame;
 
+/// Deposit Lumina action sent from client to server.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct DepositLumina;
+
 /// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]
 pub struct OrdReliableChannel;
+
+/// Select spaceship command sent from client to server.
+#[derive(Event, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
+pub struct SelectSpaceship(pub SpaceshipType);

@@ -10,6 +10,7 @@ use lumina_ui::prelude::*;
 
 use super::Screen;
 
+use crate::ui::spaceship_select::ClientSpaceshipSelection;
 pub(super) struct LocalLobbyPlugin;
 
 impl Plugin for LocalLobbyPlugin {
@@ -18,12 +19,20 @@ impl Plugin for LocalLobbyPlugin {
             OnEnter(Screen::LocalLobby),
             (spawn_lobby, despawn_networked_inputs),
         )
+        .add_systems(
+            PostUpdate,
+            update_spaceship_config.run_if(in_state(Screen::LocalLobby)),
+        )
         .add_systems(OnExit(Screen::LocalLobby), despawn_lobby);
     }
 }
 
 /// Spawn lobby scene.
-fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWindowTransparency>) {
+fn spawn_lobby(
+    mut commands: Commands,
+    selected_ship: Res<ClientSpaceshipSelection>,
+    mut transparency_evw: EventWriter<MainWindowTransparency>,
+) {
     commands
         .spawn(LocalLobbyBundle::default())
         .with_children(|builder| {
@@ -31,16 +40,22 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
 
             // Spaceship
             builder.spawn((
-                SpaceshipType::Defender.config_info(),
+                selected_ship.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
+                SpaceshipEntityMarker,
             ));
 
-            // Weapon
+            // Spawn weapon based on spaceship type
+            let weapon_type = match selected_ship.0 {
+                SpaceshipType::Assassin => WeaponType::Cannon,
+                SpaceshipType::Defender => WeaponType::GattlingGun,
+            };
             builder.spawn((
-                WeaponType::Cannon.config_info(),
+                weapon_type.config_info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
+                WeaponEntityMarker,
             ));
 
             // Action
@@ -51,6 +66,52 @@ fn spawn_lobby(mut commands: Commands, mut transparency_evw: EventWriter<MainWin
         });
 
     transparency_evw.send(MainWindowTransparency(1.0));
+}
+
+/// Update spaceship configuration when a new selection is made
+fn update_spaceship_config(
+    mut commands: Commands,
+    mut select_spaceship_evr: EventReader<SelectSpaceship>,
+    q_spaceships: Query<Entity, With<SpaceshipEntityMarker>>,
+    q_weapons: Query<Entity, With<WeaponEntityMarker>>,
+    q_local_lobby: Query<Entity, With<LocalLobby>>,
+) {
+    for select_spaceship in select_spaceship_evr.read() {
+        let spaceship_type = &select_spaceship.0;
+        let weapon_type = match spaceship_type {
+            SpaceshipType::Assassin => WeaponType::Cannon,
+            SpaceshipType::Defender => WeaponType::GattlingGun,
+        };
+
+        // Despawn old spaceships and weapons
+        for entity in q_spaceships.iter().chain(q_weapons.iter()) {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        // Spawn new entities under the lobby
+        if let Ok(lobby) = q_local_lobby.get_single() {
+            commands.entity(lobby).with_children(|parent| {
+                // Spawn new spaceship
+                parent.spawn((
+                    spaceship_type.config_info(),
+                    SpawnBlueprint,
+                    PlayerId::LOCAL,
+                    SpaceshipEntityMarker,
+                    TransformBundle::default(),
+                ));
+
+                // Spawn new weapon
+                parent.spawn((
+                    weapon_type.config_info(),
+                    SpawnBlueprint,
+                    PlayerId::LOCAL,
+                    WeaponEntityMarker,
+                ));
+            });
+        }
+
+        info!("Updated spaceship to: {:?}", **select_spaceship);
+    }
 }
 
 /// Despawn lobby scene.
@@ -89,6 +150,12 @@ impl Default for LocalLobbyBundle {
     }
 }
 
-#[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
+#[derive(Component, Default)]
 pub(super) struct LocalLobby;
+
+#[derive(Component)]
+struct SpaceshipEntityMarker;
+
+#[derive(Component)]
+struct WeaponEntityMarker;

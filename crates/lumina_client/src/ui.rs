@@ -12,6 +12,7 @@ pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod sandbox;
+pub(super) mod spaceship_select;
 pub(super) mod splash;
 
 pub(super) struct UiPlugin;
@@ -26,6 +27,7 @@ impl Plugin for UiPlugin {
             game_ui::GameUiPlugin,
             game_over::GameOverUiPlugin,
             sandbox::SandboxUiPlugin,
+            spaceship_select::SpaceshipSelectUiPlugin,
         ));
 
         app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu)

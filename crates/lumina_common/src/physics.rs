@@ -8,6 +8,7 @@ use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
 use lightyear::prelude::*;
 
+use crate::prelude::Convert3dTo2dSet;
 use crate::settings::LuminaSettings;
 
 pub mod physics_interp;
@@ -42,13 +43,12 @@ impl Plugin for PhysicsPlugin {
                 position_to_transform: true,
             })
             .add_systems(
-                Last,
+                Update,
                 (
                     convert_mass_rigidbody,
                     (
                         convert_primitive_rigidbody,
-                        convert_mesh_rigidbody,
-                        convert_mesh_collider,
+                        (convert_mesh_rigidbody, convert_mesh_collider).after(Convert3dTo2dSet),
                     ),
                 )
                     .chain(),
@@ -78,19 +78,11 @@ fn convert_primitive_rigidbody(
 
 fn convert_mesh_rigidbody(
     mut commands: Commands,
-    q_rigidbodies: Query<
-        (
-            &MeshRigidbody,
-            Option<&Mesh2dHandle>,
-            Option<&Handle<Mesh>>,
-            Entity,
-        ),
-        Added<MeshRigidbody>,
-    >,
+    q_rigidbodies: Query<(&MeshRigidbody, Option<&Mesh2dHandle>, Entity), Added<MeshRigidbody>>,
     meshes: Res<Assets<Mesh>>,
 ) {
-    for (rigidbody, mesh2d, mesh3d, entity) in q_rigidbodies.iter() {
-        let Some(mesh_handle) = mesh3d.or(mesh2d.map(|mesh2d| &**mesh2d)) else {
+    for (rigidbody, mesh, entity) in q_rigidbodies.iter() {
+        let Some(mesh_handle) = mesh.map(|mesh2d| &**mesh2d) else {
             warn!("Configured with Trimesh collider but wasn't attached with any Mesh.");
             commands.entity(entity).remove::<MeshRigidbody>();
             continue;
@@ -266,12 +258,22 @@ pub struct PrimitiveRigidbody {
 }
 
 /// A [`RigidBody`] with a [`Collider`] that conforms to the shape of the [`Mesh`].
-#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
-#[reflect(Component)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[reflect(Component, Default)]
 pub struct MeshRigidbody {
     pub rigidbody: RigidBody,
     pub density: ColliderDensity,
     pub collider_type: MeshCollider,
+}
+
+impl Default for MeshRigidbody {
+    fn default() -> Self {
+        Self {
+            rigidbody: RigidBody::Static,
+            density: ColliderDensity(1.0),
+            collider_type: MeshCollider::Trimesh,
+        }
+    }
 }
 
 #[derive(

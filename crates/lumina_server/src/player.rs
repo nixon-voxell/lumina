@@ -4,6 +4,9 @@ use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_shared::protocol::SelectSpaceship;
+use std::collections::HashMap;
+
 use server::*;
 
 use super::lobby::Lobby;
@@ -17,6 +20,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(objective::ObjectivePlugin)
             .add_event::<SpawnClientPlayer>()
+            .init_resource::<ClientSpaceshipSelection>()
             .add_systems(
                 PreUpdate,
                 (
@@ -26,37 +30,81 @@ impl Plugin for PlayerPlugin {
                     replicate_item_spawn::<Weapon>,
                 ),
             )
+            .add_systems(
+                Update,
+                (handle_spaceship_selection, remove_spaceship_selection),
+            )
             .observe(spawn_players);
     }
 }
 
-fn spawn_players(trigger: Trigger<SpawnClientPlayer>, mut commands: Commands) {
+/// Cache client's spaceship selection on message received.
+fn handle_spaceship_selection(
+    mut events: EventReader<MessageEvent<SelectSpaceship>>,
+    mut selection: ResMut<ClientSpaceshipSelection>,
+) {
+    for event in events.read() {
+        let client_id = event.context();
+        let spaceship = event.message().0;
+        selection.insert(*client_id, spaceship);
+        info!(
+            "Server: Cached spaceship selection for client {}: {:?}",
+            client_id, spaceship
+        );
+    }
+}
+
+/// Remove cached spaceship selection on client disconnection.
+fn remove_spaceship_selection(
+    mut disconnect_evr: EventReader<DisconnectEvent>,
+    mut selection: ResMut<ClientSpaceshipSelection>,
+) {
+    for disconnect in disconnect_evr.read() {
+        selection.remove(&disconnect.client_id);
+    }
+}
+
+fn spawn_players(
+    trigger: Trigger<SpawnClientPlayer>,
+    mut commands: Commands,
+    selections: Res<ClientSpaceshipSelection>,
+) {
     let &SpawnClientPlayer {
         client_id,
         world_entity,
     } = trigger.event();
 
-    // Spawn spaceship.
+    // Look up the player's selected spaceship; default to Assassin if none was provided.
+    let spaceship_type = selections.get(&client_id).copied().unwrap_or_default();
+
+    // Determine the weapon type based on the selected spaceship.
+    let weapon_type = match spaceship_type {
+        SpaceshipType::Assassin => WeaponType::Cannon,
+        SpaceshipType::Defender => WeaponType::GattlingGun,
+    };
+
+    // Spawn the spaceship using its configuration.
     commands
         .spawn((
             PlayerId(client_id),
-            // TODO: Allow player to choose what spaceship to spawn.
-            SpaceshipType::Assassin.config_info(),
+            spaceship_type.config_info(),
             SpawnBlueprint,
         ))
         .set_parent(world_entity);
 
-    // Spawn weapon.
+    // Spawn the weapon using the chosen weapon type.
     commands
         .spawn((
             PlayerId(client_id),
-            // TODO: Allow player to choose what weapon to spawn.
-            WeaponType::Cannon.config_info(),
+            weapon_type.config_info(),
             SpawnBlueprint,
         ))
         .set_parent(world_entity);
 
-    info!("SERVER: Spawned player for {client_id}");
+    info!(
+        "SERVER: Spawned player {} with spaceship: {:?} and weapon: {:?}",
+        client_id, spaceship_type, weapon_type
+    );
 }
 
 /// Replicate a player's item back other clients while granting
@@ -164,3 +212,8 @@ pub struct SpawnClientPlayer {
     /// The entity that holds the world of the client.
     pub world_entity: Entity,
 }
+
+/// Stores the selected [`SpaceshipType`] of the client.
+/// Defaults to [`SpaceshipType::default`] if no selection is found.
+#[derive(Resource, Default, Deref, DerefMut)]
+pub struct ClientSpaceshipSelection(HashMap<ClientId, SpaceshipType>);
