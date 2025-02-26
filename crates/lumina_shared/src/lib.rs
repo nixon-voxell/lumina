@@ -32,7 +32,6 @@ impl Plugin for SharedPlugin {
         app.add_plugins(bevy_framepace::FramepacePlugin)
             .add_plugins((
                 lumina_ui::UiPlugin,
-                lumina_terrain::TerrainPlugin,
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 effector::EffectorPlugin,

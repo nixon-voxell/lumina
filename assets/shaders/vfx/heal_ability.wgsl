@@ -27,7 +27,7 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
 
     // Fading at the edge
     let uv_sqr = dot(uv, uv);
-    let fade_mask = max(1.0 - uv_sqr, 0.0);
+    let fade_mask = pow(max(1.2 - uv_sqr, 0.0), 2.0);
 
     let uv_dir = normalize(uv);
     let target_dist = mix(-1.0, 1.0, time);
@@ -37,7 +37,7 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
     let len = length(diff);
     var distort_direction = normalize(diff);
 
-    var d = length(diff) - 0.3;
+    var d = length(diff) - 0.5;
     // Smooth the ripple.
     d *= 1. - smoothstep(0.0, 0.1, abs(d));
     let dir = normalize(diff);
@@ -46,13 +46,13 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
     let distorted_screen_color = textureSample(screen_texture, screen_sampler, distorted_viewport_uv);
     let screen_color = textureSample(screen_texture, screen_sampler, viewport_uv);
 
-    let color_mask = pow(clamp(1.3 - length(uv - sdf_center), 0.0, 1.0), 3.0);
+    let color_mask = min(pow(clamp(1.4 - length(uv - sdf_center), 0.0, 1.0), 3.0), fade_mask);
 
     let angle = atan2(uv_dir.x, uv_dir.y);
     let color = mix(color0, color1, dot(uv_dir, vec2<f32>(1.0, 0.0)) * 0.5 + 0.5);
     let ring_color = color.rgb * color_mask;
 
-    var final_color = distorted_screen_color.rgb * ring_color * 5.0 + ring_color;
+    var final_color = distorted_screen_color.rgb * ring_color * 2.0 + ring_color;
 
-    return vec4<f32>(final_color, min(screen_color.a, color_mask * fade_mask));
+    return vec4<f32>(max(final_color, ring_color), min(screen_color.a, color_mask));
 }

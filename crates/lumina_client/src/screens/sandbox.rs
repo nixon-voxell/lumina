@@ -17,7 +17,8 @@ impl Plugin for SandboxPlugin {
         app.add_systems(
             Update,
             handle_enter_sandbox.run_if(in_state(Screen::Sandbox)),
-        );
+        )
+        .add_systems(OnExit(Screen::Sandbox), cleanup_sandbox);
     }
 }
 
@@ -44,6 +45,12 @@ fn handle_enter_sandbox(
             .with_children(|builder| {
                 builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
             });
+    }
+}
+
+fn cleanup_sandbox(mut commands: Commands, query: Query<Entity, With<Sandbox>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
 

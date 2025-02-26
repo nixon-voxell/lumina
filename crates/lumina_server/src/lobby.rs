@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
-use lumina_terrain::prelude::*;
 use server::*;
 use smallvec::SmallVec;
 
@@ -38,12 +37,10 @@ impl Plugin for LobbyPlugin {
 fn cleanup_empty_lobbies(
     mut commands: Commands,
     q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
-    mut clear_terrain_evw: EventWriter<ClearTerrain>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
-            clear_terrain_evw.send(ClearTerrain(entity));
             commands.entity(entity).despawn_recursive();
         }
     }

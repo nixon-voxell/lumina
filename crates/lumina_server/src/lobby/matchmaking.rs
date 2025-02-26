@@ -8,6 +8,7 @@ use server::*;
 use crate::player::SpawnClientPlayer;
 use crate::LobbyInfos;
 
+use super::sandbox::Sandbox;
 use super::{Lobby, LobbyBundle, LobbyFull, LobbyInGame, LobbySize};
 
 pub(super) struct MatchmakingPlugin;
@@ -99,7 +100,10 @@ fn handle_matchmaking(
 }
 
 // Spawn multiplayer lobby scene when a new lobby is added.
-fn spawn_multiplayer_lobby(mut commands: Commands, q_lobbies: Query<Entity, Added<Lobby>>) {
+fn spawn_multiplayer_lobby(
+    mut commands: Commands,
+    q_lobbies: Query<Entity, (Added<Lobby>, Without<Sandbox>)>,
+) {
     for entity in q_lobbies.iter() {
         let multiplayer_lobby = commands
             .spawn((LobbyType::Multiplayer.info(), SpawnBlueprint))

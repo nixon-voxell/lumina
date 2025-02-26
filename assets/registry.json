@@ -4570,44 +4570,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "bevy_asset::handle::Handle<lumina_terrain::config::TerrainConfigAsset>": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "bevy_asset::handle::Handle<lumina_terrain::config::TerrainConfigAsset>",
-      "oneOf": [
-        {
-          "items": false,
-          "long_name": "Strong",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/std::sync::Arc<bevy_asset::handle::StrongHandle>"
-              }
-            }
-          ],
-          "short_name": "Strong",
-          "type": "array",
-          "typeInfo": "Tuple"
-        },
-        {
-          "items": false,
-          "long_name": "Weak",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>"
-              }
-            }
-          ],
-          "short_name": "Weak",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "Handle<TerrainConfigAsset>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "bevy_asset::handle::Handle<lumina_vfx::material2d::BoosterMaterial>": {
       "isComponent": true,
       "isResource": false,
@@ -6129,52 +6091,6 @@
         }
       ],
       "short_name": "AssetId<BlueprintPreloadAssets>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
-    "bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "bevy_asset::id::AssetId<lumina_terrain::config::TerrainConfigAsset>",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "long_name": "Index",
-          "properties": {
-            "index": {
-              "long_name": "index",
-              "type": {
-                "$ref": "#/$defs/bevy_asset::assets::AssetIndex"
-              }
-            }
-          },
-          "required": [
-            "index"
-          ],
-          "short_name": "Index",
-          "type": "object",
-          "typeInfo": "Struct"
-        },
-        {
-          "additionalProperties": false,
-          "long_name": "Uuid",
-          "properties": {
-            "uuid": {
-              "long_name": "uuid",
-              "type": {
-                "$ref": "#/$defs/uuid::Uuid"
-              }
-            }
-          },
-          "required": [
-            "uuid"
-          ],
-          "short_name": "Uuid",
-          "type": "object",
-          "typeInfo": "Struct"
-        }
-      ],
-      "short_name": "AssetId<TerrainConfigAsset>",
       "type": "object",
       "typeInfo": "Enum"
     },
