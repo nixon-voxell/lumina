@@ -4,10 +4,13 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
+use smallvec::SmallVec;
 
 use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
 use crate::player::SpawnClientPlayer;
 use crate::LobbyInfos;
+
+use super::Lobby;
 
 pub(crate) struct SandboxPlugin;
 
@@ -32,6 +35,7 @@ fn handle_enter_sandbox(
             .entity(world_entity)
             .insert(SandboxBundle {
                 world_id: WorldIdx::from_entity(world_entity),
+                lobby: Lobby(SmallVec::from_slice(&[client_id])),
                 ..default()
             })
             .with_children(|builder| {
@@ -54,9 +58,7 @@ fn handle_enter_sandbox(
         let room_id = world_entity.room_id();
 
         let _ = connection_manager.send_message_to_target::<OrdReliableChannel, _>(
-            &LobbyData {
-                room_id: room_id.into(),
-            },
+            &LobbyData { room_id },
             NetworkTarget::Single(client_id),
         );
 
@@ -94,7 +96,7 @@ fn manage_sandbox_areas(
 }
 
 #[derive(Component, Default)]
-struct Sandbox;
+pub(super) struct Sandbox;
 
 #[derive(Bundle, Default)]
 struct SandboxBundle {
@@ -102,4 +104,6 @@ struct SandboxBundle {
     pub world_id: WorldIdx,
     pub spatial: SpatialBundle,
     pub objective_manager: ObjectiveAreaManager,
+    /// Just as a marker so that it gets cleanup on empty.
+    pub lobby: Lobby,
 }

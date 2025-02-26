@@ -37,13 +37,10 @@ impl Plugin for LobbyPlugin {
 fn cleanup_empty_lobbies(
     mut commands: Commands,
     q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
-    // TODO: Make sure that the in game map is despawned.
-    // mut clear_terrain_evw: EventWriter<ClearTerrain>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
-            // clear_terrain_evw.send(ClearTerrain(entity));
             commands.entity(entity).despawn_recursive();
         }
     }

@@ -35,8 +35,7 @@ fn exit_lobby_btn(
 ) {
     if interactions.pressed("btn:exit-lobby") {
         let _ = connection_manager.send_message::<OrdReliableChannel, _>(&ExitLobby);
-
-        next_screen_state.set(Screen::MainMenu);
+        next_screen_state.set(Screen::LocalLobby);
     }
 }
 

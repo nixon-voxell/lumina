@@ -6,7 +6,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 
-use super::Screen;
+use super::{in_game::InGameMap, Screen};
 
 pub(super) struct MultiplayerLobbyPlugin;
 
@@ -29,7 +29,7 @@ fn start_game(
 ) {
     for _ in start_game_evr.read() {
         // Spawn map and move in to in game screen.
-        commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint));
+        commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint, InGameMap));
         next_screen_state.set(Screen::InGame);
     }
 }
@@ -50,6 +50,6 @@ fn despawn_lobby(mut commands: Commands, q_lobby: Query<Entity, With<Multiplayer
     commands.entity(lobby).despawn_recursive();
 }
 
-#[derive(Component, Default)]
 /// Tag for the parent entity of the lobby scene.
+#[derive(Component)]
 pub(super) struct MultiplayerLobby;

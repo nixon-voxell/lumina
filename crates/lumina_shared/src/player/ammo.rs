@@ -46,7 +46,6 @@ fn setup_ammmo_ref(
     }
 }
 
-// TODO: Needs syncing!
 fn fire_ammo(
     mut commands: Commands,
     q_ammo_refs: Query<(&Ammo, &Collider), With<AmmoRef>>,

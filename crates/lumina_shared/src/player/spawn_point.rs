@@ -54,7 +54,7 @@ fn init_spaceships_at_spawn_points(
     };
 
     for (mut position, mut rotation, id, team_type, spaceship_entity) in q_spaceship.iter_mut() {
-        // If we are in multiplayer mode, let the sever handle the spawn position.
+        // If we are in multiplayer mode, let the server handle the spawn position.
         if id.is_local() == false && network_identity.is_client() {
             return;
         }

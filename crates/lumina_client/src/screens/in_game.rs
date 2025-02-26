@@ -42,5 +42,11 @@ fn game_over(
     }
 }
 
-// TODO: Implement this!
-fn despawn_in_game_map() {}
+fn despawn_in_game_map(mut commands: Commands, q_in_game_map: Query<Entity, With<InGameMap>>) {
+    for entity in q_in_game_map.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+#[derive(Component)]
+pub(super) struct InGameMap;
