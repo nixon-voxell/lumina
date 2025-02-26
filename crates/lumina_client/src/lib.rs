@@ -53,7 +53,6 @@ impl Plugin for ClientPlugin {
             typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
-        .enable_state_scoped_entities::<Connection>()
         .add_systems(OnEnter(Connection::Connecting), connect_server)
         .add_systems(
             PreUpdate,
