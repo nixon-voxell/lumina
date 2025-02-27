@@ -60,7 +60,7 @@
   ]
 }
 
-#let score_bar(scores, max_score) = {
+#let score_bar(score, max_score) = {
   set align(horizon)
 
   let local_percent = 0.1 * 100%
@@ -81,7 +81,7 @@
       (red.transparentize(70%), other_grad),
       (red.transparentize(70%), 100%),
     ),
-    outset: 0.2em
+    outset: 0.2em,
   )[
     #place(left + horizon)[
       #box(
@@ -106,66 +106,6 @@
       )
     ]
   ]
-  // align(horizon)[
-  //   #box(width: 850pt)[
-  //     #grid(
-  //       columns: 3,
-  //       column-gutter: 30pt,
-
-  //       // Left bar with score
-  //       box(width: 380pt)[
-  //         #rect(
-  //           width: 100%,
-  //           height: 20pt,
-  //           inset: 0pt,
-  //           fill: white.transparentize(50%),
-  //           stroke: (top: 3pt + red),
-  //         )[
-  //           #place(
-  //             left,
-  //             rect(
-  //               width: (float(scores.at(0)) / float(max_score)) * 100%,
-  //               height: 100%,
-  //               fill: red,
-  //               stroke: (top: 3pt + white),
-  //             ),
-  //           )
-  //         ]
-  //       ],
-
-  //       // Center container for score displays
-  //       box(width: auto)[
-  //         #stack(
-  //           dir: ltr,
-  //           spacing: 20pt,
-  //           score_display(scores.at(0)),
-  //           score_display(scores.at(1)),
-  //         )
-  //       ],
-
-  //       // Right bar with score
-  //       box(width: 380pt)[
-  //         #rect(
-  //           width: 100%,
-  //           height: 20pt,
-  //           inset: 0pt,
-  //           fill: white.transparentize(50%),
-  //           stroke: (top: 3pt + blue),
-  //         )[
-  //           #place(
-  //             right,
-  //             rect(
-  //               width: (float(scores.at(1)) / float(max_score)) * 100%,
-  //               height: 100%,
-  //               fill: blue,
-  //               stroke: (top: 3pt + white),
-  //             ),
-  //           )
-  //         ]
-  //       ]
-  //     )
-  //   ]
-  // ]
 }
 
 #let countdown_timer(total_seconds) = {

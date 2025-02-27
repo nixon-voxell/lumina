@@ -143,14 +143,18 @@ impl Plugin for ProtocolPlugin {
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct GameScore {
-    pub scores: [u8; TeamType::COUNT],
+    pub score: u8,
     pub max_score: u8,
 }
 
 impl GameScore {
     pub fn new(max_score: u8) -> Self {
+        assert!(
+            (max_score / 2) * 2 == max_score,
+            "`max_score` needs to be even."
+        );
         Self {
-            scores: [0; TeamType::COUNT],
+            score: max_score / 2,
             max_score,
         }
     }

@@ -40,7 +40,7 @@ fn set_game_over_values(game_stat: Res<CachedGameStat>, mut func: ResMut<GameOve
         func.local_team_index = team_type as u8;
 
         func.team_names = TeamType::iter().map(|t| t.into()).collect();
-        func.team_scores = game_score.scores.to_vec();
+        func.team_scores = game_score.score.to_vec();
     }
 }
 

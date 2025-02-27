@@ -92,7 +92,7 @@ fn respawn_spaceships(
             .get(&**id)
             .and_then(|e| q_game_scores.get_mut(*e).ok())
         {
-            game_score.scores[team_type.invert() as usize] += 1;
+            game_score.score[team_type.invert() as usize] += 1;
         }
 
         let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
@@ -134,7 +134,7 @@ fn track_game_score(
         );
 
         if game_score
-            .scores
+            .score
             .iter()
             .any(|&score| score >= game_score.max_score)
         {

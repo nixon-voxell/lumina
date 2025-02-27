@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lumina_shared::prelude::*;
 use velyst::prelude::*;
 
-use crate::player::CachedGameStat;
+use crate::player::{CachedGameStat, LocalPlayerInfo};
 use crate::ui::game_ui::GameUi;
 use crate::ui::Screen;
 
@@ -23,13 +23,27 @@ impl Plugin for ScoreBarUiPlugin {
 }
 
 /// Listen to [`GameScore`] from server.
-fn udpate_game_score(mut func: ResMut<ScoreBarFunc>, game_stat: Res<CachedGameStat>) {
-    if let Some(GameScore { scores, max_score }) = game_stat.game_score {
-        func.scores = scores
-            .iter()
-            .map(|&score| score.clamp(0, max_score))
-            .collect();
+fn udpate_game_score(
+    q_team_types: Query<&TeamType>,
+    mut func: ResMut<ScoreBarFunc>,
+    game_stat: Res<CachedGameStat>,
+    local_player_info: LocalPlayerInfo,
+) {
+    // Get the local player's team type.
+    let Some(team_type) = local_player_info
+        .get(PlayerInfoType::Spaceship)
+        .and_then(|e| q_team_types.get(e).ok())
+    else {
+        return;
+    };
 
+    if let Some(GameScore {
+        score: scores,
+        max_score,
+    }) = game_stat.game_score
+    {
+        // Show the local player's score.
+        func.score = scores[*team_type as usize].clamp(0, max_score);
         func.max_score = max_score;
     }
 }
@@ -42,14 +56,14 @@ fn reset_game_score(mut func: ResMut<ScoreBarFunc>) {
 #[typst_func(name = "score_bar")]
 pub struct ScoreBarFunc {
     // local_score: f64,
-    scores: Vec<u8>,
+    score: u8,
     max_score: u8,
 }
 
 impl Default for ScoreBarFunc {
     fn default() -> Self {
         Self {
-            scores: vec![0; 2],
+            score: 0,
             max_score: u8::MAX,
         }
     }
