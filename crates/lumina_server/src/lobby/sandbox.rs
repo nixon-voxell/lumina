@@ -33,11 +33,15 @@ fn handle_enter_sandbox(
 
         commands
             .entity(world_entity)
-            .insert(SandboxBundle {
-                world_id: WorldIdx::from_entity(world_entity),
-                lobby: Lobby(SmallVec::from_slice(&[client_id])),
-                ..default()
-            })
+            .insert((
+                SandboxBundle {
+                    world_id: WorldIdx::from_entity(world_entity),
+                    lobby: Lobby(SmallVec::from_slice(&[client_id])),
+                    ..default()
+                },
+                // Game score for the score bar to appear and interact with deposition.
+                GameScore::new(50),
+            ))
             .with_children(|builder| {
                 // Spawn the sandbox level.
                 builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));

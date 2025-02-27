@@ -113,11 +113,8 @@ impl Default for LocalPlayerId {
     }
 }
 
-#[derive(Resource, Deref, DerefMut, Default, Debug, Clone, Copy)]
-pub(super) struct CachedGameStat(pub GameStat);
-
-#[derive(Default, Debug, Clone, Copy)]
-pub(super) struct GameStat {
+#[derive(Resource, Default, Debug, Clone, Copy)]
+pub(super) struct CachedGameStat {
     /// The local player's team type.
     pub team_type: Option<TeamType>,
     pub game_score: Option<GameScore>,

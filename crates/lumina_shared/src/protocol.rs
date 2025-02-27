@@ -147,14 +147,10 @@ pub struct GameScore {
 }
 
 impl GameScore {
-    pub fn new(max_score: u8) -> Self {
-        assert!(
-            (max_score / 2) * 2 == max_score,
-            "`max_score` needs to be even."
-        );
+    pub fn new(half_max_score: u8) -> Self {
         Self {
-            score: max_score / 2,
-            max_score,
+            score: half_max_score,
+            max_score: half_max_score * 2,
         }
     }
 }

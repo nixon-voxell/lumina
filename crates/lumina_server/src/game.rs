@@ -16,6 +16,7 @@ impl Plugin for GamePlugin {
             (
                 respawn_spaceships,
                 init_game,
+                propagate_game_score,
                 track_game_score,
                 track_game_timer,
             ),
@@ -97,16 +98,15 @@ fn respawn_spaceships(
 fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>>) {
     for entity in q_lobbies.iter() {
         commands.entity(entity).insert((
-            GameScore::new(15),
-            GameTimer(Timer::from_seconds(60.0 * 2.5, TimerMode::Once)),
+            GameScore::new(50),
+            GameTimer(Timer::from_seconds(60.0 * 4.0, TimerMode::Once)),
         ));
     }
 }
 
-/// Track game score and end game when either one of the team wins.
-fn track_game_score(
-    mut commands: Commands,
-    q_game_scores: Query<(&GameScore, Entity), (Changed<GameScore>, With<LobbyInGame>)>,
+/// Propagate game score to the clients.
+fn propagate_game_score(
+    q_game_scores: Query<(&GameScore, Entity), Changed<GameScore>>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
@@ -116,7 +116,15 @@ fn track_game_score(
             entity.room_id(),
             &room_manager,
         );
+    }
+}
 
+/// Track game score and end game when either one of the team wins.
+fn track_game_score(
+    mut commands: Commands,
+    q_game_scores: Query<(&GameScore, Entity), (Changed<GameScore>, With<LobbyInGame>)>,
+) {
+    for (game_score, entity) in q_game_scores.iter() {
         if game_score.score == game_score.max_score || game_score.score == 0 {
             commands.trigger_targets(EndGame, entity);
         }

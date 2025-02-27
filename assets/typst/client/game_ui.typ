@@ -63,7 +63,7 @@
 #let score_bar(score, max_score) = {
   set align(horizon)
 
-  let local_percent = 0.1 * 100%
+  let local_percent = (score / max_score) * 100%
   let other_percent = 100% - local_percent
 
   let grad_sharpness = 1%

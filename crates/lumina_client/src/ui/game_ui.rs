@@ -29,7 +29,8 @@ impl Plugin for GameUiPlugin {
         .init_resource::<MainFunc>()
         .add_systems(
             Update,
-            (push_to_main_window::<MainFunc>(), game_ui).run_if(in_state(Screen::InGame)),
+            (push_to_main_window::<MainFunc>(), game_ui)
+                .run_if(in_state(Screen::InGame).or_else(in_state(Screen::Sandbox))),
         );
     }
 }

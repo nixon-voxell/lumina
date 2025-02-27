@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use lumina_shared::prelude::*;
 use velyst::prelude::*;
 
-use crate::player::{CachedGameStat, LocalPlayerInfo};
+use crate::player::CachedGameStat;
 use crate::ui::game_ui::GameUi;
 use crate::ui::Screen;
 
@@ -13,31 +13,21 @@ impl Plugin for ScoreBarUiPlugin {
         app.register_typst_asset::<GameUi>()
             .compile_typst_func::<GameUi, ScoreBarFunc>()
             .init_resource::<ScoreBarFunc>()
-            .add_systems(OnEnter(Screen::InGame), reset_game_score)
+            .add_systems(OnEnter(Screen::LocalLobby), reset_game_score)
             .add_systems(
                 Update,
-                udpate_game_score
-                    .run_if(resource_changed::<CachedGameStat>.and_then(in_state(Screen::InGame))),
+                udpate_game_score.run_if(resource_changed::<CachedGameStat>),
             );
     }
 }
 
 /// Listen to [`GameScore`] from server.
-fn udpate_game_score(
-    q_team_types: Query<&TeamType>,
-    mut func: ResMut<ScoreBarFunc>,
-    game_stat: Res<CachedGameStat>,
-    local_player_info: LocalPlayerInfo,
-) {
-    // Get the local player's team type.
-    let Some(team_type) = local_player_info
-        .get(PlayerInfoType::Spaceship)
-        .and_then(|e| q_team_types.get(e).ok())
-    else {
-        return;
-    };
-
-    if let Some(GameScore { score, max_score }) = game_stat.game_score {
+fn udpate_game_score(mut func: ResMut<ScoreBarFunc>, game_stat: Res<CachedGameStat>) {
+    if let CachedGameStat {
+        team_type: Some(team_type),
+        game_score: Some(GameScore { score, max_score }),
+    } = *game_stat
+    {
         // Show the local player's score.
         func.score = match team_type {
             TeamType::A => score,
