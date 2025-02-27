@@ -37,13 +37,12 @@ fn udpate_game_score(
         return;
     };
 
-    if let Some(GameScore {
-        score: scores,
-        max_score,
-    }) = game_stat.game_score
-    {
+    if let Some(GameScore { score, max_score }) = game_stat.game_score {
         // Show the local player's score.
-        func.score = scores[*team_type as usize].clamp(0, max_score);
+        func.score = match team_type {
+            TeamType::A => score,
+            TeamType::B => max_score - score,
+        };
         func.max_score = max_score;
     }
 }

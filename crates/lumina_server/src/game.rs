@@ -5,10 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{
-    lobby::{ClientExitLobby, Lobby, LobbyInGame},
-    LobbyInfos,
-};
+use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
 
 pub(super) struct GamePlugin;
 
@@ -65,14 +62,10 @@ fn respawn_spaceships(
             &SpawnPointEntity,
             &MaxHealth,
             &mut Health,
-            &TeamType,
-            &PlayerId,
         ),
         (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
     >,
     q_global_transforms: Query<&GlobalTransform>,
-    mut q_game_scores: Query<&mut GameScore>,
-    lobby_infos: Res<LobbyInfos>,
 ) {
     // Spaceship becomes Visibility::Hidden when health drops to 0.
     for (
@@ -82,19 +75,10 @@ fn respawn_spaceships(
         &SpawnPointEntity(spawn_point_entity),
         max_health,
         mut health,
-        team_type,
-        id,
     ) in q_spaceships
         .iter_mut()
         .filter(|(viz, ..)| *viz == Visibility::Hidden)
     {
-        if let Some(mut game_score) = lobby_infos
-            .get(&**id)
-            .and_then(|e| q_game_scores.get_mut(*e).ok())
-        {
-            game_score.score[team_type.invert() as usize] += 1;
-        }
-
         let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
             .get(spawn_point_entity)
             .map(|transform| transform.to_scale_rotation_translation())
@@ -133,11 +117,7 @@ fn track_game_score(
             &room_manager,
         );
 
-        if game_score
-            .score
-            .iter()
-            .any(|&score| score >= game_score.max_score)
-        {
+        if game_score.score == game_score.max_score || game_score.score == 0 {
             commands.trigger_targets(EndGame, entity);
         }
     }

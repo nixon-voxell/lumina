@@ -65,7 +65,7 @@ fn setup_lumina_col_layer(
     PartialEq,
 )]
 #[reflect(Component)]
-pub struct CollectedLumina(u8);
+pub struct CollectedLumina(pub u8);
 
 impl CollectedLumina {
     /// Max lumina a player can hold.

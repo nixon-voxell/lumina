@@ -10,6 +10,8 @@ use lumina_shared::player::objective::LuminaSpawnArea;
 use lumina_shared::prelude::*;
 use server::*;
 
+use crate::LobbyInfos;
+
 pub(super) struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
@@ -35,19 +37,36 @@ impl Plugin for ObjectivePlugin {
 
 /// Listen for messages from clients that are triggering a [DepositLumina] event.
 fn lumina_deposition(
-    mut q_collected_luminas: Query<&mut CollectedLumina>,
+    mut q_collected_luminas: Query<(&mut CollectedLumina, &TeamType, &PlayerId)>,
+    mut q_game_scores: Query<&mut GameScore>,
     mut evr_deposit: EventReader<MessageEvent<DepositLumina>>,
+    lobby_infos: Res<LobbyInfos>,
     player_info: Res<PlayerInfos>,
 ) {
     for deposit in evr_deposit.read() {
         let deposit_client = *deposit.context();
 
-        if let Some(mut collected_lumina) = player_info[PlayerInfoType::Spaceship]
+        if let Some((mut collected_lumina, team_type, id)) = player_info[PlayerInfoType::Spaceship]
             .get(&PlayerId(deposit_client))
             .and_then(|&e| q_collected_luminas.get_mut(e).ok())
         {
             info!("{deposit_client:?} triggered a deposit event with {collected_lumina:?}!");
-            **collected_lumina = 0;
+            if let Some(mut game_score) = lobby_infos
+                .get(&id.0)
+                .and_then(|e| q_game_scores.get_mut(*e).ok())
+            {
+                match team_type {
+                    TeamType::A => {
+                        game_score.score =
+                            (game_score.score + collected_lumina.0).min(game_score.max_score);
+                    }
+                    TeamType::B => {
+                        game_score.score = game_score.score.saturating_sub(collected_lumina.0);
+                    }
+                }
+            }
+
+            collected_lumina.0 = 0;
         }
     }
 }

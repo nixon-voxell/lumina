@@ -40,7 +40,7 @@ fn set_game_over_values(game_stat: Res<CachedGameStat>, mut func: ResMut<GameOve
         func.local_team_index = team_type as u8;
 
         func.team_names = TeamType::iter().map(|t| t.into()).collect();
-        func.team_scores = game_score.score.to_vec();
+        func.score = game_score.score;
     }
 }
 
@@ -57,7 +57,7 @@ pub struct GameOverFunc {
     hovered_animation: f64,
     pub local_team_index: u8,
     pub team_names: Vec<&'static str>,
-    pub team_scores: Vec<u8>,
+    pub score: u8,
 }
 
 impl InteractableFunc for GameOverFunc {
