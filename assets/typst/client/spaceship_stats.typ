@@ -143,11 +143,23 @@
             "/icons/" + weapon_icon + ".svg",
             height: 1.5em,
           )
-          #place(
-            bottom + right,
-            [1],
-          )
         ],
+        stack(
+          dir: ltr,
+          spacing: -0.2em,
+          box(
+            fill: base6.transparentize(70%),
+            inset: 0.2em,
+            radius: 0.2em,
+            stroke: base5,
+          )[#data.magazine],
+          box(width: 1em),
+
+          ..range(data.magazine).map(i => image(
+            "/icons/bullet.svg",
+            height: 1em,
+          )),
+        ),
       )
     ]
 

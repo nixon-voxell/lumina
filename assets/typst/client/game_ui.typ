@@ -1,52 +1,5 @@
 #import "../monokai_pro.typ": *
 
-#let weaponselector(
-  selected_index,
-  num_weapon,
-  bullet_counts,
-) = {
-  let weapon(x) = {
-    let color = if x == selected_index {
-      white
-    } else {
-      white.transparentize(70%)
-    }
-    stack(
-      dir: ttb,
-      spacing: 12pt,
-      rect(
-        width: 80pt,
-        height: 80pt,
-        fill: white.transparentize(85%),
-        stroke: 4pt + color,
-        radius: 4pt,
-      ),
-      align(horizon + center)[
-        #stack(
-          dir: ltr,
-          box(
-            image(
-              "/icons/bullet-yellow.svg",
-              height: 1.3em,
-            ),
-          ),
-          spacing: 5pt,
-          // Use the dynamic bullet count from the array
-          text(fill: white, 20pt)[*#(bullet_counts.at(x))*],
-        )
-      ],
-    )
-  }
-
-  let weapons = range(num_weapon).map(weapon)
-  box(width: 200pt)[
-    #grid(
-      columns: (1fr, 1fr),
-      ..weapons
-    )
-  ]
-}
-
 #let score_display(team_score) = {
   rect(
     width: 3em,
@@ -137,10 +90,8 @@
 
 #let main(
   timer,
-  weapon_selector,
   score_bar,
 ) = {
-  // text.size
   box(
     width: 100%,
     height: 100%,
@@ -153,11 +104,6 @@
     #place(top + left)[
       #timer
     ]
-
-    // #place(right + bottom)[
-    //   #weapon_selector
-    // ]
-    // #context measure(box(height: 100%, width: 100%))
   ]
 }
 

@@ -33,10 +33,12 @@ fn spaceship_stats(
         ),
         With<SourceEntity>,
     >,
+    q_weapons: Query<(&WeaponStat, &Weapon), With<SourceEntity>>,
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
 ) {
-    if let Some((
+    func.data = None;
+    let Some((
         max_health,
         health,
         dash_cooldown,
@@ -48,24 +50,33 @@ fn spaceship_stats(
     )) = local_player_info
         .get(PlayerInfoType::Spaceship)
         .and_then(|e| q_spaceships.get(e).ok())
-    {
-        let spaceship_type = spaceship_type.as_ref();
-        // 0.0 if there is no cooldown, otherwise, calculate it.
-        let dash_cooldown = dash_cooldown.map_or_default(|c| calculate_cooldown(c));
-        let ability_cooldown = ability_cooldown.map_or_default(|c| calculate_cooldown(c));
+    else {
+        return;
+    };
 
-        func.data = Some(dict! {
-            "spaceship_type" => spaceship_type,
-            "health" => **health as f64,
-            "max_health" => **max_health as f64,
-            "boost" => (energy.energy / spaceship.energy.max_energy) as f64,
-            "dash_cooldown" => dash_cooldown,
-            "ability_cooldown" => ability_cooldown,
-            "ability_active" => is_ability_active,
-        });
-    } else {
-        func.data = None;
-    }
+    let Some((weapon_stat, weapon)) = local_player_info
+        .get(PlayerInfoType::Weapon)
+        .and_then(|e| q_weapons.get(e).ok())
+    else {
+        return;
+    };
+
+    let spaceship_type = spaceship_type.as_ref();
+    // 0.0 if there is no cooldown, otherwise, calculate it.
+    let dash_cooldown = dash_cooldown.map_or_default(|c| calculate_cooldown(c));
+    let ability_cooldown = ability_cooldown.map_or_default(|c| calculate_cooldown(c));
+
+    func.data = Some(dict! {
+        "spaceship_type" => spaceship_type,
+        "health" => **health as f64,
+        "max_health" => **max_health as f64,
+        "boost" => (energy.energy / spaceship.energy.max_energy) as f64,
+        "dash_cooldown" => dash_cooldown,
+        "ability_cooldown" => ability_cooldown,
+        "ability_active" => is_ability_active,
+        "magazine" => weapon_stat.magazine(),
+        "magazine_size" => weapon.magazine_size(),
+    });
 }
 
 fn calculate_cooldown(timer: &Timer) -> f64 {

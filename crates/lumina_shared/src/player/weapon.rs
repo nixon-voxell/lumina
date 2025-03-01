@@ -176,6 +176,10 @@ impl Weapon {
     pub fn fire_radius(&self) -> f32 {
         self.fire_radius
     }
+
+    pub fn magazine_size(&self) -> u32 {
+        self.magazine_size
+    }
 }
 
 impl Component for Weapon {
@@ -194,12 +198,16 @@ impl Component for Weapon {
 #[derive(Component)]
 pub struct WeaponStat {
     /// Amount of ammo left in the magazine.
-    pub magazine: u32,
+    magazine: u32,
     /// Accumulated duration since the last attack from the weapon.
-    pub recharge: f32,
+    recharge: f32,
 }
 
 impl WeaponStat {
+    pub fn magazine(&self) -> u32 {
+        self.magazine
+    }
+
     pub fn from_config(config: &Weapon) -> Self {
         Self {
             magazine: config.magazine_size,
