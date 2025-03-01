@@ -146,7 +146,11 @@ fn weapon_visibility(
 ) {
     for (viz, id) in q_spaceships.iter() {
         if let Some(entity) = player_infos[PlayerInfoType::Weapon].get(id) {
-            commands.entity(*entity).insert(*viz);
+            // Weapons and spaceships might get despawned when changing them
+            // in local lobby.
+            if let Some(mut cmd) = commands.get_entity(*entity) {
+                cmd.insert(*viz);
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ use velyst::prelude::*;
 use velyst::typst::foundations::{dict, Dict};
 use velyst::typst::utils::OptionExt;
 
-use crate::player::LocalPlayerId;
+use crate::player::LocalPlayerInfo;
 
 pub(super) struct SpaceshipStatsPlugin;
 
@@ -30,11 +30,10 @@ fn spaceship_stats(
             &SpaceshipType,
             Option<&AbilityCooldown>,
             Has<AbilityEffect>,
-            &PlayerId,
         ),
         With<SourceEntity>,
     >,
-    local_player_id: Res<LocalPlayerId>,
+    local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
 ) {
     if let Some((
@@ -46,26 +45,21 @@ fn spaceship_stats(
         spaceship_type,
         ability_cooldown,
         is_ability_active,
-        _,
-    )) = q_spaceships
-        .iter()
-        .find(|(.., &id)| id == local_player_id.0)
+    )) = local_player_info
+        .get(PlayerInfoType::Spaceship)
+        .and_then(|e| q_spaceships.get(e).ok())
     {
+        let spaceship_type = spaceship_type.as_ref();
         // 0.0 if there is no cooldown, otherwise, calculate it.
         let dash_cooldown = dash_cooldown.map_or_default(|c| calculate_cooldown(c));
         let ability_cooldown = ability_cooldown.map_or_default(|c| calculate_cooldown(c));
 
-        let ability_icon = match spaceship_type {
-            SpaceshipType::Assassin => "shadow",
-            SpaceshipType::Defender => "heal",
-        };
-
         func.data = Some(dict! {
+            "spaceship_type" => spaceship_type,
             "health" => **health as f64,
             "max_health" => **max_health as f64,
             "boost" => (energy.energy / spaceship.energy.max_energy) as f64,
             "dash_cooldown" => dash_cooldown,
-            "ability_icon" => ability_icon,
             "ability_cooldown" => ability_cooldown,
             "ability_active" => is_ability_active,
         });

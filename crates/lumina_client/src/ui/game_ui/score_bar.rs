@@ -44,7 +44,6 @@ fn reset_game_score(mut func: ResMut<ScoreBarFunc>) {
 #[derive(TypstFunc, Resource)]
 #[typst_func(name = "score_bar")]
 pub struct ScoreBarFunc {
-    // local_score: f64,
     score: u8,
     max_score: u8,
 }
