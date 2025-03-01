@@ -152,13 +152,25 @@
             inset: 0.2em,
             radius: 0.2em,
             stroke: base5,
-          )[#data.magazine],
+          )[
+            #if data.magazine < 10 {
+              "0" + str(data.magazine)
+            } else {
+              data.magazine
+            }
+          ],
           box(width: 1em),
 
-          ..range(data.magazine).map(i => image(
-            "/icons/bullet.svg",
-            height: 1em,
-          )),
+          ..range(data.magazine_size).map(i => {
+            let bullet_icon = if i < data.magazine { "bullet" } else {
+              "bullet-used"
+            }
+
+            image(
+              "/icons/" + bullet_icon + ".svg",
+              height: 1em,
+            )
+          }),
         ),
       )
     ]

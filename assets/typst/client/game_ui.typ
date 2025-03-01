@@ -26,7 +26,6 @@
   box(
     width: 50%,
     height: 1em,
-    // fill: base7,
     fill: gradient.linear(
       space: rgb,
       (blue.transparentize(70%), 0%),
