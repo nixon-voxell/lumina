@@ -53,7 +53,6 @@ fn setup_camera(
         height: window.height() as u32,
         ..default()
     };
-    println!("{size:?}");
 
     let mut image = Image {
         texture_descriptor: TextureDescriptor {
@@ -191,7 +190,7 @@ fn update_image_size(
     };
 
     if camera_texture.1 != window.size() {
-        println!("{:?}", window.size());
+        info!("{:?}", window.size());
         if let Some(mut image) = images.remove(&camera_texture.0) {
             let size = Extent3d {
                 width: window.width() as u32,
