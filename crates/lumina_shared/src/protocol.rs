@@ -91,6 +91,12 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
+        app.register_component::<WeaponStat>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<WeaponReload>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
         app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
