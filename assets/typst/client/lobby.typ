@@ -12,22 +12,18 @@
     hovered_button: hovered_button,
     hovered_animation: hovered_animation,
   )[
-    #box(width: 100%, height: 100%, inset: (x: 4.6%, y: 8%))[
+    #box(width: 100%, height: 100%, inset: 2em)[
       #set text(fill: base7)
 
       #place(center + top)[
-        #set text(size: 24pt)
         = Waiting for players (#curr_player_count/#max_player_count)
       ]
 
       #place(bottom + right)[
-        #set text(size: 12pt)
-
         Room Id: #room_id
       ]
 
       #place(top + right)[
-        #set text(size: 14pt)
         #text(fill: red)[#button(lbl: <btn:exit-lobby>)[= Exit Lobby]]
       ]
     ]

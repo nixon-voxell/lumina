@@ -5,10 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{
-    lobby::{ClientExitLobby, Lobby, LobbyInGame},
-    LobbyInfos,
-};
+use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
 
 pub(super) struct GamePlugin;
 
@@ -19,6 +16,7 @@ impl Plugin for GamePlugin {
             (
                 respawn_spaceships,
                 init_game,
+                propagate_game_score,
                 track_game_score,
                 track_game_timer,
             ),
@@ -65,14 +63,10 @@ fn respawn_spaceships(
             &SpawnPointEntity,
             &MaxHealth,
             &mut Health,
-            &TeamType,
-            &PlayerId,
         ),
         (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
     >,
     q_global_transforms: Query<&GlobalTransform>,
-    mut q_game_scores: Query<&mut GameScore>,
-    lobby_infos: Res<LobbyInfos>,
 ) {
     // Spaceship becomes Visibility::Hidden when health drops to 0.
     for (
@@ -82,19 +76,10 @@ fn respawn_spaceships(
         &SpawnPointEntity(spawn_point_entity),
         max_health,
         mut health,
-        team_type,
-        id,
     ) in q_spaceships
         .iter_mut()
         .filter(|(viz, ..)| *viz == Visibility::Hidden)
     {
-        if let Some(mut game_score) = lobby_infos
-            .get(&**id)
-            .and_then(|e| q_game_scores.get_mut(*e).ok())
-        {
-            game_score.scores[team_type.invert() as usize] += 1;
-        }
-
         let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
             .get(spawn_point_entity)
             .map(|transform| transform.to_scale_rotation_translation())
@@ -113,16 +98,15 @@ fn respawn_spaceships(
 fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>>) {
     for entity in q_lobbies.iter() {
         commands.entity(entity).insert((
-            GameScore::new(15),
-            GameTimer(Timer::from_seconds(60.0 * 2.5, TimerMode::Once)),
+            GameScore::new(50),
+            GameTimer(Timer::from_seconds(60.0 * 4.0, TimerMode::Once)),
         ));
     }
 }
 
-/// Track game score and end game when either one of the team wins.
-fn track_game_score(
-    mut commands: Commands,
-    q_game_scores: Query<(&GameScore, Entity), (Changed<GameScore>, With<LobbyInGame>)>,
+/// Propagate game score to the clients.
+fn propagate_game_score(
+    q_game_scores: Query<(&GameScore, Entity), Changed<GameScore>>,
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
 ) {
@@ -132,12 +116,16 @@ fn track_game_score(
             entity.room_id(),
             &room_manager,
         );
+    }
+}
 
-        if game_score
-            .scores
-            .iter()
-            .any(|&score| score >= game_score.max_score)
-        {
+/// Track game score and end game when either one of the team wins.
+fn track_game_score(
+    mut commands: Commands,
+    q_game_scores: Query<(&GameScore, Entity), (Changed<GameScore>, With<LobbyInGame>)>,
+) {
+    for (game_score, entity) in q_game_scores.iter() {
+        if game_score.score == game_score.max_score || game_score.score == 0 {
             commands.trigger_targets(EndGame, entity);
         }
     }

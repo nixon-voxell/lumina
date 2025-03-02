@@ -6,7 +6,7 @@ use strum::IntoEnumIterator;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
-use crate::player::{CachedGameStat, GameStat};
+use crate::player::CachedGameStat;
 
 use super::Screen;
 
@@ -32,15 +32,18 @@ impl Plugin for GameOverUiPlugin {
 }
 
 fn set_game_over_values(game_stat: Res<CachedGameStat>, mut func: ResMut<GameOverFunc>) {
-    if let CachedGameStat(GameStat {
+    if let CachedGameStat {
         team_type: Some(team_type),
         game_score: Some(game_score),
-    }) = *game_stat
+    } = *game_stat
     {
         func.local_team_index = team_type as u8;
-
         func.team_names = TeamType::iter().map(|t| t.into()).collect();
-        func.team_scores = game_score.scores.to_vec();
+
+        func.team_scores = match team_type {
+            TeamType::A => vec![game_score.score, game_score.max_score - game_score.score],
+            TeamType::B => vec![game_score.max_score - game_score.score, game_score.score],
+        };
     }
 }
 

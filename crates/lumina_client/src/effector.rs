@@ -198,6 +198,7 @@ fn interact_effector(
         // Perform interaction
         effector_interaction_evw.send(EffectorInteraction(entity));
         commands.entity(entity).insert(InteractedEffector);
+        *accumulation = 0.0;
     }
 
     func.button_progress = ease::cubic::ease_in_out(*accumulation / required_duration) as f64;

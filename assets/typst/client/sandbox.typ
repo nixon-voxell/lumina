@@ -10,17 +10,14 @@
     hovered_button: hovered_button,
     hovered_animation: hovered_animation,
   )[
-    #box(width: 100%, height: 100%, inset: (x: 4.6%, y: 8%))[
+    #box(width: 100%, height: 100%, inset: 2em)[
       #set text(fill: base7)
 
-      #place(center + top)[
-        #set text(size: 24pt)
-        = Sandbox Mode
+      #place(top + left)[
+        = Sandbox
       ]
 
       #place(bottom + right)[
-        #set text(size: 12pt)
-
         Room Id: #room_id
       ]
 

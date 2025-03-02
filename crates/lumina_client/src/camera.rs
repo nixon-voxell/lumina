@@ -176,6 +176,12 @@ fn update_main_prepass_texture(
     };
 
     if prepass_texture.size != window.size() {
+        prepass_texture.size = window.size();
+        // Skip resizing texture if it's too small.
+        if window.width() <= f32::EPSILON || window.height() <= f32::EPSILON {
+            return;
+        }
+
         if let Some(mut image) = images.remove(prepass_texture.image_handle()) {
             let size = Extent3d {
                 width: window.width() as u32,
@@ -189,7 +195,6 @@ fn update_main_prepass_texture(
             camera.target = image_handle.clone_weak().into();
             prepass_texture.image_handle = image_handle;
         }
-        prepass_texture.size = window.size()
     }
 }
 

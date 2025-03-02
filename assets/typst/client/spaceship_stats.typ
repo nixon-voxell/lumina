@@ -65,7 +65,7 @@
   icon_path,
   width,
   height,
-  bg_color: base7,
+  bg_color: base4,
 ) = {
   let fill_height = cooldown * 100%
   let border_radius = 0.4em
@@ -73,9 +73,9 @@
   box(
     width: width,
     height: height,
-    fill: bg_color.transparentize(90%),
+    fill: bg_color.transparentize(20%),
     radius: border_radius,
-    stroke: (paint: bg_color.transparentize(50%), thickness: 0.1em),
+    stroke: (paint: bg_color.lighten(40%), thickness: 0.1em),
     clip: true,
   )[
     // Icon and cooldown overlay
@@ -96,6 +96,10 @@
   if data == none {
     return
   }
+
+  let is_assassin = data.spaceship_type.ends-with("Assassin")
+  let ability_icon = if is_assassin { "shadow" } else { "heal" }
+  let weapon_icon = if is_assassin { "cannon" } else { "gattling-gun" }
 
   set align(horizon)
   set rect(inset: 0pt)
@@ -133,6 +137,48 @@
             ),
           )
         ],
+
+        box(width: 1.5em, height: 1.5em, clip: true)[
+          #image(
+            "/icons/" + weapon_icon + ".svg",
+            height: 1.5em,
+          )
+        ],
+        stack(
+          dir: ltr,
+          spacing: -0.2em,
+          box(
+            fill: base6.transparentize(70%),
+            inset: 0.2em,
+            radius: 0.2em,
+            stroke: base5,
+          )[
+            #if data.magazine < 10 {
+              "0" + str(data.magazine)
+            } else {
+              data.magazine
+            }
+          ],
+          box(width: 1em),
+
+          ..range(data.magazine_size).map(i => {
+            let bullet_icon = if i < data.magazine { "bullet" } else {
+              "bullet-used"
+            }
+
+            move(
+              dy: if i < data.reload_size {
+                0em
+              } else {
+                0.7em
+              },
+              image(
+                "/icons/" + bullet_icon + ".svg",
+                height: 1em,
+              ),
+            )
+          }),
+        ),
       )
     ]
 
@@ -148,10 +194,10 @@
         ),
         effect_cooldown_display(
           data.ability_cooldown,
-          "/icons/" + data.ability_icon + ".svg",
+          "/icons/" + ability_icon + ".svg",
           height * 3,
           height * 3,
-          bg_color: if data.ability_active { blue } else { base7 },
+          bg_color: if data.ability_active { blue.darken(60%) } else { base4 },
         ),
       )
     ]

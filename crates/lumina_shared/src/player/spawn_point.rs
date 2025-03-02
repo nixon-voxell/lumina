@@ -207,15 +207,6 @@ pub enum TeamType {
     B,
 }
 
-impl TeamType {
-    pub fn invert(&self) -> Self {
-        match self {
-            TeamType::A => TeamType::B,
-            TeamType::B => TeamType::A,
-        }
-    }
-}
-
 #[derive(Component, Deref)]
 pub struct SpawnPointUsed(pub Entity);
 

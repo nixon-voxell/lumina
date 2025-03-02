@@ -147,7 +147,7 @@ fn init_heal_vfx(
 ) {
     for (config, entity) in q_spaceships.iter() {
         let mesh_handle =
-            Mesh2dHandle(meshes.add(Rectangle::from_length(config.ability().radius * 2.0)));
+            Mesh2dHandle(meshes.add(Rectangle::from_length(config.ability().radius * 4.0)));
 
         let vfx_entity = commands
             .spawn((

@@ -5,7 +5,6 @@ use lightyear::prelude::*;
 use lightyear::utils::avian2d::*;
 use lumina_common::prelude::*;
 use server::RoomId;
-use strum::EnumCount;
 
 use crate::action::PlayerAction;
 use crate::blueprints::*;
@@ -92,6 +91,12 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
+        app.register_component::<WeaponStat>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<WeaponReload>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
         app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
@@ -143,15 +148,15 @@ impl Plugin for ProtocolPlugin {
 
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct GameScore {
-    pub scores: [u8; TeamType::COUNT],
+    pub score: u8,
     pub max_score: u8,
 }
 
 impl GameScore {
-    pub fn new(max_score: u8) -> Self {
+    pub fn new(half_max_score: u8) -> Self {
         Self {
-            scores: [0; TeamType::COUNT],
-            max_score,
+            score: half_max_score,
+            max_score: half_max_score * 2,
         }
     }
 }
