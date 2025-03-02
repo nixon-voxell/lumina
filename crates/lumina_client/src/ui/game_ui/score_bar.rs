@@ -1,22 +1,26 @@
 use bevy::prelude::*;
 use lumina_shared::prelude::*;
+use lumina_ui::prelude::*;
 use velyst::prelude::*;
 
 use crate::player::CachedGameStat;
-use crate::ui::game_ui::GameUi;
 use crate::ui::Screen;
 
 pub(super) struct ScoreBarUiPlugin;
 
 impl Plugin for ScoreBarUiPlugin {
     fn build(&self, app: &mut App) {
-        app.register_typst_asset::<GameUi>()
-            .compile_typst_func::<GameUi, ScoreBarFunc>()
+        app.register_typst_asset::<ScoreBarUi>()
+            .compile_typst_func::<ScoreBarUi, ScoreBarFunc>()
             .init_resource::<ScoreBarFunc>()
             .add_systems(OnEnter(Screen::LocalLobby), reset_game_score)
             .add_systems(
                 Update,
-                udpate_game_score.run_if(resource_changed::<CachedGameStat>),
+                (
+                    udpate_game_score.run_if(resource_changed::<CachedGameStat>),
+                    push_to_main_window::<ScoreBarFunc>(),
+                )
+                    .run_if(in_state(Screen::Sandbox).or_else(in_state(Screen::InGame))),
             );
     }
 }
@@ -51,8 +55,12 @@ pub struct ScoreBarFunc {
 impl Default for ScoreBarFunc {
     fn default() -> Self {
         Self {
-            score: 0,
-            max_score: u8::MAX,
+            score: 1,
+            max_score: 2,
         }
     }
 }
+
+#[derive(TypstPath)]
+#[typst_path = "typst/client/score_bar.typ"]
+pub struct ScoreBarUi;
