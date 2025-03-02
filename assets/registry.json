@@ -21938,6 +21938,11 @@
           "type": {
             "$ref": "#/$defs/f32"
           }
+        },
+        "reload_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
         }
       },
       "required": [
@@ -21946,7 +21951,8 @@
         "recoil",
         "ammo_type",
         "damage",
-        "fire_radius"
+        "fire_radius",
+        "reload_duration"
       ],
       "short_name": "Weapon",
       "type": "object",

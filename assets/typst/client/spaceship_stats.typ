@@ -166,9 +166,16 @@
               "bullet-used"
             }
 
-            image(
-              "/icons/" + bullet_icon + ".svg",
-              height: 1em,
+            move(
+              dy: if i < data.reload_size {
+                0em
+              } else {
+                0.7em
+              },
+              image(
+                "/icons/" + bullet_icon + ".svg",
+                height: 1em,
+              ),
             )
           }),
         ),

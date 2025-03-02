@@ -33,7 +33,7 @@ fn spaceship_stats(
         ),
         With<SourceEntity>,
     >,
-    q_weapons: Query<(&WeaponStat, &Weapon), With<SourceEntity>>,
+    q_weapons: Query<(&WeaponStat, &Weapon, Option<&WeaponReload>), With<SourceEntity>>,
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
 ) {
@@ -54,7 +54,7 @@ fn spaceship_stats(
         return;
     };
 
-    let Some((weapon_stat, weapon)) = local_player_info
+    let Some((weapon_stat, weapon, weapon_reload)) = local_player_info
         .get(PlayerInfoType::Weapon)
         .and_then(|e| q_weapons.get(e).ok())
     else {
@@ -65,6 +65,11 @@ fn spaceship_stats(
     // 0.0 if there is no cooldown, otherwise, calculate it.
     let dash_cooldown = dash_cooldown.map_or_default(|c| calculate_cooldown(c));
     let ability_cooldown = ability_cooldown.map_or_default(|c| calculate_cooldown(c));
+    // Calculate magazine reloaded.
+    let reload_size = weapon_reload.map_or(weapon_stat.magazine(), |r| {
+        let reload_percentage = r.elapsed_secs() / r.duration().as_secs_f32();
+        (reload_percentage * weapon.magazine_size() as f32) as u32
+    });
 
     func.data = Some(dict! {
         "spaceship_type" => spaceship_type,
@@ -76,6 +81,7 @@ fn spaceship_stats(
         "ability_active" => is_ability_active,
         "magazine" => weapon_stat.magazine(),
         "magazine_size" => weapon.magazine_size(),
+        "reload_size" => reload_size,
     });
 }
 
