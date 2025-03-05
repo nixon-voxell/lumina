@@ -3,6 +3,7 @@ use bevy_radiance_cascades::prelude::*;
 
 use crate::blueprints::*;
 use crate::effector::*;
+use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
 use crate::player::objective::{LuminaSpawnArea, LuminaStat, ObjectiveArea};
@@ -31,6 +32,8 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<LuminaStat>()
             .register_type::<ObjectiveArea>()
             .register_type::<LuminaSpawnArea>()
+            .register_type::<TeleporterStart>()
+            .register_type::<TeleporterEnd>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()

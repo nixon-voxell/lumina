@@ -8,6 +8,7 @@ use server::RoomId;
 
 use crate::action::PlayerAction;
 use crate::blueprints::*;
+use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
@@ -36,6 +37,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
         app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<SelectSpaceship>(ChannelDirection::ClientToServer);
+        app.register_message::<Teleport>(ChannelDirection::ClientToServer);
 
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
@@ -53,6 +55,12 @@ impl Plugin for ProtocolPlugin {
 
         app.register_component::<OreType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<TeleporterActive>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<TeleporterCooldown>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
