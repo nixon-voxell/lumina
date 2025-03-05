@@ -150,7 +150,7 @@ fn weapon_attack(
         (&Transform, &Weapon, &mut WeaponStat, &PlayerId, &WorldIdx),
         With<SourceEntity>,
     >,
-    mut fire_ammo_evw: EventWriter<FireAmmo>,
+    mut evw_fire_ammo: EventWriter<FireAmmo>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
@@ -170,7 +170,7 @@ fn weapon_attack(
                 let position = weapon_transform.translation.xy() + direction * weapon.fire_radius;
 
                 // Fire!
-                fire_ammo_evw.send(FireAmmo {
+                evw_fire_ammo.send(FireAmmo {
                     player_id,
                     world_id,
                     ammo_type: weapon.ammo_type,

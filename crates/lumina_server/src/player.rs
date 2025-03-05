@@ -56,10 +56,10 @@ fn handle_spaceship_selection(
 
 /// Remove cached spaceship selection on client disconnection.
 fn remove_spaceship_selection(
-    mut disconnect_evr: EventReader<DisconnectEvent>,
+    mut evr_disconnect: EventReader<DisconnectEvent>,
     mut selection: ResMut<ClientSpaceshipSelection>,
 ) {
-    for disconnect in disconnect_evr.read() {
+    for disconnect in evr_disconnect.read() {
         selection.remove(&disconnect.client_id);
     }
 }
@@ -182,10 +182,10 @@ fn replicate_action_spawn(
 fn replicate_actions(
     q_lobbies: Query<&Lobby>,
     mut connection: ResMut<ConnectionManager>,
-    mut action_evr: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
+    mut evr_action: EventReader<MessageEvent<InputMessage<PlayerAction>>>,
     lobby_infos: Res<LobbyInfos>,
 ) {
-    for event in action_evr.read() {
+    for event in evr_action.read() {
         let inputs = event.message();
         let client_id = event.context();
 

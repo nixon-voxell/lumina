@@ -25,8 +25,8 @@ impl Plugin for SandboxPlugin {
 fn handle_enter_sandbox(
     mut commands: Commands,
     q_sandbox: Query<&Sandbox>,
-    mut sandbox_evr: EventReader<MessageEvent<EnterSandbox>>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut evr_sandbox: EventReader<MessageEvent<EnterSandbox>>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
     local_client_id: Res<LocalClientId>,
     mut local_player_id: ResMut<LocalPlayerId>,
 ) {
@@ -35,10 +35,10 @@ fn handle_enter_sandbox(
         return;
     }
 
-    for _ in sandbox_evr.read() {
+    for _ in evr_sandbox.read() {
         // Set local player id to the networked version of player id.
         **local_player_id = PlayerId(**local_client_id);
-        transparency_evw.send(MainWindowTransparency(1.0));
+        evw_transparency.send(MainWindowTransparency(1.0));
 
         commands
             .spawn(SandboxBundle::default())

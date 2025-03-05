@@ -41,7 +41,11 @@ impl Plugin for EffectorPlugin {
 fn collect_effector_collisions(
     q_sensors: Query<
         (&GlobalTransform, &CollidingEntities, Entity),
-        (With<Sensor>, Without<InteractedEffector>),
+        (
+            With<Sensor>,
+            Without<InteractedEffector>,
+            Without<DisabledEffector>,
+        ),
     >,
     q_spaceship_transforms: Query<&GlobalTransform, With<SourceEntity>>,
     mut collided_effector: ResMut<CollidedEffector>,
@@ -159,7 +163,7 @@ fn interact_effector(
     mut commands: Commands,
     q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
     q_actions: Query<&ActionState<PlayerAction>, With<SourceEntity>>,
-    mut effector_interaction_evw: EventWriter<EffectorInteraction>,
+    mut evw_effector_interaction: EventWriter<EffectorInteraction>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
     mut func: ResMut<EffectorPopupFunc>,
@@ -196,7 +200,7 @@ fn interact_effector(
 
     if *accumulation >= required_duration {
         // Perform interaction
-        effector_interaction_evw.send(EffectorInteraction(entity));
+        evw_effector_interaction.send(EffectorInteraction(entity));
         commands.entity(entity).insert(InteractedEffector);
         *accumulation = 0.0;
     }
@@ -232,3 +236,7 @@ pub(super) struct InteractedEffector;
 
 #[derive(Component)]
 struct EffectorPopupAnimation;
+
+/// Marker component for an effector to be ignored.
+#[derive(Component)]
+pub(super) struct DisabledEffector;

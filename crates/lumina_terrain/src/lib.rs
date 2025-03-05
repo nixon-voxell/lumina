@@ -40,8 +40,8 @@ fn setup(
     })
 }
 
-fn clear_terrain(mut terrain: Terrain, mut clear_evr: EventReader<ClearTerrain>) {
-    for clear in clear_evr.read() {
+fn clear_terrain(mut terrain: Terrain, mut evr_clear: EventReader<ClearTerrain>) {
+    for clear in evr_clear.read() {
         terrain.clear_terrain(**clear);
     }
 }
@@ -49,11 +49,11 @@ fn clear_terrain(mut terrain: Terrain, mut clear_evr: EventReader<ClearTerrain>)
 fn generate_terrain(
     mut terrain: Terrain,
     config: TerrainConfig,
-    mut generate_evr: EventReader<GenerateTerrain>,
+    mut evr_generate: EventReader<GenerateTerrain>,
     mut queue: Local<Vec<GenerateTerrain>>,
 ) {
     // Use a queuing system so that we don't miss any events if the below assets is not ready yet.
-    for gen in generate_evr.read() {
+    for gen in evr_generate.read() {
         queue.push(*gen);
     }
 

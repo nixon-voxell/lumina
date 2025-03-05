@@ -198,10 +198,16 @@ pub struct EndGame;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct DepositLumina;
 
-/// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
-#[derive(Channel)]
-pub struct OrdReliableChannel;
-
 /// Select spaceship command sent from client to server.
 #[derive(Event, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
 pub struct SelectSpaceship(pub SpaceshipType);
+
+#[derive(Event, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Teleport {
+    pub player_id: PlayerId,
+    pub teleporter_id: u32,
+}
+
+/// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
+#[derive(Channel)]
+pub struct OrdReliableChannel;

@@ -21,12 +21,12 @@ impl Plugin for MatchmakingPlugin {
 
 /// Enter multiplayer lobby
 fn enter_multiplayer_lobby(
-    mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
+    mut evr_lobby_data: EventReader<MessageEvent<LobbyData>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
     local_client_id: Res<LocalClientId>,
     mut local_player_id: ResMut<LocalPlayerId>,
 ) {
-    for _ in lobby_data_evr.read() {
+    for _ in evr_lobby_data.read() {
         // Update screen state.
         next_screen_state.set(Screen::MultiplayerLobby);
         // Set local player id to the networked version of player id.

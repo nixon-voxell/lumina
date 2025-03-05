@@ -73,10 +73,10 @@ fn connect_server(mut commands: Commands) {
 
 fn handle_connection(
     mut commands: Commands,
-    mut connect_evr: EventReader<ConnectEvent>,
+    mut evr_connect: EventReader<ConnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
-    for event in connect_evr.read() {
+    for event in evr_connect.read() {
         let client_id = event.client_id();
         info!("CLIENT: Connected with {client_id:?}");
 
@@ -86,10 +86,10 @@ fn handle_connection(
 }
 
 fn handle_disconnection(
-    mut disconnect_evr: EventReader<DisconnectEvent>,
+    mut evr_disconnect: EventReader<DisconnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
-    for event in disconnect_evr.read() {
+    for event in evr_disconnect.read() {
         warn!("Disconnected: {:?}", event.reason);
 
         next_connection_state.set(Connection::Disconnected);

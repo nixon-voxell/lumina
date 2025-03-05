@@ -31,7 +31,7 @@ impl Plugin for LocalLobbyPlugin {
 fn spawn_lobby(
     mut commands: Commands,
     selected_ship: Res<ClientSpaceshipSelection>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
 ) {
     commands
         .spawn(LocalLobbyBundle::default())
@@ -65,18 +65,18 @@ fn spawn_lobby(
             ));
         });
 
-    transparency_evw.send(MainWindowTransparency(1.0));
+    evw_transparency.send(MainWindowTransparency(1.0));
 }
 
 /// Update spaceship configuration when a new selection is made
 fn update_spaceship_config(
     mut commands: Commands,
-    mut select_spaceship_evr: EventReader<SelectSpaceship>,
+    mut evr_select_spaceship: EventReader<SelectSpaceship>,
     q_spaceships: Query<Entity, With<SpaceshipEntityMarker>>,
     q_weapons: Query<Entity, With<WeaponEntityMarker>>,
     q_local_lobby: Query<Entity, With<LocalLobby>>,
 ) {
-    for select_spaceship in select_spaceship_evr.read() {
+    for select_spaceship in evr_select_spaceship.read() {
         let spaceship_type = &select_spaceship.0;
         let weapon_type = match spaceship_type {
             SpaceshipType::Assassin => WeaponType::Cannon,

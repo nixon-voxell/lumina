@@ -67,8 +67,8 @@ fn handle_spaceship_selection(
     interactions: InteractionQuery,
     mut selected: ResMut<ClientSpaceshipSelection>,
     mut q_player: Query<&mut SequencePlayer, With<SpaceshipSelectFuncAnim>>,
-    mut select_spaceship_evw: EventWriter<SelectSpaceship>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut evw_select_spaceship: EventWriter<SelectSpaceship>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
     mut connection_manager: ResMut<ConnectionManager>,
     _local_client_id: Res<LocalClientId>,
 ) {
@@ -76,7 +76,7 @@ fn handle_spaceship_selection(
         if interactions.pressed(btn) {
             **selected = ship_type;
             q_player.single_mut().time_scale = -1.0;
-            transparency_evw.send(MainWindowTransparency(1.0));
+            evw_transparency.send(MainWindowTransparency(1.0));
 
             // Construct the message using the new tuple struct.
             let select_msg = SelectSpaceship(ship_type);
@@ -84,7 +84,7 @@ fn handle_spaceship_selection(
                 Err(e) => error!("Failed to send SelectSpaceship message: {:?}", e),
                 Ok(_) => info!("Spaceship selected: {:?}", ship_type),
             }
-            select_spaceship_evw.send(select_msg);
+            evw_select_spaceship.send(select_msg);
             break;
         }
     }

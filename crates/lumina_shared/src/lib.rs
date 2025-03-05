@@ -9,6 +9,7 @@ pub mod action;
 pub mod blueprint_collider;
 pub mod blueprints;
 pub mod effector;
+pub mod game;
 pub mod health;
 pub mod player;
 pub mod protocol;
@@ -34,6 +35,7 @@ impl Plugin for SharedPlugin {
                 lumina_ui::UiPlugin,
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
+                game::GamePlugin,
                 effector::EffectorPlugin,
                 blueprints::BlueprintsPlugin,
                 health::HealthPlugin,

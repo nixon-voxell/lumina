@@ -29,7 +29,7 @@ impl Plugin for MatchmakingPlugin {
 /// Find or create a lobby for new players to join.
 fn handle_matchmaking(
     mut commands: Commands,
-    mut matchmake_evr: EventReader<MessageEvent<Matchmake>>,
+    mut evr_matchmake: EventReader<MessageEvent<Matchmake>>,
     mut q_lobbies: Query<
         (&mut Lobby, &LobbySize, Entity),
         (Without<LobbyFull>, Without<LobbyInGame>),
@@ -38,7 +38,7 @@ fn handle_matchmaking(
     mut connection_manager: ResMut<ConnectionManager>,
     mut lobby_infos: ResMut<LobbyInfos>,
 ) {
-    for matchmake in matchmake_evr.read() {
+    for matchmake in evr_matchmake.read() {
         let client_id = matchmake.context;
 
         // Already matchmake, something is wrong...
