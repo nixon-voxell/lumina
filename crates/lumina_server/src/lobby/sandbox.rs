@@ -44,7 +44,7 @@ fn handle_enter_sandbox(
             ))
             .with_children(|builder| {
                 // Spawn the sandbox level.
-                builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
+                builder.spawn((MapType::Sandbox.info(), SpawnBlueprint));
             });
 
         // Spawn player.

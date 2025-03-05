@@ -106,7 +106,7 @@ fn spawn_multiplayer_lobby(
 ) {
     for entity in q_lobbies.iter() {
         let multiplayer_lobby = commands
-            .spawn((LobbyType::Multiplayer.info(), SpawnBlueprint))
+            .spawn((MapType::Multiplayer.info(), SpawnBlueprint))
             .set_parent(entity)
             .id();
 

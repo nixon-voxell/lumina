@@ -37,7 +37,7 @@ fn start_game(
 /// Spawn lobby scene.
 fn spawn_lobby(mut commands: Commands, mut evr_transparency: EventWriter<MainWindowTransparency>) {
     commands.spawn((
-        LobbyType::Multiplayer.info(),
+        MapType::Multiplayer.info(),
         SpawnBlueprint,
         MultiplayerLobby,
     ));

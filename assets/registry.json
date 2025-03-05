@@ -21420,6 +21420,47 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_shared::game::teleporter::TeleporterEnd": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_shared::game::teleporter::TeleporterEnd",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        }
+      ],
+      "short_name": "TeleporterEnd",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_shared::game::teleporter::TeleporterStart": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::game::teleporter::TeleporterStart",
+      "properties": {
+        "active_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "cooldown_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "active_duration",
+        "cooldown_duration"
+      ],
+      "short_name": "TeleporterStart",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::health::Health": {
       "isComponent": true,
       "isResource": false,

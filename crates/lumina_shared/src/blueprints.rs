@@ -113,17 +113,11 @@ pub enum SpawnType {
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-#[strum(prefix = "levels/lobbies/")]
-pub enum LobbyType {
+#[strum(prefix = "levels/maps/")]
+pub enum MapType {
     Local,
     Multiplayer,
     Sandbox,
-}
-
-#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-#[reflect(Component)]
-#[strum(prefix = "levels/maps/")]
-pub enum MapType {
     AbandonedFactory,
 }
 

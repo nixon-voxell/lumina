@@ -43,7 +43,7 @@ fn handle_enter_sandbox(
         commands
             .spawn(SandboxBundle::default())
             .with_children(|builder| {
-                builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
+                builder.spawn((MapType::Sandbox.info(), SpawnBlueprint));
             });
     }
 }

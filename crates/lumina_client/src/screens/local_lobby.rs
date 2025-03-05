@@ -36,7 +36,7 @@ fn spawn_lobby(
     commands
         .spawn(LocalLobbyBundle::default())
         .with_children(|builder| {
-            builder.spawn((LobbyType::Local.info(), SpawnBlueprint));
+            builder.spawn((MapType::Local.info(), SpawnBlueprint));
 
             // Spaceship
             builder.spawn((
