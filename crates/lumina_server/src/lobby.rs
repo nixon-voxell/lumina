@@ -21,6 +21,7 @@ impl Plugin for LobbyPlugin {
             in_game::InGamePlugin,
         ))
         .add_event::<ClientExitLobby>()
+        .add_event::<LobbyRemoval>()
         .add_systems(
             Update,
             (
@@ -37,11 +38,13 @@ impl Plugin for LobbyPlugin {
 fn cleanup_empty_lobbies(
     mut commands: Commands,
     q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
+    mut evw_lobby_removal: EventWriter<LobbyRemoval>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
             commands.entity(entity).despawn_recursive();
+            evw_lobby_removal.send(LobbyRemoval(entity.room_id()));
         }
     }
 }
@@ -160,24 +163,30 @@ impl Lobby {
 }
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySeed(pub u32);
+pub struct LobbySeed(pub u32);
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySize(pub u8);
+pub struct LobbySize(pub u8);
 
 /// Tag for specifying a lobby is currently in game.
 #[derive(Component, Default)]
-pub(super) struct LobbyInGame;
+pub struct LobbyInGame;
 
 /// Tag for specifying a lobby is currently full.
 #[derive(Component, Default)]
-pub(super) struct LobbyFull;
+pub struct LobbyFull;
 
+/// Event sent when a client exits a lobby.
 #[derive(Event)]
-pub(super) struct ClientExitLobby(pub ClientId);
+pub struct ClientExitLobby(pub ClientId);
 
 impl ClientExitLobby {
     pub fn id(&self) -> ClientId {
         self.0
     }
 }
+
+/// Event sent when a lobby is being removed and despawned.
+/// Use this to cleanup whatever cached lobby data.
+#[derive(Event)]
+pub struct LobbyRemoval(pub RoomId);

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use blenvy::*;
+use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 pub(super) struct TeleporterPlugin;
@@ -9,7 +10,7 @@ impl Plugin for TeleporterPlugin {
         app.add_plugins(CooldownEffectPlugin::<Teleporter, TeleporterStart>::default())
             .add_systems(
                 Update,
-                setup_teleporters.after(GltfBlueprintsSet::AfterSpawn),
+                setup_teleporters.in_set(GltfBlueprintsSet::AfterSpawn),
             );
     }
 }
@@ -32,10 +33,9 @@ fn setup_teleporters(
 pub type TeleporterEffect = Effect<Teleporter>;
 pub type TeleporterCooldown = Cooldown<Teleporter>;
 
-/// Stores the ID of the teleporter.
 /// Marker for teleporter cooldown effect.
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
-pub struct Teleporter(u32);
+pub struct Teleporter;
 
 /// The starting point of the teleporter.
 /// This needs to be in the child hierarchy of a [`TeleporterEnd`].
@@ -68,6 +68,6 @@ impl TeleporterStart {
 
 /// The end point of the teleporter that holds the teleporter ID.
 /// Each teleporter should hold a unique ID.
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[reflect(Component)]
 pub struct TeleporterEnd(u32);

@@ -6492,7 +6492,6 @@ dependencies = [
  "bevy_shader_utils",
  "bevy_vello",
  "lumina_common",
- "lumina_terrain",
  "noisy_bevy",
  "rand",
  "velyst",

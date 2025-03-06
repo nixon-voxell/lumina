@@ -2,7 +2,6 @@ use avian2d::math::Scalar;
 use avian2d::parry::na::Point2;
 use avian2d::parry::shape::SharedShape;
 use avian2d::prelude::*;
-use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
