@@ -212,7 +212,6 @@ pub struct SelectSpaceship(pub SpaceshipType);
 
 #[derive(Event, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Teleport {
-    pub player_id: PlayerId,
     pub teleporter: TeleporterEnd,
 }
 

@@ -17,13 +17,13 @@ impl Plugin for TeleporterPlugin {
 
 fn setup_teleporters(
     mut q_teleporter_starts: Query<(&mut TeleporterStart, Entity), Added<TeleporterStart>>,
-    q_teleporter_ends: Query<(), With<TeleporterEnd>>,
+    q_teleporter_ends: Query<&TeleporterEnd>,
     q_parents: Query<&Parent>,
 ) {
     for (mut teleporter_start, start_entity) in q_teleporter_starts.iter_mut() {
         for parent in q_parents.iter_ancestors(start_entity) {
-            if q_teleporter_ends.contains(parent) {
-                teleporter_start.end = Some(parent);
+            if let Ok(end) = q_teleporter_ends.get(parent) {
+                teleporter_start.id = Some(end.0);
                 break;
             }
         }
@@ -44,7 +44,7 @@ pub struct Teleporter;
 #[reflect(Component)]
 pub struct TeleporterStart {
     #[reflect(ignore)]
-    end: Option<Entity>,
+    id: Option<u32>,
     /// How long it stays active until cooldown happens.
     active_duration: f32,
     cooldown_duration: f32,
@@ -61,8 +61,8 @@ impl CooldownEffectConfig for TeleporterStart {
 }
 
 impl TeleporterStart {
-    pub fn end(&self) -> Option<Entity> {
-        self.end
+    pub fn id(&self) -> Option<u32> {
+        self.id
     }
 }
 
@@ -70,4 +70,4 @@ impl TeleporterStart {
 /// Each teleporter should hold a unique ID.
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[reflect(Component)]
-pub struct TeleporterEnd(u32);
+pub struct TeleporterEnd(pub u32);

@@ -11,10 +11,12 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_common::utils::ColorPalette;
 use lumina_shared::action::ReplicateActionBundle;
+use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_vfx::prelude::*;
 
 use crate::camera::MainPrepassTexture;
+use crate::effector::TeleporterEffector;
 
 use super::{CachedGameStat, LocalPlayerId};
 
@@ -37,8 +39,27 @@ impl Plugin for SpaceshipPlugin {
                     apply_heal_vfx_cooldown,
                     update_heal_vfx,
                 ),
-            );
+            )
+            .observe(teleport);
     }
+}
+
+fn teleport(
+    trigger: Trigger<TeleporterEffector>,
+    q_teleporters: Query<&TeleporterStart>,
+    mut connection_manager: ResMut<ConnectionManager>,
+) {
+    let Some(id) = q_teleporters
+        .get(trigger.entity())
+        .ok()
+        .and_then(|teleporter| teleporter.id())
+    else {
+        return;
+    };
+
+    let _ = connection_manager.send_message::<OrdReliableChannel, _>(&Teleport {
+        teleporter: TeleporterEnd(id),
+    });
 }
 
 /// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].
