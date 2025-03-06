@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
+use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
 use crate::player::LocalPlayerId;

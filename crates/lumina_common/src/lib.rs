@@ -3,6 +3,7 @@ use bevy::prelude::*;
 pub mod asset_from_component;
 pub mod blueprint_type;
 pub mod convert_3d_to_2d;
+pub mod cooldown_effect;
 pub mod entity_pool;
 pub mod math_utils;
 pub mod physics;

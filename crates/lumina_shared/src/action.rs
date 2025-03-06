@@ -5,8 +5,6 @@ use lumina_common::prelude::*;
 
 use crate::protocol::INPUT_REPLICATION_GROUP;
 
-use super::player::PlayerId;
-
 #[derive(Bundle)]
 pub struct ReplicateActionBundle {
     pub id: PlayerId,
