@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_radiance_cascades::prelude::*;
 
 use crate::blueprints::*;
-use crate::effector::*;
 use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
@@ -45,13 +44,6 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()
             .register_type::<ShadowAbilityConfig>()
-            .register_type::<HealAbilityConfig>()
-            // Effector
-            .register_type::<EffectorPopupMsg>()
-            .register_type::<InteractableEffector>()
-            .register_type::<Effector>()
-            .register_type::<MatchmakeEffector>()
-            .register_type::<TesseractEffector>()
-            .register_type::<SpaceshipSelectEffector>();
+            .register_type::<HealAbilityConfig>();
     }
 }

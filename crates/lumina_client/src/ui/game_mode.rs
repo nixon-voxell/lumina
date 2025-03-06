@@ -9,7 +9,7 @@ use velyst::prelude::*;
 use velyst::typst::foundations;
 use velyst::typst_element::prelude::*;
 
-use crate::effector::InteractedEffector;
+use crate::effector::{InteractedEffector, MatchmakeEffector};
 use crate::typ_animation::LabelScaleFade;
 
 use super::lobby::LobbyFunc;

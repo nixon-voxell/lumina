@@ -11832,15 +11832,34 @@
           "type": {
             "$ref": "#/$defs/u32"
           }
+        },
+        "texture_resolution": {
+          "type": {
+            "$ref": "#/$defs/bevy_radiance_cascades::radiance_cascades::TextureResolution"
+          }
         }
       },
       "required": [
         "resolution_factor",
-        "interval0"
+        "interval0",
+        "texture_resolution"
       ],
       "short_name": "RadianceCascadesConfig",
       "type": "object",
       "typeInfo": "Struct"
+    },
+    "bevy_radiance_cascades::radiance_cascades::TextureResolution": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_radiance_cascades::radiance_cascades::TextureResolution",
+      "oneOf": [
+        "Full",
+        "Half",
+        "Quarter"
+      ],
+      "short_name": "TextureResolution",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "bevy_render::alpha::AlphaMode": {
       "isComponent": false,
@@ -21024,6 +21043,99 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_client::effector::Effector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::Effector",
+      "properties": {
+        "collider": {
+          "type": {
+            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
+          }
+        },
+        "rigidbody": {
+          "type": {
+            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
+          }
+        }
+      },
+      "required": [
+        "rigidbody",
+        "collider"
+      ],
+      "short_name": "Effector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::EffectorPopupMsg": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_client::effector::EffectorPopupMsg",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "EffectorPopupMsg",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_client::effector::InteractableEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::InteractableEffector",
+      "properties": {
+        "interact_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "interact_duration"
+      ],
+      "short_name": "InteractableEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::MatchmakeEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::MatchmakeEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "MatchmakeEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::SpaceshipSelectEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::SpaceshipSelectEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "SpaceshipSelectEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::TesseractEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::TesseractEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TesseractEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_common::physics::MassRigidbody": {
       "additionalProperties": false,
       "isComponent": true,
@@ -21326,99 +21438,6 @@
       "short_name": "WeaponType",
       "type": "string",
       "typeInfo": "Enum"
-    },
-    "lumina_shared::effector::Effector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::Effector",
-      "properties": {
-        "collider": {
-          "type": {
-            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "collider"
-      ],
-      "short_name": "Effector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::EffectorPopupMsg": {
-      "isComponent": true,
-      "isResource": false,
-      "items": false,
-      "long_name": "lumina_shared::effector::EffectorPopupMsg",
-      "prefixItems": [
-        {
-          "type": {
-            "$ref": "#/$defs/alloc::string::String"
-          }
-        }
-      ],
-      "short_name": "EffectorPopupMsg",
-      "type": "array",
-      "typeInfo": "TupleStruct"
-    },
-    "lumina_shared::effector::InteractableEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::InteractableEffector",
-      "properties": {
-        "interact_duration": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        }
-      },
-      "required": [
-        "interact_duration"
-      ],
-      "short_name": "InteractableEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::MatchmakeEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::MatchmakeEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "MatchmakeEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::SpaceshipSelectEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::SpaceshipSelectEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "SpaceshipSelectEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::TesseractEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::TesseractEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "TesseractEffector",
-      "type": "object",
-      "typeInfo": "Struct"
     },
     "lumina_shared::game::teleporter::TeleporterEnd": {
       "isComponent": true,

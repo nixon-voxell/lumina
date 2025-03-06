@@ -8,7 +8,6 @@ use lumina_common::settings::LuminaSettings;
 pub mod action;
 pub mod blueprint_collider;
 pub mod blueprints;
-pub mod effector;
 pub mod game;
 pub mod health;
 pub mod player;
@@ -19,7 +18,6 @@ mod type_registry;
 pub mod prelude {
     pub use crate::action::PlayerAction;
     pub use crate::blueprints::*;
-    pub use crate::effector::{MatchmakeEffector, SpaceshipSelectEffector, TesseractEffector};
     pub use crate::health::{Health, MaxHealth};
     pub use crate::player::prelude::*;
     pub use crate::protocol::*;
@@ -36,7 +34,6 @@ impl Plugin for SharedPlugin {
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 game::GamePlugin,
-                effector::EffectorPlugin,
                 blueprints::BlueprintsPlugin,
                 health::HealthPlugin,
                 type_registry::TypeRegistryPlugin,

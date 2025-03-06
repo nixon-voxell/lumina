@@ -3,7 +3,7 @@ use client::*;
 use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 
-use crate::effector::InteractedEffector;
+use crate::effector::{InteractedEffector, TesseractEffector};
 
 pub(super) struct TesseractPugin;
 

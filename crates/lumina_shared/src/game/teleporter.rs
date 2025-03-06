@@ -1,15 +1,16 @@
 use bevy::prelude::*;
 use blenvy::*;
-use lightyear::prelude::*;
+use lumina_common::prelude::*;
 
 pub(super) struct TeleporterPlugin;
 
 impl Plugin for TeleporterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            setup_teleporters.after(GltfBlueprintsSet::AfterSpawn),
-        );
+        app.add_plugins(CooldownEffectPlugin::<Teleporter, TeleporterStart>::default())
+            .add_systems(
+                Update,
+                setup_teleporters.after(GltfBlueprintsSet::AfterSpawn),
+            );
     }
 }
 
@@ -28,6 +29,13 @@ fn setup_teleporters(
     }
 }
 
+pub type TeleporterEffect = Effect<Teleporter>;
+pub type TeleporterCooldown = Cooldown<Teleporter>;
+
+/// Marker for teleporter cooldown effect.
+#[derive(Component, Clone, Copy, PartialEq, Eq)]
+pub struct Teleporter;
+
 /// The starting point of the teleporter.
 /// This needs to be in the child hierarchy of a [`TeleporterEnd`].
 /// A teleporter can have multiple starting points but only one end point.
@@ -41,6 +49,16 @@ pub struct TeleporterStart {
     cooldown_duration: f32,
 }
 
+impl CooldownEffectConfig for TeleporterStart {
+    fn effect_duration(&self) -> f32 {
+        self.active_duration
+    }
+
+    fn cooldown_duration(&self) -> f32 {
+        self.cooldown_duration
+    }
+}
+
 impl TeleporterStart {
     pub fn end(&self) -> Option<Entity> {
         self.end
@@ -52,9 +70,3 @@ impl TeleporterStart {
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct TeleporterEnd(u32);
-
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct TeleporterActive(Timer);
-
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct TeleporterCooldown(Timer);

@@ -56,7 +56,7 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<OreType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<TeleporterActive>(ChannelDirection::ServerToClient)
+        app.register_component::<TeleporterEffect>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<TeleporterCooldown>(ChannelDirection::ServerToClient)

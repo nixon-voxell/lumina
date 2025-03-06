@@ -8,7 +8,7 @@ use velyst::typst::foundations;
 use velyst::typst_element::prelude::*;
 
 use crate::client::ConnectionManager;
-use crate::effector::InteractedEffector;
+use crate::effector::{InteractedEffector, SpaceshipSelectEffector};
 use crate::typ_animation::LabelScaleFade;
 use crate::LocalClientId;
 

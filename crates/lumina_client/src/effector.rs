@@ -3,10 +3,6 @@ use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::{
-    EffectorPopupMsg, InteractableEffector, MatchmakeEffector, SpaceshipSelectEffector,
-    TesseractEffector,
-};
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
@@ -27,13 +23,29 @@ impl Plugin for EffectorPlugin {
             .add_systems(
                 Update,
                 (
+                    convert_effector,
                     show_effector_popup,
                     interact_effector,
                     effector_trigger::<MatchmakeEffector>,
                     effector_trigger::<TesseractEffector>,
                     effector_trigger::<SpaceshipSelectEffector>,
+                    effector_trigger::<TeleporterEffector>,
                 ),
             );
+    }
+}
+
+/// Convert all effectors to colliders and sensors.
+fn convert_effector(mut commands: Commands, q_effectors: Query<(&Effector, Entity)>) {
+    for (effector, entity) in q_effectors.iter() {
+        commands.entity(entity).insert((
+            Collider::try_from_constructor(effector.collider.clone()).unwrap(),
+            Sensor,
+            effector.rigidbody,
+            CollidingEntities::default(),
+        ));
+
+        commands.entity(entity).remove::<Effector>();
     }
 }
 
@@ -209,7 +221,7 @@ fn interact_effector(
 }
 
 /// Trigger event when an effector has been interacted.
-pub(super) fn effector_trigger<E: Event + Clone>(
+fn effector_trigger<E: Event + Clone>(
     mut commands: Commands,
     q_effector: Query<&E>,
     mut evr_interaction: EventReader<EffectorInteraction>,
@@ -218,6 +230,42 @@ pub(super) fn effector_trigger<E: Event + Clone>(
         let entity = **effector;
         if let Ok(e) = q_effector.get(entity) {
             commands.trigger_targets(e.clone(), entity);
+        }
+    }
+}
+
+/// Popup message when player enters the effector collision range.
+#[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct EffectorPopupMsg(pub String);
+
+/// Popup the interactable button when player enters the effector collision range.
+///
+/// This also acts as a marker that a particular [`Sensor`] is interactable.
+/// The value in this struct determines the long press duration for the interaction to be valid.
+#[derive(Component, Reflect, Default, Debug)]
+#[reflect(Component)]
+pub struct InteractableEffector {
+    pub interact_duration: f32,
+}
+
+/// A constructor for effector which will be converted into avian sensor related components:
+///
+/// - [`RigidBody`]
+/// - [`Collider`]
+/// - [`Sensor`]
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component, Default)]
+pub struct Effector {
+    pub rigidbody: RigidBody,
+    pub collider: ColliderConstructor,
+}
+
+impl Default for Effector {
+    fn default() -> Self {
+        Self {
+            rigidbody: RigidBody::Static,
+            collider: ColliderConstructor::Circle { radius: 1.0 },
         }
     }
 }
@@ -240,3 +288,22 @@ struct EffectorPopupAnimation;
 /// Marker component for an effector to be ignored.
 #[derive(Component)]
 pub(super) struct DisabledEffector;
+
+// Effector types
+// ========================================
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct MatchmakeEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct TesseractEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct SpaceshipSelectEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct TeleporterEffector;

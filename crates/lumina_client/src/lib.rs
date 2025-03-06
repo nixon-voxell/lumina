@@ -19,6 +19,7 @@ mod screens;
 mod source_entity;
 mod tesseract;
 mod typ_animation;
+mod type_registry;
 mod ui;
 
 pub struct ClientPlugin;
@@ -32,6 +33,7 @@ impl Plugin for ClientPlugin {
 
         app.add_plugins((
             ClientPlugins::new(client_config(client_id, settings)),
+            type_registry::TypeRegistryPlugin,
             BlenvyPlugin {
                 export_registry: cfg!(debug_assertions),
                 ..default()

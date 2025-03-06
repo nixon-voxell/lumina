@@ -19,17 +19,3 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
 
     return color;
 }
-
-@compute
-@workgroup_size(8, 8, 1)
-fn blur_mipmap(
-    @builtin(global_invocation_id) global_id: vec3<u32>,
-    @builtin(local_invocation_id) local_id: vec3<u32>,
-) {
-    let base_coord = global_id.xy;
-    let dimensions = textureDimensions(tex_screen);
-
-    if any(base_coord >= dimensions) {
-        return;
-    }
-}
