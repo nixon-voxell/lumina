@@ -32,9 +32,10 @@ fn setup_teleporters(
 pub type TeleporterEffect = Effect<Teleporter>;
 pub type TeleporterCooldown = Cooldown<Teleporter>;
 
+/// Stores the ID of the teleporter.
 /// Marker for teleporter cooldown effect.
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
-pub struct Teleporter;
+pub struct Teleporter(u32);
 
 /// The starting point of the teleporter.
 /// This needs to be in the child hierarchy of a [`TeleporterEnd`].

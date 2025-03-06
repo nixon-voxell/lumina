@@ -21125,6 +21125,17 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_client::effector::TeleporterEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::TeleporterEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TeleporterEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_client::effector::TesseractEffector": {
       "additionalProperties": false,
       "isComponent": true,

@@ -13,6 +13,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
             .register_type::<TesseractEffector>()
-            .register_type::<SpaceshipSelectEffector>();
+            .register_type::<SpaceshipSelectEffector>()
+            .register_type::<TeleporterEffector>();
     }
 }

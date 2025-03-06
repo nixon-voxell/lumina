@@ -285,25 +285,3 @@ pub enum MeshCollider {
     ConvexHull,
     Trimesh,
 }
-
-pub trait RemovePhysicsCreatorAppExt {
-    fn remove_physics_creator<F: QueryFilter + 'static>(&mut self) -> &mut Self;
-}
-
-impl RemovePhysicsCreatorAppExt for App {
-    fn remove_physics_creator<F: QueryFilter + 'static>(&mut self) -> &mut Self {
-        self.add_systems(PostUpdate, remove_physics_creator_impl::<F>)
-    }
-}
-
-/// Remove [PrimitiveRigidbody] & [MeshRigidbody] for the given criteria before their creation.
-fn remove_physics_creator_impl<F: QueryFilter>(
-    mut commands: Commands,
-    q_entities: Query<Entity, (F, Or<(With<PrimitiveRigidbody>, With<MeshRigidbody>)>)>,
-) {
-    for entity in q_entities.iter() {
-        commands
-            .entity(entity)
-            .remove::<(PrimitiveRigidbody, MeshRigidbody)>();
-    }
-}

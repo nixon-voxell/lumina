@@ -7,6 +7,8 @@ use server::*;
 
 use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
 
+mod teleporter;
+
 pub(super) struct GamePlugin;
 
 impl Plugin for GamePlugin {

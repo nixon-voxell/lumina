@@ -36,7 +36,10 @@ impl Plugin for EffectorPlugin {
 }
 
 /// Convert all effectors to colliders and sensors.
-fn convert_effector(mut commands: Commands, q_effectors: Query<(&Effector, Entity)>) {
+fn convert_effector(
+    mut commands: Commands,
+    q_effectors: Query<(&Effector, Entity), Without<Collider>>,
+) {
     for (effector, entity) in q_effectors.iter() {
         commands.entity(entity).insert((
             Collider::try_from_constructor(effector.collider.clone()).unwrap(),
@@ -45,7 +48,7 @@ fn convert_effector(mut commands: Commands, q_effectors: Query<(&Effector, Entit
             CollidingEntities::default(),
         ));
 
-        commands.entity(entity).remove::<Effector>();
+        debug!("Setup effector for {entity}");
     }
 }
 
@@ -55,6 +58,7 @@ fn collect_effector_collisions(
         (&GlobalTransform, &CollidingEntities, Entity),
         (
             With<Sensor>,
+            With<Effector>,
             Without<InteractedEffector>,
             Without<DisabledEffector>,
         ),
