@@ -6,6 +6,14 @@ use lightyear::prelude::*;
 use crate::prelude::SourceEntity;
 use crate::utils::{PlayerId, ThreadSafe};
 
+/// Plugin for tracking effect and adding cooldown after the effect.
+///
+/// This works by providing a marker type `T` for the effect and cooldown tracking
+/// timer and a configuration `Config` for reading the effect and cooldown duration.
+///
+/// Users can define multiple marker types that corresponds to multiple configurations.
+/// It is the user's responsiblity to ensure the integrity of relation between
+/// the configurations and the marker types.
 pub struct CooldownEffectPlugin<T, Config>(PhantomData<T>, PhantomData<Config>);
 
 impl<T, Config> Plugin for CooldownEffectPlugin<T, Config>
@@ -15,9 +23,15 @@ where
 {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (track_effect::<T, Config>, track_cooldown::<T, Config>),
         );
+    }
+}
+
+impl<T, Config> Default for CooldownEffectPlugin<T, Config> {
+    fn default() -> Self {
+        Self(PhantomData, PhantomData)
     }
 }
 
@@ -76,6 +90,15 @@ impl<T> Cooldown<T> {
 
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct Effect<T>(#[deref] Timer, PhantomData<T>);
+
+impl<T> Effect<T> {
+    pub fn new(duration_secs: f32) -> Self {
+        Self(
+            Timer::from_seconds(duration_secs, TimerMode::Once),
+            PhantomData,
+        )
+    }
+}
 
 pub trait CooldownEffectConfig: Component {
     fn effect_duration(&self) -> f32;

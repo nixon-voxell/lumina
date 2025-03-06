@@ -16,6 +16,9 @@ pub mod prelude {
     pub use crate::asset_from_component::{AssetFromComponent, AssetFromComponentPlugin};
     pub use crate::blueprint_type::*;
     pub use crate::convert_3d_to_2d::Convert3dTo2dSet;
+    pub use crate::cooldown_effect::{
+        Cooldown, CooldownEffectConfig, CooldownEffectPlugin, Effect,
+    };
     pub use crate::entity_pool::*;
     pub use crate::math_utils::*;
     pub use crate::physics::world::WorldIdx;
