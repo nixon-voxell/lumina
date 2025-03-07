@@ -19,6 +19,7 @@ blenvy = { workspace = true }
 rand = { workspace = true }
 strum = { workspace = true }
 smallvec = { workspace = true }
+bevy-inspector-egui = { workspace = true, optional = true }
 
 [features]
 default = [
@@ -29,6 +30,7 @@ dev = [
   # Improve compile times for dev builds by linking Bevy as a dynamic library.
   "bevy/dynamic_linking",
   "dep:lumina_dev",
+  "dep:bevy-inspector-egui",
   "lumina_common/dev"
 ]
 dev_native = [

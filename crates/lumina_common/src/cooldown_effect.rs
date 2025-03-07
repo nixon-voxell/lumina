@@ -104,3 +104,30 @@ pub trait CooldownEffectConfig: Component {
     fn effect_duration(&self) -> f32;
     fn cooldown_duration(&self) -> f32;
 }
+
+pub trait CooldownEffectCommandExt {
+    fn start_cooldown_effect<T, Config>(&mut self, entity: Entity)
+    where
+        T: ThreadSafe,
+        Config: CooldownEffectConfig;
+}
+
+impl CooldownEffectCommandExt for Commands<'_, '_> {
+    fn start_cooldown_effect<T, Config>(&mut self, entity: Entity)
+    where
+        T: ThreadSafe,
+        Config: CooldownEffectConfig,
+    {
+        self.add(move |world: &mut World| {
+            let Some(config) = world.get::<Config>(entity) else {
+                return;
+            };
+
+            let effect_duration = config.effect_duration();
+            world
+                .commands()
+                .entity(entity)
+                .insert(Effect::<T>::new(effect_duration));
+        });
+    }
+}

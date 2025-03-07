@@ -47,10 +47,11 @@ impl Plugin for PhysicsPlugin {
                     convert_mass_rigidbody,
                     (
                         convert_primitive_rigidbody,
-                        (convert_mesh_rigidbody, convert_mesh_collider).after(Convert3dTo2dSet),
+                        (convert_mesh_rigidbody, convert_mesh_collider),
                     ),
                 )
-                    .chain(),
+                    .chain()
+                    .after(Convert3dTo2dSet),
             );
     }
 }
@@ -155,7 +156,7 @@ fn convert_mesh_collider(
                     .iter_ancestors(entity)
                     .find(|e| q_rigidbodies.contains(*e))
                 else {
-                    warn!("Unable to find parent with RigidBody for {entity}");
+                    error!("Unable to find parent with RigidBody for {entity}");
                     continue;
                 };
 

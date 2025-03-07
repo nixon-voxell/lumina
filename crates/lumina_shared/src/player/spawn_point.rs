@@ -2,7 +2,6 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumCount, EnumIter, IntoStaticStr};
 
 use super::prelude::*;

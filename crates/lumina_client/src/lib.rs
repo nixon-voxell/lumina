@@ -11,7 +11,7 @@ use lumina_shared::shared_config;
 use lumina_ui::prelude::*;
 
 mod audio;
-mod blueprint_visual;
+mod blueprints;
 mod camera;
 mod effector;
 mod player;
@@ -44,7 +44,7 @@ impl Plugin for ClientPlugin {
         .add_plugins((
             lumina_vfx::VfxPlugin,
             source_entity::SourceEntityPlugin,
-            blueprint_visual::BlueprintVisualPlugin,
+            blueprints::BlueprintsPlugin,
             audio::AudioPlugin,
             ui::UiPlugin,
             player::PlayerPlugin,

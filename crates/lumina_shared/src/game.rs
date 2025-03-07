@@ -4,7 +4,7 @@ pub mod teleporter;
 
 pub mod prelude {
     pub use super::teleporter::{
-        TeleporterCooldown, TeleporterEffect, TeleporterEnd, TeleporterStart,
+        Teleporter, TeleporterCooldown, TeleporterEffect, TeleporterEnd, TeleporterStart,
     };
 }
 

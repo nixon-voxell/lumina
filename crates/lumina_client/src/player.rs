@@ -45,7 +45,10 @@ fn set_physics_world<T: Component>(
     q_entities: Query<Entity, (Added<T>, (Without<WorldIdx>, Without<Confirmed>))>,
 ) {
     for entity in q_entities.iter() {
-        commands.entity(entity).insert(WorldIdx::default());
+        // Allow fallible
+        if let Some(mut cmd) = commands.get_entity(entity) {
+            cmd.try_insert(WorldIdx::default());
+        }
     }
 }
 

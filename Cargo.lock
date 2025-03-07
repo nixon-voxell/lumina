@@ -4102,6 +4102,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy-inspector-egui",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
@@ -6489,8 +6490,10 @@ dependencies = [
  "avian2d",
  "bevy",
  "bevy_enoki",
+ "bevy_radiance_cascades",
  "bevy_shader_utils",
  "bevy_vello",
+ "blenvy",
  "lumina_common",
  "noisy_bevy",
  "rand",

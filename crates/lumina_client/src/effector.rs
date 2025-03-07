@@ -23,7 +23,6 @@ impl Plugin for EffectorPlugin {
             .add_systems(
                 Update,
                 (
-                    convert_effector,
                     show_effector_popup,
                     interact_effector,
                     effector_trigger::<MatchmakeEffector>,
@@ -35,30 +34,13 @@ impl Plugin for EffectorPlugin {
     }
 }
 
-/// Convert all effectors to colliders and sensors.
-fn convert_effector(
-    mut commands: Commands,
-    q_effectors: Query<(&Effector, Entity), Without<Collider>>,
-) {
-    for (effector, entity) in q_effectors.iter() {
-        commands.entity(entity).insert((
-            Collider::try_from_constructor(effector.collider.clone()).unwrap(),
-            Sensor,
-            effector.rigidbody,
-            CollidingEntities::default(),
-        ));
-
-        debug!("Setup effector for {entity}");
-    }
-}
-
 /// Collect effector collision and place the closest result to [`CollidedEffector`].
 fn collect_effector_collisions(
     q_sensors: Query<
         (&GlobalTransform, &CollidingEntities, Entity),
         (
-            With<Sensor>,
-            With<Effector>,
+            // Make sure that it's an effector
+            Or<(With<InteractableEffector>, With<EffectorPopupMsg>)>,
             Without<InteractedEffector>,
             Without<DisabledEffector>,
         ),
@@ -112,15 +94,12 @@ fn setup_effector_popup(mut commands: Commands) {
 
 /// Show and animate the effector popup.
 fn show_effector_popup(
-    q_sensors: Query<
-        (
-            &GlobalTransform,
-            &Collider,
-            Has<InteractableEffector>,
-            Option<&EffectorPopupMsg>,
-        ),
-        With<Sensor>,
-    >,
+    q_sensors: Query<(
+        &GlobalTransform,
+        &Collider,
+        Has<InteractableEffector>,
+        Option<&EffectorPopupMsg>,
+    )>,
     mut q_seq_player: Query<
         (&mut SequencePlayer, &SequenceController),
         With<EffectorPopupAnimation>,
@@ -245,33 +224,13 @@ pub struct EffectorPopupMsg(pub String);
 
 /// Popup the interactable button when player enters the effector collision range.
 ///
-/// This also acts as a marker that a particular [`Sensor`] is interactable.
-/// The value in this struct determines the long press duration for the interaction to be valid.
+/// This also acts as a marker that a particular [`Effector`]
+/// is interactable. The value in this struct determines the
+/// long press duration for the interaction to be valid.
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
 pub struct InteractableEffector {
     pub interact_duration: f32,
-}
-
-/// A constructor for effector which will be converted into avian sensor related components:
-///
-/// - [`RigidBody`]
-/// - [`Collider`]
-/// - [`Sensor`]
-#[derive(Component, Reflect, Debug)]
-#[reflect(Component, Default)]
-pub struct Effector {
-    pub rigidbody: RigidBody,
-    pub collider: ColliderConstructor,
-}
-
-impl Default for Effector {
-    fn default() -> Self {
-        Self {
-            rigidbody: RigidBody::Static,
-            collider: ColliderConstructor::Circle { radius: 1.0 },
-        }
-    }
 }
 
 /// Collided effector that is closest to the player.

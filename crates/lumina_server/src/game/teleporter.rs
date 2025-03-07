@@ -25,6 +25,7 @@ impl Plugin for TeleporterPlugin {
 }
 
 fn teleport_player(
+    // mut commands: Commands,
     q_global_transforms: Query<&GlobalTransform>,
     mut q_positions: Query<&mut Position>,
     mut evr_teleport: EventReader<MessageEvent<Teleport>>,
@@ -41,16 +42,23 @@ fn teleport_player(
             continue;
         };
 
-        if let Some(global_transform) = lobby_infos
+        let Some(&teleporter_entity) = lobby_infos
             .get(client_id)
             .map(|e| e.room_id())
             .and_then(|room_id| infos.get(&room_id))
             .and_then(|info| info.get(&teleport.message().teleporter))
-            .and_then(|e| q_global_transforms.get(*e).ok())
-        {
+        else {
+            continue;
+        };
+
+        if let Ok(global_transform) = q_global_transforms.get(teleporter_entity) {
             if let Ok(mut position) = q_positions.get_mut(*spaceship_entity) {
+                // Teleport the spaceship.
                 let translation = global_transform.translation().xy();
                 *position = Position::new(translation);
+
+                // Start the cooldown effect.
+                // commands.start_cooldown_effect::<Teleporter, TeleporterStart>(teleporter_entity);
             }
         }
     }
@@ -58,7 +66,7 @@ fn teleport_player(
 
 /// Add teleporter info.
 fn setup_teleporter_info(
-    q_teleporters: Query<(&TeleporterEnd, &WorldIdx, Entity), Added<WorldIdx>>,
+    q_teleporters: Query<(&Teleporter, &WorldIdx, Entity), (Added<WorldIdx>, With<TeleporterEnd>)>,
     mut infos: ResMut<TeleporterInfos>,
 ) {
     for (teleporter, world_id, entity) in q_teleporters.iter() {
@@ -85,8 +93,10 @@ fn cleanup_teleporter_info(
     }
 }
 
+/// Maps [`RoomId`] to [`TeleporterInfo`].
 #[derive(Resource, Deref, DerefMut, Default)]
 pub struct TeleporterInfos(HashMap<RoomId, TeleporterInfo>);
 
+/// Maps [`Teleporter`] ID to [`TeleporterEnd`].
 #[derive(Deref, DerefMut, Default)]
-pub struct TeleporterInfo(HashMap<TeleporterEnd, Entity>);
+pub struct TeleporterInfo(HashMap<Teleporter, Entity>);

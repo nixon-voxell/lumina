@@ -17,9 +17,11 @@ impl Plugin for TypeRegistryPlugin {
             // Radiance
             .register_type::<NoRadiance>()
             // Blueprint
-            .register_type::<BlueprintSpawner<TesseractType>>()
-            .register_type::<BlueprintSpawner<OreType>>()
-            .register_type::<DespawnOnSpawn>()
+            .register_type::<ReplicateFromServer>()
+            .register_type::<HierarchySync>()
+            .register_type::<ReplicateBlueprint>()
+            .register_type::<ServerOnly>()
+            .register_type::<ClientOnly>()
             // Game
             .register_type::<MaxHealth>()
             .register_type::<Health>()
@@ -33,6 +35,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<LuminaSpawnArea>()
             .register_type::<TeleporterStart>()
             .register_type::<TeleporterEnd>()
+            .register_type::<Teleporter>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()

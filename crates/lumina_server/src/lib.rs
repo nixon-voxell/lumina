@@ -9,6 +9,7 @@ use lumina_common::settings::LuminaSettings;
 use lumina_shared::shared_config;
 use server::*;
 
+mod blueprints;
 mod game;
 mod lobby;
 mod player;
@@ -32,12 +33,16 @@ impl Plugin for ServerPlugin {
         .add_plugins((
             ui::ServerUiPlugin,
             source_entity::SourceEntityPlugin,
+            blueprints::BlueprintsPlugin,
             lobby::LobbyPlugin,
             player::PlayerPlugin,
             game::GamePlugin,
         ))
         .init_resource::<LobbyInfos>()
         .add_systems(Startup, start_server);
+
+        #[cfg(feature = "dev")]
+        app.add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new());
     }
 }
 

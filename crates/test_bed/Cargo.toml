@@ -6,12 +6,14 @@ readme.workspace = true
 authors.workspace = true
 
 [dependencies]
+lumina_common = { workspace = true }
+bevy = { workspace = true, features = ["file_watcher"] }
+bevy_radiance_cascades = { workspace = true }
+blenvy = { workspace = true }
 
 [dev-dependencies]
-lumina_common = { workspace = true }
 bevy_shader_utils = { workspace = true }
 velyst = { workspace = true }
-bevy = { workspace = true, features = ["file_watcher"] }
 bevy_vello = { workspace = true }
 bevy_enoki = { workspace = true }
 noisy_bevy = { workspace = true }

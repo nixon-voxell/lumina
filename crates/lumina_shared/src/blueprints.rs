@@ -1,115 +1,58 @@
 use blenvy::*;
 use lightyear::prelude::*;
-use lumina_common::prelude::*;
-use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumCount, EnumIter};
 
 pub(super) struct BlueprintsPlugin;
 
 impl Plugin for BlueprintsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                blueprint_spawner::<TesseractType>,
-                blueprint_spawner::<OreType>,
-                despawn_on_spawn,
-            ),
-        );
-    }
+    fn build(&self, _app: &mut App) {}
 }
 
-fn blueprint_spawner<T: BlueprintType>(
-    mut commands: Commands,
-    q_spawners: Query<(&BlueprintSpawner<T>, Entity), Added<BlueprintSpawner<T>>>,
-    network_identity: NetworkIdentity,
-) {
-    for (spawner, entity) in q_spawners.iter() {
-        // Despawn for target that doesn't match.
-        if spawner.target.is_some_and(|target| {
-            matches!(
-                (network_identity.is_server(), target),
-                (true, NetworkIdentityTarget::Client) | (false, NetworkIdentityTarget::Server)
-            )
-        }) {
-            commands.entity(entity).despawn();
-            continue;
-        }
-
-        let info = match spawner.spawn_type {
-            SpawnType::Raw => spawner.blueprint.info(),
-            SpawnType::Config => spawner.blueprint.config_info(),
-            SpawnType::Visual => spawner.blueprint.visual_info(),
-        };
-
-        commands
-            .entity(entity)
-            .insert((info, SpawnBlueprint))
-            .remove::<BlueprintSpawner<T>>();
-    }
-}
-
-fn despawn_on_spawn(
-    mut commands: Commands,
-    q_despawners: Query<(&DespawnOnSpawn, Entity), Added<DespawnOnSpawn>>,
-    network_identity: NetworkIdentity,
-) {
-    for (despawner, entity) in q_despawners.iter() {
-        // Ignore if target doesn't match.
-        if matches!(
-            (network_identity.is_server(), despawner.target),
-            (true, NetworkIdentityTarget::Client) | (false, NetworkIdentityTarget::Server)
-        ) {
-            continue;
-        }
-
-        if despawner.recursive {
-            commands.entity(entity).despawn_recursive();
-        } else {
-            commands.entity(entity).despawn();
-        }
-    }
-}
-
-/// Spawn blueprint of given type on add.
+/// Marker for replicating the entity over the network.
+/// A [`server::Replicate`] bundle will be inserted on the server.
+///
+/// Entity will be removed from the client recursively.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct BlueprintSpawner<T: BlueprintType> {
-    blueprint: T,
-    spawn_type: SpawnType,
-    /// Specifies a [NetworkIdentityTarget] if [Some] both if [None].
-    target: Option<NetworkIdentityTarget>,
-}
+pub struct ReplicateFromServer;
 
-/// Despawn entity for either client or server.
+/// Marker for replicating the entity inside the children hierarchy
+/// of [`ReplicateFromServer`] over the network.
+/// The entity will be added to the rooma accordingly on the server.
 #[derive(Component, Reflect)]
-#[reflect(Component, Default)]
-pub struct DespawnOnSpawn {
-    target: NetworkIdentityTarget,
-    recursive: bool,
+#[reflect(Component)]
+pub struct HierarchySync;
+
+/// Marker for replicating the [`BlueprintInfo`] over the network.
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[reflect(Component)]
+pub struct ReplicateBlueprint {
+    /// The path in [`BlueprintInfo`].
+    #[reflect(ignore)]
+    pub path: String,
 }
 
-impl Default for DespawnOnSpawn {
-    fn default() -> Self {
-        Self {
-            target: NetworkIdentityTarget::Client,
-            recursive: true,
-        }
+impl ReplicateBlueprint {
+    pub fn info(&self) -> BlueprintInfo {
+        BlueprintInfo::from_path(&self.path)
     }
 }
 
-#[derive(Reflect, Clone, Copy)]
-pub enum NetworkIdentityTarget {
-    Client,
-    Server,
-}
+/// Marker for entities to be spawned on server only.
+/// Use [`ReplicateFromServer`] if the entity needs to be replicated
+/// back to the clients.
+///
+/// Entity will be removed from the client recursively.
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ServerOnly;
 
-#[derive(Reflect, Clone, Copy)]
-pub enum SpawnType {
-    Raw,
-    Config,
-    Visual,
-}
+/// Marker for entities to be spawned on client only.
+///
+/// Entity will be removed from the server recursively.
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ClientOnly;
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]

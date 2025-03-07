@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use crate::action::PlayerAction;
 use crate::blueprints::AmmoType;

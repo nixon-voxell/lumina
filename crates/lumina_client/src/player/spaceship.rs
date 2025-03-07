@@ -46,20 +46,14 @@ impl Plugin for SpaceshipPlugin {
 
 fn teleport(
     trigger: Trigger<TeleporterEffector>,
-    q_teleporters: Query<&TeleporterStart>,
+    q_teleporters: Query<&Teleporter>,
     mut connection_manager: ResMut<ConnectionManager>,
 ) {
-    let Some(id) = q_teleporters
-        .get(trigger.entity())
-        .ok()
-        .and_then(|teleporter| teleporter.id())
-    else {
+    let Ok(&teleporter) = q_teleporters.get(trigger.entity()) else {
         return;
     };
 
-    let _ = connection_manager.send_message::<OrdReliableChannel, _>(&Teleport {
-        teleporter: TeleporterEnd(id),
-    });
+    let _ = connection_manager.send_message::<OrdReliableChannel, _>(&Teleport { teleporter });
 }
 
 /// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].

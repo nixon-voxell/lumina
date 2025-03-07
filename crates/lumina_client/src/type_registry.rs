@@ -10,7 +10,6 @@ impl Plugin for TypeRegistryPlugin {
             // Effector
             .register_type::<EffectorPopupMsg>()
             .register_type::<InteractableEffector>()
-            .register_type::<Effector>()
             .register_type::<MatchmakeEffector>()
             .register_type::<TesseractEffector>()
             .register_type::<SpaceshipSelectEffector>()
