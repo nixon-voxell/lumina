@@ -117,21 +117,11 @@ fn weapon_magazine_tracker(
 
 fn weapon_reload(
     mut commands: Commands,
-    mut q_weapons: Query<
-        (
-            &mut WeaponReload,
-            &mut WeaponStat,
-            &Weapon,
-            &PlayerId,
-            Entity,
-        ),
-        With<SourceEntity>,
-    >,
-    network_identity: NetworkIdentity,
+    mut q_weapons: Query<(&mut WeaponReload, &mut WeaponStat, &Weapon, Entity), With<SourceEntity>>,
     time: Res<Time>,
 ) {
-    for (mut reload, mut stat, weapon, player_id, entity) in q_weapons.iter_mut() {
-        if reload.finished() && (network_identity.is_server() || player_id.is_local()) {
+    for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
+        if reload.finished() {
             commands.entity(entity).remove::<WeaponReload>();
             stat.reload(weapon);
         }

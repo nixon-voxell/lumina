@@ -14,10 +14,10 @@ mod audio;
 mod blueprints;
 mod camera;
 mod effector;
+mod game;
 mod player;
 mod screens;
 mod source_entity;
-mod tesseract;
 mod typ_animation;
 mod type_registry;
 mod ui;
@@ -51,7 +51,7 @@ impl Plugin for ClientPlugin {
             camera::CameraPlugin,
             effector::EffectorPlugin,
             screens::ScreensPlugins,
-            tesseract::TesseractPugin,
+            game::GamePugin,
             typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
