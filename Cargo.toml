@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-exclude = ["external_crates/"]
+exclude = ["external_crates/", "crates/lumina_terrain"]
 members = ["crates/*", ]
 
 [workspace.package]

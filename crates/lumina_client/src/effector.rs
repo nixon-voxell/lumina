@@ -224,7 +224,7 @@ pub struct EffectorPopupMsg(pub String);
 
 /// Popup the interactable button when player enters the effector collision range.
 ///
-/// This also acts as a marker that a particular [`Effector`]
+/// This also acts as a marker that a particular [`Sensor`]
 /// is interactable. The value in this struct determines the
 /// long press duration for the interaction to be valid.
 #[derive(Component, Reflect, Default, Debug)]

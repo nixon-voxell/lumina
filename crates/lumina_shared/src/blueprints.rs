@@ -18,7 +18,7 @@ pub struct ReplicateFromServer;
 
 /// Marker for replicating the entity inside the children hierarchy
 /// of [`ReplicateFromServer`] over the network.
-/// The entity will be added to the rooma accordingly on the server.
+/// The entity will be added to the room accordingly on the server.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct HierarchySync;

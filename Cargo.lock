@@ -4140,22 +4140,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lumina_terrain"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy_transform_interpolation",
- "blenvy",
- "lumina_common",
- "noisy_bevy",
- "rand",
- "serde",
- "strum",
- "thiserror",
-]
-
-[[package]]
 name = "lumina_ui"
 version = "0.1.0"
 dependencies = [
