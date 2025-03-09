@@ -3,7 +3,7 @@ use bevy::sprite::Mesh2dHandle;
 use bevy::utils::HashMap;
 use blenvy::*;
 
-pub(super) struct Convert3dTo2dPlugin;
+pub struct Convert3dTo2dPlugin;
 
 impl Plugin for Convert3dTo2dPlugin {
     fn build(&self, app: &mut App) {
@@ -83,15 +83,15 @@ fn convert_std_to_color_material(
 
 /// Update the corresponding [`ColorMaterial`] when a [`StandardMaterial`] is being modified.
 fn material_change_update(
-    mut std_asset_event_evr: EventReader<AssetEvent<StandardMaterial>>,
+    mut evr_std_material: EventReader<AssetEvent<StandardMaterial>>,
     color_material_map: Res<ColorMaterialMap>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
     std_materials: Res<Assets<StandardMaterial>>,
 ) {
-    for std_asset_event in std_asset_event_evr.read() {
+    for evt_std_material in evr_std_material.read() {
         if let AssetEvent::Modified { id }
         | AssetEvent::Added { id }
-        | AssetEvent::LoadedWithDependencies { id } = std_asset_event
+        | AssetEvent::LoadedWithDependencies { id } = evt_std_material
         {
             let Some(std_material) = std_materials.get(*id) else {
                 return;

@@ -5,7 +5,6 @@ use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use leafwing_input_manager::prelude::*;
-use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use spaceship::Spaceship;
 use strum::EnumCount;
@@ -30,7 +29,7 @@ pub mod prelude {
         SpawnPoint, SpawnPointEntity, SpawnPointParent, SpawnPointUsed, TeamType,
     };
     pub use super::weapon::{Weapon, WeaponReload, WeaponStat};
-    pub use super::{PlayerId, PlayerInfoType, PlayerInfos};
+    pub use super::{PlayerInfoType, PlayerInfos};
 }
 
 pub(super) struct PlayerPlugin;
@@ -68,13 +67,6 @@ fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
     };
 
     system.into_configs()
-}
-
-#[derive(Component, Serialize, Deserialize, Deref, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct PlayerId(pub ClientId);
-
-impl PlayerId {
-    pub const LOCAL: Self = Self(ClientId::Local(u64::MAX));
 }
 
 #[derive(EnumCount, Debug, Clone, Copy)]

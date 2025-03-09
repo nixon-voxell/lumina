@@ -21,6 +21,7 @@ impl Plugin for LobbyPlugin {
             in_game::InGamePlugin,
         ))
         .add_event::<ClientExitLobby>()
+        .add_event::<LobbyRemoval>()
         .add_systems(
             Update,
             (
@@ -37,11 +38,13 @@ impl Plugin for LobbyPlugin {
 fn cleanup_empty_lobbies(
     mut commands: Commands,
     q_lobbies: Query<(Entity, &Lobby), (Changed<Lobby>, Without<LobbyInGame>, Without<LobbyFull>)>,
+    mut evw_lobby_removal: EventWriter<LobbyRemoval>,
 ) {
     for (entity, lobby) in q_lobbies.iter() {
         if lobby.is_empty() {
             info!("Removing empty lobby: {entity:?}");
             commands.entity(entity).despawn_recursive();
+            evw_lobby_removal.send(LobbyRemoval(entity.room_id()));
         }
     }
 }
@@ -65,12 +68,12 @@ fn propagate_lobby_status(
 }
 
 fn handle_disconnections(
-    mut disconnect_evr: EventReader<DisconnectEvent>,
-    mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
+    mut evr_disconnect: EventReader<DisconnectEvent>,
+    mut evw_client_exit_lobby: EventWriter<ClientExitLobby>,
 ) {
-    if disconnect_evr.is_empty() == false {
-        client_exit_lobby_evw.send_batch(
-            disconnect_evr
+    if evr_disconnect.is_empty() == false {
+        evw_client_exit_lobby.send_batch(
+            evr_disconnect
                 .read()
                 .map(|disconnect| ClientExitLobby(disconnect.client_id)),
         );
@@ -78,12 +81,12 @@ fn handle_disconnections(
 }
 
 fn handle_exit_lobby(
-    mut exit_lobby_evr: EventReader<MessageEvent<ExitLobby>>,
-    mut client_exit_lobby_evw: EventWriter<ClientExitLobby>,
+    mut evr_exit_lobby: EventReader<MessageEvent<ExitLobby>>,
+    mut evw_client_exit_lobby: EventWriter<ClientExitLobby>,
 ) {
-    if exit_lobby_evr.is_empty() == false {
-        client_exit_lobby_evw.send_batch(
-            exit_lobby_evr
+    if evr_exit_lobby.is_empty() == false {
+        evw_client_exit_lobby.send_batch(
+            evr_exit_lobby
                 .read()
                 .map(|exit| ClientExitLobby(exit.context)),
         );
@@ -92,13 +95,13 @@ fn handle_exit_lobby(
 
 fn execute_exit_lobby(
     mut commands: Commands,
-    mut client_exit_lobby_evr: EventReader<ClientExitLobby>,
+    mut evr_client_exit_lobby: EventReader<ClientExitLobby>,
     mut q_lobbies: Query<&mut Lobby>,
     mut room_manager: ResMut<RoomManager>,
     mut player_infos: ResMut<PlayerInfos>,
     mut lobby_infos: ResMut<LobbyInfos>,
 ) {
-    for exit_client in client_exit_lobby_evr.read() {
+    for exit_client in evr_client_exit_lobby.read() {
         let client_id = exit_client.id();
 
         if let Some(lobby_entity) = lobby_infos.remove(&client_id) {
@@ -160,24 +163,30 @@ impl Lobby {
 }
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySeed(pub u32);
+pub struct LobbySeed(pub u32);
 
 #[derive(Component, Debug, Deref, DerefMut)]
-pub(super) struct LobbySize(pub u8);
+pub struct LobbySize(pub u8);
 
 /// Tag for specifying a lobby is currently in game.
 #[derive(Component, Default)]
-pub(super) struct LobbyInGame;
+pub struct LobbyInGame;
 
 /// Tag for specifying a lobby is currently full.
 #[derive(Component, Default)]
-pub(super) struct LobbyFull;
+pub struct LobbyFull;
 
+/// Event sent when a client exits a lobby.
 #[derive(Event)]
-pub(super) struct ClientExitLobby(pub ClientId);
+pub struct ClientExitLobby(pub ClientId);
 
 impl ClientExitLobby {
     pub fn id(&self) -> ClientId {
         self.0
     }
 }
+
+/// Event sent when a lobby is being removed and despawned.
+/// Use this to cleanup whatever cached lobby data.
+#[derive(Event)]
+pub struct LobbyRemoval(pub RoomId);

@@ -33,40 +33,10 @@ impl Plugin for PlayerPlugin {
                 OnEnter(Screen::LocalLobby),
                 (reset_local_player_id, reset_game_stat),
             )
-            .add_systems(Update, (set_lumina_name, find_lumina))
             .add_systems(
                 Update,
                 (set_physics_world::<RigidBody>, set_physics_world::<Weapon>),
             );
-    }
-}
-
-fn set_lumina_name(
-    mut commands: Commands,
-    q_entities: Query<
-        Entity,
-        (
-            Added<LuminaType>,
-            With<lightyear::prelude::client::Predicted>,
-        ),
-    >,
-) {
-    for entity in q_entities.iter() {
-        commands.entity(entity).insert(Name::new("lumina"));
-    }
-}
-
-fn find_lumina(
-    q_entities: Query<
-        (&Visibility, &Handle<Mesh>, Entity),
-        (
-            With<LuminaType>,
-            With<lightyear::prelude::client::Predicted>,
-        ),
-    >,
-) {
-    for info in q_entities.iter() {
-        info!("\nlumina info {info:?}");
     }
 }
 
@@ -75,7 +45,10 @@ fn set_physics_world<T: Component>(
     q_entities: Query<Entity, (Added<T>, (Without<WorldIdx>, Without<Confirmed>))>,
 ) {
     for entity in q_entities.iter() {
-        commands.entity(entity).insert(WorldIdx::default());
+        // Allow fallible
+        if let Some(mut cmd) = commands.get_entity(entity) {
+            cmd.try_insert(WorldIdx::default());
+        }
     }
 }
 

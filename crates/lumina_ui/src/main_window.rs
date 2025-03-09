@@ -49,14 +49,14 @@ fn main_window_width_height(
 
 /// Animate transparency fade in and out based on value from [`MainWindowTransparency`].
 fn fade_transparency(
-    mut transparency_evr: EventReader<MainWindowTransparency>,
+    mut evr_transparency: EventReader<MainWindowTransparency>,
     time: Res<Time>,
     mut func: ResMut<MainWindowFunc>,
     mut animate_time: Local<f32>,
     mut start_transparency: Local<f32>,
     mut target_transparency: Local<f32>,
 ) {
-    for transparency in transparency_evr.read() {
+    for transparency in evr_transparency.read() {
         *target_transparency = **transparency;
         *animate_time = 0.0;
         *start_transparency = func.transparency as f32;

@@ -49,11 +49,11 @@ fn setup_ammmo_ref(
 fn fire_ammo(
     mut commands: Commands,
     q_ammo_refs: Query<(&Ammo, &Collider), With<AmmoRef>>,
-    mut fire_ammo_evr: EventReader<FireAmmo>,
+    mut evr_fire_ammo: EventReader<FireAmmo>,
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     ammo_refs: Res<RefEntityMap<AmmoType>>,
 ) {
-    for fire_ammo in fire_ammo_evr.read() {
+    for fire_ammo in evr_fire_ammo.read() {
         let Some((ammo, collider)) = ammo_refs
             .get(&fire_ammo.ammo_type)
             .and_then(|e| q_ammo_refs.get(*e).ok())

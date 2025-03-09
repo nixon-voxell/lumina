@@ -41,10 +41,10 @@ fn exit_sandbox_btn(
 }
 
 fn handle_sandbox_data(
-    mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
+    mut evr_lobby_data: EventReader<MessageEvent<LobbyData>>,
     mut sandbox_func: ResMut<SandboxFunc>,
 ) {
-    for event in lobby_data_evr.read() {
+    for event in evr_lobby_data.read() {
         let data = event.message();
         sandbox_func.room_id = Some(data.room_id.0);
     }

@@ -2,7 +2,6 @@ use avian2d::math::Scalar;
 use avian2d::parry::na::Point2;
 use avian2d::parry::shape::SharedShape;
 use avian2d::prelude::*;
-use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, VertexAttributeValues};
 use bevy::sprite::Mesh2dHandle;
@@ -48,10 +47,11 @@ impl Plugin for PhysicsPlugin {
                     convert_mass_rigidbody,
                     (
                         convert_primitive_rigidbody,
-                        (convert_mesh_rigidbody, convert_mesh_collider).after(Convert3dTo2dSet),
+                        (convert_mesh_rigidbody, convert_mesh_collider),
                     ),
                 )
-                    .chain(),
+                    .chain()
+                    .after(Convert3dTo2dSet),
             );
     }
 }
@@ -156,7 +156,7 @@ fn convert_mesh_collider(
                     .iter_ancestors(entity)
                     .find(|e| q_rigidbodies.contains(*e))
                 else {
-                    warn!("Unable to find parent with RigidBody for {entity}");
+                    error!("Unable to find parent with RigidBody for {entity}");
                     continue;
                 };
 
@@ -284,26 +284,4 @@ pub enum MeshCollider {
     #[default]
     ConvexHull,
     Trimesh,
-}
-
-pub trait RemovePhysicsCreatorAppExt {
-    fn remove_physics_creator<F: QueryFilter + 'static>(&mut self) -> &mut Self;
-}
-
-impl RemovePhysicsCreatorAppExt for App {
-    fn remove_physics_creator<F: QueryFilter + 'static>(&mut self) -> &mut Self {
-        self.add_systems(PostUpdate, remove_physics_creator_impl::<F>)
-    }
-}
-
-/// Remove [PrimitiveRigidbody] & [MeshRigidbody] for the given criteria before their creation.
-fn remove_physics_creator_impl<F: QueryFilter>(
-    mut commands: Commands,
-    q_entities: Query<Entity, (F, Or<(With<PrimitiveRigidbody>, With<MeshRigidbody>)>)>,
-) {
-    for entity in q_entities.iter() {
-        commands
-            .entity(entity)
-            .remove::<(PrimitiveRigidbody, MeshRigidbody)>();
-    }
 }

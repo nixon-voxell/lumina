@@ -19,11 +19,12 @@
         = Waiting for players (#curr_player_count/#max_player_count)
       ]
 
-      #place(bottom + right)[
-        Room Id: #room_id
+      #place(bottom + right, dy: 1em)[
+        #text(fill: base6)[Room Id: #room_id]
       ]
 
       #place(top + right)[
+        #set text(size: 0.7em)
         #text(fill: red)[#button(lbl: <btn:exit-lobby>)[= Exit Lobby]]
       ]
     ]

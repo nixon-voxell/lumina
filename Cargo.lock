@@ -4102,6 +4102,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy-inspector-egui",
  "blenvy",
  "leafwing-input-manager",
  "lightyear",
@@ -4135,22 +4136,6 @@ dependencies = [
  "smallvec",
  "strum",
  "strum_macros",
- "thiserror",
-]
-
-[[package]]
-name = "lumina_terrain"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy_transform_interpolation",
- "blenvy",
- "lumina_common",
- "noisy_bevy",
- "rand",
- "serde",
- "strum",
  "thiserror",
 ]
 
@@ -6488,11 +6473,13 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy-inspector-egui",
  "bevy_enoki",
+ "bevy_radiance_cascades",
  "bevy_shader_utils",
  "bevy_vello",
+ "blenvy",
  "lumina_common",
- "lumina_terrain",
  "noisy_bevy",
  "rand",
  "velyst",

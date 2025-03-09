@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use crate::action::PlayerAction;
 use crate::blueprints::AmmoType;
@@ -118,21 +117,11 @@ fn weapon_magazine_tracker(
 
 fn weapon_reload(
     mut commands: Commands,
-    mut q_weapons: Query<
-        (
-            &mut WeaponReload,
-            &mut WeaponStat,
-            &Weapon,
-            &PlayerId,
-            Entity,
-        ),
-        With<SourceEntity>,
-    >,
-    network_identity: NetworkIdentity,
+    mut q_weapons: Query<(&mut WeaponReload, &mut WeaponStat, &Weapon, Entity), With<SourceEntity>>,
     time: Res<Time>,
 ) {
-    for (mut reload, mut stat, weapon, player_id, entity) in q_weapons.iter_mut() {
-        if reload.finished() && (network_identity.is_server() || player_id.is_local()) {
+    for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
+        if reload.finished() {
             commands.entity(entity).remove::<WeaponReload>();
             stat.reload(weapon);
         }
@@ -150,7 +139,7 @@ fn weapon_attack(
         (&Transform, &Weapon, &mut WeaponStat, &PlayerId, &WorldIdx),
         With<SourceEntity>,
     >,
-    mut fire_ammo_evw: EventWriter<FireAmmo>,
+    mut evw_fire_ammo: EventWriter<FireAmmo>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
@@ -170,7 +159,7 @@ fn weapon_attack(
                 let position = weapon_transform.translation.xy() + direction * weapon.fire_radius;
 
                 // Fire!
-                fire_ammo_evw.send(FireAmmo {
+                evw_fire_ammo.send(FireAmmo {
                     player_id,
                     world_id,
                     ammo_type: weapon.ammo_type,

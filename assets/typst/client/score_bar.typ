@@ -6,7 +6,7 @@
     height: 3em,
     fill: col.darken(60%).transparentize(50%),
     radius: 4pt,
-    stroke: col.darken(70%) + 0.1em,
+    stroke: col.darken(90%) + 0.2em,
   )[
     #align(horizon)[
       #text(fill: base8, size: 1.3em)[#team_score]

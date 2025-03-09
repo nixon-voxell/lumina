@@ -25,10 +25,10 @@ impl Plugin for TimerUiPlugin {
 
 /// Wait for [`StartGame`] command from server.
 fn start_game(
-    mut start_game_evr: EventReader<MessageEvent<StartGame>>,
+    mut evr_start_game: EventReader<MessageEvent<StartGame>>,
     mut timer_func: ResMut<CountdownTimerFunc>,
 ) {
-    for _ in start_game_evr.read() {
+    for _ in evr_start_game.read() {
         // Allow for custom timing.
         // TODO: Read from a config!
         timer_func.total_seconds = 60.0 * 4.0;

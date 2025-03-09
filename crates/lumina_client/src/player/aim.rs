@@ -26,7 +26,7 @@ fn mouse_motion(
     mut q_actions: Query<&mut ActionState<PlayerAction>, With<SourceEntity>>,
     q_spaceship_transforms: Query<Ref<Transform>, (With<Spaceship>, With<SourceEntity>)>,
     q_camera: Query<(&Camera, Ref<GlobalTransform>), With<GameCamera>>,
-    mut cursor_evr: EventReader<CursorMoved>,
+    mut evr_cursor: EventReader<CursorMoved>,
     local_player_info: LocalPlayerInfo,
     mut cursor_position: Local<Vec2>,
     mut is_using_mouse: Local<bool>,
@@ -56,7 +56,7 @@ fn mouse_motion(
     }
 
     // When mouse is moved, we use mouse instead.
-    for cursor in cursor_evr.read() {
+    for cursor in evr_cursor.read() {
         *cursor_position = cursor.position;
         *is_using_mouse = true;
     }

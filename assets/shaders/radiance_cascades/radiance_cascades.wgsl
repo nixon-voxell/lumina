@@ -3,8 +3,8 @@
 
 const QUARTER_PI: f32 = HALF_PI * 0.5;
 /// Raymarch length in pixels.
-const RAYMARCH_LENGTH: f32 = 1.0;
-const MAX_RAYMARCH: u32 = 64;
+const RAYMARCH_LENGTH: f32 = 0.5;
+const MAX_RAYMARCH: u32 = 128;
 const EPSILON: f32 = 4.88e-04;
 
 @group(0) @binding(0) var<uniform> num_cascades: u32;
@@ -73,7 +73,6 @@ fn raymarch(origin: vec2<f32>, ray_dir: vec2<f32>) -> vec4<f32> {
 
     let level_idx = f32(probe.cascade_index);
     let mip_step_size = f32(1u << probe.cascade_index);
-    // let mip_step_size = 1.0;
     let dimensions = vec2<f32>(textureDimensions(tex_main));
 
     var march_count = 0u;

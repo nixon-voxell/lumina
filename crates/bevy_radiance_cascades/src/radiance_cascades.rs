@@ -260,6 +260,7 @@ fn prepare_rc_bind_groups(
     }
 }
 
+// TODO: Use something else, like FlatlandGi instead of RcConfig.
 /// Adding this to [bevy::prelude::Camera2d] will enable Radiance Cascades GI.
 #[derive(ExtractComponent, Component, Reflect, Clone, Copy)]
 #[reflect(Component)]
@@ -269,17 +270,32 @@ pub struct RadianceCascadesConfig {
     resolution_factor: u32,
     /// Interval length of cascade 0 in pixel unit.
     interval0: f32,
+    /// Texture resolution.
+    pub texture_resolution: TextureResolution,
+}
+
+#[derive(Reflect, Default, Clone, Copy)]
+pub enum TextureResolution {
+    Full = 1,
+    #[default]
+    Half = 2,
+    Quarter = 3,
 }
 
 impl RadianceCascadesConfig {
     /// Creates a new radiance cascades configuration with resolution
     /// factor and interval0 clamped above 1.
-    pub fn new(mut resolution_factor: u32, mut interval0: f32) -> Self {
+    pub fn new(
+        mut resolution_factor: u32,
+        mut interval0: f32,
+        texture_resolution: TextureResolution,
+    ) -> Self {
         resolution_factor = u32::max(resolution_factor, 1);
         interval0 = f32::max(interval0, 1.0);
         Self {
             resolution_factor,
             interval0,
+            texture_resolution,
         }
     }
 
@@ -323,6 +339,7 @@ impl Default for RadianceCascadesConfig {
         Self {
             resolution_factor: 1,
             interval0: 4.0,
+            texture_resolution: TextureResolution::default(),
         }
     }
 }

@@ -1,0 +1,11 @@
+({
+    "SpawnPointA": File ( path: "blueprints/SpawnPointA.glb" ),
+    "TeleportTrack": File ( path: "blueprints/TeleportTrack.glb" ),
+    "TeleporterStart": File ( path: "blueprints/TeleporterStart.glb" ),
+    "BeltGreen2": File ( path: "materials/BeltGreen2.glb" ),
+    "BeltBlack1": File ( path: "materials/BeltBlack1.glb" ),
+    "BeltGreen3": File ( path: "materials/BeltGreen3.glb" ),
+    "BeltGreen1": File ( path: "materials/BeltGreen1.glb" ),
+    "BeltGreen4": File ( path: "materials/BeltGreen4.glb" ),
+    "BeltGray1": File ( path: "materials/BeltGray1.glb" ),
+})

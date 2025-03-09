@@ -1,13 +1,12 @@
 use std::ops::Add;
 
 use avian2d::prelude::*;
-use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::health::{Health, MaxHealth};
-use crate::player::{GameLayer, PlayerId};
+use crate::player::GameLayer;
 use crate::prelude::TeamType;
 
 use super::{Spaceship, SpaceshipAction};
@@ -16,12 +15,16 @@ pub(super) struct SpaceshipAbilityPlugin;
 
 impl Plugin for SpaceshipAbilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_plugins((
+            CooldownEffectPlugin::<Ability, ShadowAbilityConfig>::default(),
+            CooldownEffectPlugin::<Ability, HealAbilityConfig>::default(),
+        ))
+        .add_systems(
             FixedUpdate,
             (
                 (
-                    ability_tracker_systems::<ShadowAbility>(),
-                    ability_tracker_systems::<HealAbility>(),
+                    apply_ability_effect::<ShadowAbility>,
+                    apply_ability_effect::<HealAbility>,
                 )
                     .after(super::spaceship_actions),
                 init_heal_ability,
@@ -127,17 +130,8 @@ fn apply_heal_ability(
     }
 }
 
-fn ability_tracker_systems<T: Send + Sync + 'static>() -> SystemConfigs {
-    (
-        apply_ability_effect::<T>,
-        track_ability_effect::<T>,
-        track_ability_cooldown::<T>,
-    )
-        .into_configs()
-}
-
 /// Apply ability effect on ability action press.
-fn apply_ability_effect<T: Send + Sync + 'static>(
+fn apply_ability_effect<T: ThreadSafe>(
     mut commands: Commands,
     q_abilities: Query<
         (&SpaceshipAction, &AbilityConfig<T>, Entity),
@@ -155,63 +149,19 @@ fn apply_ability_effect<T: Send + Sync + 'static>(
 
         commands
             .entity(entity)
-            .insert(AbilityEffect(Timer::from_seconds(
-                ability.duration,
-                TimerMode::Once,
-            )));
-    }
-}
-
-/// Track ability effect timer and remove it + apply cooldown after it ends.
-fn track_ability_effect<T: Send + Sync + 'static>(
-    mut commands: Commands,
-    mut q_abilities: Query<
-        (&mut AbilityEffect, &AbilityConfig<T>, Entity),
-        (Without<AbilityCooldown>, With<SourceEntity>),
-    >,
-    time: Res<Time>,
-) {
-    for (mut effect, config, entity) in q_abilities.iter_mut() {
-        if effect.finished() {
-            commands
-                .entity(entity)
-                .remove::<AbilityEffect>()
-                .insert(AbilityCooldown(Timer::from_seconds(
-                    config.cooldown,
-                    TimerMode::Once,
-                )));
-        }
-        effect.tick(time.delta());
-    }
-}
-
-/// Track ability cooldown timer and remove it after it ends.
-fn track_ability_cooldown<T: Send + Sync + 'static>(
-    mut commands: Commands,
-    mut q_abilities: Query<
-        (&mut AbilityCooldown, &PlayerId, Entity),
-        (
-            Without<AbilityEffect>,
-            With<AbilityConfig<T>>,
-            With<SourceEntity>,
-        ),
-    >,
-    time: Res<Time>,
-    network_identity: NetworkIdentity,
-) {
-    for (mut cooldown, player_id, entity) in q_abilities.iter_mut() {
-        if cooldown.finished()
-            // Only server or local player can remove the cooldown for correct syncing.
-            && (network_identity.is_server() || player_id.is_local())
-        {
-            commands.entity(entity).remove::<AbilityCooldown>();
-        }
-        cooldown.tick(time.delta());
+            .insert(AbilityEffect::new(ability.duration));
     }
 }
 
 pub type ShadowAbilityConfig = AbilityConfig<ShadowAbility>;
 pub type HealAbilityConfig = AbilityConfig<HealAbility>;
+
+pub type AbilityEffect = Effect<Ability>;
+pub type AbilityCooldown = Cooldown<Ability>;
+
+/// Marker struct for ability effect cooldown.
+#[derive(Clone, PartialEq)]
+pub struct Ability;
 
 /// Configuration of an ability.
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -226,25 +176,17 @@ impl<T> AbilityConfig<T> {
     pub fn ability(&self) -> &T {
         &self.ability
     }
+}
 
-    pub fn duration(&self) -> f32 {
+impl<T: ThreadSafe> CooldownEffectConfig for AbilityConfig<T> {
+    fn effect_duration(&self) -> f32 {
         self.duration
     }
 
-    pub fn cooldown(&self) -> f32 {
+    fn cooldown_duration(&self) -> f32 {
         self.cooldown
     }
 }
-
-/// Cooldown timer based on [`AbilityConfig::cooldown()`].
-/// While this component is still in effect, [ability action][crate::action::PlayerAction::Ability] cannot be used.
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct AbilityCooldown(Timer);
-
-/// Effect timer based on [`AbilityConfig::duration()`].
-/// While this component is still in effect, [ability action][crate::action::PlayerAction::Ability] cannot be used.
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct AbilityEffect(Timer);
 
 #[derive(Serialize, Reflect, Deserialize, Debug, Clone, PartialEq)]
 pub struct ShadowAbility {

@@ -9,7 +9,7 @@ use velyst::prelude::*;
 use velyst::typst::foundations;
 use velyst::typst_element::prelude::*;
 
-use crate::effector::InteractedEffector;
+use crate::effector::{InteractedEffector, MatchmakeEffector};
 use crate::typ_animation::LabelScaleFade;
 
 use super::lobby::LobbyFunc;
@@ -79,7 +79,7 @@ fn sandbox_btn(
     mut commands: Commands,
     interactions: InteractionQuery,
     mut q_seq_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
 ) {
     if interactions.pressed(SANDBOX_BTN) {
         // Hide menu.
@@ -101,7 +101,7 @@ fn sandbox_btn(
             res
         }));
 
-        transparency_evw.send(MainWindowTransparency(0.0));
+        evw_transparency.send(MainWindowTransparency(0.0));
     }
 }
 
@@ -109,7 +109,7 @@ fn matchmacke_btns(
     mut commands: Commands,
     interactions: InteractionQuery,
     mut q_seq_player: Query<&mut SequencePlayer, With<MainFuncAnimation>>,
-    mut transparency_evw: EventWriter<MainWindowTransparency>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
 ) {
     let mut player_count = None;
     for (i, &btn) in MATCHMAKE_BTNS.iter().enumerate() {
@@ -146,7 +146,7 @@ fn matchmacke_btns(
         res
     }));
 
-    transparency_evw.send(MainWindowTransparency(0.0));
+    evw_transparency.send(MainWindowTransparency(0.0));
 }
 
 fn cancel_btn(

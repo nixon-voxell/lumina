@@ -7,21 +7,24 @@ use server::*;
 
 use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
 
+mod teleporter;
+
 pub(super) struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                respawn_spaceships,
-                init_game,
-                propagate_game_score,
-                track_game_score,
-                track_game_timer,
-            ),
-        )
-        .observe(end_game);
+        app.add_plugins(teleporter::TeleporterPlugin)
+            .add_systems(
+                Update,
+                (
+                    respawn_spaceships,
+                    init_game,
+                    propagate_game_score,
+                    track_game_score,
+                    track_game_timer,
+                ),
+            )
+            .observe(end_game);
     }
 }
 

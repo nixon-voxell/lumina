@@ -49,8 +49,8 @@ fn disconnected_from_server(
     next_screen_state.set(Screen::MainMenu);
 }
 
-fn main_window_transparency(mut transparency_evw: EventWriter<MainWindowTransparency>) {
-    transparency_evw.send(MainWindowTransparency(0.0));
+fn main_window_transparency(mut evw_transparency: EventWriter<MainWindowTransparency>) {
+    evw_transparency.send(MainWindowTransparency(0.0));
 }
 
 fn play_btn(interactions: InteractionQuery, mut next_screen_state: ResMut<NextState<Screen>>) {

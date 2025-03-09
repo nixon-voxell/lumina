@@ -41,7 +41,8 @@ pub fn propagate_component<C: Component + Clone>(
     }
 }
 
-/// Runs in [`PostUpdate`] after [`TransformEasingSet`] and before [`TransformSystem::TransformPropagate`].
+/// Runs in [`PostUpdate`] after [`TransformEasingSet`]
+/// and before [`TransformSystem::TransformPropagate`].
 #[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct TransformSyncSet;
 
@@ -53,6 +54,15 @@ impl EntityRoomId for Entity {
     fn room_id(self) -> server::RoomId {
         server::RoomId(self.to_bits())
     }
+}
+
+/// A component wrapper round [`ClientId`] with an additional
+/// helper for local IDs.
+#[derive(Component, Serialize, Deserialize, Deref, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PlayerId(pub ClientId);
+
+impl PlayerId {
+    pub const LOCAL: Self = Self(ClientId::Local(u64::MAX));
 }
 
 #[derive(Resource)]
@@ -105,3 +115,8 @@ impl<T: EnumCount, U: Default + Clone> Default for EnumVariantRes<T, U> {
         Self(vec![U::default(); T::COUNT], PhantomData)
     }
 }
+
+/// A trait that guarantees [`Send`], [`Sync`], and `'static` lifetime.
+pub trait ThreadSafe: Send + Sync + 'static {}
+
+impl<T> ThreadSafe for T where T: Send + Sync + 'static {}

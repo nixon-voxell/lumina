@@ -48,9 +48,9 @@ fn init_shadow_vfx(
     q_children: Query<&Children>,
     q_color_materials: Query<&Handle<ColorMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
-    mut blueprint_evr: EventReader<BlueprintEvent>,
+    mut evr_blueprint: EventReader<BlueprintEvent>,
 ) {
-    for bp_event in blueprint_evr.read() {
+    for bp_event in evr_blueprint.read() {
         if let BlueprintEvent::InstanceReady {
             entity,
             blueprint_name,

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_radiance_cascades::prelude::*;
 
 use crate::blueprints::*;
-use crate::effector::*;
+use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
 use crate::player::objective::{LuminaSpawnArea, LuminaStat, ObjectiveArea};
@@ -17,9 +17,11 @@ impl Plugin for TypeRegistryPlugin {
             // Radiance
             .register_type::<NoRadiance>()
             // Blueprint
-            .register_type::<BlueprintSpawner<TesseractType>>()
-            .register_type::<BlueprintSpawner<OreType>>()
-            .register_type::<DespawnOnSpawn>()
+            .register_type::<ReplicateFromServer>()
+            .register_type::<HierarchySync>()
+            .register_type::<ReplicateBlueprint>()
+            .register_type::<ServerOnly>()
+            .register_type::<ClientOnly>()
             // Game
             .register_type::<MaxHealth>()
             .register_type::<Health>()
@@ -31,6 +33,9 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<LuminaStat>()
             .register_type::<ObjectiveArea>()
             .register_type::<LuminaSpawnArea>()
+            .register_type::<TeleporterStart>()
+            .register_type::<TeleporterEnd>()
+            .register_type::<Teleporter>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()
@@ -42,13 +47,6 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()
             .register_type::<ShadowAbilityConfig>()
-            .register_type::<HealAbilityConfig>()
-            // Effector
-            .register_type::<EffectorPopupMsg>()
-            .register_type::<InteractableEffector>()
-            .register_type::<Effector>()
-            .register_type::<MatchmakeEffector>()
-            .register_type::<TesseractEffector>()
-            .register_type::<SpaceshipSelectEffector>();
+            .register_type::<HealAbilityConfig>();
     }
 }

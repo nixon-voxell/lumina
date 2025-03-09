@@ -39,15 +39,16 @@ pub struct ExtractTexture(CachedTexture);
 
 pub(super) fn prepare_extract_texture(
     mut commands: Commands,
-    // TODO: Use something else, like FlatlandGi instead of RcConfig.
-    q_views: Query<(Entity, &ViewTarget), With<RadianceCascadesConfig>>,
+    q_views: Query<(Entity, &ViewTarget, &RadianceCascadesConfig)>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
 ) {
-    for (entity, view) in q_views.iter() {
+    for (entity, view, config) in q_views.iter() {
+        let divider = config.texture_resolution as u32;
         let mut size = view.main_texture().size();
-        size.width = (size.width / 2) * 2;
-        size.height = (size.height / 2) * 2;
+
+        size.width = ((size.width / 2) * 2) / divider;
+        size.height = ((size.height / 2) * 2) / divider;
 
         let texture = texture_cache.get(
             &render_device,

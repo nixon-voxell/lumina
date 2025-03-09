@@ -41,20 +41,20 @@ fn exit_lobby_btn(
 
 /// Digest data from [`LobbyUpdate`].
 fn handle_lobby_update(
-    mut lobby_update_evr: EventReader<MessageEvent<LobbyUpdate>>,
+    mut evr_lobby_update: EventReader<MessageEvent<LobbyUpdate>>,
     mut lobby_func: ResMut<LobbyFunc>,
 ) {
-    for lobby_status in lobby_update_evr.read() {
+    for lobby_status in evr_lobby_update.read() {
         lobby_func.curr_player_count = lobby_status.message().client_count;
     }
 }
 
 /// Digest data from [`LobbyData`]
 fn handle_lobby_data(
-    mut lobby_data_evr: EventReader<MessageEvent<LobbyData>>,
+    mut evr_lobby_data: EventReader<MessageEvent<LobbyData>>,
     mut lobby_func: ResMut<LobbyFunc>,
 ) {
-    for data in lobby_data_evr.read() {
+    for data in evr_lobby_data.read() {
         let data = data.message();
 
         // Update ui.

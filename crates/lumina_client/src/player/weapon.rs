@@ -17,24 +17,24 @@ impl Plugin for WeaponPlugin {
 }
 
 fn attack_cam_shake(
-    mut fire_ammo_evr: EventReader<FireAmmo>,
+    mut evr_fire_ammo: EventReader<FireAmmo>,
     local_player_id: Res<LocalPlayerId>,
     mut camera_shake: ResMut<CameraShake>,
 ) {
-    for fire_ammo in fire_ammo_evr.read() {
+    for fire_ammo in evr_fire_ammo.read() {
         if fire_ammo.player_id == **local_player_id {
-            camera_shake.add_trauma_with_threshold(0.6, 0.7);
+            camera_shake.add_trauma_with_threshold(0.4, 0.5);
         }
     }
 }
 
 fn attack_vfx(
-    mut fire_ammo_evr: EventReader<FireAmmo>,
+    mut evr_fire_ammo: EventReader<FireAmmo>,
     q_vfx_map: Query<&InPlaceVfxMap>,
     mut q_states: Query<&mut ParticleSpawnerState>,
     player_infos: Res<PlayerInfos>,
 ) {
-    for fire_ammo in fire_ammo_evr.read() {
+    for fire_ammo in evr_fire_ammo.read() {
         let Some(vfx_map) = player_infos[PlayerInfoType::Weapon]
             .get(&fire_ammo.player_id)
             .and_then(|e| q_vfx_map.get(*e).ok())
