@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bevy::{core_pipeline::bloom::BloomSettings, prelude::*, render::camera::ScalingMode};
 use blenvy::*;
 use lumina_common::convert_3d_to_2d::Convert3dTo2dPlugin;
