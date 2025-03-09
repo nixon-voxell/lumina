@@ -28,7 +28,7 @@ pub fn trigger_blueprint_animations(
             let mut animation_player = animation_players.get_mut(link.0).unwrap();
 
             for &index in animations.named_indices.values() {
-                animation_player.play(index).seek_to(1.0).set_speed(-1.0);
+                animation_player.start(index).seek_to(1.0).set_speed(-1.0);
             }
 
             // for (_, active) in animation_player.playing_animations_mut() {
