@@ -1,0 +1,12 @@
+(
+  assets:
+   [ 
+    ("AnimationTestBP", File ( path: "blueprints/AnimationTestBP.glb" )),
+    ("TesseractPurple1", File ( path: "materials/TesseractPurple1.glb" )),
+    ("TesseractBlue2", File ( path: "materials/TesseractBlue2.glb" )),
+    ("TesseractGray1", File ( path: "materials/TesseractGray1.glb" )),
+    ("TesseractBlack", File ( path: "materials/TesseractBlack.glb" )),
+    ("TesseractPurple2", File ( path: "materials/TesseractPurple2.glb" )),
+    ("TesseractBlue1", File ( path: "materials/TesseractBlue1.glb" )),
+   ]
+)

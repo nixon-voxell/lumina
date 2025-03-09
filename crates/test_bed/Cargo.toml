@@ -19,6 +19,7 @@ bevy_enoki = { workspace = true }
 noisy_bevy = { workspace = true }
 avian2d = { workspace = true }
 rand = { workspace = true }
+bevy-inspector-egui = { workspace = true }
 
 [lints]
 workspace = true

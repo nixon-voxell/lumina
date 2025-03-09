@@ -3,7 +3,7 @@ use bevy::sprite::Mesh2dHandle;
 use bevy::utils::HashMap;
 use blenvy::*;
 
-pub(super) struct Convert3dTo2dPlugin;
+pub struct Convert3dTo2dPlugin;
 
 impl Plugin for Convert3dTo2dPlugin {
     fn build(&self, app: &mut App) {
