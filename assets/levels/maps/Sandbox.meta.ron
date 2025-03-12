@@ -63,5 +63,14 @@
     ("OrePurple1", File ( path: "materials/OrePurple1.glb" )),
     ("OrePurple", File ( path: "materials/OrePurple.glb" )),
     ("OrePink", File ( path: "materials/OrePink.glb" )),
+    ("MovingDoor", File ( path: "blueprints/MovingDoor.glb" )),
+    ("MDoorGray2", File ( path: "materials/MDoorGray2.glb" )),
+    ("MDoorGreen1", File ( path: "materials/MDoorGreen1.glb" )),
+    ("MDoorOrange1", File ( path: "materials/MDoorOrange1.glb" )),
+    ("MDoorGreen2", File ( path: "materials/MDoorGreen2.glb" )),
+    ("MDoorGreen3", File ( path: "materials/MDoorGreen3.glb" )),
+    ("MDoorGreen4", File ( path: "materials/MDoorGreen4.glb" )),
+    ("MDoorBlack1", File ( path: "materials/MDoorBlack1.glb" )),
+    ("MDoorGray1", File ( path: "materials/MDoorGray1.glb" )),
    ]
 )

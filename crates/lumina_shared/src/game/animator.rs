@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use blenvy::*;
 use lightyear::prelude::*;
@@ -47,12 +48,28 @@ fn update_animation_player(
         &BlueprintAnimationPlayerLink,
         &BlueprintAnimations,
     )>,
-    mut q_players: Query<&mut AnimationPlayer>,
+    mut q_players: Query<(
+        &mut AnimationPlayer,
+        Option<&Position>,
+        Option<&Rotation>,
+        Option<&mut LinearVelocity>,
+        Option<&mut AngularVelocity>,
+        &GlobalTransform,
+    )>,
     fixed_time: Res<Time<Fixed>>,
 ) {
+    const VELOCITY_DAMP: f32 = 0.88;
     let overstep_frac = fixed_time.overstep_fraction();
     for (animator, link, animations) in q_animators.iter() {
-        let Ok(mut player) = q_players.get_mut(link.0) else {
+        let Ok((
+            mut player,
+            position,
+            rotation,
+            linear_velocity,
+            angular_velocity,
+            global_transform,
+        )) = q_players.get_mut(link.0)
+        else {
             continue;
         };
 
@@ -64,6 +81,25 @@ fn update_animation_player(
             player
                 .play(index)
                 .seek_to(animator.prev_time.lerp(animator.time, overstep_frac));
+        }
+
+        // Move the physics object as well if it exists.
+        if let (
+            Some(position),
+            Some(rotation),
+            Some(mut linear_velocity),
+            Some(mut angular_velocity),
+        ) = (position, rotation, linear_velocity, angular_velocity)
+        {
+            let transform = global_transform.compute_transform();
+
+            // Damp the velocities.
+            linear_velocity.0 = (transform.translation.xy() - position.0)
+                / fixed_time.delta_seconds()
+                * VELOCITY_DAMP;
+            angular_velocity.0 = (transform.rotation.to_scaled_axis().z - rotation.as_radians())
+                / fixed_time.delta_seconds()
+                * VELOCITY_DAMP;
         }
     }
 }
@@ -155,7 +191,7 @@ pub struct Animator {
     prev_time: f32,
 }
 
-#[derive(Component, Reflect, Serialize, Deserialize, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct Playback {
     /// Player time scale.

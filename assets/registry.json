@@ -21343,6 +21343,117 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::game::animator::Animator": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::game::animator::Animator",
+      "properties": {
+        "duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "names": {
+          "type": {
+            "$ref": "#/$defs/alloc::vec::Vec<alloc::string::String>"
+          }
+        },
+        "repeat_mode": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::game::animator::RepeatMode"
+          }
+        },
+        "time_scale": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "duration",
+        "names",
+        "repeat_mode",
+        "time_scale"
+      ],
+      "short_name": "Animator",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::game::animator::Playback": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::game::animator::Playback",
+      "properties": {
+        "time": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "time_scale": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "time_scale",
+        "time"
+      ],
+      "short_name": "Playback",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::game::animator::RepeatMode": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::game::animator::RepeatMode",
+      "oneOf": [
+        {
+          "long_name": "Once"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "Repeat",
+          "properties": {
+            "delay": {
+              "long_name": "delay",
+              "type": {
+                "$ref": "#/$defs/f32"
+              }
+            }
+          },
+          "required": [
+            "delay"
+          ],
+          "short_name": "Repeat",
+          "type": "object",
+          "typeInfo": "Struct"
+        },
+        {
+          "additionalProperties": false,
+          "long_name": "PingPong",
+          "properties": {
+            "delay": {
+              "long_name": "delay",
+              "type": {
+                "$ref": "#/$defs/f32"
+              }
+            }
+          },
+          "required": [
+            "delay"
+          ],
+          "short_name": "PingPong",
+          "type": "object",
+          "typeInfo": "Struct"
+        }
+      ],
+      "short_name": "RepeatMode",
+      "type": "object",
+      "typeInfo": "Enum"
+    },
     "lumina_shared::game::teleporter::Teleporter": {
       "isComponent": true,
       "isResource": false,

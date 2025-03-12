@@ -40,7 +40,7 @@ pub fn trigger_blueprint_animations(
 
 fn setup(mut commands: Commands) {
     commands.spawn((
-        BlueprintInfo::from_path("levels/animation_test/Tesseract.glb"),
+        BlueprintInfo::from_path("blueprints/MovingDoor.glb"),
         SpawnBlueprint,
     ));
 
