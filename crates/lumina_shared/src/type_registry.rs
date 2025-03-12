@@ -36,6 +36,8 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<TeleporterStart>()
             .register_type::<TeleporterEnd>()
             .register_type::<Teleporter>()
+            .register_type::<Animator>()
+            .register_type::<Playback>()
             // Player
             .register_type::<Weapon>()
             .register_type::<WeaponType>()

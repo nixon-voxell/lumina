@@ -23,6 +23,7 @@ bevy_radiance_cascades = { path = "crates/bevy_radiance_cascades" }
 velyst = { path = "external_crates/velyst" }
 bevy_vello_graphics = { path = "external_crates/bevy_vello_graphics" }
 bevy_motiongfx = { path = "external_crates/bevy_motiongfx" }
+blenvy = { path = "external_crates/blenvy" }
 # Git
 bevy_coroutine = { version = "0.1.3", git = "https://github.com/nixon-voxell/bevy_coroutine" }
 bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
@@ -45,7 +46,6 @@ avian2d = { version = "0.1", default-features = false, features = [
   "parallel",
   "serialize",
 ] }
-blenvy = "0.1.0-alpha.1"
 bevy_enoki = "0.2.2"
 noisy_bevy = "0.7"
 bevy-inspector-egui = "0.27"

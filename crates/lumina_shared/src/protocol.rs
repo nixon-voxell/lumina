@@ -78,6 +78,9 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<TeleporterCooldown>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full);
 
+        app.register_component::<Playback>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
