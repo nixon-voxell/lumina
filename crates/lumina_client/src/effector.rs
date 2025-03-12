@@ -3,10 +3,6 @@ use bevy::prelude::*;
 use bevy_motiongfx::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
-use lumina_shared::effector::{
-    EffectorPopupMsg, InteractableEffector, MatchmakeEffector, SpaceshipSelectEffector,
-    TesseractEffector,
-};
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
@@ -32,6 +28,7 @@ impl Plugin for EffectorPlugin {
                     effector_trigger::<MatchmakeEffector>,
                     effector_trigger::<TesseractEffector>,
                     effector_trigger::<SpaceshipSelectEffector>,
+                    effector_trigger::<TeleporterEffector>,
                 ),
             );
     }
@@ -41,7 +38,12 @@ impl Plugin for EffectorPlugin {
 fn collect_effector_collisions(
     q_sensors: Query<
         (&GlobalTransform, &CollidingEntities, Entity),
-        (With<Sensor>, Without<InteractedEffector>),
+        (
+            // Make sure that it's an effector
+            Or<(With<InteractableEffector>, With<EffectorPopupMsg>)>,
+            Without<InteractedEffector>,
+            Without<DisabledEffector>,
+        ),
     >,
     q_spaceship_transforms: Query<&GlobalTransform, With<SourceEntity>>,
     mut collided_effector: ResMut<CollidedEffector>,
@@ -92,15 +94,12 @@ fn setup_effector_popup(mut commands: Commands) {
 
 /// Show and animate the effector popup.
 fn show_effector_popup(
-    q_sensors: Query<
-        (
-            &GlobalTransform,
-            &Collider,
-            Has<InteractableEffector>,
-            Option<&EffectorPopupMsg>,
-        ),
-        With<Sensor>,
-    >,
+    q_sensors: Query<(
+        &GlobalTransform,
+        &Collider,
+        Has<InteractableEffector>,
+        Option<&EffectorPopupMsg>,
+    )>,
     mut q_seq_player: Query<
         (&mut SequencePlayer, &SequenceController),
         With<EffectorPopupAnimation>,
@@ -159,7 +158,7 @@ fn interact_effector(
     mut commands: Commands,
     q_effectors: Query<(&InteractableEffector, Entity), Without<InteractedEffector>>,
     q_actions: Query<&ActionState<PlayerAction>, With<SourceEntity>>,
-    mut effector_interaction_evw: EventWriter<EffectorInteraction>,
+    mut evw_effector_interaction: EventWriter<EffectorInteraction>,
     collided_effector: Res<CollidedEffector>,
     time: Res<Time>,
     mut func: ResMut<EffectorPopupFunc>,
@@ -196,7 +195,7 @@ fn interact_effector(
 
     if *accumulation >= required_duration {
         // Perform interaction
-        effector_interaction_evw.send(EffectorInteraction(entity));
+        evw_effector_interaction.send(EffectorInteraction(entity));
         commands.entity(entity).insert(InteractedEffector);
         *accumulation = 0.0;
     }
@@ -205,7 +204,7 @@ fn interact_effector(
 }
 
 /// Trigger event when an effector has been interacted.
-pub(super) fn effector_trigger<E: Event + Clone>(
+fn effector_trigger<E: Event + Clone>(
     mut commands: Commands,
     q_effector: Query<&E>,
     mut evr_interaction: EventReader<EffectorInteraction>,
@@ -216,6 +215,22 @@ pub(super) fn effector_trigger<E: Event + Clone>(
             commands.trigger_targets(e.clone(), entity);
         }
     }
+}
+
+/// Popup message when player enters the effector collision range.
+#[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct EffectorPopupMsg(pub String);
+
+/// Popup the interactable button when player enters the effector collision range.
+///
+/// This also acts as a marker that a particular [`Sensor`]
+/// is interactable. The value in this struct determines the
+/// long press duration for the interaction to be valid.
+#[derive(Component, Reflect, Default, Debug)]
+#[reflect(Component)]
+pub struct InteractableEffector {
+    pub interact_duration: f32,
 }
 
 /// Collided effector that is closest to the player.
@@ -232,3 +247,26 @@ pub(super) struct InteractedEffector;
 
 #[derive(Component)]
 struct EffectorPopupAnimation;
+
+/// Marker component for an effector to be ignored.
+#[derive(Component)]
+pub(super) struct DisabledEffector;
+
+// Effector types
+// ========================================
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct MatchmakeEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct TesseractEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct SpaceshipSelectEffector;
+
+#[derive(Event, Reflect, Clone, Copy)]
+#[reflect(Component)]
+pub struct TeleporterEffector;

@@ -8,6 +8,7 @@ use server::RoomId;
 
 use crate::action::PlayerAction;
 use crate::blueprints::*;
+use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
@@ -26,6 +27,7 @@ impl Plugin for ProtocolPlugin {
         });
 
         // Messages
+        // ==============================
         app.register_message::<EnterSandbox>(ChannelDirection::Bidirectional);
         app.register_message::<Matchmake>(ChannelDirection::ClientToServer);
         app.register_message::<ExitLobby>(ChannelDirection::ClientToServer);
@@ -36,11 +38,24 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
         app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<SelectSpaceship>(ChannelDirection::ClientToServer);
+        app.register_message::<Teleport>(ChannelDirection::ClientToServer);
 
+        // ==============================
         // Input
         app.add_plugins(LeafwingInputPlugin::<PlayerAction>::default());
 
         // Components
+        // ==============================
+        // Blueprints
+        #[cfg(debug_assertions)]
+        app.register_component::<Name>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<Transform>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<ReplicateBlueprint>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
         // Game
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
@@ -53,6 +68,15 @@ impl Plugin for ProtocolPlugin {
 
         app.register_component::<OreType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<Teleporter>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Once);
+
+        app.register_component::<TeleporterEffect>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
+
+        app.register_component::<TeleporterCooldown>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
@@ -198,10 +222,15 @@ pub struct EndGame;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct DepositLumina;
 
-/// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
-#[derive(Channel)]
-pub struct OrdReliableChannel;
-
 /// Select spaceship command sent from client to server.
 #[derive(Event, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, Copy, PartialEq)]
 pub struct SelectSpaceship(pub SpaceshipType);
+
+#[derive(Event, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Teleport {
+    pub teleporter: Teleporter,
+}
+
+/// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
+#[derive(Channel)]
+pub struct OrdReliableChannel;

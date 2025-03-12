@@ -1,11 +1,11 @@
 use bevy::prelude::*;
-use serde::{Deserialize, Serialize};
+use lightyear::prelude::*;
 
 pub(super) struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostUpdate, init_health);
+        app.add_systems(Update, init_health);
     }
 }
 

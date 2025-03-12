@@ -17,12 +17,12 @@
         = Sandbox
       ]
 
-      #place(bottom + right)[
-        Room Id: #room_id
+      #place(bottom + right, dy: 1em)[
+        #text(fill: base6)[Room Id: #room_id]
       ]
 
       #place(top + right)[
-        #set text(size: 14pt)
+        #set text(size: 0.7em)
         #text(fill: red)[#button(lbl: <btn:exit-sandbox>)[= Exit Sandbox]]
       ]
     ]

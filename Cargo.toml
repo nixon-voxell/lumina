@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-exclude = ["external_crates/"]
+exclude = ["external_crates/", "crates/lumina_terrain"]
 members = ["crates/*", ]
 
 [workspace.package]
@@ -13,7 +13,7 @@ authors = ["Nixon <voxell.technologies@gmail.com>"]
 # Lumina
 lumina_common = { path = "crates/lumina_common" }
 lumina_ui = { path = "crates/lumina_ui" }
-lumina_terrain = { path = "crates/lumina_terrain" }
+# lumina_terrain = { path = "crates/lumina_terrain" }
 lumina_vfx = { path = "crates/lumina_vfx" }
 lumina_shared = { path = "crates/lumina_shared" }
 lumina_dev = { path = "crates/lumina_dev" }

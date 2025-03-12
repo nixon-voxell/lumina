@@ -1,0 +1,4 @@
+({
+    "SpawnPointA.001": File ( path: "blueprints/SpawnPointA.glb" ),
+    "SpawnPointB.001": File ( path: "blueprints/SpawnPointB.glb" ),
+})

@@ -25,9 +25,9 @@ fn handle_enter_sandbox(
     mut connection_manager: ResMut<ConnectionManager>,
     mut room_manager: ResMut<RoomManager>,
     mut lobbies: ResMut<LobbyInfos>,
-    mut sandbox_evr: EventReader<MessageEvent<EnterSandbox>>,
+    mut evr_sandbox: EventReader<MessageEvent<EnterSandbox>>,
 ) {
-    for sandbox in sandbox_evr.read() {
+    for sandbox in evr_sandbox.read() {
         let client_id = sandbox.context;
         let world_entity = commands.spawn_empty().id();
 
@@ -44,7 +44,7 @@ fn handle_enter_sandbox(
             ))
             .with_children(|builder| {
                 // Spawn the sandbox level.
-                builder.spawn((LobbyType::Sandbox.info(), SpawnBlueprint));
+                builder.spawn((MapType::Sandbox.info(), SpawnBlueprint));
             });
 
         // Spawn player.

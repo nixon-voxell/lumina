@@ -11,14 +11,15 @@ use lumina_shared::shared_config;
 use lumina_ui::prelude::*;
 
 mod audio;
-mod blueprint_visual;
+mod blueprints;
 mod camera;
 mod effector;
+mod game;
 mod player;
 mod screens;
 mod source_entity;
-mod tesseract;
 mod typ_animation;
+mod type_registry;
 mod ui;
 
 pub struct ClientPlugin;
@@ -32,6 +33,7 @@ impl Plugin for ClientPlugin {
 
         app.add_plugins((
             ClientPlugins::new(client_config(client_id, settings)),
+            type_registry::TypeRegistryPlugin,
             BlenvyPlugin {
                 export_registry: cfg!(debug_assertions),
                 ..default()
@@ -42,14 +44,14 @@ impl Plugin for ClientPlugin {
         .add_plugins((
             lumina_vfx::VfxPlugin,
             source_entity::SourceEntityPlugin,
-            blueprint_visual::BlueprintVisualPlugin,
+            blueprints::BlueprintsPlugin,
             audio::AudioPlugin,
             ui::UiPlugin,
             player::PlayerPlugin,
             camera::CameraPlugin,
             effector::EffectorPlugin,
             screens::ScreensPlugins,
-            tesseract::TesseractPugin,
+            game::GamePugin,
             typ_animation::TypAnimationPlugin::<MainWindowFunc>::default(),
         ))
         .init_state::<Connection>()
@@ -73,10 +75,10 @@ fn connect_server(mut commands: Commands) {
 
 fn handle_connection(
     mut commands: Commands,
-    mut connect_evr: EventReader<ConnectEvent>,
+    mut evr_connect: EventReader<ConnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
-    for event in connect_evr.read() {
+    for event in evr_connect.read() {
         let client_id = event.client_id();
         info!("CLIENT: Connected with {client_id:?}");
 
@@ -86,10 +88,10 @@ fn handle_connection(
 }
 
 fn handle_disconnection(
-    mut disconnect_evr: EventReader<DisconnectEvent>,
+    mut evr_disconnect: EventReader<DisconnectEvent>,
     mut next_connection_state: ResMut<NextState<Connection>>,
 ) {
-    for event in disconnect_evr.read() {
+    for event in evr_disconnect.read() {
         warn!("Disconnected: {:?}", event.reason);
 
         next_connection_state.set(Connection::Disconnected);

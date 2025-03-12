@@ -11832,15 +11832,34 @@
           "type": {
             "$ref": "#/$defs/u32"
           }
+        },
+        "texture_resolution": {
+          "type": {
+            "$ref": "#/$defs/bevy_radiance_cascades::radiance_cascades::TextureResolution"
+          }
         }
       },
       "required": [
         "resolution_factor",
-        "interval0"
+        "interval0",
+        "texture_resolution"
       ],
       "short_name": "RadianceCascadesConfig",
       "type": "object",
       "typeInfo": "Struct"
+    },
+    "bevy_radiance_cascades::radiance_cascades::TextureResolution": {
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "bevy_radiance_cascades::radiance_cascades::TextureResolution",
+      "oneOf": [
+        "Full",
+        "Half",
+        "Quarter"
+      ],
+      "short_name": "TextureResolution",
+      "type": "string",
+      "typeInfo": "Enum"
     },
     "bevy_render::alpha::AlphaMode": {
       "isComponent": false,
@@ -18287,33 +18306,6 @@
       "type": "object",
       "typeInfo": "Enum"
     },
-    "core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>",
-      "oneOf": [
-        {
-          "long_name": "None"
-        },
-        {
-          "items": false,
-          "long_name": "Some",
-          "prefixItems": [
-            {
-              "type": {
-                "$ref": "#/$defs/lumina_shared::blueprints::NetworkIdentityTarget"
-              }
-            }
-          ],
-          "short_name": "Some",
-          "type": "array",
-          "typeInfo": "Tuple"
-        }
-      ],
-      "short_name": "Option<NetworkIdentityTarget>",
-      "type": "object",
-      "typeInfo": "Enum"
-    },
     "core::option::Option<petgraph::graph::NodeIndex>": {
       "isComponent": false,
       "isResource": false,
@@ -21024,6 +21016,85 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "lumina_client::effector::EffectorPopupMsg": {
+      "isComponent": true,
+      "isResource": false,
+      "items": false,
+      "long_name": "lumina_client::effector::EffectorPopupMsg",
+      "prefixItems": [
+        {
+          "type": {
+            "$ref": "#/$defs/alloc::string::String"
+          }
+        }
+      ],
+      "short_name": "EffectorPopupMsg",
+      "type": "array",
+      "typeInfo": "TupleStruct"
+    },
+    "lumina_client::effector::InteractableEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::InteractableEffector",
+      "properties": {
+        "interact_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "interact_duration"
+      ],
+      "short_name": "InteractableEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::MatchmakeEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::MatchmakeEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "MatchmakeEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::SpaceshipSelectEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::SpaceshipSelectEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "SpaceshipSelectEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::TeleporterEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::TeleporterEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TeleporterEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_client::effector::TesseractEffector": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_client::effector::TesseractEffector",
+      "properties": {},
+      "required": [],
+      "short_name": "TesseractEffector",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_common::physics::MassRigidbody": {
       "additionalProperties": false,
       "isComponent": true,
@@ -21158,88 +21229,25 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::OreType>": {
+    "lumina_shared::blueprints::ClientOnly": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::OreType>",
-      "properties": {
-        "blueprint": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::OreType"
-          }
-        },
-        "spawn_type": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::SpawnType"
-          }
-        },
-        "target": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>"
-          }
-        }
-      },
-      "required": [
-        "blueprint",
-        "spawn_type"
-      ],
-      "short_name": "BlueprintSpawner<OreType>",
+      "long_name": "lumina_shared::blueprints::ClientOnly",
+      "properties": {},
+      "required": [],
+      "short_name": "ClientOnly",
       "type": "object",
       "typeInfo": "Struct"
     },
-    "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::TesseractType>": {
+    "lumina_shared::blueprints::HierarchySync": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::blueprints::BlueprintSpawner<lumina_shared::blueprints::TesseractType>",
-      "properties": {
-        "blueprint": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::TesseractType"
-          }
-        },
-        "spawn_type": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::SpawnType"
-          }
-        },
-        "target": {
-          "type": {
-            "$ref": "#/$defs/core::option::Option<lumina_shared::blueprints::NetworkIdentityTarget>"
-          }
-        }
-      },
-      "required": [
-        "blueprint",
-        "spawn_type"
-      ],
-      "short_name": "BlueprintSpawner<TesseractType>",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::blueprints::DespawnOnSpawn": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::blueprints::DespawnOnSpawn",
-      "properties": {
-        "recursive": {
-          "type": {
-            "$ref": "#/$defs/bool"
-          }
-        },
-        "target": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::NetworkIdentityTarget"
-          }
-        }
-      },
-      "required": [
-        "target",
-        "recursive"
-      ],
-      "short_name": "DespawnOnSpawn",
+      "long_name": "lumina_shared::blueprints::HierarchySync",
+      "properties": {},
+      "required": [],
+      "short_name": "HierarchySync",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -21251,18 +21259,6 @@
         "Normal"
       ],
       "short_name": "LuminaType",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina_shared::blueprints::NetworkIdentityTarget": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina_shared::blueprints::NetworkIdentityTarget",
-      "oneOf": [
-        "Client",
-        "Server"
-      ],
-      "short_name": "NetworkIdentityTarget",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -21279,6 +21275,39 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::blueprints::ReplicateBlueprint": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::ReplicateBlueprint",
+      "properties": {},
+      "required": [],
+      "short_name": "ReplicateBlueprint",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::blueprints::ReplicateFromServer": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::ReplicateFromServer",
+      "properties": {},
+      "required": [],
+      "short_name": "ReplicateFromServer",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::blueprints::ServerOnly": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::ServerOnly",
+      "properties": {},
+      "required": [],
+      "short_name": "ServerOnly",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::blueprints::SpaceshipType": {
       "isComponent": true,
       "isResource": false,
@@ -21288,19 +21317,6 @@
         "Defender"
       ],
       "short_name": "SpaceshipType",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina_shared::blueprints::SpawnType": {
-      "isComponent": false,
-      "isResource": false,
-      "long_name": "lumina_shared::blueprints::SpawnType",
-      "oneOf": [
-        "Raw",
-        "Config",
-        "Visual"
-      ],
-      "short_name": "SpawnType",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -21327,96 +21343,55 @@
       "type": "string",
       "typeInfo": "Enum"
     },
-    "lumina_shared::effector::Effector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::Effector",
-      "properties": {
-        "collider": {
-          "type": {
-            "$ref": "#/$defs/avian2d::collision::collider::constructor::ColliderConstructor"
-          }
-        },
-        "rigidbody": {
-          "type": {
-            "$ref": "#/$defs/avian2d::dynamics::rigid_body::RigidBody"
-          }
-        }
-      },
-      "required": [
-        "rigidbody",
-        "collider"
-      ],
-      "short_name": "Effector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::EffectorPopupMsg": {
+    "lumina_shared::game::teleporter::Teleporter": {
       "isComponent": true,
       "isResource": false,
       "items": false,
-      "long_name": "lumina_shared::effector::EffectorPopupMsg",
+      "long_name": "lumina_shared::game::teleporter::Teleporter",
       "prefixItems": [
         {
           "type": {
-            "$ref": "#/$defs/alloc::string::String"
+            "$ref": "#/$defs/u32"
           }
         }
       ],
-      "short_name": "EffectorPopupMsg",
+      "short_name": "Teleporter",
       "type": "array",
       "typeInfo": "TupleStruct"
     },
-    "lumina_shared::effector::InteractableEffector": {
+    "lumina_shared::game::teleporter::TeleporterEnd": {
       "additionalProperties": false,
       "isComponent": true,
       "isResource": false,
-      "long_name": "lumina_shared::effector::InteractableEffector",
+      "long_name": "lumina_shared::game::teleporter::TeleporterEnd",
+      "properties": {},
+      "required": [],
+      "short_name": "TeleporterEnd",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::game::teleporter::TeleporterStart": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::game::teleporter::TeleporterStart",
       "properties": {
-        "interact_duration": {
+        "active_duration": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "cooldown_duration": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         }
       },
       "required": [
-        "interact_duration"
+        "active_duration",
+        "cooldown_duration"
       ],
-      "short_name": "InteractableEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::MatchmakeEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::MatchmakeEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "MatchmakeEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::SpaceshipSelectEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::SpaceshipSelectEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "SpaceshipSelectEffector",
-      "type": "object",
-      "typeInfo": "Struct"
-    },
-    "lumina_shared::effector::TesseractEffector": {
-      "additionalProperties": false,
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::effector::TesseractEffector",
-      "properties": {},
-      "required": [],
-      "short_name": "TesseractEffector",
+      "short_name": "TeleporterStart",
       "type": "object",
       "typeInfo": "Struct"
     },

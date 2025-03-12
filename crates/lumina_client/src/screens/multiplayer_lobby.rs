@@ -24,10 +24,10 @@ impl Plugin for MultiplayerLobbyPlugin {
 /// Wait for [`StartGame`] command from server.
 fn start_game(
     mut commands: Commands,
-    mut start_game_evr: EventReader<MessageEvent<StartGame>>,
+    mut evr_start_game: EventReader<MessageEvent<StartGame>>,
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
-    for _ in start_game_evr.read() {
+    for _ in evr_start_game.read() {
         // Spawn map and move in to in game screen.
         commands.spawn((MapType::AbandonedFactory.info(), SpawnBlueprint, InGameMap));
         next_screen_state.set(Screen::InGame);
@@ -35,13 +35,13 @@ fn start_game(
 }
 
 /// Spawn lobby scene.
-fn spawn_lobby(mut commands: Commands, mut transparency_evr: EventWriter<MainWindowTransparency>) {
+fn spawn_lobby(mut commands: Commands, mut evr_transparency: EventWriter<MainWindowTransparency>) {
     commands.spawn((
-        LobbyType::Multiplayer.info(),
+        MapType::Multiplayer.info(),
         SpawnBlueprint,
         MultiplayerLobby,
     ));
-    transparency_evr.send(MainWindowTransparency(1.0));
+    evr_transparency.send(MainWindowTransparency(1.0));
 }
 
 /// Despawn lobby scene.
