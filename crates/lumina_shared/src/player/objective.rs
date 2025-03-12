@@ -94,7 +94,7 @@ pub struct LuminaSpawnArea {
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ObjectiveArea {
-    /// Ores that are not mined yet ([Health] is still greater than 0.0)
+    /// Ores that are not mined yet ([`Health`] is still greater than 0.0)
     /// will stay in unused pool and vice versa.
     #[reflect(ignore)]
     pub ores: EntityPool,

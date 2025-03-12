@@ -137,21 +137,20 @@ fn setup_ores(
 /// Setup [LuminaSpawnArea] with their respective [OreType] parent.
 fn setup_lumina_spawn_area(
     mut commands: Commands,
-    q_spawn_area: Query<
-        (&Parent, Entity),
-        (With<LuminaSpawnArea>, Without<LuminaSpawnAreaInitialized>),
-    >,
+    q_spawn_area: Query<Entity, (With<LuminaSpawnArea>, Without<LuminaSpawnAreaInitialized>)>,
     q_ores: Query<(), With<OreType>>,
-    q_children: Query<&Children>,
+    q_parents: Query<&Parent>,
 ) {
-    for (parent, entity) in q_spawn_area.iter() {
-        // Find the ore that shares the same parent.
-        for child in q_children.iter_descendants(parent.get()) {
-            if q_ores.contains(child) {
-                commands.entity(child).insert(LuminaSpawnAreaTarget(entity));
+    for entity in q_spawn_area.iter() {
+        // Find the parent ore.
+        for parent in q_parents.iter_ancestors(entity) {
+            if q_ores.contains(parent) {
+                commands
+                    .entity(parent)
+                    .insert(LuminaSpawnAreaTarget(entity));
                 // Initialized, do not query for this entity again.
                 commands.entity(entity).insert(LuminaSpawnAreaInitialized);
-                // There should only be one Ore beside the LuminaSpawnArea in the hierarchy.
+                // There should only be one Ore above the LuminaSpawnArea in the hierarchy.
                 break;
             }
         }
