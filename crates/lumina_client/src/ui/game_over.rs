@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use lumina_shared::prelude::TeamType;
 use lumina_ui::prelude::*;
 use strum::IntoEnumIterator;
-// use strum
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 
@@ -39,11 +38,7 @@ fn set_game_over_values(game_stat: Res<CachedGameStat>, mut func: ResMut<GameOve
     {
         func.local_team_index = team_type as u8;
         func.team_names = TeamType::iter().map(|t| t.into()).collect();
-
-        func.team_scores = match team_type {
-            TeamType::A => vec![game_score.score, game_score.max_score - game_score.score],
-            TeamType::B => vec![game_score.max_score - game_score.score, game_score.score],
-        };
+        func.team_scores = vec![game_score.score, game_score.max_score - game_score.score];
     }
 }
 
