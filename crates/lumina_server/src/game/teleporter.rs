@@ -66,7 +66,15 @@ fn teleport_player(
 
 /// Add teleporter info.
 fn setup_teleporter_info(
-    q_teleporters: Query<(&Teleporter, &WorldIdx, Entity), (Added<WorldIdx>, With<TeleporterEnd>)>,
+    mut commands: Commands,
+    q_teleporters: Query<
+        (&Teleporter, &WorldIdx, Entity),
+        (
+            With<WorldIdx>,
+            With<TeleporterEnd>,
+            Without<TeleporterEndInitialized>,
+        ),
+    >,
     mut infos: ResMut<TeleporterInfos>,
 ) {
     for (teleporter, world_id, entity) in q_teleporters.iter() {
@@ -80,6 +88,8 @@ fn setup_teleporter_info(
                 TeleporterInfo([(*teleporter, entity)].into()),
             );
         }
+
+        commands.entity(entity).insert(TeleporterEndInitialized);
     }
 }
 
@@ -100,3 +110,8 @@ pub struct TeleporterInfos(HashMap<RoomId, TeleporterInfo>);
 /// Maps [`Teleporter`] ID to [`TeleporterEnd`].
 #[derive(Deref, DerefMut, Default)]
 pub struct TeleporterInfo(HashMap<Teleporter, Entity>);
+
+/// Marker for [`Teleporter`]s that are initialized into
+/// the [`TeleporterInfos`].
+#[derive(Component)]
+pub struct TeleporterEndInitialized;
