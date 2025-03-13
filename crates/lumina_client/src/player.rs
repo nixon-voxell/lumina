@@ -35,7 +35,12 @@ impl Plugin for PlayerPlugin {
             )
             .add_systems(
                 Update,
-                (set_physics_world::<RigidBody>, set_physics_world::<Weapon>),
+                (
+                    set_physics_world::<RigidBody>,
+                    set_physics_world::<Weapon>,
+                    // For spawn point cache to work.
+                    set_physics_world::<SpawnPointParent>,
+                ),
             );
     }
 }

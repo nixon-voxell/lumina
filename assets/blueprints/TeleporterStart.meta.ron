@@ -2,11 +2,11 @@
   assets:
    [ 
     ("TeleporterHead", File ( path: "blueprints/TeleporterHead.glb" )),
-    ("BeltPurple3.002", File ( path: "materials/BeltPurple3.002.glb" )),
-    ("BeltBlack1.002", File ( path: "materials/BeltBlack1.002.glb" )),
     ("BeltPurple4.002", File ( path: "materials/BeltPurple4.002.glb" )),
-    ("BeltRed1.002", File ( path: "materials/BeltRed1.002.glb" )),
-    ("BeltPurple1.002", File ( path: "materials/BeltPurple1.002.glb" )),
     ("BeltPurple2.002", File ( path: "materials/BeltPurple2.002.glb" )),
+    ("BeltBlack1.002", File ( path: "materials/BeltBlack1.002.glb" )),
+    ("BeltPurple3.002", File ( path: "materials/BeltPurple3.002.glb" )),
+    ("BeltPurple1.002", File ( path: "materials/BeltPurple1.002.glb" )),
+    ("BeltRed1.002", File ( path: "materials/BeltRed1.002.glb" )),
    ]
 )

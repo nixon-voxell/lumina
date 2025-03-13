@@ -199,6 +199,15 @@ pub struct Playback {
     pub time: f32,
 }
 
+impl Linear for Playback {
+    fn lerp(start: &Self, other: &Self, t: f32) -> Self {
+        Self {
+            time_scale: start.time_scale.lerp(other.time_scale, t),
+            time: start.time.lerp(other.time, t),
+        }
+    }
+}
+
 #[derive(Reflect, Serialize, Deserialize, PartialEq)]
 pub enum RepeatMode {
     /// Do not repeat.
