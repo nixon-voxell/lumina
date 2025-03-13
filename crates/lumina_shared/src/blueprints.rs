@@ -114,6 +114,7 @@ pub enum TesseractType {
     Tesseract,
 }
 
+// TODO: Move this into objective instead.
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 #[strum(prefix = "levels/ores/")]

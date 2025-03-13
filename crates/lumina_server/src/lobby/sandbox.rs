@@ -16,7 +16,7 @@ pub(crate) struct SandboxPlugin;
 
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (handle_enter_sandbox, manage_sandbox_areas));
+        app.add_systems(Update, (handle_enter_sandbox, manage_objective_areas));
     }
 }
 
@@ -73,7 +73,7 @@ fn handle_enter_sandbox(
 }
 
 /// Reset sandbox objectives 5 seconds after they are depleted.
-fn manage_sandbox_areas(
+fn manage_objective_areas(
     mut commands: Commands,
     // Manage sandbox managers only.
     q_manager: Query<&ObjectiveAreaManager, With<Sandbox>>,

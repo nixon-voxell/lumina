@@ -255,7 +255,7 @@ fn reset_objective_area(
     time: Res<Time>,
 ) {
     for (mut area, mut reset, area_entity) in q_areas.iter_mut() {
-        if reset.tick(time.delta()).finished() {
+        if reset.finished() {
             // Reset all ores' health to max health in this area.
             for &ore_entity in area.ores.used().iter() {
                 if let Ok((mut health, max_health)) = q_ores.get_mut(ore_entity) {
@@ -268,7 +268,10 @@ fn reset_objective_area(
             // Objective area has been reset, no longer needs to be keep tracked.
             commands.entity(area_entity).remove::<ResetObjectiveArea>();
             area.ores.set_all_unused();
+            continue;
         }
+
+        reset.tick(time.delta());
     }
 }
 

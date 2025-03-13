@@ -44,7 +44,7 @@ impl WorldIdx {
     pub fn room_id(&self) -> RoomId {
         match **self {
             Some(entity) => entity.room_id(),
-            None => RoomId(0),
+            None => Entity::PLACEHOLDER.room_id(),
         }
     }
 }

@@ -11,8 +11,15 @@ pub(super) struct AnimatorPlugin;
 
 impl Plugin for AnimatorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, (advance_animator, track_delay_timer))
-            .add_systems(Update, (init_animation_player, update_animation_player));
+        app.add_systems(
+            FixedUpdate,
+            (
+                advance_animator,
+                track_delay_timer,
+                update_animation_physics,
+            ),
+        )
+        .add_systems(Update, (init_animation_player, update_animation_player));
     }
 }
 
@@ -48,28 +55,12 @@ fn update_animation_player(
         &BlueprintAnimationPlayerLink,
         &BlueprintAnimations,
     )>,
-    mut q_players: Query<(
-        &mut AnimationPlayer,
-        Option<&Position>,
-        Option<&Rotation>,
-        Option<&mut LinearVelocity>,
-        Option<&mut AngularVelocity>,
-        &GlobalTransform,
-    )>,
+    mut q_players: Query<&mut AnimationPlayer>,
     fixed_time: Res<Time<Fixed>>,
 ) {
-    const VELOCITY_DAMP: f32 = 0.88;
     let overstep_frac = fixed_time.overstep_fraction();
     for (animator, link, animations) in q_animators.iter() {
-        let Ok((
-            mut player,
-            position,
-            rotation,
-            linear_velocity,
-            angular_velocity,
-            global_transform,
-        )) = q_players.get_mut(link.0)
-        else {
+        let Ok(mut player) = q_players.get_mut(link.0) else {
             continue;
         };
 
@@ -82,25 +73,32 @@ fn update_animation_player(
                 .play(index)
                 .seek_to(animator.prev_time.lerp(animator.time, overstep_frac));
         }
+    }
+}
 
-        // Move the physics object as well if it exists.
-        if let (
-            Some(position),
-            Some(rotation),
-            Some(mut linear_velocity),
-            Some(mut angular_velocity),
-        ) = (position, rotation, linear_velocity, angular_velocity)
-        {
-            let transform = global_transform.compute_transform();
+fn update_animation_physics(
+    mut q_players: Query<
+        (
+            &Position,
+            &mut Rotation,
+            &mut LinearVelocity,
+            &GlobalTransform,
+        ),
+        With<AnimationPlayer>,
+    >,
+    time: Res<Time<Fixed>>,
+) {
+    const VELOCITY_DAMP: f32 = 0.8;
+    let delta_seconds = time.delta_seconds();
 
-            // Damp the velocities.
-            linear_velocity.0 = (transform.translation.xy() - position.0)
-                / fixed_time.delta_seconds()
-                * VELOCITY_DAMP;
-            angular_velocity.0 = (transform.rotation.to_scaled_axis().z - rotation.as_radians())
-                / fixed_time.delta_seconds()
-                * VELOCITY_DAMP;
-        }
+    for (position, mut rotation, mut linear_velocity, global_transform) in q_players.iter_mut() {
+        let transform = global_transform.compute_transform();
+
+        // Damp the velocities.
+        linear_velocity.0 =
+            ((transform.translation.xy() - position.0) / delta_seconds) * VELOCITY_DAMP;
+        // Directly manipulate rotations.
+        *rotation = Rotation::radians(transform.rotation.to_scaled_axis().z);
     }
 }
 
@@ -199,6 +197,15 @@ pub struct Playback {
     pub time_scale: f32,
     /// The current playback time, tweak this to seek the animator.
     pub time: f32,
+}
+
+impl Linear for Playback {
+    fn lerp(start: &Self, other: &Self, t: f32) -> Self {
+        Self {
+            time_scale: start.time_scale.lerp(other.time_scale, t),
+            time: start.time.lerp(other.time, t),
+        }
+    }
 }
 
 #[derive(Reflect, Serialize, Deserialize, PartialEq)]

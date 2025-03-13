@@ -1,7 +1,8 @@
 use avian2d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use server::*;
 use strum::{AsRefStr, EnumCount, EnumIter, IntoStaticStr};
 
 use super::prelude::*;
@@ -10,7 +11,9 @@ pub(super) struct SpawnPointPlugin;
 
 impl Plugin for SpawnPointPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, init_spawn_point_to_parent)
+        app.init_resource::<SpawnPointParentCache>()
+            .add_systems(Update, init_spawn_point_to_parent)
+            .add_systems(Update, cache_spawn_point)
             .add_systems(
                 PostUpdate,
                 init_spaceships_at_spawn_points.after(TransformSystem::TransformPropagate),
@@ -18,6 +21,16 @@ impl Plugin for SpawnPointPlugin {
             .observe(on_add_spawned)
             .observe(on_remove_spawned)
             .observe(on_spawn_point_freed);
+    }
+}
+
+/// Cache the [`SpawnPoint`]s.
+fn cache_spawn_point(
+    q_spawn_points: Query<(&WorldIdx, Entity), (With<SpawnPointParent>, Added<WorldIdx>)>,
+    mut cache: ResMut<SpawnPointParentCache>,
+) {
+    for (world_idx, entity) in q_spawn_points.iter() {
+        cache.insert(world_idx.room_id(), entity);
     }
 }
 
@@ -33,6 +46,7 @@ fn init_spaceships_at_spawn_points(
             &PlayerId,
             Option<&TeamType>,
             Entity,
+            &WorldIdx,
         ),
         (
             With<Spaceship>,
@@ -41,18 +55,18 @@ fn init_spaceships_at_spawn_points(
         ),
     >,
     network_identity: NetworkIdentity,
+    cache: Res<SpawnPointParentCache>,
 ) {
-    #[cfg(debug_assertions)]
-    if q_spawn_parents.iter().len() > 1 {
-        error!("More than 1 spawn parents exists!");
-    }
+    for (mut position, mut rotation, id, team_type, spaceship_entity, world_id) in
+        q_spaceship.iter_mut()
+    {
+        let Some(mut spawn_parent) = cache
+            .get(&world_id.room_id())
+            .and_then(|&e| q_spawn_parents.get_mut(e).ok())
+        else {
+            continue;
+        };
 
-    // There should always only be one spawn parent at a single scene.
-    let Ok(mut spawn_parent) = q_spawn_parents.get_single_mut() else {
-        return;
-    };
-
-    for (mut position, mut rotation, id, team_type, spaceship_entity) in q_spaceship.iter_mut() {
         // If we are in multiplayer mode, let the server handle the spawn position.
         if id.is_local() == false && network_identity.is_client() {
             return;
@@ -213,3 +227,10 @@ pub struct SpawnPointUsed(pub Entity);
 /// this component and remember which spawn point it has consumed.
 #[derive(Component, Deref)]
 pub struct SpawnPointEntity(pub Entity);
+
+/// Cahce the entities of the [`SpawnPointParent`]
+/// to their [`RoomId`].
+///
+/// Local clients should only have 1 cache.
+#[derive(Resource, Deref, DerefMut, Default)]
+pub struct SpawnPointParentCache(HashMap<RoomId, Entity>);

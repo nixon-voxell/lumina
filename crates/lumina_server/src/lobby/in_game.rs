@@ -5,13 +5,18 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
+use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
+
 use super::{LobbyFull, LobbyInGame};
 
 pub(super) struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (start_countdown, start_game));
+        app.add_systems(
+            Update,
+            (start_countdown, start_game, manage_objective_areas),
+        );
     }
 }
 
@@ -61,6 +66,33 @@ fn start_game(
             }
 
             info!("Game started for lobby {entity}!");
+        }
+    }
+}
+
+// TODO: Needs better management, and only open when one area at a time...
+fn manage_objective_areas(
+    mut commands: Commands,
+    // Manage sandbox managers only.
+    q_manager: Query<&ObjectiveAreaManager, With<LobbyInGame>>,
+    // Do no reset already resetting areas.
+    q_areas: Query<&ObjectiveArea, Without<ResetObjectiveArea>>,
+) {
+    for manager in q_manager.iter() {
+        for area_entity in manager.areas.iter() {
+            if let Ok(area) = q_areas.get(*area_entity) {
+                let depleted = area.ores.unused().is_empty();
+
+                if depleted {
+                    // Reset in 5 seconds.
+                    commands
+                        .entity(*area_entity)
+                        .insert(ResetObjectiveArea(Timer::from_seconds(
+                            20.0,
+                            TimerMode::Once,
+                        )));
+                }
+            }
         }
     }
 }

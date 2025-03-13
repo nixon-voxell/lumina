@@ -9,6 +9,8 @@ mod in_game;
 mod matchmaking;
 mod sandbox;
 
+use crate::player::objective::ObjectiveAreaManager;
+
 use super::LobbyInfos;
 
 pub(super) struct LobbyPlugin;
@@ -136,6 +138,7 @@ pub(super) struct LobbyBundle {
     pub seed: LobbySeed,
     pub world_id: WorldIdx,
     pub spatial: SpatialBundle,
+    pub objective_manager: ObjectiveAreaManager,
 }
 
 impl LobbyBundle {
@@ -146,6 +149,7 @@ impl LobbyBundle {
             seed: LobbySeed(seed),
             world_id: WorldIdx::from_entity(world_entity),
             spatial: SpatialBundle::default(),
+            objective_manager: ObjectiveAreaManager::default(),
         }
     }
 }
