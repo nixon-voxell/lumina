@@ -15,6 +15,7 @@ use leafwing_input_manager::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
+use lumina_vfx::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
 use super::player::LocalPlayerInfo;
@@ -26,12 +27,10 @@ impl Plugin for CameraPlugin {
         app.add_plugins(bevy_radiance_cascades::FlatlandGiPlugin)
             .init_resource::<CameraZoom>()
             .init_resource::<CameraShake>()
-            .add_systems(Startup, (spawn_game_camera, spawn_main_pass_camera))
+            .add_systems(Startup, spawn_game_camera)
             .add_systems(
                 Update,
                 (
-                    replicate_prepass_camera_components,
-                    update_main_prepass_texture,
                     follow_spaceship,
                     camera_zoom,
                     spaceship_velocity_zoom_shake,
@@ -50,45 +49,45 @@ impl Plugin for CameraPlugin {
 }
 
 /// Spawn camera for game rendering (default to render layer 0).
-fn spawn_game_camera(mut commands: Commands) {
-    let mut bloom = BloomSettings::NATURAL;
-    bloom.intensity = 0.2;
-
-    commands.spawn((
-        Name::new("Game Camera"),
-        GameCamera,
-        RenderLayers::from_layers(&[0, 2]),
-        Camera2dBundle {
-            camera: Camera {
-                clear_color: Color::NONE.into(),
-                hdr: true,
-                ..default()
-            },
-            projection: OrthographicProjection {
-                near: -500.0,
-                far: 500.0,
-                scaling_mode: ScalingMode::AutoMax {
-                    max_width: 1280.0,
-                    max_height: 720.0,
-                },
-                ..default()
-            },
-            tonemapping: Tonemapping::TonyMcMapface,
-            deband_dither: DebandDither::Enabled,
-            ..default()
-        },
-        bloom,
-        SmaaSettings::default(),
-        RadianceCascadesConfig::default(),
-        SpatialListener::new(400.0),
-    ));
-}
-
-fn spawn_main_pass_camera(
+fn spawn_game_camera(
     mut commands: Commands,
     q_window: Query<&Window, With<PrimaryWindow>>,
     mut images: ResMut<Assets<Image>>,
 ) {
+    let mut bloom = BloomSettings::NATURAL;
+    bloom.intensity = 0.2;
+
+    let main_camera = commands
+        .spawn((
+            Name::new("Game Camera"),
+            GameCamera,
+            RenderLayers::from_layers(&[0, 2]),
+            Camera2dBundle {
+                camera: Camera {
+                    clear_color: Color::NONE.into(),
+                    hdr: true,
+                    ..default()
+                },
+                projection: OrthographicProjection {
+                    near: -500.0,
+                    far: 500.0,
+                    scaling_mode: ScalingMode::AutoMax {
+                        max_width: 1280.0,
+                        max_height: 720.0,
+                    },
+                    ..default()
+                },
+                tonemapping: Tonemapping::TonyMcMapface,
+                deband_dither: DebandDither::Enabled,
+                ..default()
+            },
+            bloom,
+            SmaaSettings::default(),
+            RadianceCascadesConfig::default(),
+            SpatialListener::new(400.0),
+        ))
+        .id();
+
     let window = q_window.single();
     let size = Extent3d {
         width: window.width() as u32,
@@ -118,7 +117,7 @@ fn spawn_main_pass_camera(
 
     commands.spawn((
         Name::new("Main Prepass Camera"),
-        MainPrepassCamera,
+        MainPrepassCamera(main_camera),
         RenderLayers::layer(0),
         Camera2dBundle {
             camera: Camera {
@@ -132,70 +131,7 @@ fn spawn_main_pass_camera(
         },
     ));
 
-    commands.insert_resource(MainPrepassTexture {
-        image_handle,
-        size: window.size(),
-    });
-}
-
-/// Replicate [`OrthographicProjection`] & [`Transform`] of [`GameCamera`] to [`MainPrepassCamera`].
-fn replicate_prepass_camera_components(
-    q_game_camera: Query<
-        (&OrthographicProjection, &Transform),
-        (
-            Or<(Changed<OrthographicProjection>, Changed<Transform>)>,
-            With<GameCamera>,
-            Without<MainPrepassCamera>,
-        ),
-    >,
-    mut q_prepass_camera: Query<
-        (&mut OrthographicProjection, &mut Transform),
-        (With<MainPrepassCamera>, Without<GameCamera>),
-    >,
-) {
-    if let (
-        Ok((game_projection, game_transform)),
-        Ok((mut prepass_projection, mut prepass_transform)),
-    ) = (
-        q_game_camera.get_single(),
-        q_prepass_camera.get_single_mut(),
-    ) {
-        *prepass_projection = game_projection.clone();
-        *prepass_transform = *game_transform;
-    }
-}
-
-fn update_main_prepass_texture(
-    q_window: Query<&Window, (Changed<Window>, With<PrimaryWindow>)>,
-    mut q_camera: Query<&mut Camera, With<MainPrepassCamera>>,
-    mut prepass_texture: ResMut<MainPrepassTexture>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    let (Ok(window), Ok(mut camera)) = (q_window.get_single(), q_camera.get_single_mut()) else {
-        return;
-    };
-
-    if prepass_texture.size != window.size() {
-        prepass_texture.size = window.size();
-        // Skip resizing texture if it's too small.
-        if window.width() <= f32::EPSILON || window.height() <= f32::EPSILON {
-            return;
-        }
-
-        if let Some(mut image) = images.remove(prepass_texture.image_handle()) {
-            let size = Extent3d {
-                width: window.width() as u32,
-                height: window.height() as u32,
-                ..default()
-            };
-
-            image.resize(size);
-
-            let image_handle = images.add(image);
-            camera.target = image_handle.clone_weak().into();
-            prepass_texture.image_handle = image_handle;
-        }
-    }
+    commands.insert_resource(MainPrepassTexture::new(image_handle, window.size()));
 }
 
 fn follow_spaceship(
@@ -206,7 +142,7 @@ fn follow_spaceship(
     local_player_info: LocalPlayerInfo,
     mut aim_offset: Local<Vec2>,
 ) {
-    const FOLLOW_FACTOR: f32 = 40.0;
+    const FOLLOW_FACTOR: f32 = 20.0;
     const AIM_FACTOR: f32 = 2.0;
     const AIM_DISTANCE: f32 = 200.0;
 
@@ -424,18 +360,3 @@ impl CameraShake {
 
 #[derive(Component)]
 pub(super) struct GameCamera;
-
-#[derive(Component)]
-pub(super) struct MainPrepassCamera;
-
-#[derive(Resource)]
-pub(super) struct MainPrepassTexture {
-    image_handle: Handle<Image>,
-    size: Vec2,
-}
-
-impl MainPrepassTexture {
-    pub fn image_handle(&self) -> &Handle<Image> {
-        &self.image_handle
-    }
-}

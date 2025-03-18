@@ -22114,11 +22114,6 @@
             "$ref": "#/$defs/bevy_color::linear_rgba::LinearRgba"
           }
         },
-        "screen_texture": {
-          "type": {
-            "$ref": "#/$defs/bevy_asset::handle::Handle<bevy_render::texture::image::Image>"
-          }
-        },
         "time": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -22128,8 +22123,7 @@
       "required": [
         "color0",
         "color1",
-        "time",
-        "screen_texture"
+        "time"
       ],
       "short_name": "HealAbilityMaterial",
       "type": "object",

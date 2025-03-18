@@ -2,11 +2,13 @@ use bevy::prelude::*;
 use bevy::render::render_resource::*;
 use bevy_enoki::prelude::*;
 
+mod main_prepass;
 mod material2d;
 mod particle;
 mod type_registry;
 
 pub mod prelude {
+    pub use crate::main_prepass::{MainPrepassCamera, MainPrepassTexture};
     pub use crate::material2d::{BoosterMaterial, HealAbilityMaterial};
     pub use crate::particle::{AmmoHitMaterial, MuzzleFlashMaterial};
     pub use crate::particle::{DespawnVfx, DespawnVfxEffects, DespawnVfxType};
@@ -20,6 +22,7 @@ pub struct VfxPlugin;
 impl Plugin for VfxPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            main_prepass::MainPrepassPlugin,
             material2d::Material2dVfxPlugin,
             particle::ParticleVfxPlugin,
             type_registry::TypeRegistryPlugin,
