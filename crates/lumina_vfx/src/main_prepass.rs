@@ -63,7 +63,8 @@ fn update_prepass_image<T: PrepassComponent>(
     }
 }
 
-/// Replicate [`OrthographicProjection`] & [`Transform`] of [`GameCamera`] to [`MainPrepassCamera`].
+/// Replicate main camera's [`OrthographicProjection`] & [`Transform`]
+/// to [`MainPrepassCamera`].
 fn replicate_prepass_camera_components(
     q_main_camera: Query<
         (&OrthographicProjection, &Transform),
