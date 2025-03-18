@@ -1,3 +1,8 @@
+cd crates\lumina_shared
+mklink /J assets\ ..\..\assets\
+
+cd ../..
+
 cd crates\lumina_client
 mklink /J assets\ ..\..\assets\
 
