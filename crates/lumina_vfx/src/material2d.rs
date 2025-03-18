@@ -6,6 +6,7 @@ use bevy::render::render_resource::*;
 use bevy::sprite::{Material2d, Material2dKey, Material2dPlugin};
 use lumina_common::prelude::*;
 
+use crate::main_prepass::{MainPrepassComponentPlugin, PrepassComponent};
 use crate::BLEND_ADD;
 
 pub(super) struct Material2dVfxPlugin;
@@ -16,6 +17,7 @@ impl Plugin for Material2dVfxPlugin {
             material_from_component_plugin::<BoosterMaterial>,
             // material_from_component_plugin::<PortalMaterial>,
             material_from_component_plugin::<HealAbilityMaterial>,
+            MainPrepassComponentPlugin::<HealAbilityMaterial>::default(),
         ));
     }
 }
@@ -29,9 +31,23 @@ pub struct HealAbilityMaterial {
     pub color1: LinearRgba,
     #[uniform(2)]
     pub time: f32,
+    #[reflect(ignore)]
     #[texture(3)]
     #[sampler(4)]
     pub screen_texture: Handle<Image>,
+    #[reflect(ignore)]
+    #[uniform(5)]
+    pub camera_scale: f32,
+}
+
+impl PrepassComponent for HealAbilityMaterial {
+    fn image_mut(&mut self) -> &mut Handle<Image> {
+        &mut self.screen_texture
+    }
+
+    fn camera_scale_mut(&mut self) -> &mut f32 {
+        &mut self.camera_scale
+    }
 }
 
 impl Material2d for HealAbilityMaterial {

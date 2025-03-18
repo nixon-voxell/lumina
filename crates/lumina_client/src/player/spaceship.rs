@@ -14,8 +14,6 @@ use lumina_shared::action::ReplicateActionBundle;
 use lumina_shared::prelude::*;
 use lumina_vfx::prelude::*;
 
-use crate::camera::MainPrepassTexture;
-
 use super::{CachedGameStat, LocalPlayerId};
 
 pub(super) struct SpaceshipPlugin;
@@ -32,7 +30,6 @@ impl Plugin for SpaceshipPlugin {
                     init_shadow_vfx.after(Convert3dTo2dSet),
                     apply_shadow_vfx,
                     init_heal_vfx,
-                    update_heal_prepass_texture.run_if(resource_changed::<MainPrepassTexture>),
                     apply_heal_vfx_effect,
                     apply_heal_vfx_cooldown,
                     update_heal_vfx,
@@ -161,6 +158,7 @@ fn init_heal_vfx(
                     color1: color_palette.blue.to_linear() * 2.0,
                     time: 0.0,
                     screen_texture: prepass_texture.image_handle().clone_weak(),
+                    camera_scale: 1.0,
                 },
                 RenderLayers::layer(2),
             ))
@@ -171,15 +169,6 @@ fn init_heal_vfx(
             entity: vfx_entity,
             time: 0.0,
         });
-    }
-}
-
-fn update_heal_prepass_texture(
-    mut q_heal_ability_mats: Query<&mut HealAbilityMaterial>,
-    prepass_texture: Res<MainPrepassTexture>,
-) {
-    for mut material in q_heal_ability_mats.iter_mut() {
-        material.screen_texture = prepass_texture.image_handle().clone_weak();
     }
 }
 

@@ -121,6 +121,7 @@ fn setup_vfx(
             color1: LinearRgba::BLUE,
             time: 0.0,
             screen_texture: camera_texture.0.clone_weak(),
+            camera_scale: 1.0,
         },
         RenderLayers::layer(2),
     ));

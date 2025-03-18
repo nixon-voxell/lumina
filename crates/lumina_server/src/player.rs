@@ -4,10 +4,13 @@ use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_shared::player::spawn_point::SpawnPointParentCache;
 use lumina_shared::prelude::*;
 use lumina_shared::protocol::SelectSpaceship;
 
 use server::*;
+
+use crate::lobby::LobbyRemoval;
 
 use super::lobby::Lobby;
 use super::LobbyInfos;
@@ -32,7 +35,11 @@ impl Plugin for PlayerPlugin {
             )
             .add_systems(
                 Update,
-                (handle_spaceship_selection, remove_spaceship_selection),
+                (
+                    handle_spaceship_selection,
+                    remove_spaceship_selection,
+                    clear_unused_spawn_points,
+                ),
             )
             .observe(spawn_players);
     }
@@ -203,6 +210,15 @@ fn replicate_actions(
         for client_id in lobby.iter().filter(|id| *id != client_id) {
             let _ = connection.send_message::<InputChannel, _>(*client_id, inputs);
         }
+    }
+}
+
+fn clear_unused_spawn_points(
+    mut evr_lobby_removal: EventReader<LobbyRemoval>,
+    mut cache: ResMut<SpawnPointParentCache>,
+) {
+    for LobbyRemoval(room_id) in evr_lobby_removal.read() {
+        cache.remove(room_id);
     }
 }
 
