@@ -167,7 +167,7 @@
             }
 
             move(
-              dy: if i < data.reload_size {
+              dy: if i < data.reload_size or ((i - data.magazine) < data.reload_size){
                 0em
               } else {
                 0.7em
