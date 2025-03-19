@@ -102,16 +102,22 @@ fn weapon_magazine_tracker(
             With<SourceEntity>,
         ),
     >,
+    q_reload: Query<Entity, With<WeaponReload>>,
 ) {
     for (weapon_stat, weapon, entity) in q_weapons.iter() {
         if weapon_stat.magazine > 0 {
             continue;
         }
 
+        // Check if entity is already reloading
+        if q_reload.get(entity).is_ok() {
+            continue;
+        }
+
         // If magazine is empty, trigger a full reload
         commands.entity(entity).insert(WeaponReload {
             timer: Timer::from_seconds(weapon.reload_duration(), TimerMode::Once),
-            bullets_to_reload: weapon.magazine_size(), // Full reload
+            bullets_to_reload: weapon.magazine_size(),
         });
     }
 }
