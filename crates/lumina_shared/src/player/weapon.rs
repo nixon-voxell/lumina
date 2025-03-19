@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
-use std::ops::{Deref, DerefMut};
 
 use crate::action::PlayerAction;
 use crate::blueprints::AmmoType;
@@ -338,22 +337,9 @@ impl WeaponStat {
 }
 
 /// Reload timer based on [`Weapon::reload_duration()`].
-#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct WeaponReload {
-    pub timer: Timer,           // Reload timer
+    #[deref]
+    pub timer: Timer, // Reload timer
     pub bullets_to_reload: u32, // Number of bullets to reload
-}
-
-impl Deref for WeaponReload {
-    type Target = Timer;
-
-    fn deref(&self) -> &Self::Target {
-        &self.timer
-    }
-}
-
-impl DerefMut for WeaponReload {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.timer
-    }
 }
