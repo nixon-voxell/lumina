@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use std::ops::{Deref, DerefMut};
 
 use crate::action::PlayerAction;
 use crate::blueprints::AmmoType;
@@ -22,6 +23,7 @@ impl Plugin for WeaponPlugin {
                     weapon_magazine_tracker,
                     weapon_reload,
                     weapon_recharge,
+                    weapon_manual_reload,
                     (weapon_direction, weapon_attack).chain(),
                 ),
             )
@@ -106,12 +108,11 @@ fn weapon_magazine_tracker(
             continue;
         }
 
-        commands
-            .entity(entity)
-            .insert(WeaponReload(Timer::from_seconds(
-                weapon.reload_duration,
-                TimerMode::Once,
-            )));
+        // If magazine is empty, trigger a full reload
+        commands.entity(entity).insert(WeaponReload {
+            timer: Timer::from_seconds(weapon.reload_duration(), TimerMode::Once),
+            bullets_to_reload: weapon.magazine_size(), // Full reload
+        });
     }
 }
 
@@ -121,12 +122,52 @@ fn weapon_reload(
     time: Res<Time>,
 ) {
     for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
-        if reload.finished() {
+        if reload.timer.finished() {
+            // Add only the bullets that were missing
+            stat.magazine += reload.bullets_to_reload;
+
+            // Ensure magazine never exceeds weapon's max size
+            if stat.magazine > weapon.magazine_size() {
+                stat.magazine = weapon.magazine_size();
+            }
+
+            // Remove the reload component since reloading is done
             commands.entity(entity).remove::<WeaponReload>();
-            stat.reload(weapon);
         }
 
-        reload.tick(time.delta());
+        reload.timer.tick(time.delta());
+    }
+}
+
+fn weapon_manual_reload(
+    mut commands: Commands,
+    q_actions: Query<
+        (&ActionState<PlayerAction>, &PlayerId),
+        (Without<WeaponReload>, With<SourceEntity>),
+    >,
+    q_weapons: Query<(Entity, &WeaponStat, &Weapon), (Without<WeaponReload>, With<SourceEntity>)>,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (action, id) in q_actions.iter() {
+        if action.just_pressed(&PlayerAction::Reload) {
+            if let Some((entity, weapon_stat, weapon)) = player_infos[PlayerInfoType::Weapon]
+                .get(id)
+                .and_then(|e| q_weapons.get(*e).ok())
+            {
+                let missing_bullets = weapon.magazine_size() - weapon_stat.magazine();
+
+                if missing_bullets > 0 {
+                    let reload_time_per_bullet =
+                        weapon.reload_duration() / weapon.magazine_size() as f32;
+                    let total_reload_time = reload_time_per_bullet * missing_bullets as f32;
+
+                    commands.entity(entity).insert(WeaponReload {
+                        timer: Timer::from_seconds(total_reload_time, TimerMode::Once),
+                        bullets_to_reload: missing_bullets,
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -289,5 +330,22 @@ impl WeaponStat {
 }
 
 /// Reload timer based on [`Weapon::reload_duration()`].
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct WeaponReload(Timer);
+#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct WeaponReload {
+    pub timer: Timer,           // Reload timer
+    pub bullets_to_reload: u32, // Number of bullets to reload
+}
+
+impl Deref for WeaponReload {
+    type Target = Timer;
+
+    fn deref(&self) -> &Self::Target {
+        &self.timer
+    }
+}
+
+impl DerefMut for WeaponReload {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.timer
+    }
+}
