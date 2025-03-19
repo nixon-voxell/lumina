@@ -128,20 +128,16 @@ fn weapon_reload(
     time: Res<Time>,
 ) {
     for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
+        reload.timer.tick(time.delta());
+
         if reload.timer.finished() {
             // Add only the bullets that were missing
             stat.magazine += reload.bullets_to_reload;
-
-            // Ensure magazine never exceeds weapon's max size
-            if stat.magazine > weapon.magazine_size() {
-                stat.magazine = weapon.magazine_size();
-            }
+            stat.magazine = stat.magazine.min(weapon.magazine_size());
 
             // Remove the reload component since reloading is done
             commands.entity(entity).remove::<WeaponReload>();
         }
-
-        reload.timer.tick(time.delta());
     }
 }
 
@@ -149,13 +145,14 @@ fn weapon_manual_reload(
     mut commands: Commands,
     q_actions: Query<
         (&ActionState<PlayerAction>, &PlayerId),
-        (Without<WeaponReload>, With<SourceEntity>),
+        (With<SourceEntity>, Without<WeaponReload>),
     >,
-    q_weapons: Query<(Entity, &WeaponStat, &Weapon), (Without<WeaponReload>, With<SourceEntity>)>,
+    q_weapons: Query<(Entity, &WeaponStat, &Weapon), (With<SourceEntity>, Without<WeaponReload>)>,
+    q_reload: Query<Entity, With<WeaponReload>>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
-        if action.just_pressed(&PlayerAction::Reload) {
+        if action.pressed(&PlayerAction::Reload) {
             if let Some((entity, weapon_stat, weapon)) = player_infos[PlayerInfoType::Weapon]
                 .get(id)
                 .and_then(|e| q_weapons.get(*e).ok())
@@ -166,6 +163,11 @@ fn weapon_manual_reload(
                     let reload_time_per_bullet =
                         weapon.reload_duration() / weapon.magazine_size() as f32;
                     let total_reload_time = reload_time_per_bullet * missing_bullets as f32;
+
+                    // Check if reload is already in progress
+                    if q_reload.get(entity).is_ok() {
+                        continue;
+                    }
 
                     commands.entity(entity).insert(WeaponReload {
                         timer: Timer::from_seconds(total_reload_time, TimerMode::Once),
