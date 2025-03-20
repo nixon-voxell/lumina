@@ -31,27 +31,28 @@ fn despawn_client_only(mut commands: Commands, q_entities: Query<Entity, Added<C
 fn replicate_from_server(
     mut commands: Commands,
     mut q_entities: Query<
-        (&WorldIdx, Entity),
-        (
-            With<ReplicateFromServer>,
-            Without<SyncTarget>,
-            Without<BlueprintSpawning>,
-        ),
+        (&ReplicateFromServer, &WorldIdx, Option<&PlayerId>, Entity),
+        (Without<SyncTarget>, Without<BlueprintSpawning>),
     >,
     q_children: Query<&Children>,
     q_sync_filter: Query<(), With<HierarchySync>>,
     mut room_manager: ResMut<RoomManager>,
 ) {
-    for (world_id, entity) in q_entities.iter_mut() {
+    for (replicate, world_id, player_id, entity) in q_entities.iter_mut() {
+        // Will be controlled by player id if it exists.
+        let target = player_id
+            .map(|&id| NetworkTarget::Single(id.0))
+            .unwrap_or_default();
+
         commands
             .entity(entity)
             .insert(Replicate {
                 sync: SyncTarget {
-                    prediction: NetworkTarget::All,
-                    interpolation: NetworkTarget::All,
+                    prediction: replicate.prediction_target(),
+                    interpolation: replicate.interpolation_target(),
                 },
                 controlled_by: ControlledBy {
-                    target: NetworkTarget::None,
+                    target,
                     ..default()
                 },
                 relevance_mode: NetworkRelevanceMode::InterestManagement,

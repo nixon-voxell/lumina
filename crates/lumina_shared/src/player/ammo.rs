@@ -17,14 +17,10 @@ impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<RefEntityMap<AmmoType>>()
             .init_resource::<EntityPools<AmmoType>>()
-            .add_event::<FireAmmo>()
-            .add_event::<AmmoHit>()
             .add_systems(Startup, spawn_ammo_ref)
             .add_systems(Update, setup_ammmo_ref)
-            .add_systems(
-                FixedUpdate,
-                (fire_ammo, (ammo_collision, track_ammo_lifetime).chain()),
-            );
+            .add_systems(FixedUpdate, (ammo_collision, track_ammo_lifetime).chain())
+            .observe(fire_ammo);
     }
 }
 
@@ -47,42 +43,76 @@ fn setup_ammmo_ref(
 }
 
 fn fire_ammo(
+    trigger: Trigger<FireAmmo>,
     mut commands: Commands,
-    q_ammo_refs: Query<(&Ammo, &Collider), With<AmmoRef>>,
-    mut evr_fire_ammo: EventReader<FireAmmo>,
+    q_weapons: Query<(&AmmoStat, &PlayerId, &WorldIdx)>,
+    q_ammo_refs: Query<&Collider, With<AmmoRef>>,
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     ammo_refs: Res<RefEntityMap<AmmoType>>,
 ) {
-    for fire_ammo in evr_fire_ammo.read() {
-        let Some((ammo, collider)) = ammo_refs
-            .get(&fire_ammo.ammo_type)
-            .and_then(|e| q_ammo_refs.get(*e).ok())
-        else {
-            continue;
-        };
+    let &FireAmmo {
+        weapon_entity,
+        position,
+        direction,
+    } = trigger.event();
 
-        // Get ammo pool for the particular ammo type.
-        let ammo_pool = &mut ammo_pools[fire_ammo.ammo_type as usize];
+    let Ok((
+        AmmoStat {
+            lifetime,
+            fire,
+            ammo_type,
+            ..
+        },
+        &player_id,
+        &world_id,
+    )) = q_weapons.get(weapon_entity)
+    else {
+        return;
+    };
 
-        let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
-            commands
-                .spawn(InitAmmoBundle::new(fire_ammo.ammo_type, collider.clone()))
-                .insert(Name::new("Ammo"))
-                .id()
-        });
+    let Some(collider) = ammo_refs
+        .get(ammo_type)
+        .and_then(|e| q_ammo_refs.get(*e).ok())
+    else {
+        return;
+    };
 
-        // Initialize fire ammo components.
-        commands
-            .entity(ammo_entity)
-            .insert(FireAmmoBundle::new(fire_ammo, ammo));
-    }
+    // Get ammo pool for the particular ammo type.
+    let ammo_pool = &mut ammo_pools[*ammo_type as usize];
+
+    let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
+        println!("\n\n Spawn new!");
+        let mut cmd = commands.spawn(InitAmmoBundle::new(*ammo_type, collider.clone()));
+
+        #[cfg(debug_assertions)]
+        cmd.insert(Name::new(ammo_type.as_ref().to_string()));
+
+        cmd.id()
+    });
+
+    // Initialize fire ammo components.
+    commands.entity(ammo_entity).insert(FireAmmoBundle {
+        player_id,
+        world_id,
+        position: position.into(),
+        rotation: Rotation::radians(direction.to_angle()),
+        linear_velocity: LinearVelocity(direction * fire.linear_impulse),
+        angular_velocity: fire.angular_impulse.into(),
+        linear_damping: fire.linear_damping.into(),
+        angular_damping: fire.angular_damping.into(),
+        lifetime: AmmoLifetime(Timer::from_seconds(*lifetime, TimerMode::Once)),
+        weapon_ref: AmmoWeaponRef(weapon_entity),
+        visibility: Visibility::Inherited,
+        rigidbody: RigidBody::Dynamic,
+    });
 }
 
+/// Track ammo lifetime and set unused once it reaches its lifetime.
 fn track_ammo_lifetime(
     mut commands: Commands,
     mut q_ammos: Query<
         (
-            &mut AmmoStat,
+            &mut AmmoLifetime,
             &AmmoType,
             &mut Visibility,
             &mut CollidingEntities,
@@ -93,37 +123,45 @@ fn track_ammo_lifetime(
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     time: Res<Time>,
 ) {
-    for (mut ammo_stat, ammo_type, mut viz, mut colliding, ammo_entity) in q_ammos.iter_mut() {
-        ammo_stat.lifetime -= time.delta_seconds();
-
-        // Hide and clear collisions.
-        if ammo_stat.lifetime <= 0.0 {
+    for (mut lifetime, ammo_type, mut viz, mut colliding, entity) in q_ammos.iter_mut() {
+        if lifetime.finished() {
+            // Hide and clear collisions.
             *viz = Visibility::Hidden;
             colliding.clear();
-            commands.entity(ammo_entity).remove::<RigidBody>();
-            ammo_pools[*ammo_type as usize].set_unused(ammo_entity);
+            commands.entity(entity).remove::<RigidBody>();
+            ammo_pools[*ammo_type as usize].set_unused(entity);
         }
+
+        lifetime.tick(time.delta());
     }
 }
 
 fn ammo_collision(
+    mut commands: Commands,
     q_col_criteria: Query<(Option<&PlayerId>, Has<Sensor>)>,
     // Only apply damage on the server.
     mut q_healths: Query<&mut Health, With<server::SyncTarget>>,
+    q_ammo_stats: Query<&AmmoStat, With<SourceEntity>>,
     mut q_ammos: Query<
         (
             &Position,
-            &mut AmmoStat,
-            &AmmoDamage,
+            &Rotation,
+            &AmmoWeaponRef,
+            &mut AmmoLifetime,
             Ref<CollidingEntities>,
             &Visibility,
             &PlayerId,
         ),
-        (Changed<CollidingEntities>, Without<AmmoRef>),
+        (
+            Changed<CollidingEntities>,
+            Without<AmmoRef>,
+            With<RigidBody>,
+        ),
     >,
-    mut evw_ammo_hit: EventWriter<AmmoHit>,
+    q_rigidbodies: Query<&RigidBody>,
+    // network_identity: NetworkIdentity,
 ) {
-    for (position, mut stat, &AmmoDamage(damage), colliding, viz, id) in q_ammos.iter_mut() {
+    for (position, rotation, weapon_ref, mut lifetime, colliding, viz, id) in q_ammos.iter_mut() {
         // Skip already hidden ammos.
         if viz == Visibility::Hidden {
             continue;
@@ -132,6 +170,13 @@ fn ammo_collision(
         if colliding.is_added() || colliding.len() == 0 {
             continue;
         }
+
+        let Ok(AmmoStat {
+            knockback, effect, ..
+        }) = q_ammo_stats.get(weapon_ref.0)
+        else {
+            continue;
+        };
 
         let mut hit = false;
 
@@ -149,7 +194,24 @@ fn ammo_collision(
 
             // Apply damage if possible.
             if let Ok(mut health) = q_healths.get_mut(entity) {
-                **health -= damage;
+                **health -= effect.damage;
+            }
+
+            // Apply force if possible.
+            if q_rigidbodies
+                .get(entity)
+                .is_ok_and(|rigidbody| rigidbody == &RigidBody::Dynamic)
+            {
+                let mut impulse = ExternalImpulse::default();
+                let impulse_direction = rotation * Vec2::X;
+
+                impulse.apply_impulse_at_point(
+                    impulse_direction * knockback.angular_impulse,
+                    position.0,
+                    Vec2::ZERO,
+                );
+                impulse.set_impulse(impulse_direction * knockback.impulse);
+                commands.entity(entity).insert(impulse);
             }
 
             hit = true;
@@ -157,20 +219,11 @@ fn ammo_collision(
 
         // Ammo collided with something, disable it!
         if hit {
-            stat.lifetime = 0.0;
-            evw_ammo_hit.send(AmmoHit(*position));
+            let duration = lifetime.duration();
+            lifetime.tick(duration);
+            commands.trigger(AmmoHit(*position));
         }
     }
-}
-
-#[derive(Event)]
-pub struct FireAmmo {
-    pub player_id: PlayerId,
-    pub world_id: WorldIdx,
-    pub ammo_type: AmmoType,
-    pub position: Vec2,
-    pub direction: Vec2,
-    pub damage: f32,
 }
 
 #[derive(Bundle)]
@@ -210,61 +263,77 @@ impl InitAmmoBundle {
 pub struct FireAmmoBundle {
     pub player_id: PlayerId,
     pub world_id: WorldIdx,
-    pub stat: AmmoStat,
-    pub damage: AmmoDamage,
     pub position: Position,
     pub rotation: Rotation,
     pub linear_velocity: LinearVelocity,
     pub angular_velocity: AngularVelocity,
-    pub rigidbody: RigidBody,
+    pub linear_damping: LinearDamping,
+    pub angular_damping: AngularDamping,
+    pub lifetime: AmmoLifetime,
+    pub weapon_ref: AmmoWeaponRef,
     pub visibility: Visibility,
-    #[cfg(debug_assertions)]
-    pub name: Name,
+    pub rigidbody: RigidBody,
 }
 
-impl FireAmmoBundle {
-    pub fn new(fire_ammo: &FireAmmo, ammo: &Ammo) -> Self {
-        Self {
-            player_id: fire_ammo.player_id,
-            world_id: fire_ammo.world_id,
-            stat: AmmoStat {
-                lifetime: ammo.lifetime,
-            },
-            damage: AmmoDamage(fire_ammo.damage),
-            position: Position(fire_ammo.position),
-            rotation: Rotation::radians(fire_ammo.direction.to_angle()),
-            linear_velocity: LinearVelocity(fire_ammo.direction * ammo.linear_impulse),
-            angular_velocity: AngularVelocity(ammo.angular_impulse),
-            rigidbody: RigidBody::Dynamic,
-            visibility: Visibility::Inherited,
-            #[cfg(debug_assertions)]
-            name: Name::new("Ammo"),
-        }
-    }
+/// Stores the weapon that fires the ammo.
+#[derive(Event)]
+pub struct FireAmmo {
+    pub weapon_entity: Entity,
+    pub position: Vec2,
+    pub direction: Vec2,
 }
 
+#[derive(Event, Deref)]
+pub struct AmmoHit(Position);
+
+/// Reference to the weapon entity that fired the ammo.
 #[derive(Component)]
-pub struct AmmoStat {
-    /// Duration left before the ammo expires.
-    pub lifetime: f32,
-}
-
-/// Ammo damage applied to damagable objects.
-#[derive(Component, Reflect, Deref)]
-#[reflect(Component)]
-pub struct AmmoDamage(pub f32);
+pub struct AmmoWeaponRef(Entity);
 
 /// Point of reference for a certain [`AmmoType`].
 /// Use this when creating an ammo prefab in Blender.
+///
+/// This is usually used to store ammo specific settings,
+/// (e.g. the collider of the ammo.)
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct AmmoRef;
 
+/// The current lifetime of the ammo,
+/// ammo will cease to exist when the timer finishes.
+#[derive(Component, Deref, DerefMut)]
+pub struct AmmoLifetime(Timer);
+
+/// Attached to the [`Weapon`] entity to store the stat of the weapon.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct Ammo {
-    /// Duration the ammo stays relevant.
+pub struct AmmoStat {
+    /// The duration the ammo lives.
     lifetime: f32,
+    /// Applied when ammo is fired.
+    fire: AmmoFire,
+    /// Type of ammo (for visual only).
+    ammo_type: AmmoType,
+    /// The effect to apply on the collided entity.
+    effect: AmmoEffect,
+    /// Knockback effect when the ammo applies its effect.
+    knockback: AmmoKnockback,
+}
+
+/// Ammo effect applied to when it hits a [`Collider`].
+#[derive(Reflect)]
+pub struct AmmoEffect {
+    damage: f32,
+    /// Optional AOE.
+    radius: Option<f32>,
+    /// Does it bounces off colliders until it found
+    /// its target or completes its lifetime?
+    bounce: bool,
+}
+
+/// Initial fire ammo physics.
+#[derive(Reflect)]
+pub struct AmmoFire {
     /// Initial impulse linear velocity when the ammo is fired.
     linear_impulse: f32,
     /// Initial impulse angular velocity when the ammo is fired.
@@ -275,5 +344,13 @@ pub struct Ammo {
     angular_damping: f32,
 }
 
-#[derive(Event, Deref)]
-pub struct AmmoHit(Position);
+/// Knockback effect of an ammo when it hits the target.
+#[derive(Reflect)]
+pub struct AmmoKnockback {
+    /// Knockback impulse,
+    /// used for [`ExternalImpulse::apply_impulse`].
+    impulse: f32,
+    /// Knockback angular impulse,
+    /// used for [`ExternalImpulse::apply_impulse_at_point`].
+    angular_impulse: f32,
+}

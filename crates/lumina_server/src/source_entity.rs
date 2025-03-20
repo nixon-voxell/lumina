@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
@@ -14,6 +15,7 @@ impl Plugin for SourceEntityPlugin {
             .set_source::<ActionState<PlayerAction>, With<SyncTarget>>()
             .set_source::<ObjectiveArea, With<SyncTarget>>()
             .set_source::<OreType, With<SyncTarget>>()
-            .set_source::<LuminaType, With<SyncTarget>>();
+            .set_source::<LuminaType, With<SyncTarget>>()
+            .set_source::<Playback, With<SyncTarget>>();
     }
 }

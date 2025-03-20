@@ -14,7 +14,26 @@ impl Plugin for BlueprintsPlugin {
 /// Entity will be removed from the client recursively.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct ReplicateFromServer;
+pub struct ReplicateFromServer {
+    pub prediction: bool,
+    pub interpolation: bool,
+}
+
+impl ReplicateFromServer {
+    pub fn prediction_target(&self) -> NetworkTarget {
+        match self.prediction {
+            true => NetworkTarget::All,
+            false => NetworkTarget::None,
+        }
+    }
+
+    pub fn interpolation_target(&self) -> NetworkTarget {
+        match self.interpolation {
+            true => NetworkTarget::All,
+            false => NetworkTarget::None,
+        }
+    }
+}
 
 /// Marker for replicating the entity inside the children hierarchy
 /// of [`ReplicateFromServer`] over the network.
@@ -24,7 +43,7 @@ pub struct ReplicateFromServer;
 pub struct HierarchySync;
 
 /// Marker for replicating the [`BlueprintInfo`] over the network.
-#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct ReplicateBlueprint {
     /// The path in [`BlueprintInfo`].
@@ -75,6 +94,15 @@ pub enum SpaceshipType {
     Defender,
 }
 
+impl SpaceshipType {
+    pub fn weapon_type(&self) -> WeaponType {
+        match self {
+            SpaceshipType::Assassin => WeaponType::Cannon,
+            SpaceshipType::Defender => WeaponType::GattlingGun,
+        }
+    }
+}
+
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
 #[strum(prefix = "levels/weapons/")]
@@ -115,9 +143,8 @@ pub enum TesseractType {
 }
 
 // TODO: Move this into objective instead.
-#[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-#[strum(prefix = "levels/ores/")]
 pub enum OreType {
     /// Drops 1-2 [LuminaType::Normal].
     Small,

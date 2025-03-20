@@ -55,7 +55,9 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<ReplicateBlueprint>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple)
+            .add_interpolation(ComponentSyncMode::Simple);
+
         // Game
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
@@ -73,15 +75,14 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<TeleporterEffect>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<TeleporterCooldown>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Playback>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
-            .add_linear_interpolation_fn();
+            .add_prediction(ComponentSyncMode::Simple)
+            .add_linear_correction_fn();
 
         // Player
         app.register_component::<PlayerId>(ChannelDirection::ServerToClient)
@@ -90,17 +91,11 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<TeamType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
-        app.register_component::<Spaceship>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
-        app.register_component::<SpaceshipType>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
         app.register_component::<Energy>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<DashCooldown>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<ShadowAbilityConfig>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
@@ -109,30 +104,26 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<AbilityEffect>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<AbilityCooldown>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
-
-        app.register_component::<Weapon>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<WeaponStat>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+        app.register_component::<WeaponState>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<WeaponReload>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<CollectedLumina>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         // Physics
         app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once)
-            .add_interpolation(ComponentSyncMode::Once);
+            .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<PrimitiveRigidbody>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
@@ -145,33 +136,27 @@ impl Plugin for ProtocolPlugin {
 
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
-            .add_interpolation_fn(position::lerp)
             .add_correction_fn(position::lerp);
 
         app.register_component::<Rotation>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
-            .add_interpolation_fn(rotation::lerp)
             .add_correction_fn(rotation::lerp);
 
         app.register_component::<LinearDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<AngularDamping>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Full);
+            .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
-            .add_interpolation_fn(linear_velocity::lerp)
-            .add_correction_fn(linear_velocity::lerp);
+            .add_correction_fn(linear_velocity::lerp)
+            .add_should_rollback(|_, _| false);
 
         app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation(ComponentSyncMode::Full)
-            .add_interpolation_fn(angular_velocity::lerp)
-            .add_correction_fn(angular_velocity::lerp);
+            .add_correction_fn(angular_velocity::lerp)
+            .add_should_rollback(|_, _| false);
     }
 }
 

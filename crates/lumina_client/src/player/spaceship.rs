@@ -54,7 +54,7 @@ fn init_shadow_vfx(
             ..
         } = bp_event
         {
-            if blueprint_name != &SpaceshipType::Assassin.visual_info().name {
+            if blueprint_name != &SpaceshipType::Assassin.info().name {
                 continue;
             }
 
