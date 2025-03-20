@@ -102,7 +102,10 @@ pub struct InPlaceVfxMapPlugin<T: Component>(PhantomData<T>);
 
 impl<T: Component> Plugin for InPlaceVfxMapPlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (init_in_place_vfx_map::<T>, map_in_place_vfx::<T>));
+        app.add_systems(
+            Update,
+            (init_in_place_vfx_map::<T>, map_in_place_vfx::<T>).chain(),
+        );
     }
 }
 
@@ -113,7 +116,18 @@ impl<T: Component> Default for InPlaceVfxMapPlugin<T> {
 }
 
 /// Insert [`InPlaceVfxMap`] component to target entities that just spawned.
-fn init_in_place_vfx_map<T: Component>(mut commands: Commands, q_targets: Query<Entity, Added<T>>) {
+fn init_in_place_vfx_map<T: Component>(
+    mut commands: Commands,
+    q_targets: Query<
+        Entity,
+        (
+            With<T>,
+            With<SourceEntity>,
+            Or<(Added<T>, Added<SourceEntity>)>,
+            Without<InPlaceVfxMap>,
+        ),
+    >,
+) {
     for entity in q_targets.iter() {
         commands.entity(entity).insert(InPlaceVfxMap::default());
     }
@@ -121,8 +135,9 @@ fn init_in_place_vfx_map<T: Component>(mut commands: Commands, q_targets: Query<
 
 /// Find parent with component `T` when any vfx is spawned and setup [`InPlaceVfxMap`].
 fn map_in_place_vfx<T: Component>(
+    mut commands: Commands,
     mut q_targets: Query<&mut InPlaceVfxMap, With<T>>,
-    q_vfxs: Query<(&InPlaceVfxType, Entity), Added<InPlaceVfxType>>,
+    q_vfxs: Query<(&InPlaceVfxType, Entity), (Without<MappedInPlaceVfx>, With<SourceEntity>)>,
     q_parents: Query<&Parent>,
 ) {
     for (vfx, vfx_entity) in q_vfxs.iter() {
@@ -137,6 +152,8 @@ fn map_in_place_vfx<T: Component>(
             } else {
                 map.insert(*vfx, SmallVec::from_elem(vfx_entity, 1));
             }
+
+            commands.entity(vfx_entity).insert(MappedInPlaceVfx);
 
             // Only find the first parent with the required component.
             break;
@@ -160,6 +177,10 @@ pub enum InPlaceVfxType {
     MuzzleFlash,
     BoosterFlakes,
 }
+
+/// Marker for [`InPlaceVfxType`] that has already been mapped.
+#[derive(Component)]
+pub struct MappedInPlaceVfx;
 
 pub type DespawnVfxEffects = EnumVariantRes<DespawnVfxType, Handle<Particle2dEffect>>;
 

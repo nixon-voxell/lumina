@@ -8,13 +8,14 @@
 @group(2) @binding(2) var<uniform> time: f32;
 @group(2) @binding(3) var screen_texture: texture_2d<f32>;
 @group(2) @binding(4) var screen_sampler: sampler;
+@group(2) @binding(5) var<uniform> camera_scale: f32;
 
 fn coords_to_viewport_uv(position: vec2<f32>, viewport: vec4<f32>) -> vec2<f32> {
     var pos = position;
     pos.y = -pos.y;
     // return pos / viewport.zw + 0.5;
     // Our viewport ratio is fixed.
-    return pos / vec2<f32>(1280.0, 720.0) + 0.5;
+    return pos / (vec2<f32>(1280.0, 720.0) * camera_scale) + 0.5;
 }
 
 @fragment

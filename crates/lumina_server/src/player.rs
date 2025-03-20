@@ -4,10 +4,13 @@ use blenvy::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_shared::player::spawn_point::SpawnPointParentCache;
 use lumina_shared::prelude::*;
 use lumina_shared::protocol::SelectSpaceship;
 
 use server::*;
+
+use crate::lobby::LobbyRemoval;
 
 use super::lobby::Lobby;
 use super::LobbyInfos;
@@ -19,20 +22,26 @@ pub(super) struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(objective::ObjectivePlugin)
-            .add_event::<SpawnClientPlayer>()
             .init_resource::<ClientSpaceshipSelection>()
             .add_systems(
                 PreUpdate,
                 (
                     replicate_actions.before(MainSet::Send),
                     replicate_action_spawn.in_set(ServerReplicationSet::ClientReplication),
-                    replicate_item_spawn::<Spaceship>,
-                    replicate_item_spawn::<Weapon>,
                 ),
             )
             .add_systems(
                 Update,
-                (handle_spaceship_selection, remove_spaceship_selection),
+                (
+                    handle_spaceship_selection,
+                    remove_spaceship_selection,
+                    clear_unused_spawn_points,
+                    (
+                        replicate_item_spawn::<Spaceship>,
+                        replicate_item_spawn::<Weapon>,
+                    )
+                        .in_set(GltfBlueprintsSet::AfterSpawn),
+                ),
             )
             .observe(spawn_players);
     }
@@ -76,29 +85,17 @@ fn spawn_players(
 
     // Look up the player's selected spaceship; default to Assassin if none was provided.
     let spaceship_type = selections.get(&client_id).copied().unwrap_or_default();
-
     // Determine the weapon type based on the selected spaceship.
-    let weapon_type = match spaceship_type {
-        SpaceshipType::Assassin => WeaponType::Cannon,
-        SpaceshipType::Defender => WeaponType::GattlingGun,
-    };
+    let weapon_type = spaceship_type.weapon_type();
 
     // Spawn the spaceship using its configuration.
     commands
-        .spawn((
-            PlayerId(client_id),
-            spaceship_type.config_info(),
-            SpawnBlueprint,
-        ))
+        .spawn((PlayerId(client_id), spaceship_type.info(), SpawnBlueprint))
         .set_parent(world_entity);
 
     // Spawn the weapon using the chosen weapon type.
     commands
-        .spawn((
-            PlayerId(client_id),
-            weapon_type.config_info(),
-            SpawnBlueprint,
-        ))
+        .spawn((PlayerId(client_id), weapon_type.info(), SpawnBlueprint))
         .set_parent(world_entity);
 
     info!(
@@ -111,16 +108,14 @@ fn spawn_players(
 /// prediction to all clients and no interpolation to target client.
 fn replicate_item_spawn<T: Component>(
     mut commands: Commands,
-    q_entities: Query<(&PlayerId, Entity), (With<T>, Without<SyncTarget>)>,
-    lobby_infos: Res<LobbyInfos>,
+    q_entities: Query<
+        (&PlayerId, &WorldIdx, Entity),
+        (With<T>, Without<SyncTarget>, With<BlueprintInstanceReady>),
+    >,
     mut room_manager: ResMut<RoomManager>,
 ) {
-    for (id, entity) in q_entities.iter() {
-        let client_id = id.0;
-        let Some(room_id) = lobby_infos.get_room_id(&client_id) else {
-            error!("Unable to get room id for {client_id}");
-            return;
-        };
+    for (player_id, world_id, entity) in q_entities.iter() {
+        let client_id = player_id.0;
 
         commands.entity(entity).insert(Replicate {
             sync: SyncTarget {
@@ -135,7 +130,7 @@ fn replicate_item_spawn<T: Component>(
             ..default()
         });
 
-        room_manager.add_entity(entity, room_id);
+        room_manager.add_entity(entity, world_id.room_id());
     }
 }
 
@@ -203,6 +198,15 @@ fn replicate_actions(
         for client_id in lobby.iter().filter(|id| *id != client_id) {
             let _ = connection.send_message::<InputChannel, _>(*client_id, inputs);
         }
+    }
+}
+
+fn clear_unused_spawn_points(
+    mut evr_lobby_removal: EventReader<LobbyRemoval>,
+    mut cache: ResMut<SpawnPointParentCache>,
+) {
+    for LobbyRemoval(room_id) in evr_lobby_removal.read() {
+        cache.remove(room_id);
     }
 }
 

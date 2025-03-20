@@ -10,11 +10,11 @@ impl Plugin for AmmoPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(Particle2dMaterialPlugin::<AmmoHitMaterial>::default())
             .add_systems(Startup, setup_ammo_vfx)
-            .add_systems(Update, ammo_hit_vfx)
             .add_systems(
                 PostUpdate,
                 ammo_vfx_visibility.after(VisibilitySystems::VisibilityPropagate),
-            );
+            )
+            .observe(ammo_hit_vfx);
     }
 }
 
@@ -26,17 +26,16 @@ fn ammo_vfx_visibility(mut q_viz: Query<&mut ViewVisibility, With<ParticleEffect
 }
 
 fn ammo_hit_vfx(
+    trigger: Trigger<AmmoHit>,
     mut commands: Commands,
     material_handle: Res<AmmoHitMaterialHandle>,
-    mut evr_ammo_hit: EventReader<AmmoHit>,
 ) {
-    for ammo_hit in evr_ammo_hit.read() {
-        commands.trigger(DespawnVfx {
-            vfx_type: DespawnVfxType::AmmoHit,
-            transform: Transform::from_translation(ammo_hit.extend(10.0)),
-            material: material_handle.clone_weak(),
-        });
-    }
+    let ammo_hit = trigger.event();
+    commands.trigger(DespawnVfx {
+        vfx_type: DespawnVfxType::AmmoHit,
+        transform: Transform::from_translation(ammo_hit.extend(10.0)),
+        material: material_handle.clone_weak(),
+    });
 }
 
 fn setup_ammo_vfx(mut commands: Commands, mut materials: ResMut<Assets<AmmoHitMaterial>>) {

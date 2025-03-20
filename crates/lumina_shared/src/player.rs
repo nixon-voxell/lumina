@@ -19,7 +19,7 @@ pub mod spawn_point;
 pub mod weapon;
 
 pub mod prelude {
-    pub use super::ammo::{Ammo, AmmoDamage, AmmoHit, AmmoStat, FireAmmo};
+    pub use super::ammo::{AmmoEffect, AmmoHit, AmmoLifetime, AmmoStat, FireAmmo};
     pub use super::objective::{CollectedLumina, LuminaCollected, LuminaStat, ObjectiveArea};
     pub use super::spaceship::{
         AbilityCooldown, AbilityEffect, DashCooldown, DashEffect, Energy, HealAbilityConfig,
@@ -28,7 +28,7 @@ pub mod prelude {
     pub use super::spawn_point::{
         SpawnPoint, SpawnPointEntity, SpawnPointParent, SpawnPointUsed, TeamType,
     };
-    pub use super::weapon::{Weapon, WeaponReload, WeaponStat};
+    pub use super::weapon::{Weapon, WeaponReload, WeaponState};
     pub use super::{PlayerInfoType, PlayerInfos};
 }
 
@@ -59,7 +59,16 @@ impl Plugin for PlayerPlugin {
 
 /// Insert entity into [`PlayerInfos`].
 fn insert_info<C: Component>(info_type: PlayerInfoType) -> SystemConfigs {
-    let system = move |q_entities: Query<(&PlayerId, Entity), (With<C>, Added<SourceEntity>)>,
+    let system = move |q_entities: Query<
+        (&PlayerId, Entity),
+        (
+            // We ensure that both components exists here!
+            With<C>,
+            With<SourceEntity>,
+            // Source entity could be added first, or the component...
+            Or<(Added<C>, Added<SourceEntity>)>,
+        ),
+    >,
                        mut player_infos: ResMut<PlayerInfos>| {
         for (id, entity) in q_entities.iter() {
             player_infos[info_type].insert(*id, entity);
