@@ -21291,8 +21291,22 @@
       "isComponent": true,
       "isResource": false,
       "long_name": "lumina_shared::blueprints::ReplicateFromServer",
-      "properties": {},
-      "required": [],
+      "properties": {
+        "interpolation": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "prediction": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        }
+      },
+      "required": [
+        "prediction",
+        "interpolation"
+      ],
       "short_name": "ReplicateFromServer",
       "type": "object",
       "typeInfo": "Struct"
@@ -21328,18 +21342,6 @@
         "Tesseract"
       ],
       "short_name": "TesseractType",
-      "type": "string",
-      "typeInfo": "Enum"
-    },
-    "lumina_shared::blueprints::WeaponType": {
-      "isComponent": true,
-      "isResource": false,
-      "long_name": "lumina_shared::blueprints::WeaponType",
-      "oneOf": [
-        "Cannon",
-        "GattlingGun"
-      ],
-      "short_name": "WeaponType",
       "type": "string",
       "typeInfo": "Enum"
     },
@@ -21538,11 +21540,41 @@
       "type": "array",
       "typeInfo": "TupleStruct"
     },
-    "lumina_shared::player::ammo::Ammo": {
+    "lumina_shared::player::ammo::AmmoEffect": {
       "additionalProperties": false,
-      "isComponent": true,
+      "isComponent": false,
       "isResource": false,
-      "long_name": "lumina_shared::player::ammo::Ammo",
+      "long_name": "lumina_shared::player::ammo::AmmoEffect",
+      "properties": {
+        "bounce": {
+          "type": {
+            "$ref": "#/$defs/bool"
+          }
+        },
+        "damage": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "radius": {
+          "type": {
+            "$ref": "#/$defs/core::option::Option<f32>"
+          }
+        }
+      },
+      "required": [
+        "damage",
+        "bounce"
+      ],
+      "short_name": "AmmoEffect",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::ammo::AmmoFire": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::ammo::AmmoFire",
       "properties": {
         "angular_damping": {
           "type": {
@@ -21550,11 +21582,6 @@
           }
         },
         "angular_impulse": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
-        "lifetime": {
           "type": {
             "$ref": "#/$defs/f32"
           }
@@ -21571,13 +21598,37 @@
         }
       },
       "required": [
-        "lifetime",
         "linear_impulse",
         "angular_impulse",
         "linear_damping",
         "angular_damping"
       ],
-      "short_name": "Ammo",
+      "short_name": "AmmoFire",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::ammo::AmmoKnockback": {
+      "additionalProperties": false,
+      "isComponent": false,
+      "isResource": false,
+      "long_name": "lumina_shared::player::ammo::AmmoKnockback",
+      "properties": {
+        "angular_impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "impulse": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "impulse",
+        "angular_impulse"
+      ],
+      "short_name": "AmmoKnockback",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -21589,6 +21640,49 @@
       "properties": {},
       "required": [],
       "short_name": "AmmoRef",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "lumina_shared::player::ammo::AmmoStat": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::player::ammo::AmmoStat",
+      "properties": {
+        "ammo_type": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::blueprints::AmmoType"
+          }
+        },
+        "effect": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::ammo::AmmoEffect"
+          }
+        },
+        "fire": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::ammo::AmmoFire"
+          }
+        },
+        "knockback": {
+          "type": {
+            "$ref": "#/$defs/lumina_shared::player::ammo::AmmoKnockback"
+          }
+        },
+        "lifetime": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "lifetime",
+        "fire",
+        "ammo_type",
+        "effect",
+        "knockback"
+      ],
+      "short_name": "AmmoStat",
       "type": "object",
       "typeInfo": "Struct"
     },
@@ -21995,16 +22089,6 @@
       "isResource": false,
       "long_name": "lumina_shared::player::weapon::Weapon",
       "properties": {
-        "ammo_type": {
-          "type": {
-            "$ref": "#/$defs/lumina_shared::blueprints::AmmoType"
-          }
-        },
-        "damage": {
-          "type": {
-            "$ref": "#/$defs/f32"
-          }
-        },
         "fire_radius": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -22035,8 +22119,6 @@
         "firing_rate",
         "magazine_size",
         "recoil",
-        "ammo_type",
-        "damage",
         "fire_radius",
         "reload_duration"
       ],

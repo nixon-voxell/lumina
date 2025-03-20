@@ -6,7 +6,6 @@ use lightyear::prelude::*;
 use lumina_common::settings::LuminaSettings;
 
 pub mod action;
-pub mod blueprint_collider;
 pub mod blueprints;
 pub mod game;
 pub mod health;
@@ -37,7 +36,6 @@ impl Plugin for SharedPlugin {
                 blueprints::BlueprintsPlugin,
                 health::HealthPlugin,
                 type_registry::TypeRegistryPlugin,
-                blueprint_collider::BlueprintColliderPlugin,
             ));
     }
 }

@@ -39,19 +39,16 @@ fn spawn_lobby(
 
             // Spaceship
             builder.spawn((
-                selected_ship.config_info(),
+                selected_ship.info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
                 SpaceshipEntityMarker,
             ));
 
             // Spawn weapon based on spaceship type
-            let weapon_type = match selected_ship.0 {
-                SpaceshipType::Assassin => WeaponType::Cannon,
-                SpaceshipType::Defender => WeaponType::GattlingGun,
-            };
+            let weapon_type = selected_ship.weapon_type();
             builder.spawn((
-                weapon_type.config_info(),
+                weapon_type.info(),
                 SpawnBlueprint,
                 PlayerId::LOCAL,
                 WeaponEntityMarker,
@@ -76,12 +73,6 @@ fn update_spaceship_config(
     q_local_lobby: Query<Entity, With<LocalLobby>>,
 ) {
     for select_spaceship in evr_select_spaceship.read() {
-        let spaceship_type = &select_spaceship.0;
-        let weapon_type = match spaceship_type {
-            SpaceshipType::Assassin => WeaponType::Cannon,
-            SpaceshipType::Defender => WeaponType::GattlingGun,
-        };
-
         // Despawn old spaceships and weapons
         for entity in q_spaceships.iter().chain(q_weapons.iter()) {
             commands.entity(entity).despawn_recursive();
@@ -92,19 +83,21 @@ fn update_spaceship_config(
             commands.entity(lobby).with_children(|parent| {
                 // Spawn new spaceship
                 parent.spawn((
-                    spaceship_type.config_info(),
+                    select_spaceship.info(),
                     SpawnBlueprint,
                     PlayerId::LOCAL,
                     SpaceshipEntityMarker,
                     TransformBundle::default(),
                 ));
 
-                // Spawn new weapon
+                // Spawn weapon based on spaceship type
+                let weapon_type = select_spaceship.weapon_type();
                 parent.spawn((
-                    weapon_type.config_info(),
+                    weapon_type.info(),
                     SpawnBlueprint,
                     PlayerId::LOCAL,
                     WeaponEntityMarker,
+                    TransformBundle::default(),
                 ));
             });
         }

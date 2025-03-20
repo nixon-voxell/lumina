@@ -32,7 +32,14 @@ impl Plugin for SpaceshipPlugin {
 /// Initializs spaceships with necessary components.
 fn init_spaceships(
     mut commands: Commands,
-    q_spaceships: Query<Entity, (With<Spaceship>, Added<SourceEntity>)>,
+    q_spaceships: Query<
+        Entity,
+        (
+            With<Spaceship>,
+            With<SourceEntity>,
+            Or<(Added<Spaceship>, Added<SourceEntity>)>,
+        ),
+    >,
 ) {
     for entity in q_spaceships.iter() {
         commands.entity(entity).insert((

@@ -13,7 +13,9 @@ impl Plugin for AudioPlugin {
 
         app.add_systems(OnEnter(Screen::MainMenu), play_main_menu_bg)
             .add_systems(OnEnter(Screen::InGame), play_in_game_bg)
-            .add_systems(Update, (button_interaction, cannon_fire, ammo_hit));
+            .add_systems(Update, button_interaction)
+            .observe(fire_ammo)
+            .observe(ammo_hit);
     }
 }
 
@@ -36,38 +38,27 @@ fn button_interaction(
     }
 }
 
-fn cannon_fire(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut evr_fire_ammo: EventReader<FireAmmo>,
-) {
-    for fire_ammo in evr_fire_ammo.read() {
-        let position = fire_ammo.position;
-        commands.spawn((
-            AudioBundle {
-                source: asset_server.load("audio/Cannon.ogg"),
-                settings: PlaybackSettings::DESPAWN.with_spatial(true),
-            },
-            TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
-        ));
-    }
+fn fire_ammo(trigger: Trigger<FireAmmo>, mut commands: Commands, asset_server: Res<AssetServer>) {
+    let fire_ammo = trigger.event();
+    let position = fire_ammo.position;
+    commands.spawn((
+        AudioBundle {
+            source: asset_server.load("audio/Cannon.ogg"),
+            settings: PlaybackSettings::DESPAWN.with_spatial(true),
+        },
+        TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+    ));
 }
 
-fn ammo_hit(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut evr_ammo_hit: EventReader<AmmoHit>,
-) {
-    for ammo_hit in evr_ammo_hit.read() {
-        let position = **ammo_hit;
-        commands.spawn((
-            AudioBundle {
-                source: asset_server.load("audio/AmmoHit.ogg"),
-                settings: PlaybackSettings::DESPAWN.with_spatial(true),
-            },
-            TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
-        ));
-    }
+fn ammo_hit(trigger: Trigger<AmmoHit>, mut commands: Commands, asset_server: Res<AssetServer>) {
+    let position = trigger.event();
+    commands.spawn((
+        AudioBundle {
+            source: asset_server.load("audio/AmmoHit.ogg"),
+            settings: PlaybackSettings::DESPAWN.with_spatial(true),
+        },
+        TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+    ));
 }
 
 fn play_main_menu_bg(

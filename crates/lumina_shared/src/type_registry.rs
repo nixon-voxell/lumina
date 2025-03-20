@@ -7,7 +7,6 @@ use crate::health::{Health, MaxHealth};
 use crate::player::ammo::AmmoRef;
 use crate::player::objective::{LuminaSpawnArea, LuminaStat, ObjectiveArea};
 use crate::player::prelude::*;
-use crate::player::spaceship::{EnergyConfig, Spaceship};
 
 pub(super) struct TypeRegistryPlugin;
 
@@ -40,12 +39,9 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Playback>()
             // Player
             .register_type::<Weapon>()
-            .register_type::<WeaponType>()
             .register_type::<Spaceship>()
-            .register_type::<Spaceship>()
-            .register_type::<EnergyConfig>()
-            .register_type::<SpaceshipType>()
-            .register_type::<Ammo>()
+            .register_type::<SpaceshipType>() // Needed for ui.
+            .register_type::<AmmoStat>()
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()
             .register_type::<ShadowAbilityConfig>()
