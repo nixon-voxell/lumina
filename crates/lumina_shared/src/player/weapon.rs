@@ -88,7 +88,7 @@ fn weapon_direction(
     }
 }
 
-/// Track the [`WeaponStat::magazine()`] and reload when it reaches `0`.
+/// Track the [`WeaponState::magazine()`] and reload when it reaches `0`.
 fn weapon_magazine_tracker(
     mut commands: Commands,
     q_weapons: Query<
@@ -208,7 +208,7 @@ pub struct Weapon {
     recoil: f32,
     /// Radius location where the ammo fires off.
     fire_radius: f32,
-    /// Duration in seconds for weapon to reload when [`WeaponStat::magazine()`]
+    /// Duration in seconds for weapon to reload when [`WeaponState::magazine()`]
     /// is depleted.
     reload_duration: f32,
 }
@@ -274,6 +274,6 @@ impl WeaponState {
     }
 }
 
-/// Reload timer based on [`Weapon::reload_duration()`].
+/// Reload timer for the weapon.
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct WeaponReload(Timer);

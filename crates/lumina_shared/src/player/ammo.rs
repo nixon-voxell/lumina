@@ -304,7 +304,7 @@ pub struct AmmoRef;
 #[derive(Component, Deref, DerefMut)]
 pub struct AmmoLifetime(Timer);
 
-/// Attached to the [`Weapon`] entity to store the stat of the weapon.
+/// Attached to the [`super::Weapon`] entity to store the stat of the weapon.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct AmmoStat {
