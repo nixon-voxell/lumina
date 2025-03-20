@@ -21,7 +21,14 @@ impl Plugin for ObjectivePlugin {
 /// Disable ore visibility & physics if health is 0.0 or below and vice versa.
 fn ore_visibility(
     // mut commands: Commands,
-    mut q_ores: Query<(&mut Visibility, &Health), (With<OreType>, With<SourceEntity>)>,
+    mut q_ores: Query<
+        (&mut Visibility, &Health),
+        (
+            With<OreType>,
+            With<SourceEntity>,
+            Or<(Changed<Health>, Added<SourceEntity>)>,
+        ),
+    >,
 ) {
     for (mut viz, health) in q_ores.iter_mut() {
         match **health <= 0.0 {
