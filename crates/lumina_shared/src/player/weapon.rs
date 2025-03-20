@@ -21,6 +21,7 @@ impl Plugin for WeaponPlugin {
                     weapon_magazine_tracker,
                     weapon_reload,
                     weapon_recharge,
+                    weapon_manual_reload,
                     (weapon_direction, weapon_attack).chain(),
                 ),
             )
@@ -99,16 +100,23 @@ fn weapon_magazine_tracker(
             With<SourceEntity>,
         ),
     >,
+    q_reload: Query<Entity, With<WeaponReload>>,
 ) {
     for (state, weapon, entity) in q_weapons.iter() {
         if state.magazine > 0 {
             continue;
         }
 
+        // Check if entity is already reloading
+        if q_reload.get(entity).is_ok() {
+            continue;
+        }
+
+        // If magazine is empty, trigger a full reload
         commands
             .entity(entity)
             .insert(WeaponReload(Timer::from_seconds(
-                weapon.reload_duration,
+                weapon.reload_duration(),
                 TimerMode::Once,
             )));
     }
@@ -122,13 +130,49 @@ fn weapon_reload(
     >,
     time: Res<Time>,
 ) {
-    for (mut reload, mut state, weapon, entity) in q_weapons.iter_mut() {
-        if reload.finished() {
-            commands.entity(entity).remove::<WeaponReload>();
-            state.reload(weapon);
-        }
-
+    for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
         reload.tick(time.delta());
+
+        if reload.finished() {
+            stat.magazine = weapon.magazine_size();
+
+            // Remove the reload component since reloading is done
+            commands.entity(entity).remove::<WeaponReload>();
+        }
+    }
+}
+
+/// Manually trigger a weapon reload via keybind action by
+/// emptying the [`WeaponState::magazine()`] (set to 0).
+///
+/// This will then be tracked by [`weapon_magazine_tracker()`]
+/// and perform the actual reload sequence.
+fn weapon_manual_reload(
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_weapons: Query<
+        (&mut WeaponState, &Weapon),
+        (
+            With<SourceEntity>,
+            // Do not reload weapons that are reloading.
+            Without<WeaponReload>,
+        ),
+    >,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (action, id) in q_actions.iter() {
+        if action.pressed(&PlayerAction::Reload) {
+            if let Some((mut state, weapon)) = player_infos[PlayerInfoType::Weapon]
+                .get(id)
+                .and_then(|e| q_weapons.get_mut(*e).ok())
+            {
+                // Do not reload if magazine is full.
+                // TODO: Play a one shot sound when this happens?
+                if state.magazine() < weapon.magazine_size() {
+                    // Trigger a reload by emptying the entire magazine.
+                    state.magazine = 0;
+                }
+            }
+        }
     }
 }
 
@@ -217,6 +261,10 @@ impl Weapon {
     pub fn magazine_size(&self) -> u32 {
         self.magazine_size
     }
+
+    pub fn reload_duration(&self) -> f32 {
+        self.reload_duration
+    }
 }
 
 impl Component for Weapon {
@@ -274,6 +322,6 @@ impl WeaponState {
     }
 }
 
-/// Reload timer for the weapon.
+/// Reload timer based on [`Weapon::reload_duration()`].
 #[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
 pub struct WeaponReload(Timer);

@@ -21212,7 +21212,8 @@
         "Interact",
         "Attack",
         "Aim",
-        "Ability"
+        "Ability",
+        "Reload"
       ],
       "short_name": "PlayerAction",
       "type": "string",
