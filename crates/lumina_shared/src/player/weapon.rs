@@ -134,8 +134,7 @@ fn weapon_reload(
         reload.tick(time.delta());
 
         if reload.finished() {
-            // Add only the bullets that were missing
-            stat.magazine = stat.magazine.min(weapon.magazine_size());
+            stat.magazine = weapon.magazine_size();
 
             // Remove the reload component since reloading is done
             commands.entity(entity).remove::<WeaponReload>();
@@ -143,40 +142,34 @@ fn weapon_reload(
     }
 }
 
+/// Manually trigger a weapon reload via keybind action by
+/// emptying the [`WeaponState::magazine()`] (set to 0).
+///
+/// This will then be tracked by [`weapon_magazine_tracker()`]
+/// and perform the actual reload sequence.
 fn weapon_manual_reload(
-    mut commands: Commands,
-    q_actions: Query<
-        (&ActionState<PlayerAction>, &PlayerId),
-        (With<SourceEntity>, Without<WeaponReload>),
+    q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
+    mut q_weapons: Query<
+        (&mut WeaponState, &Weapon),
+        (
+            With<SourceEntity>,
+            // Do not reload weapons that are reloading.
+            Without<WeaponReload>,
+        ),
     >,
-    q_weapons: Query<(Entity, &WeaponState, &Weapon), (With<SourceEntity>, Without<WeaponReload>)>,
-    q_reload: Query<Entity, With<WeaponReload>>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Reload) {
-            if let Some((entity, state, weapon)) = player_infos[PlayerInfoType::Weapon]
+            if let Some((mut state, weapon)) = player_infos[PlayerInfoType::Weapon]
                 .get(id)
-                .and_then(|e| q_weapons.get(*e).ok())
+                .and_then(|e| q_weapons.get_mut(*e).ok())
             {
-                let missing_bullets = weapon.magazine_size() - state.magazine();
-
-                if missing_bullets > 0 {
-                    let reload_time_per_bullet =
-                        weapon.reload_duration() / weapon.magazine_size() as f32;
-                    let total_reload_time = reload_time_per_bullet * missing_bullets as f32;
-
-                    // Check if reload is already in progress
-                    if q_reload.get(entity).is_ok() {
-                        continue;
-                    }
-
-                    commands
-                        .entity(entity)
-                        .insert(WeaponReload(Timer::from_seconds(
-                            total_reload_time,
-                            TimerMode::Once,
-                        )));
+                // Do not reload if magazine is full.
+                // TODO: Play a one shot sound when this happens?
+                if state.magazine() < weapon.magazine_size() {
+                    // Trigger a reload by emptying the entire magazine.
+                    state.magazine = 0;
                 }
             }
         }
