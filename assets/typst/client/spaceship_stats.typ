@@ -54,6 +54,7 @@
           width: rect_width,
           height: 100%,
           fill: fill_color,
+          radius: 0.1em,
         )
       ]
     }
@@ -127,6 +128,7 @@
           height: height,
           fill: base1,
           stroke: orange.lighten(40%).transparentize(80%) + 2pt,
+          radius: 0.2em,
         )[
           // Add red rectangle as booster overheat signal
           #place(
@@ -134,6 +136,7 @@
               width: data.boost * 100%,
               height: 100%,
               fill: gradient.linear(orange.darken(30%), orange),
+              radius: 0.2em,
             ),
           )
         ],
