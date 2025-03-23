@@ -9,7 +9,7 @@ use strum::IntoEnumIterator;
 use crate::blueprints::AmmoType;
 use crate::health::Health;
 
-use super::{GameLayer, PlayerId};
+use super::{prelude::TeamType, GameLayer, PlayerId};
 
 pub(super) struct AmmoPlugin;
 
@@ -45,7 +45,7 @@ fn setup_ammmo_ref(
 fn fire_ammo(
     trigger: Trigger<FireAmmo>,
     mut commands: Commands,
-    q_weapons: Query<(&AmmoStat, &PlayerId, &WorldIdx)>,
+    q_weapons: Query<(&AmmoStat, &PlayerId, &TeamType, &WorldIdx)>,
     q_ammo_refs: Query<&Collider, With<AmmoRef>>,
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     ammo_refs: Res<RefEntityMap<AmmoType>>,
@@ -64,6 +64,7 @@ fn fire_ammo(
             ..
         },
         &player_id,
+        &team_type,
         &world_id,
     )) = q_weapons.get(weapon_entity)
     else {
@@ -81,7 +82,6 @@ fn fire_ammo(
     let ammo_pool = &mut ammo_pools[*ammo_type as usize];
 
     let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
-        println!("\n\n Spawn new!");
         let mut cmd = commands.spawn(InitAmmoBundle::new(*ammo_type, collider.clone()));
 
         #[cfg(debug_assertions)]
@@ -93,6 +93,7 @@ fn fire_ammo(
     // Initialize fire ammo components.
     commands.entity(ammo_entity).insert(FireAmmoBundle {
         player_id,
+        team_type,
         world_id,
         position: position.into(),
         rotation: Rotation::radians(direction.to_angle()),
@@ -140,7 +141,7 @@ fn ammo_collision(
     mut commands: Commands,
     q_col_criteria: Query<(Option<&PlayerId>, Has<Sensor>)>,
     // Only apply damage on the server.
-    mut q_healths: Query<&mut Health, With<server::SyncTarget>>,
+    mut q_healths: Query<(&mut Health, Option<&TeamType>), With<server::SyncTarget>>,
     q_ammo_stats: Query<&AmmoStat, With<SourceEntity>>,
     mut q_ammos: Query<
         (
@@ -151,6 +152,7 @@ fn ammo_collision(
             Ref<CollidingEntities>,
             &Visibility,
             &PlayerId,
+            &TeamType,
         ),
         (
             Changed<CollidingEntities>,
@@ -161,7 +163,9 @@ fn ammo_collision(
     q_rigidbodies: Query<&RigidBody>,
     // network_identity: NetworkIdentity,
 ) {
-    for (position, rotation, weapon_ref, mut lifetime, colliding, viz, id) in q_ammos.iter_mut() {
+    for (position, rotation, weapon_ref, mut lifetime, colliding, viz, id, team_type) in
+        q_ammos.iter_mut()
+    {
         // Skip already hidden ammos.
         if viz == Visibility::Hidden {
             continue;
@@ -192,9 +196,11 @@ fn ammo_collision(
                 continue;
             }
 
-            // Apply damage if possible.
-            if let Ok(mut health) = q_healths.get_mut(entity) {
-                **health -= effect.damage;
+            // Apply damage if not in the same team or there is no team.
+            if let Ok((mut health, col_team_type)) = q_healths.get_mut(entity) {
+                if col_team_type.is_some_and(|t| t != team_type) || col_team_type.is_none() {
+                    **health -= effect.damage;
+                }
             }
 
             // Apply force if possible.
@@ -262,6 +268,7 @@ impl InitAmmoBundle {
 #[derive(Bundle)]
 pub struct FireAmmoBundle {
     pub player_id: PlayerId,
+    pub team_type: TeamType,
     pub world_id: WorldIdx,
     pub position: Position,
     pub rotation: Rotation,
