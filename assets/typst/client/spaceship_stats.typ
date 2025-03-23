@@ -6,7 +6,7 @@
   width,
   height,
 ) = {
-  let spacing = 2pt
+  let spacing = 0.2em
   let hp_per_box = 10
 
   // Calculate the total number of blocks needed
@@ -41,7 +41,13 @@
     }
   }
 
-  return box(fill: none, height: height)[
+  return box(
+    fill: black,
+    outset: 0.3em,
+    radius: 0.3em,
+    height: height,
+    width: width,
+  )[
     // Display blocks for current and max health
     #for i in range(total_box_num) {
       let fill_color = if i < box_num {
@@ -54,7 +60,7 @@
           width: rect_width,
           height: 100%,
           fill: fill_color,
-          radius: 0.1em,
+          // radius: 0.1em,
         )
       ]
     }

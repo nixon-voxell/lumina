@@ -1,8 +1,8 @@
 (
-    spawn_rate: 0.1,
-    spawn_amount: 2,
+    spawn_rate: 0.06,
+    spawn_amount: 3,
     emission_shape: Circle(16.0),
-    lifetime: (0.3, 0.5),
+    lifetime: (0.3, 0.8),
     linear_speed: Some((100.0, 0.5)),
     linear_acceleration: Some((0.0, 0.0)),
     direction: Some(((-0.5, 0.0), 0.1)),
