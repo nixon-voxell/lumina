@@ -7,6 +7,7 @@ use lumina_common::prelude::*;
 use crate::action::PlayerAction;
 
 use super::ammo::FireAmmo;
+use super::prelude::TeamType;
 use super::spaceship::{spaceship_health, Spaceship};
 use super::{PlayerId, PlayerInfoType, PlayerInfos};
 
@@ -25,7 +26,13 @@ impl Plugin for WeaponPlugin {
                     (weapon_direction, weapon_attack).chain(),
                 ),
             )
-            .add_systems(PostUpdate, weapon_visibility.after(spaceship_health));
+            .add_systems(
+                PostUpdate,
+                (
+                    mimic_spaceship_comp::<Visibility>.after(spaceship_health),
+                    mimic_spaceship_comp::<TeamType>,
+                ),
+            );
     }
 }
 
@@ -220,21 +227,18 @@ fn weapon_recharge(mut q_weapons: Query<&mut WeaponState, With<SourceEntity>>, t
     }
 }
 
-/// Update weapon visibility based on spaceship visibility.
-fn weapon_visibility(
+/// Mimic component data from spaceship entity to the weapon entity.
+fn mimic_spaceship_comp<T: Component + Clone>(
     mut commands: Commands,
-    q_spaceships: Query<
-        (&Visibility, &PlayerId),
-        (Changed<Visibility>, With<Spaceship>, With<SourceEntity>),
-    >,
+    q_spaceships: Query<(&T, &PlayerId), (Changed<T>, With<Spaceship>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
 ) {
-    for (viz, id) in q_spaceships.iter() {
+    for (comp, id) in q_spaceships.iter() {
         if let Some(entity) = player_infos[PlayerInfoType::Weapon].get(id) {
             // Weapons and spaceships might get despawned when changing them
             // in local lobby.
             if let Some(mut cmd) = commands.get_entity(*entity) {
-                cmd.insert(*viz);
+                cmd.insert(comp.clone());
             }
         }
     }
