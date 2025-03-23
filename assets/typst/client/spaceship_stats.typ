@@ -1,5 +1,232 @@
 #import "../monokai_pro.typ": *
 
+#let wave(width, height, amplitude, freq, time, fill, offset: 0) = {
+  let s_time = (
+    calc.sin((time) * freq + offset),
+    calc.sin((time + 0.25 * calc.tau) * freq + offset),
+    calc.sin((time + 0.5 * calc.tau) * freq + offset),
+    calc.sin((time + 0.75 * calc.tau) * freq + offset),
+  )
+
+  let points = (
+    (0pt, s_time.at(0) * amplitude),
+    (width * 0.3333, s_time.at(1) * amplitude),
+    (width * 0.6666, s_time.at(2) * amplitude),
+    (width, s_time.at(3) * amplitude),
+  )
+
+  curve(
+    fill: fill,
+    curve.move(points.at(0)),
+    curve.cubic(points.at(1), points.at(2), points.at(3)),
+    curve.line((width, height)),
+    curve.line((0pt, height)),
+    curve.line(points.at(0)),
+  )
+}
+
+#let arc(width, thickness, arc_percentile, paint, cap) = {
+  circle(
+    width: width,
+    stroke: (
+      paint: paint,
+      thickness: thickness,
+      cap: cap,
+      dash: (
+        calc.pi * width * arc_percentile,
+        // Add 10 for potential math error's sake.
+        width * calc.pi + 10pt,
+      ),
+    ),
+  )
+}
+
+#let disc_stats(
+  width,
+  fill,
+  arc_total_count,
+  arc_count,
+  wave_time,
+  arc_spacing: 2deg,
+  cap: "butt",
+) = {
+  // Constants
+  let black_transparent = black.transparentize(100%)
+  let white_transparent = white.transparentize(100%)
+  let height = width
+  let arc_percentile = (1 / arc_total_count) - (arc_spacing / 360deg)
+
+  box(width: width, height: height)[
+    #place(
+      center + horizon,
+      box(
+        width: width,
+        height: height,
+        radius: width,
+        clip: true,
+      )[
+        #place(
+          bottom,
+          wave(
+            width,
+            96pt,
+            10pt,
+            0.7,
+            wave_time,
+            fill.darken(50%).transparentize(50%),
+          ),
+        )
+        #place(
+          bottom,
+          wave(
+            width,
+            100pt,
+            15pt,
+            1.0,
+            wave_time,
+            fill.darken(40%).saturate(50%).transparentize(50%),
+          ),
+        )
+        #place[
+          #circle(
+            width: 200pt,
+            height: 200pt,
+            fill: gradient.radial(
+              (black_transparent, 0%),
+              (fill.transparentize(100%), 80%),
+              (fill.desaturate(80%).transparentize(50%), 100%),
+              // (orange.desaturate(10%).transparentize(91%), 80%),
+              // (orange.desaturate(10%).transparentize(97%), 100%),
+              // (transparent, 100%)
+            ),
+          )
+        ]
+      ],
+    )
+
+    #let stroke_width = 40pt
+    #let distance = stroke_width
+    // Ring background.
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance,
+        height: height + distance,
+        stroke: stroke_width + fill.darken(80%),
+      ),
+    )
+    // Inner ring.
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance - stroke_width,
+        height: height + distance - stroke_width,
+        stroke: 3pt + fill.desaturate(50%),
+      ),
+    )
+    // Inner ring glow.
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance - stroke_width,
+        height: height + distance - stroke_width,
+        stroke: 6pt + fill.desaturate(50%).transparentize(50%),
+      ),
+    )
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance - stroke_width,
+        height: height + distance - stroke_width,
+        stroke: 9pt + fill.desaturate(50%).transparentize(80%),
+      ),
+    )
+
+    // Outer ring.
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance + stroke_width,
+        height: height + distance + stroke_width,
+        stroke: 3pt + fill.desaturate(50%),
+      ),
+    )
+    // Outer ring glow.
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance + stroke_width,
+        height: height + distance + stroke_width,
+        stroke: 6pt + fill.desaturate(50%).transparentize(50%),
+      ),
+    )
+    #place(
+      center + horizon,
+      circle(
+        width: width + distance + stroke_width,
+        height: height + distance + stroke_width,
+        stroke: 9pt + fill.desaturate(50%).transparentize(80%),
+      ),
+    )
+
+    #for a in range(arc_count) {
+      place(
+        center + horizon,
+        rotate(
+          a * 360deg / arc_total_count,
+          arc(
+            width + distance,
+            stroke_width * 0.5,
+            arc_percentile,
+            fill.darken(30%),
+            cap,
+          ),
+        ),
+      )
+    }
+
+    #place(
+      center + horizon,
+      rotate(
+        (arc_count - 1) * 360deg / arc_total_count,
+        arc(
+          width + distance,
+          stroke_width * 0.6,
+          arc_percentile,
+          fill.transparentize(50%),
+          cap,
+        ),
+      ),
+    )
+    #place(
+      center + horizon,
+      rotate(
+        (arc_count - 1) * 360deg / arc_total_count,
+        arc(
+          width + distance,
+          stroke_width * 0.7,
+          arc_percentile,
+          fill.transparentize(80%),
+          cap,
+        ),
+      ),
+    )
+    #place(
+      center + horizon,
+      rotate(
+        (arc_count - 1) * 360deg / arc_total_count,
+        arc(
+          width + distance,
+          stroke_width * 0.8,
+          arc_percentile,
+          fill.transparentize(90%),
+          cap,
+        ),
+      ),
+    )
+  ]
+}
+
 #let health_display(
   health,
   max_health,
