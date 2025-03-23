@@ -6,7 +6,7 @@
   width,
   height,
 ) = {
-  let spacing = 2pt
+  let spacing = 0.2em
   let hp_per_box = 10
 
   // Calculate the total number of blocks needed
@@ -41,7 +41,13 @@
     }
   }
 
-  return box(fill: none, height: height)[
+  return box(
+    fill: black,
+    outset: 0.3em,
+    radius: 0.3em,
+    height: height,
+    width: width,
+  )[
     // Display blocks for current and max health
     #for i in range(total_box_num) {
       let fill_color = if i < box_num {
@@ -54,6 +60,7 @@
           width: rect_width,
           height: 100%,
           fill: fill_color,
+          // radius: 0.1em,
         )
       ]
     }
@@ -127,6 +134,7 @@
           height: height,
           fill: base1,
           stroke: orange.lighten(40%).transparentize(80%) + 2pt,
+          radius: 0.2em,
         )[
           // Add red rectangle as booster overheat signal
           #place(
@@ -134,6 +142,7 @@
               width: data.boost * 100%,
               height: 100%,
               fill: gradient.linear(orange.darken(30%), orange),
+              radius: 0.2em,
             ),
           )
         ],
