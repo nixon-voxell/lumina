@@ -1,11 +1,12 @@
 #import "../monokai_pro.typ": *
+#import "../utils.typ": lerp
 
-#let wave(width, height, amplitude, freq, time, fill, offset: 0) = {
+#let wave(width, height, amplitude, freq, time, fill) = {
   let s_time = (
-    calc.sin((time) * freq + offset),
-    calc.sin((time + 0.25 * calc.tau) * freq + offset),
-    calc.sin((time + 0.5 * calc.tau) * freq + offset),
-    calc.sin((time + 0.75 * calc.tau) * freq + offset),
+    calc.sin((time) * freq),
+    calc.sin((time + 0.25 * calc.tau) * freq),
+    calc.sin((time + 0.5 * calc.tau) * freq),
+    calc.sin((time + 0.75 * calc.tau) * freq),
   )
 
   let points = (
@@ -16,7 +17,8 @@
   )
 
   curve(
-    fill: fill,
+    fill: fill.transparentize(50%),
+    stroke: fill.lighten(20%) + 0.2em,
     curve.move(points.at(0)),
     curve.cubic(points.at(1), points.at(2), points.at(3)),
     curve.line((width, height)),
@@ -41,190 +43,158 @@
   )
 }
 
+#let ring(
+  width,
+  stroke_width,
+  fill,
+  glow_count: 0,
+  glow_thickness: 0.2em,
+) = {
+  place(
+    center + horizon,
+    circle(
+      width: width,
+      height: width,
+      stroke: (stroke_width) + fill.desaturate(50%),
+    ),
+  )
+  for i in range(glow_count) {
+    let i = i + 1
+    place(
+      center + horizon,
+      circle(
+        width: width,
+        height: width,
+        stroke: (stroke_width + i * glow_thickness)
+          + fill.transparentize(i / (glow_count + 1) * 100%),
+      ),
+    )
+  }
+}
+
 #let disc_stats(
   width,
-  fill,
+  arc_fill,
+  wave_fill,
   arc_total_count,
   arc_count,
-  wave_time,
+  wave_amount,
+  time,
   arc_spacing: 2deg,
   cap: "butt",
 ) = {
   // Constants
   let black_transparent = black.transparentize(100%)
   let white_transparent = white.transparentize(100%)
-  let height = width
   let arc_percentile = (1 / arc_total_count) - (arc_spacing / 360deg)
 
-  box(width: width, height: height)[
+  let wave_height = lerp(wave_amount, 0.2, 0.9) * 100%
+  let wave_color_mix = calc.pow(wave_amount, 0.2) * 100%
+  let wave_color = color.mix(
+    (wave_fill, wave_color_mix),
+    (red, 100% - wave_color_mix),
+  )
+  box(width: width, height: width, radius: width, clip: true)[
+    #let offset_time = time + 2.2
+    #let water_color = wave_color.darken(40%).saturate(50%)
     #place(
-      center + horizon,
-      box(
-        width: width,
-        height: height,
-        radius: width,
-        clip: true,
-      )[
-        #place(
-          bottom,
-          wave(
-            width,
-            96pt,
-            10pt,
-            0.7,
-            wave_time,
-            fill.darken(50%).transparentize(50%),
-          ),
-        )
-        #place(
-          bottom,
-          wave(
-            width,
-            100pt,
-            15pt,
-            1.0,
-            wave_time,
-            fill.darken(40%).saturate(50%).transparentize(50%),
-          ),
-        )
-        #place[
-          #circle(
-            width: 200pt,
-            height: 200pt,
-            fill: gradient.radial(
-              (black_transparent, 0%),
-              (fill.transparentize(100%), 80%),
-              (fill.desaturate(80%).transparentize(50%), 100%),
-              // (orange.desaturate(10%).transparentize(91%), 80%),
-              // (orange.desaturate(10%).transparentize(97%), 100%),
-              // (transparent, 100%)
-            ),
-          )
-        ]
-      ],
-    )
-
-    #let stroke_width = 40pt
-    #let distance = stroke_width
-    // Ring background.
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance,
-        height: height + distance,
-        stroke: stroke_width + fill.darken(80%),
-      ),
-    )
-    // Inner ring.
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance - stroke_width,
-        height: height + distance - stroke_width,
-        stroke: 3pt + fill.desaturate(50%),
-      ),
-    )
-    // Inner ring glow.
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance - stroke_width,
-        height: height + distance - stroke_width,
-        stroke: 6pt + fill.desaturate(50%).transparentize(50%),
+      bottom,
+      wave(
+        width,
+        wave_height + calc.sin(offset_time + calc.pi * 1.8) * 5%,
+        10pt,
+        1.0,
+        offset_time,
+        water_color,
       ),
     )
     #place(
-      center + horizon,
-      circle(
-        width: width + distance - stroke_width,
-        height: height + distance - stroke_width,
-        stroke: 9pt + fill.desaturate(50%).transparentize(80%),
+      bottom,
+      wave(
+        width,
+        wave_height + calc.sin(time + calc.pi * 0.2) * 10%,
+        15pt,
+        1.0,
+        time,
+        water_color,
       ),
     )
-
-    // Outer ring.
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance + stroke_width,
-        height: height + distance + stroke_width,
-        stroke: 3pt + fill.desaturate(50%),
-      ),
-    )
-    // Outer ring glow.
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance + stroke_width,
-        height: height + distance + stroke_width,
-        stroke: 6pt + fill.desaturate(50%).transparentize(50%),
-      ),
-    )
-    #place(
-      center + horizon,
-      circle(
-        width: width + distance + stroke_width,
-        height: height + distance + stroke_width,
-        stroke: 9pt + fill.desaturate(50%).transparentize(80%),
-      ),
-    )
-
-    #for a in range(arc_count) {
-      place(
-        center + horizon,
-        rotate(
-          a * 360deg / arc_total_count,
-          arc(
-            width + distance,
-            stroke_width * 0.5,
-            arc_percentile,
-            fill.darken(30%),
-            cap,
-          ),
+    #place[
+      #circle(
+        width: 100%,
+        height: 100%,
+        fill: gradient.radial(
+          (black_transparent, 0%),
+          (water_color.transparentize(100%), 80%),
+          (water_color.desaturate(80%).transparentize(50%), 100%),
         ),
       )
-    }
-
-    #place(
-      center + horizon,
-      rotate(
-        (arc_count - 1) * 360deg / arc_total_count,
-        arc(
-          width + distance,
-          stroke_width * 0.6,
-          arc_percentile,
-          fill.transparentize(50%),
-          cap,
-        ),
-      ),
-    )
-    #place(
-      center + horizon,
-      rotate(
-        (arc_count - 1) * 360deg / arc_total_count,
-        arc(
-          width + distance,
-          stroke_width * 0.7,
-          arc_percentile,
-          fill.transparentize(80%),
-          cap,
-        ),
-      ),
-    )
-    #place(
-      center + horizon,
-      rotate(
-        (arc_count - 1) * 360deg / arc_total_count,
-        arc(
-          width + distance,
-          stroke_width * 0.8,
-          arc_percentile,
-          fill.transparentize(90%),
-          cap,
-        ),
-      ),
-    )
+    ]
   ]
+
+  let stroke_width = 1.8em
+  let distance = stroke_width
+  let glow_animation = (calc.sin(time * 2) * 0.5 + 0.5)
+  place(top + left)[
+    #box(width: width, height: width, radius: width)[
+      // Ring background.
+      #ring(width + distance, stroke_width, arc_fill.darken(80%))
+      // Inner ring.
+      #ring(
+        width + distance - stroke_width,
+        0.06em,
+        wave_color.mix(arc_fill).lighten(40%).transparentize(30%),
+        glow_count: 2,
+      )
+      // Outer ring.
+      #ring(
+        width + distance + stroke_width,
+        0.04em,
+        arc_fill.lighten(40%).transparentize(30% * glow_animation),
+        glow_count: 2,
+      )
+
+      // Arc segments.
+      #for a in range(arc_count) {
+        place(
+          center + horizon,
+          rotate(
+            a * 360deg / arc_total_count + arc_spacing * 0.5,
+            arc(
+              width + distance,
+              stroke_width * 0.5,
+              arc_percentile,
+              arc_fill.darken(30%),
+              cap,
+            ),
+          ),
+        )
+      }
+
+      // Last arc glow.
+      #for i in range(3) {
+        let spacing_grow = arc_spacing * 0.3
+        let glow_arc_spacing = arc_spacing - (spacing_grow + i * spacing_grow)
+        let glow_arc_percentile = (
+          (1 / arc_total_count) - (glow_arc_spacing / 360deg)
+        )
+        place(
+          center + horizon,
+          rotate(
+            (arc_count - 1) * 360deg / arc_total_count + glow_arc_spacing * 0.5,
+            arc(
+              width + distance,
+              stroke_width * (0.6 + i * 0.1),
+              glow_arc_percentile,
+              arc_fill
+                .desaturate(20%)
+                .transparentize(50% * glow_animation + (i * 20%)),
+              cap,
+            ),
+          ),
+        )
+      }
+    ]]
 }
 
 #let health_display(
@@ -338,83 +308,56 @@
   set align(horizon)
   set rect(inset: 0pt)
 
-  let width = 17em
+  let width = 6em
   let height = 1.3em
   box(width: 100%, height: 100%, inset: 2em)[
     #place(bottom + left)[
-      #grid(
-        columns: (auto, 1fr),
-        column-gutter: 0.8em,
-        row-gutter: 1em,
-        image(
-          "/icons/health.svg",
-          height: 1.5em,
+      #stack(
+        dir: ltr,
+        box(
+          inset: 1em,
+          disc_stats(
+            width,
+            green.saturate(40%),
+            yellow.saturate(40%).mix(green.saturate(40%)),
+            int(data.max_health),
+            int(data.health),
+            data.boost,
+            data.time * 3,
+          ),
         ),
-        health_display(data.health, data.max_health, width, height),
-
-        image(
-          "/icons/electric-refueling.svg",
-          height: 1.5em,
-        ),
-        rect(
-          width: width,
-          height: height,
-          fill: base1,
-          stroke: orange.lighten(40%).transparentize(80%) + 2pt,
-          radius: 0.2em,
-        )[
-          // Add red rectangle as booster overheat signal
-          #place(
-            rect(
-              width: data.boost * 100%,
-              height: 100%,
-              fill: gradient.linear(orange.darken(30%), orange),
-              radius: 0.2em,
-            ),
-          )
-        ],
-
-        box(width: 1.5em, height: 1.5em, clip: true)[
+        box(inset: (left: 2em))[
           #image(
             "/icons/" + weapon_icon + ".svg",
-            height: 1.5em,
+            height: width * 0.7,
+          )
+          #stack(
+            dir: ltr,
+            spacing: -0.2em,
+            box(
+              fill: base6.transparentize(70%),
+              inset: 0.2em,
+              radius: 0.2em,
+              stroke: base5,
+            )[
+              #if data.magazine < 10 { "0" + str(data.magazine) } else {
+                data.magazine
+              }
+            ],
+            box(width: 1em),
+
+            ..range(data.magazine_size).map(i => {
+              let bullet_icon = if i < data.magazine { "bullet" } else {
+                "bullet-used"
+              }
+
+              move(
+                dy: if i < data.reload_size { 0em } else { 0.7em },
+                image("/icons/" + bullet_icon + ".svg", height: 1em),
+              )
+            }),
           )
         ],
-        stack(
-          dir: ltr,
-          spacing: -0.2em,
-          box(
-            fill: base6.transparentize(70%),
-            inset: 0.2em,
-            radius: 0.2em,
-            stroke: base5,
-          )[
-            #if data.magazine < 10 {
-              "0" + str(data.magazine)
-            } else {
-              data.magazine
-            }
-          ],
-          box(width: 1em),
-
-          ..range(data.magazine_size).map(i => {
-            let bullet_icon = if i < data.magazine { "bullet" } else {
-              "bullet-used"
-            }
-
-            move(
-              dy: if i < data.reload_size {
-                0em
-              } else {
-                0.7em
-              },
-              image(
-                "/icons/" + bullet_icon + ".svg",
-                height: 1em,
-              ),
-            )
-          }),
-        ),
       )
     ]
 

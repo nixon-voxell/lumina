@@ -36,6 +36,7 @@ fn spaceship_stats(
     q_weapons: Query<(&WeaponState, &Weapon, Option<&WeaponReload>), With<SourceEntity>>,
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
+    time: Res<Time>,
 ) {
     func.data = None;
     let Some((
@@ -72,6 +73,7 @@ fn spaceship_stats(
     });
 
     func.data = Some(dict! {
+        "time" => time.elapsed_seconds_f64(),
         "spaceship_type" => spaceship_type,
         "health" => **health as f64,
         "max_health" => **max_health as f64,
