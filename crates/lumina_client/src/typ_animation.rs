@@ -64,7 +64,7 @@ pub struct LabelScaleFade {
 impl LabelScaleFade {
     pub fn new(name: &str) -> Self {
         Self {
-            label: TypLabel::new(name),
+            label: TypLabel::construct(name.into()),
             time: 0.0,
             scale: Range(0.8, 1.0),
             fade: Range(0.0, 1.0),
