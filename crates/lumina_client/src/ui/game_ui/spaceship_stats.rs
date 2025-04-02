@@ -37,7 +37,12 @@ fn spaceship_stats(
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
     time: Res<Time>,
+    mut boost_lerp: Local<f64>,
+    mut health_lerp: Local<f64>,
 ) {
+    const SMOOTH_LERP: f64 = 4.0;
+    let smoth_lerp_dt = SMOOTH_LERP * time.delta_seconds_f64();
+
     func.data = None;
     let Some((
         max_health,
@@ -52,6 +57,8 @@ fn spaceship_stats(
         .get(PlayerInfoType::Spaceship)
         .and_then(|e| q_spaceships.get(e).ok())
     else {
+        *boost_lerp = 0.0;
+        *health_lerp = 0.0;
         return;
     };
 
@@ -72,12 +79,18 @@ fn spaceship_stats(
         (reload_percentage * weapon.magazine_size() as f32) as u32
     });
 
+    *boost_lerp = boost_lerp.lerp(
+        (energy.energy / spaceship.energy.max_energy) as f64,
+        smoth_lerp_dt,
+    );
+    *health_lerp = health_lerp.lerp(**health as f64, smoth_lerp_dt);
+
     func.data = Some(dict! {
         "time" => time.elapsed_seconds_f64(),
         "spaceship_type" => spaceship_type,
-        "health" => **health as f64,
+        "health" => *health_lerp,
         "max_health" => **max_health as f64,
-        "boost" => (energy.energy / spaceship.energy.max_energy) as f64,
+        "boost" => *boost_lerp,
         "dash_cooldown" => dash_cooldown,
         "ability_cooldown" => ability_cooldown,
         "ability_active" => is_ability_active,

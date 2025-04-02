@@ -88,7 +88,7 @@
   let white_transparent = white.transparentize(100%)
   let arc_percentile = (1 / arc_total_count) - (arc_spacing / 360deg)
 
-  let wave_height = lerp(wave_amount, 0.2, 0.9) * 100%
+  let wave_height = lerp(wave_amount, 0.1, 0.87) * 100%
   let wave_color_mix = calc.pow(wave_amount, 0.2) * 100%
   let wave_color = color.mix(
     (wave_fill, wave_color_mix),
@@ -101,8 +101,8 @@
       bottom,
       wave(
         width,
-        wave_height + calc.sin(offset_time + calc.pi * 1.8) * 5%,
-        10pt,
+        wave_height + (calc.sin(offset_time + calc.pi * 1.8) * 0.5 + 0.5) * 5%,
+        5%,
         1.0,
         offset_time,
         water_color,
@@ -112,8 +112,8 @@
       bottom,
       wave(
         width,
-        wave_height + calc.sin(time + calc.pi * 0.2) * 10%,
-        15pt,
+        wave_height + (calc.sin(time + calc.pi * 0.2) * 0.5 + 0.5) * 10%,
+        10%,
         1.0,
         time,
         water_color,
@@ -320,8 +320,8 @@
             width,
             green.saturate(40%),
             yellow.saturate(40%).mix(green.saturate(40%)),
-            int(data.max_health),
-            int(data.health),
+            calc.ceil(data.max_health),
+            calc.ceil(data.health),
             data.boost,
             data.time * 3,
           ),
