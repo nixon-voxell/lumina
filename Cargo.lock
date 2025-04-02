@@ -1466,7 +1466,7 @@ dependencies = [
  "thiserror",
  "velato",
  "vello",
- "vello_svg",
+ "vello_svg 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2793,7 +2793,9 @@ version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37be9fc20d966be438cd57a45767f73349477fb0f85ce86e000557f787298afb"
 dependencies = [
+ "fontconfig-parser",
  "log",
+ "memmap2",
  "slotmap",
  "tinyvec",
  "ttf-parser 0.24.1",
@@ -3589,11 +3591,22 @@ dependencies = [
  "byteorder-lite",
  "color_quant",
  "gif",
+ "image-webp",
  "num-traits",
  "png",
  "tiff",
  "zune-core",
  "zune-jpeg",
+]
+
+[[package]]
+name = "image-webp"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b77d01e822461baa8409e156015a1d91735549f0f2c17691bd2d996bef238f7f"
+dependencies = [
+ "byteorder-lite",
+ "quick-error",
 ]
 
 [[package]]
@@ -5372,6 +5385,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "quick-error"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a993555f31e5a609f617c12db6250dedcac1b0a85076912c436e6fc9b2c8e6a3"
+
+[[package]]
 name = "quick-xml"
 version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7092,7 +7111,7 @@ dependencies = [
  "ttf-parser 0.24.1",
  "typst",
  "vello",
- "vello_svg",
+ "vello_svg 0.3.1",
 ]
 
 [[package]]
@@ -7392,6 +7411,16 @@ dependencies = [
  "naga",
  "thiserror",
  "vello_encoding",
+]
+
+[[package]]
+name = "vello_svg"
+version = "0.3.1"
+dependencies = [
+ "image",
+ "thiserror",
+ "usvg 0.43.0",
+ "vello",
 ]
 
 [[package]]
