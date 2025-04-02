@@ -76,7 +76,7 @@ fn disable_specific_interactions(
     mut q_interactions: Query<(&TypstLabel, Entity), Added<Interaction>>,
 ) {
     for (label, entity) in q_interactions.iter_mut() {
-        if label.as_str().starts_with("btn") == false {
+        if label.resolve().starts_with("btn") == false {
             commands
                 .entity(entity)
                 .insert(FocusPolicy::Pass)
@@ -151,7 +151,7 @@ impl InteractionQuery<'_, '_> {
 
     pub fn is_interacting(&self, label_str: &str, target_interaction: &Interaction) -> bool {
         self.q_interactions.iter().any(|(interaction, label)| {
-            label.as_str() == label_str && interaction == target_interaction
+            label.resolve().as_str() == label_str && interaction == target_interaction
         })
     }
 }

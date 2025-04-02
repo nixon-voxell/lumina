@@ -34,3 +34,8 @@
 #let button(body, lbl: label) = {
   [#box(inset: 0.5em)[#body] #lbl]
 }
+
+#let lerp(x, low, high) = {
+  let diff = high - low
+  x * diff + low
+}
