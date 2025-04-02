@@ -125,8 +125,8 @@
         height: 100%,
         fill: gradient.radial(
           (black_transparent, 0%),
-          (water_color.transparentize(100%), 80%),
-          (water_color.desaturate(80%).transparentize(50%), 100%),
+          (water_color.transparentize(80%), 70%),
+          (water_color.lighten(80%), 100%),
         ),
       )
     ]
