@@ -28,7 +28,7 @@
     hovered_button: hovered_button,
     hovered_animation: hovered_animation,
   )[
-    #box(width: 100%, height: 100%, inset: (x: 4.6%, y: 8%))[
+    #box(width: 100%, height: 100%, inset: 4em)[
       #set text(fill: base7)
 
       #if connected == false {
@@ -38,23 +38,30 @@
 
       #place(left + horizon)[
         #set text(size: 48pt)
-        #pad(bottom: 40pt)[#text(fill: yellow)[= Lumina]]
+        #pad(top: 1em)[#text(fill: yellow)[= Lumina]]
 
         #move(dx: 2%)[
           #set text(size: 28pt)
-          #text(fill: green)[#button(lbl: <btn:play>)[= Play]]\
-          #text(fill: purple)[#button(lbl: <btn:luminators>)[= Luminators]]\
+          #text(fill: green)[#button(lbl: <btn:play>, fill: green)[= Play]]\
+          #text(fill: purple)[#button(
+              lbl: <btn:luminators>,
+              fill: purple,
+            )[= Luminators]]\
         ]
       ]
 
-      #place(left + bottom)[
+      #place(right + bottom)[
 
-        #text(size: 16pt, fill: red.transparentize(40%))[
-          #button(lbl: <btn:exit-game>)[= Exit Game]
+        #box(height: 4em)[
+          #text(size: 16pt, fill: red)[
+            #button(lbl: <btn:exit-game>, fill: red)[= Exit Game]
+          ]
         ]
 
-        #text(size: 18pt)[
-          #button(lbl: <btn:settings>)[#emoji.gear Settings]
+        #box(height: 4em)[
+          #text(size: 18pt)[
+            #button(lbl: <btn:settings>)[#emoji.gear Settings]
+          ]
         ]
       ]
     ]

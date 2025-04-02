@@ -31,8 +31,19 @@
   #body
 ]
 
-#let button(body, lbl: label) = {
-  [#box(inset: 0.5em)[#body] #lbl]
+#let button(body, lbl: label, fill: white) = {
+  let raw_svg = read("../icons/button01.svg")
+  raw_svg = raw_svg.replace(
+    "#fff",
+    fill.to-hex(),
+  )
+  let background = image(bytes(raw_svg))
+  [
+    #box()[
+      #background
+      #place(center + horizon, body)
+    ] #lbl
+  ]
 }
 
 #let lerp(x, low, high) = {
