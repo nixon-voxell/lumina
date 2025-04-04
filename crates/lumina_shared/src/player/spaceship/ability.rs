@@ -148,7 +148,7 @@ fn apply_ability_effect<T: ThreadSafe>(
             continue;
         }
 
-        commands.start_cooldown_effect::<T, AbilityConfig<T>>(entity);
+        commands.start_cooldown_effect::<Ability, AbilityConfig<T>>(entity);
     }
 }
 
