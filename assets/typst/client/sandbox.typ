@@ -21,7 +21,7 @@
       #set text(size: 0.7em)
       #text(fill: red)[#button(
           lbl: <btn:exit-sandbox>,
-          inter: interactions(),
+          inters: interactions(),
         )[= Exit Sandbox]]
     ]
   ]
