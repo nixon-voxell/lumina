@@ -72,16 +72,16 @@
           let highlight_fill = fill.transparentize(100%)
           let section_times = calculate_section_time(time, 3)
           for (i, section_t) in section_times.rev().enumerate() {
-            place(
-              center + horizon,
-              box(
-                width: background_size.width,
-                height: background_size.height,
-                outset: (0.1em + i * 0.1em) * section_t,
-                stroke: (0.2em + i * 0.1em)
-                  + highlight_fill.opacify(5% * section_t),
-              ),
-            )
+            // place(
+            //   center + horizon,
+            //   box(
+            //     width: background_size.width,
+            //     height: background_size.height,
+            //     outset: (0.1em + i * 0.1em) * section_t,
+            //     stroke: (0.2em + i * 0.1em)
+            //       + highlight_fill.opacify(5% * section_t),
+            //   ),
+            // )
 
             place(
               center + horizon,
