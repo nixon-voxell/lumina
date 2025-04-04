@@ -51,7 +51,10 @@
 
 #let effector_popup(message, button, button_progress) = {
   set align(horizon + center)
-  set text(fill: base8)
+  set text(
+    fill: base7,
+    font: "Radio Canada",
+  )
 
   let body = stack(
     dir: ltr,

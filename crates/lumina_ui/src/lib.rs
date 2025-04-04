@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::path::PathBuf;
 
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
@@ -30,12 +31,16 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
+        // Using assets/fonts as the fonts path
+        let mut fonts_path = PathBuf::from(".");
+        fonts_path.push("assets");
+        fonts_path.push("fonts");
         app.add_plugins((
             VelloPlugin {
                 canvas_render_layers: RenderLayers::from_layers(&[0, 1]),
                 ..default()
             },
-            VelystPlugin::default(),
+            VelystPlugin::new(vec![fonts_path]),
         ));
 
         app.add_plugins((
