@@ -14,7 +14,7 @@ pub struct InteractionPlugin;
 impl Plugin for InteractionPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(AnimateDuration(0.3))
-            .add_systems(Startup, define_interactions_func)
+            .add_systems(PreStartup, define_interactions_func)
             .add_systems(
                 Update,
                 (

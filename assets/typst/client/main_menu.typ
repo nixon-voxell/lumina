@@ -54,19 +54,19 @@
 
     #place(right + bottom)[
       #box(height: 3em)[
+        #button(
+          lbl: <btn:settings>,
+          inters: interactions(),
+        )[== #emoji.gear Settings]
+      ]
+
+      #box(height: 3em)[
         #text(fill: red)[
           #button(
             lbl: <btn:exit-game>,
             inters: interactions(),
           )[== Abort]
         ]
-      ]
-
-      #box(height: 3em)[
-        #button(
-          lbl: <btn:settings>,
-          inters: interactions(),
-        )[== #emoji.gear Settings]
       ]
     ]
   ]
