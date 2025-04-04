@@ -2,9 +2,8 @@
 #import "../utils.typ": *
 
 #let sandbox(
-  hovered_button,
-  hovered_animation,
   room_id,
+  dummy_update,
 ) = {
   box(width: 100%, height: 100%, inset: 2em)[
     #set text(fill: base7)
@@ -22,7 +21,7 @@
       #text(fill: red)[#button(
           lbl: <btn:exit-sandbox>,
           inters: interactions(),
-        )[= Exit Sandbox]]
+        )[= Exit]]
     ]
   ]
 }

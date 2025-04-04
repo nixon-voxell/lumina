@@ -2,11 +2,10 @@
 #import "../utils.typ": *
 
 #let lobby(
-  hovered_button,
-  hovered_animation,
   curr_player_count,
   max_player_count,
   room_id,
+  dummy_update,
 ) = {
   box(width: 100%, height: 100%, inset: 2em)[
     #set text(fill: base7)
@@ -24,7 +23,7 @@
       #text(fill: red)[#button(
           lbl: <btn:exit-lobby>,
           inters: interactions(),
-        )[= Exit Lobby]]
+        )[= Exit]]
     ]
   ]
 }

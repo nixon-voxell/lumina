@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
-use lumina_ui::interaction::INTERACTIONS;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
 
@@ -15,6 +14,7 @@ impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<MainMenuUi>()
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
+            .recompile_on_interaction::<MainMenuFunc>(|func| &mut func.dummy_update)
             .insert_resource(MainMenuFunc {
                 connection_msg: "Connecting to server...".to_string(),
                 ..default()
@@ -27,7 +27,6 @@ impl Plugin for MainMenuUiPlugin {
                     play_btn,
                     reconnect_btn,
                     exit_btn,
-                    recompile_main_menu,
                 )
                     .run_if(in_state(Screen::MainMenu)),
             )
@@ -78,13 +77,6 @@ fn exit_btn(
     if interactions.pressed("btn:exit-game") {
         commands.disconnect_client();
         app_exit.send(AppExit::Success);
-    }
-}
-
-/// Set [`MainMenuFunc`] resource as changed if there are interactions.
-fn recompile_main_menu(mut func: ResMut<MainMenuFunc>) {
-    if INTERACTIONS.read().unwrap().is_empty() == false {
-        func.dummy_update = func.dummy_update.wrapping_add(1);
     }
 }
 

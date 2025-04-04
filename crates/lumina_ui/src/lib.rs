@@ -17,6 +17,7 @@ pub mod perf_metrics;
 
 pub mod prelude {
     pub use crate::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
+    pub use crate::interaction::AppExt;
     pub use crate::main_window::{
         push_to_main_window, push_to_main_window_background, push_to_main_window_foreground,
         MainWindowFunc, MainWindowSet, MainWindowTransparency, WINDOW_FADE_DURATION,

@@ -185,3 +185,25 @@ pub enum AnimateDirection {
     Forward,
     Backward,
 }
+
+pub trait AppExt {
+    fn recompile_on_interaction<Func: Resource>(
+        &mut self,
+        get_dummy: fn(&mut Func) -> &mut u8,
+    ) -> &mut Self;
+}
+
+impl AppExt for App {
+    /// Set `Func` resource as changed if there any [`INTERACTIONS`].
+    fn recompile_on_interaction<Func: Resource>(
+        &mut self,
+        get_dummy: fn(&mut Func) -> &mut u8,
+    ) -> &mut Self {
+        self.add_systems(Update, move |mut func: ResMut<Func>| {
+            if INTERACTIONS.read().unwrap().is_empty() == false {
+                let dummy = get_dummy(&mut func);
+                *dummy = dummy.wrapping_add(1);
+            }
+        })
+    }
+}

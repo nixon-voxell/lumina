@@ -52,13 +52,17 @@
     }
 
     #let fill = if fill != none { fill } else {
-      text.fill.transparentize(60%)
+      text.fill
     }
 
     #let raw_svg = read(button_files.at(svg_idx))
-    #let raw_svg = raw_svg.replace(
-      "#fff",
-      fill.lighten(20% * time).opacify(60% * time).to-hex(),
+    #let raw_svg = (
+      raw_svg
+        .replace(
+          "#fff",
+          fill.darken(20% * time).to-hex(),
+        )
+        .replace("opacity: .2", "opacity: " + str(lerp(time, 0.1, 0.3)))
     )
     #let background = image(bytes(raw_svg), height: 2.5em)
 
