@@ -35,7 +35,6 @@
   connection_msg,
   dummy_update,
 ) = {
-  let inters = interactions()
   box(width: 100%, height: 100%, inset: 4em)[
     #if connected == false {
       connect_server(connection_msg)
