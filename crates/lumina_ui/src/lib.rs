@@ -3,12 +3,14 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::ui::FocusPolicy;
+use bevy_motiongfx::prelude::ease;
 use bevy_vello::VelloPlugin;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 use velyst::VelystPlugin;
 
 pub mod effector_popup;
+pub mod interaction;
 pub mod main_window;
 pub mod perf_metrics;
 
@@ -40,6 +42,7 @@ impl Plugin for UiPlugin {
             main_window::MainWindowUiPlugin,
             perf_metrics::PerfMetricsUiPlugin,
             effector_popup::EffectorPopupUiPlugin,
+            interaction::InteractionPlugin,
         ))
         .add_systems(Startup, spawn_ui_camera)
         .add_systems(Update, disable_specific_interactions);
@@ -92,6 +95,8 @@ pub fn interactable_func<F: InteractableFunc>(
     mut last_hovered: Local<Option<TypLabel>>,
     mut hovered_animation: Local<f32>,
 ) {
+    const SPEED: f32 = 2.0;
+
     let mut hovered_button = None;
     for (interaction, label) in q_interactions.iter() {
         if *interaction == Interaction::Hovered {
@@ -104,10 +109,12 @@ pub fn interactable_func<F: InteractableFunc>(
         *last_hovered = hovered_button;
     }
 
-    const SPEED: f32 = 6.0;
     // Clamp at 1.0
     *hovered_animation = f32::min(*hovered_animation + time.delta_seconds() * SPEED, 1.0);
-    func.hovered_button(hovered_button, *hovered_animation as f64);
+    func.hovered_button(
+        hovered_button,
+        ease::cubic::ease_in_out(*hovered_animation) as f64,
+    );
 }
 
 pub trait InteractableFunc: TypstFunc {

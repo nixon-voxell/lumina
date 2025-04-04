@@ -80,7 +80,7 @@
   arc_count,
   wave_amount,
   time,
-  arc_spacing: 2deg,
+  arc_spacing: 1deg,
   cap: "butt",
 ) = {
   // Constants
@@ -323,7 +323,7 @@
             calc.ceil(data.max_health),
             calc.ceil(data.health),
             data.boost,
-            data.time * 3,
+            elapsed-secs() * 3,
           ),
         ),
         box(inset: (left: 2em))[

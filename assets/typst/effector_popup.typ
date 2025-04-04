@@ -16,7 +16,7 @@
     stroke: (
       paint: interacted_color,
       thickness: 1pt,
-      dash: (array: (circum, (1pt * calc.inf))),
+      dash: (array: (circum * 0.7, (1pt * calc.inf))),
     ),
     fill: color.mix(
       (base6, 100% - 100% * progress),

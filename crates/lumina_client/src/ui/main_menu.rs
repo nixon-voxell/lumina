@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
+use lumina_ui::interaction::INTERACTIONS;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 use crate::Connection;
 
@@ -24,10 +24,10 @@ impl Plugin for MainMenuUiPlugin {
                 Update,
                 (
                     push_to_main_window::<MainMenuFunc>(),
-                    interactable_func::<MainMenuFunc>,
                     play_btn,
                     reconnect_btn,
                     exit_btn,
+                    recompile_main_menu,
                 )
                     .run_if(in_state(Screen::MainMenu)),
             )
@@ -81,24 +81,19 @@ fn exit_btn(
     }
 }
 
+/// Set [`MainMenuFunc`] resource as changed if there are interactions.
+fn recompile_main_menu(mut func: ResMut<MainMenuFunc>) {
+    if INTERACTIONS.read().unwrap().is_empty() == false {
+        func.dummy_update = func.dummy_update.wrapping_add(1);
+    }
+}
+
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main_menu", layer = 1)]
 pub struct MainMenuFunc {
-    #[typst_func(named)]
-    hovered_button: Option<TypLabel>,
-    #[typst_func(named)]
-    hovered_animation: f64,
-    #[typst_func(named)]
     connected: bool,
-    #[typst_func(named)]
     connection_msg: String,
-}
-
-impl InteractableFunc for MainMenuFunc {
-    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        self.hovered_button = hovered_button;
-        self.hovered_animation = hovered_animation;
-    }
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]

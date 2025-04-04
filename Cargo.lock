@@ -4159,6 +4159,7 @@ dependencies = [
  "bevy",
  "bevy_motiongfx",
  "bevy_vello",
+ "typst-library",
  "velyst",
 ]
 
@@ -7448,6 +7449,7 @@ dependencies = [
  "typst",
  "typst-assets",
  "typst-eval",
+ "typst-library",
  "typst_element",
  "typst_vello",
  "velyst_macros",

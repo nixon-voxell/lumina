@@ -86,7 +86,6 @@ fn spaceship_stats(
     *health_lerp = health_lerp.lerp(**health as f64, smoth_lerp_dt);
 
     func.data = Some(dict! {
-        "time" => time.elapsed_seconds_f64(),
         "spaceship_type" => spaceship_type,
         "health" => *health_lerp,
         "max_health" => **max_health as f64,
