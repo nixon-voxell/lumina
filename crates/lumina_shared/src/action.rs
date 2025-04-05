@@ -49,9 +49,9 @@ impl PlayerAction {
 
         // Gamepad input bindings
         input_map.insert(Self::Move, DualAxis::left_stick());
-        input_map.insert(Self::Dash, GamepadButtonType::LeftTrigger);
+        input_map.insert(Self::Dash, GamepadButtonType::South);
         input_map.insert(Self::Boost, GamepadButtonType::LeftTrigger2);
-        input_map.insert(Self::Brake, GamepadButtonType::South);
+        input_map.insert(Self::Brake, GamepadButtonType::North);
         input_map.insert(Self::Interact, GamepadButtonType::West);
         input_map.insert(Self::Attack, GamepadButtonType::RightTrigger2);
         input_map.insert(Self::Aim, DualAxis::right_stick());

@@ -15,7 +15,7 @@ pub(super) struct AimPlugin;
 
 impl Plugin for AimPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.init_resource::<IsUsingMouse>().add_systems(
             PreUpdate,
             mouse_motion.in_set(InputManagerSystem::ManualControl),
         );
@@ -29,7 +29,7 @@ fn mouse_motion(
     mut evr_cursor: EventReader<CursorMoved>,
     local_player_info: LocalPlayerInfo,
     mut cursor_position: Local<Vec2>,
-    mut is_using_mouse: Local<bool>,
+    mut is_using_mouse: ResMut<IsUsingMouse>,
 ) {
     let Some(mut action) = local_player_info
         .get(PlayerInfoType::Action)
@@ -52,25 +52,27 @@ fn mouse_motion(
 
     // Actions from the controller if Aim action is used before this update.
     if action.pressed(&PlayerAction::Aim) {
-        *is_using_mouse = false;
+        is_using_mouse.0 = false;
     }
 
     // When mouse is moved, we use mouse instead.
     for cursor in evr_cursor.read() {
         *cursor_position = cursor.position;
-        *is_using_mouse = true;
+        is_using_mouse.0 = true;
     }
 
-    if *is_using_mouse {
+    if is_using_mouse.0 {
         let cursor_world_position = camera
             .viewport_to_world_2d(&camera_transform, *cursor_position)
             .unwrap_or_default();
 
-        let direction =
-            (cursor_world_position - spaceship_transform.translation.xy()).normalize_or_zero();
+        let direction = cursor_world_position - spaceship_transform.translation.xy();
 
         let action_data = action.action_data_mut_or_default(&PlayerAction::Aim);
         action_data.state = ButtonState::Pressed;
         action_data.axis_pair = Some(DualAxisData::from_xy(direction));
     }
 }
+
+#[derive(Resource, Deref, DerefMut, Default, Copy, Clone)]
+pub struct IsUsingMouse(pub bool);
