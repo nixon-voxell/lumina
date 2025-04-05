@@ -4,7 +4,6 @@ use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 use super::Screen;
 
@@ -14,14 +13,11 @@ impl Plugin for LobbyUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<LobbyUi>()
             .compile_typst_func::<LobbyUi, LobbyFunc>()
+            .recompile_on_interaction::<LobbyFunc>(|func| &mut func.dummy_update)
             .init_resource::<LobbyFunc>()
             .add_systems(
                 Update,
-                (
-                    push_to_main_window::<LobbyFunc>(),
-                    interactable_func::<LobbyFunc>,
-                    exit_lobby_btn,
-                )
+                (push_to_main_window::<LobbyFunc>(), exit_lobby_btn)
                     .run_if(in_state(Screen::MultiplayerLobby)),
             )
             .add_systems(Update, (handle_lobby_data, handle_lobby_update));
@@ -65,18 +61,10 @@ fn handle_lobby_data(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "lobby", layer = 1)]
 pub(super) struct LobbyFunc {
-    hovered_button: Option<TypLabel>,
-    hovered_animation: f64,
     pub curr_player_count: u8,
     pub max_player_count: u8,
     pub room_id: Option<u64>,
-}
-
-impl InteractableFunc for LobbyFunc {
-    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        self.hovered_button = hovered_button;
-        self.hovered_animation = hovered_animation;
-    }
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]

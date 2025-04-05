@@ -86,7 +86,6 @@ fn spaceship_stats(
     *health_lerp = health_lerp.lerp(**health as f64, smoth_lerp_dt);
 
     func.data = Some(dict! {
-        "time" => time.elapsed_seconds_f64(),
         "spaceship_type" => spaceship_type,
         "health" => *health_lerp,
         "max_health" => **max_health as f64,
@@ -98,6 +97,8 @@ fn spaceship_stats(
         "magazine_size" => weapon.magazine_size(),
         "reload_size" => reload_size,
     });
+
+    func.dummy_update = func.dummy_update.wrapping_add(1);
 }
 
 fn calculate_cooldown(timer: &Timer) -> f64 {
@@ -108,6 +109,7 @@ fn calculate_cooldown(timer: &Timer) -> f64 {
 #[typst_func(name = "main")]
 struct MainFunc {
     data: Option<Dict>,
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]

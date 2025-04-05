@@ -171,7 +171,7 @@ fn ammo_collision(
             continue;
         }
         // No collisions.
-        if colliding.is_added() || colliding.len() == 0 {
+        if colliding.is_added() || colliding.is_empty() {
             continue;
         }
 

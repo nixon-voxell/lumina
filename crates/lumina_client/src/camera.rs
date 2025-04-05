@@ -18,6 +18,8 @@ use lumina_ui::prelude::*;
 use lumina_vfx::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
+use crate::player::aim::IsUsingMouse;
+
 use super::player::LocalPlayerInfo;
 
 pub(super) struct CameraPlugin;
@@ -140,11 +142,12 @@ fn follow_spaceship(
     q_spaceship_transforms: Query<&GlobalTransform, (With<Spaceship>, With<SourceEntity>)>,
     time: Res<Time>,
     local_player_info: LocalPlayerInfo,
+    is_using_mouse: Res<IsUsingMouse>,
     mut aim_offset: Local<Vec2>,
 ) {
-    const FOLLOW_FACTOR: f32 = 20.0;
+    const FOLLOW_FACTOR: f32 = 10.0;
     const AIM_FACTOR: f32 = 2.0;
-    const AIM_DISTANCE: f32 = 200.0;
+    const AIM_DISTANCE: f32 = 100.0;
 
     // Clamp within 1.0 to prevent overshooting
     let aim_factor = f32::min(1.0, AIM_FACTOR * time.delta_seconds());
@@ -173,7 +176,7 @@ fn follow_spaceship(
     let mut camera_transform = q_camera.single_mut();
 
     // Calculate the target position based on player's position.
-    let target_position = Vec3::new(
+    let mut target_position = Vec3::new(
         spaceship_translation.x,
         spaceship_translation.y,
         // Keep the same z position.
@@ -182,18 +185,24 @@ fn follow_spaceship(
 
     let mut target_aim_offset = Vec2::ZERO;
     if action.pressed(&PlayerAction::Aim) {
-        let aim_direction = action
-            .clamped_axis_pair(&PlayerAction::Aim)
+        let mut aim_direction = action
+            .axis_pair(&PlayerAction::Aim)
             .map(|axis| axis.xy())
             .unwrap_or_default();
 
-        target_aim_offset = aim_direction * AIM_DISTANCE;
+        if is_using_mouse.0 {
+            aim_direction *= 0.2;
+        } else {
+            aim_direction *= AIM_DISTANCE;
+        }
+
+        target_aim_offset = aim_direction.clamp_length_max(AIM_DISTANCE);
     }
 
     *aim_offset = Vec2::lerp(*aim_offset, target_aim_offset, aim_factor);
     // TODO: Reconsider this behaviour.
-    // target_position.x += aim_offset.x;
-    // target_position.y += aim_offset.y;
+    target_position.x += aim_offset.x;
+    target_position.y += aim_offset.y;
 
     // Smoothly interpolate the camera's position towards the target position.
     camera_transform.translation = camera_transform

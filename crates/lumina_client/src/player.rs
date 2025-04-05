@@ -8,7 +8,7 @@ use crate::screens::Screen;
 
 use super::Connection;
 
-mod aim;
+pub mod aim;
 mod ammo;
 mod name;
 mod spaceship;

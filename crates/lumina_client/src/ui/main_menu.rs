@@ -3,7 +3,6 @@ use client::*;
 use lightyear::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 use crate::Connection;
 
@@ -15,6 +14,7 @@ impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<MainMenuUi>()
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
+            .recompile_on_interaction::<MainMenuFunc>(|func| &mut func.dummy_update)
             .insert_resource(MainMenuFunc {
                 connection_msg: "Connecting to server...".to_string(),
                 ..default()
@@ -24,7 +24,6 @@ impl Plugin for MainMenuUiPlugin {
                 Update,
                 (
                     push_to_main_window::<MainMenuFunc>(),
-                    interactable_func::<MainMenuFunc>,
                     play_btn,
                     reconnect_btn,
                     exit_btn,
@@ -84,21 +83,9 @@ fn exit_btn(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "main_menu", layer = 1)]
 pub struct MainMenuFunc {
-    #[typst_func(named)]
-    hovered_button: Option<TypLabel>,
-    #[typst_func(named)]
-    hovered_animation: f64,
-    #[typst_func(named)]
     connected: bool,
-    #[typst_func(named)]
     connection_msg: String,
-}
-
-impl InteractableFunc for MainMenuFunc {
-    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        self.hovered_button = hovered_button;
-        self.hovered_animation = hovered_animation;
-    }
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]
