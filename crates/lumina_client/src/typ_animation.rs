@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy_motiongfx::motiongfx_core::UpdateSequenceSet;
 use bevy_motiongfx::prelude::*;
 use bevy_vello::vello::kurbo;
+use lumina_common::utils::ThreadSafe;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 use velyst::typst_vello;
@@ -12,13 +13,8 @@ pub struct TypAnimationPlugin<T: TypstFunc>(PhantomData<T>);
 
 impl<T: TypstFunc> Plugin for TypAnimationPlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                animate_component::<LabelScaleFade, f32>.in_set(UpdateSequenceSet),
-                animate_label::<T>,
-            ),
-        );
+        app.animate_component::<LabelScaleFade, f32>()
+            .add_systems(Update, animate_label::<T>);
     }
 }
 
@@ -86,5 +82,20 @@ pub struct Range(pub f32, pub f32);
 impl Range {
     pub fn lerp(&self, t: f32) -> f32 {
         self.0.lerp(self.1, t)
+    }
+}
+
+pub trait AnimateTypAppExt {
+    fn animate_component<T: Component, U: ThreadSafe>(&mut self) -> &mut Self;
+    fn animate_resource<T: Resource, U: ThreadSafe>(&mut self) -> &mut Self;
+}
+
+impl AnimateTypAppExt for App {
+    fn animate_component<T: Component, U: ThreadSafe>(&mut self) -> &mut Self {
+        self.add_systems(Update, animate_component::<T, U>.in_set(UpdateSequenceSet))
+    }
+
+    fn animate_resource<T: Resource, U: ThreadSafe>(&mut self) -> &mut Self {
+        self.add_systems(Update, animate_resource::<T, U>.in_set(UpdateSequenceSet))
     }
 }

@@ -18,10 +18,12 @@
 
     #place(top + right)[
       #set text(size: 0.7em)
-      #text(fill: red)[#button(
+      #text(fill: red)[
+        #button(
           lbl: <btn:exit-sandbox>,
           inters: interactions(),
-        )[= Exit]]
+        )[= Exit]
+      ]
     ]
   ]
 }

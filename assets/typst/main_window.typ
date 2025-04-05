@@ -7,7 +7,7 @@
   set text(
     size: calc.min(height, width) * 0.02,
     fill: base7,
-    font: "Radio Canada",
+    font: "IBrand",
   )
 
   box(

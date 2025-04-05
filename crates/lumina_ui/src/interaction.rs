@@ -205,14 +205,14 @@ pub enum AnimateDirection {
     Backward,
 }
 
-pub trait AppExt {
+pub trait RecompileInteractionAppExt {
     fn recompile_on_interaction<Func: Resource>(
         &mut self,
         get_dummy: fn(&mut Func) -> &mut u8,
     ) -> &mut Self;
 }
 
-impl AppExt for App {
+impl RecompileInteractionAppExt for App {
     /// Set `Func` resource as changed if there any [`INTERACTIONS`].
     fn recompile_on_interaction<Func: Resource>(
         &mut self,

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 411.67 710.52">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke: #69cad4;
+        stroke-miterlimit: 10;
+      }
+      .cls-1 {
+        fill: #69cad4;
+        fill-opacity: 0.8;
+        stroke-width: 2px;
+      }
+
+      .cls-3 {
+        filter: url(#outer-glow-1);
+      }
+
+      .cls-3, .cls-4 {
+        fill: #69cad4;
+      }
+
+      .cls-5 {
+        fill: #69cad4;
+      }
+
+      .cls-2 {
+        opacity: 0.8;
+        stroke-width: 4px;
+      }
+    </style>
+    <filter id="outer-glow-1" x="386.07" y="160.66" width="45.6" height="45.36" filterUnits="userSpaceOnUse">
+      <feOffset dx="0" dy="0"/>
+      <feGaussianBlur result="blur" stdDeviation="7"/>
+      <feFlood flood-color="#63c9d6" flood-opacity=".9"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Layer_2" data-name="Layer 2">
+    <path class="cls-1" d="M408.82,182.32V20.66h-128.15L260.54.53,1.19.5v195.08l16.71,16.71v301.77l-17.4,17.4v150.38l27.07,28.13h113.43l15.07-17.08h102.47l17.08,17.08h133.53v-123.01l-14.51-14.51v-185.08l14.18-14.18v-160.72"/>
+    <polygon class="cls-5" points="275.64 .5 409.15 .5 409.15 12.95 287.25 12.95 275.64 .5"/>
+    <polygon class="cls-5" points=".75 210.25 10.13 220.33 10.13 501.88 .75 511.96 .75 210.25"/>
+    <polygon class="cls-5" points="152.72 709.96 161.65 701.03 253.86 701.03 263.35 710.52 152.72 709.96"/>
+    <polygon class="cls-4" points="408.09 385.9 398.18 395.84 398.18 389.14 408.09 379.21 408.09 385.9"/>
+    <polygon class="cls-4" points="408.09 397.88 398.18 407.82 398.18 401.12 408.09 391.18 408.09 397.88"/>
+    <polygon class="cls-4" points="408.09 409.86 398.18 419.8 398.18 413.1 408.09 403.16 408.09 409.86"/>
+    <polygon class="cls-4" points="408.09 421.84 398.18 431.78 398.18 425.08 408.09 415.14 408.09 421.84"/>
+    <polygon class="cls-4" points="408.09 433.82 398.18 443.76 398.18 437.06 408.09 427.12 408.09 433.82"/>
+    <polygon class="cls-4" points="408.09 445.8 398.18 455.74 398.18 449.04 408.09 439.1 408.09 445.8"/>
+    <polygon class="cls-4" points="408.09 457.78 398.18 467.72 398.18 461.02 408.09 451.08 408.09 457.78"/>
+    <polygon class="cls-4" points="408.09 469.76 398.18 479.69 398.18 473 408.09 463.06 408.09 469.76"/>
+    <polygon class="cls-4" points="408.09 481.74 398.18 491.67 398.18 484.98 408.09 475.04 408.09 481.74"/>
+    <polygon class="cls-4" points="408.09 493.72 398.18 503.65 398.18 496.96 408.09 487.02 408.09 493.72"/>
+    <polygon class="cls-4" points="408.09 505.7 398.18 515.63 398.18 508.94 408.09 499 408.09 505.7"/>
+    <polygon class="cls-4" points="408.09 517.68 398.18 527.61 398.18 520.92 408.09 510.98 408.09 517.68"/>
+    <polygon class="cls-4" points="408.09 529.66 398.18 539.59 398.18 532.89 408.09 522.96 408.09 529.66"/>
+    <polygon class="cls-4" points="408.09 541.64 398.18 551.57 398.18 544.87 408.09 534.94 408.09 541.64"/>
+    <polygon class="cls-4" points="408.09 553.62 398.18 563.55 398.18 556.85 408.09 546.92 408.09 553.62"/>
+    <circle class="cls-3" cx="408.82" cy="183.32" r="1.62"/>
+    <circle class="cls-4" cx="408.82" cy="211.6" r="1.62"/>
+    <polyline class="cls-2" points="66.02 11.08 11.13 11.08 11.13 80.84"/>
+  </g>
+  <g id="Layer_4" data-name="Layer 4">
+    <polyline class="cls-2" points="346.29 702.03 401.18 702.03 401.18 652.27"/>
+    <line class="cls-2" x1="11.13" y1="533.17" x2="11.13" y2="675.16"/>
+  </g>
+</svg>

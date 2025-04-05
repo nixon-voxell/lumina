@@ -8,7 +8,7 @@
 #let calculate_section_time(
   time,
   total_count,
-  section_duration: 0.3,
+  section_duration: 0.5,
 ) = {
   let leftout_duration = 1.0 - section_duration
   let diff = leftout_duration / (total_count - 1)
@@ -16,13 +16,7 @@
   let section_times = ()
   for i in range(total_count) {
     let clamped_time = calc.clamp(
-      time,
-      i * diff,
-      1.0 - (total_count - i - 1) * diff,
-    )
-
-    clamped_time = calc.clamp(
-      time - (total_count - i - 1) * diff,
+      time - i * diff,
       0.0,
       section_duration,
     )
@@ -41,13 +35,16 @@
   inters: array,
   fill: none,
   svg_idx: 0,
+  disabled: false,
 ) = {
   context [
     #let time = 0.0
 
-    #for (label, time: t) in inters {
-      if label == lbl {
-        time = t
+    #if disabled == false {
+      for (label, time: t) in inters {
+        if label == lbl {
+          time = t
+        }
       }
     }
 
@@ -60,9 +57,9 @@
       raw_svg
         .replace(
           "#fff",
-          fill.darken(20% * time).to-hex(),
+          fill.darken(40% - 10% * time).to-hex(),
         )
-        .replace("opacity: .2", "opacity: " + str(lerp(time, 0.1, 0.3)))
+        .replace("opacity: .2", "opacity: " + str(lerp(time, 0.5, 0.6)))
     )
     #let background = image(bytes(raw_svg), height: 2.5em)
 
@@ -75,7 +72,7 @@
         #if time > 0.0 {
           let highlight_fill = fill.transparentize(100%)
           let section_times = calculate_section_time(time, 3)
-          for (i, section_t) in section_times.rev().enumerate() {
+          for (i, section_t) in section_times.enumerate() {
             // place(
             //   center + horizon,
             //   box(
@@ -123,3 +120,113 @@
   ]
 }
 
+#let card_button(
+  body,
+  lbl: label,
+  inters: array,
+  fill: none,
+) = {
+  let width = 12em
+  let height = 17em
+  let time = 0.0
+
+  for (label, time: t) in inters {
+    if label == lbl {
+      time = t
+    }
+  }
+
+  let fill = if fill != none { fill } else {
+    text.fill
+  }
+
+  let raw_svg = read("../icons/card.svg")
+  let raw_svg = (
+    raw_svg
+      .replace(
+        "#69cad4",
+        fill.darken(40%).to-hex(),
+      )
+      .replace(
+        "fill-opacity: 0.8",
+        "fill-opacity: " + str(lerp(time, 0.6, 0.8)),
+      )
+      .replace(
+        "stroke-width: 2px",
+        "stroke-width: " + str(lerp(time, 2, 8)) + "px",
+      )
+  )
+  let background = image(bytes(raw_svg), height: height)
+
+  context [
+
+    #box()[
+      #scale(100% + (time * 10%))[
+        #background
+        #let background_size = measure(background)
+
+        #if time > 0.0 {
+          let highlight_fill = fill.transparentize(100%)
+          let section_times = calculate_section_time(time, 2)
+          for (i, section_t) in section_times.enumerate() {
+            place(
+              center + horizon,
+              box(
+                width: background_size.width,
+                height: background_size.height,
+                clip: true,
+              )[
+                #place(
+                  dx: lerp(section_t, 0em, 2em * i) - 6em,
+                  rotate(
+                    45deg,
+                    box(
+                      width: 1em,
+                      height: 200%,
+                      fill: highlight_fill
+                        .lighten(60%)
+                        .opacify(10% * section_t),
+                    ),
+                  ),
+                )
+              ],
+            )
+
+            place(
+              center + horizon,
+              box(
+                width: background_size.width,
+                height: background_size.height,
+                clip: true,
+              )[
+                #place(
+                  dx: lerp(section_t, 0em, -2em * i) + 16em,
+                  rotate(
+                    45deg,
+                    box(
+                      width: 1em,
+                      height: 200%,
+                      fill: highlight_fill
+                        .lighten(60%)
+                        .opacify(10% * section_t),
+                    ),
+                  ),
+                )
+              ],
+            )
+          }
+        }
+      ]
+      #set text(size: text.size + 0.1em * time)
+
+      #place(
+        center + horizon,
+        box(
+          width: width,
+          height: height,
+          inset: 2em,
+        )[#body],
+      )
+    ] #lbl
+  ]
+}

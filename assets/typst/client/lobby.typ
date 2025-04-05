@@ -19,11 +19,12 @@
     ]
 
     #place(top + right)[
-      #set text(size: 0.7em)
-      #text(fill: red)[#button(
+      #text(fill: red, size: 0.7em)[
+        #button(
           lbl: <btn:exit-lobby>,
           inters: interactions(),
-        )[= Exit]]
+        )[= Exit]
+      ]
     ]
   ]
 }
