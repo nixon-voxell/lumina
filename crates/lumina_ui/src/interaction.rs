@@ -80,12 +80,23 @@ fn update_animate_direction(
     for (interaction, animate, entity) in q_interactions.iter_mut() {
         match animate {
             Some(mut animate) => {
-                // Change the animation direction.
-                if *interaction == Interaction::Hovered {
-                    animate.target_direction = AnimateDirection::Forward;
-                } else {
-                    animate.target_direction = AnimateDirection::Backward;
-                }
+                animate.target_direction = match interaction {
+                    Interaction::Pressed => {
+                        animate.pressed = true;
+                        AnimateDirection::Backward
+                    }
+                    Interaction::Hovered => {
+                        if animate.pressed {
+                            AnimateDirection::Backward
+                        } else {
+                            AnimateDirection::Forward
+                        }
+                    }
+                    Interaction::None => {
+                        animate.pressed = false;
+                        AnimateDirection::Backward
+                    }
+                };
             }
             None => {
                 // Non-hovered interaction at this point is pointless
@@ -149,16 +160,24 @@ struct AnimateDuration(f32);
 #[derive(Component, Default)]
 struct AnimateTime {
     time: f32,
+    pressed: bool,
     target_direction: AnimateDirection,
     computed_direction: AnimateDirection,
 }
 
 impl AnimateTime {
     fn tick(&mut self, delta: Duration, duration: &AnimateDuration) {
+        // Go forward in time after animating it fully backwards.
+        if self.time <= 0.0 {
+            self.target_direction = AnimateDirection::Forward;
+            self.pressed = false;
+        }
+
         self.computed_direction = match self.target_direction {
             AnimateDirection::Backward
                 if self.time >= duration.0
-                    || matches!(self.computed_direction, AnimateDirection::Backward) =>
+                    || self.pressed
+                    || self.computed_direction == AnimateDirection::Backward =>
             {
                 AnimateDirection::Backward
             }
@@ -175,11 +194,11 @@ impl AnimateTime {
     }
 
     fn is_finished(&self) -> bool {
-        self.time <= 0.0
+        self.time <= 0.0 && self.pressed == false
     }
 }
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub enum AnimateDirection {
     #[default]
     Forward,
