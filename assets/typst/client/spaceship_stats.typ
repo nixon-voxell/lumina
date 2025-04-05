@@ -327,9 +327,12 @@
           ),
         ),
         box(inset: (left: 2em))[
-          #image(
-            "/icons/" + weapon_icon + ".svg",
-            height: width * 0.7,
+          #box(
+            clip: true,
+            image(
+              "/icons/" + weapon_icon + ".svg",
+              height: width * 0.7,
+            ),
           )
           #stack(
             dir: ltr,
