@@ -296,7 +296,7 @@
   ]
 }
 
-#let main(data) = {
+#let main(data, dummy_update) = {
   if data == none {
     return
   }

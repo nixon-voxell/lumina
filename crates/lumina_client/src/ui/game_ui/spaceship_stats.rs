@@ -97,6 +97,8 @@ fn spaceship_stats(
         "magazine_size" => weapon.magazine_size(),
         "reload_size" => reload_size,
     });
+
+    func.dummy_update = func.dummy_update.wrapping_add(1);
 }
 
 fn calculate_cooldown(timer: &Timer) -> f64 {
@@ -107,6 +109,7 @@ fn calculate_cooldown(timer: &Timer) -> f64 {
 #[typst_func(name = "main")]
 struct MainFunc {
     data: Option<Dict>,
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]
