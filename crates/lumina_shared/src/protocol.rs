@@ -55,8 +55,7 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<ReplicateBlueprint>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Simple)
-            .add_interpolation(ComponentSyncMode::Simple);
+            .add_prediction(ComponentSyncMode::Simple);
 
         // Game
         app.register_component::<MaxHealth>(ChannelDirection::ServerToClient)

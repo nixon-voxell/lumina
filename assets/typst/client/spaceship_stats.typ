@@ -338,10 +338,9 @@
             dir: ltr,
             spacing: -0.2em,
             box(
-              fill: base6.transparentize(70%),
-              inset: 0.2em,
-              radius: 0.2em,
-              stroke: base5,
+              fill: base3.transparentize(10%),
+              inset: 0.4em,
+              stroke: base2 + 0.15em,
             )[
               #if data.magazine < 10 { "0" + str(data.magazine) } else {
                 data.magazine
