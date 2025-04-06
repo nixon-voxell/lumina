@@ -33,7 +33,6 @@ impl Plugin for SharedPlugin {
                 protocol::ProtocolPlugin,
                 player::PlayerPlugin,
                 game::GamePlugin,
-                blueprints::BlueprintsPlugin,
                 health::HealthPlugin,
                 type_registry::TypeRegistryPlugin,
             ));

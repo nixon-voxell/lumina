@@ -47,14 +47,21 @@ fn spawn_replicated_blueprints(
             Without<BlueprintInfo>,
             // Only spawn blueprints on the predicted/interpolated entities.
             Without<Confirmed>,
+            Without<BlueprintReplicated>,
         ),
     >,
 ) {
     for (replicated_blueprint, entity) in q_replicated_blueprints.iter() {
         if replicated_blueprint.path.is_empty() == false {
-            commands
-                .entity(entity)
-                .insert((replicated_blueprint.info(), SpawnBlueprint));
+            commands.entity(entity).insert((
+                replicated_blueprint.info(),
+                SpawnBlueprint,
+                BlueprintReplicated,
+            ));
         }
     }
 }
+
+/// Marker component to signify that blueprint has been replicated successfully.
+#[derive(Component)]
+pub struct BlueprintReplicated;
