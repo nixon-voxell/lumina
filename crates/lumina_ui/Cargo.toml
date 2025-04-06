@@ -10,6 +10,7 @@ velyst = { workspace = true }
 bevy_motiongfx = { workspace = true }
 bevy = { workspace = true }
 bevy_vello = { workspace = true }
+typst-library = "0.13.1"
 
 [lints]
 workspace = true

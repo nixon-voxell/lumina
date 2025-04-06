@@ -2,6 +2,7 @@
 #import "../monokai_pro.typ": *
 #import "../utils.typ": *
 
+
 #let connect_server(connection_msg) = {
   set text(size: 2em)
 
@@ -12,49 +13,59 @@
     #linebreak()
 
     #stack(dir: ltr)[
-      #text(fill: yellow)[#button(lbl: <btn:reconnect>)[Reconnect]]
-      #text(fill: red)[#button(lbl: <btn:exit-game>)[Exit Game]]
+      #text(fill: yellow)[
+        #button(
+          lbl: <btn:reconnect>,
+          inter: interactions(),
+        )[Reconnect]
+      ]
+      #text(fill: red)[
+        #button(
+          lbl: <btn:exit-game>,
+          inter: interactions(),
+        )[Exit Game]
+      ]
     ]
   ]
 }
 
+
 #let main_menu(
-  hovered_button: none,
-  hovered_animation: 0.0,
-  connected: false,
-  connection_msg: "Connecting to server...",
+  connected,
+  connection_msg,
+  dummy_update,
 ) = {
-  interactable_window(
-    hovered_button: hovered_button,
-    hovered_animation: hovered_animation,
-  )[
-    #box(width: 100%, height: 100%, inset: (x: 4.6%, y: 8%))[
-      #set text(fill: base7)
+  box(width: 100%, height: 100%, inset: 4em)[
+    #if connected == false {
+      connect_server(connection_msg)
+      return
+    }
 
-      #if connected == false {
-        connect_server(connection_msg)
-        return
-      }
+    #place(center + horizon)[
+      #text(fill: yellow, size: 7em, font: "IBrand")[= Lumina]
 
-      #place(left + horizon)[
-        #set text(size: 48pt)
-        #pad(bottom: 40pt)[#text(fill: yellow)[= Lumina]]
+      #text(fill: green, size: 2em)[
+        #button(
+          lbl: <btn:play>,
+          inters: interactions(),
+        )[== Start Engine!]
+      ]
+    ]
 
-        #move(dx: 2%)[
-          #set text(size: 28pt)
-          #text(fill: green)[#button(lbl: <btn:play>)[= Play]]\
-          #text(fill: purple)[#button(lbl: <btn:luminators>)[= Luminators]]\
-        ]
+    #place(right + bottom)[
+      #box(height: 3em)[
+        #button(
+          lbl: <btn:settings>,
+          inters: interactions(),
+        )[== #emoji.gear Settings]
       ]
 
-      #place(left + bottom)[
-
-        #text(size: 16pt, fill: red.transparentize(40%))[
-          #button(lbl: <btn:exit-game>)[= Exit Game]
-        ]
-
-        #text(size: 18pt)[
-          #button(lbl: <btn:settings>)[#emoji.gear Settings]
+      #box(height: 3em)[
+        #text(fill: red)[
+          #button(
+            lbl: <btn:exit-game>,
+            inters: interactions(),
+          )[== Abort]
         ]
       ]
     ]

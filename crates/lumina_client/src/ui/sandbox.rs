@@ -4,7 +4,6 @@ use lightyear::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
-use velyst::typst_element::prelude::*;
 
 use super::Screen;
 
@@ -15,14 +14,11 @@ impl Plugin for SandboxUiPlugin {
         app.add_event::<MessageEvent<LobbyData>>()
             .register_typst_asset::<SandboxUi>()
             .compile_typst_func::<SandboxUi, SandboxFunc>()
+            .recompile_on_interaction::<SandboxFunc>(|func| &mut func.dummy_update)
             .init_resource::<SandboxFunc>()
             .add_systems(
                 Update,
-                (
-                    push_to_main_window::<SandboxFunc>(),
-                    interactable_func::<SandboxFunc>,
-                    exit_sandbox_btn,
-                )
+                (push_to_main_window::<SandboxFunc>(), exit_sandbox_btn)
                     .run_if(in_state(Screen::Sandbox)),
             )
             .add_systems(Update, handle_sandbox_data);
@@ -53,16 +49,8 @@ fn handle_sandbox_data(
 #[derive(TypstFunc, Resource, Default)]
 #[typst_func(name = "sandbox", layer = 1)]
 pub(super) struct SandboxFunc {
-    hovered_button: Option<TypLabel>,
-    hovered_animation: f64,
     pub room_id: Option<u64>,
-}
-
-impl InteractableFunc for SandboxFunc {
-    fn hovered_button(&mut self, hovered_button: Option<TypLabel>, hovered_animation: f64) {
-        self.hovered_button = hovered_button;
-        self.hovered_animation = hovered_animation;
-    }
+    dummy_update: u8,
 }
 
 #[derive(TypstPath)]

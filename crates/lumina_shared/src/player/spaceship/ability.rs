@@ -134,22 +134,21 @@ fn apply_heal_ability(
 fn apply_ability_effect<T: ThreadSafe>(
     mut commands: Commands,
     q_abilities: Query<
-        (&SpaceshipAction, &AbilityConfig<T>, Entity),
+        (&SpaceshipAction, Entity),
         (
             Without<AbilityCooldown>,
             Without<AbilityEffect>,
             With<SourceEntity>,
+            With<AbilityConfig<T>>,
         ),
     >,
 ) {
-    for (action, ability, entity) in q_abilities.iter() {
+    for (action, entity) in q_abilities.iter() {
         if action.is_ability == false {
             continue;
         }
 
-        commands
-            .entity(entity)
-            .insert(AbilityEffect::new(ability.duration));
+        commands.start_cooldown_effect::<Ability, AbilityConfig<T>>(entity);
     }
 }
 

@@ -77,10 +77,11 @@ fn weapon_direction(
             }
 
             if let Some(direction) = action
-                .clamped_axis_pair(&PlayerAction::Aim)
+                .axis_pair(&PlayerAction::Aim)
                 .map(|axis| axis.xy().normalize_or_zero())
             {
-                // Leave the rotation as is if mouse position is exactly at the center.
+                // Leave the rotation "as is"
+                // if mouse position is exactly at the center.
                 if direction == Vec2::ZERO {
                     continue;
                 }

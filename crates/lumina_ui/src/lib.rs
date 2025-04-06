@@ -1,19 +1,23 @@
 use std::marker::PhantomData;
+use std::path::PathBuf;
 
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::ui::FocusPolicy;
+use bevy_motiongfx::prelude::ease;
 use bevy_vello::VelloPlugin;
 use velyst::prelude::*;
 use velyst::typst_element::prelude::*;
 use velyst::VelystPlugin;
 
 pub mod effector_popup;
+pub mod interaction;
 pub mod main_window;
 pub mod perf_metrics;
 
 pub mod prelude {
     pub use crate::effector_popup::{EffectorPopupFunc, EffectorPopupUi};
+    pub use crate::interaction::RecompileInteractionAppExt;
     pub use crate::main_window::{
         push_to_main_window, push_to_main_window_background, push_to_main_window_foreground,
         MainWindowFunc, MainWindowSet, MainWindowTransparency, WINDOW_FADE_DURATION,
@@ -28,18 +32,23 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
+        // Using assets/fonts as the fonts path
+        let mut fonts_path = PathBuf::from(".");
+        fonts_path.push("assets");
+        fonts_path.push("fonts");
         app.add_plugins((
             VelloPlugin {
                 canvas_render_layers: RenderLayers::from_layers(&[0, 1]),
                 ..default()
             },
-            VelystPlugin::default(),
+            VelystPlugin::new(vec![fonts_path]),
         ));
 
         app.add_plugins((
             main_window::MainWindowUiPlugin,
             perf_metrics::PerfMetricsUiPlugin,
             effector_popup::EffectorPopupUiPlugin,
+            interaction::InteractionPlugin,
         ))
         .add_systems(Startup, spawn_ui_camera)
         .add_systems(Update, disable_specific_interactions);
@@ -92,6 +101,8 @@ pub fn interactable_func<F: InteractableFunc>(
     mut last_hovered: Local<Option<TypLabel>>,
     mut hovered_animation: Local<f32>,
 ) {
+    const SPEED: f32 = 2.0;
+
     let mut hovered_button = None;
     for (interaction, label) in q_interactions.iter() {
         if *interaction == Interaction::Hovered {
@@ -104,10 +115,12 @@ pub fn interactable_func<F: InteractableFunc>(
         *last_hovered = hovered_button;
     }
 
-    const SPEED: f32 = 6.0;
     // Clamp at 1.0
     *hovered_animation = f32::min(*hovered_animation + time.delta_seconds() * SPEED, 1.0);
-    func.hovered_button(hovered_button, *hovered_animation as f64);
+    func.hovered_button(
+        hovered_button,
+        ease::cubic::ease_in_out(*hovered_animation) as f64,
+    );
 }
 
 pub trait InteractableFunc: TypstFunc {

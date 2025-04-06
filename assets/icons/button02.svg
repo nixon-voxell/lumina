@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382.05 101">
+  <defs>
+    <style>
+      .cls-1 {
+        opacity: .2;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        fill: #fff;
+      }
+
+      .cls-4 {
+        fill: none;
+        stroke: #fff;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+
+      .cls-4, .cls-3 {
+        opacity: .7;
+      }
+
+      .cls-2 {
+        opacity: .8;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-1" points="17.81 0 17.81 44.08 8.7 52.08 8.7 82.02 0 89.66 0 101 55.12 101 63.37 93.75 223.57 93.75 216.13 101 382.05 101 382.05 77.43 371.25 77.43 371.25 30.28 382.05 30.28 382.05 0 345.21 0 332.74 9.68 130.16 9.68 118.06 0 17.81 0"/>
+  <line class="cls-4" x1="274.94" y1="96.77" x2="379.2" y2="96.77"/>
+  <polyline class="cls-4" points="21.99 41.54 21.99 4.1 49 4.1"/>
+  <polygon class="cls-2" points="337.78 1.66 330.86 6.54 131.16 6.54 124.8 1.66 337.78 1.66"/>
+  <polygon class="cls-2" points="213.35 100.77 207.26 100.77 213.86 94.77 219.95 94.77 213.35 100.77"/>
+  <polygon class="cls-2" points="204.36 100.77 198.27 100.77 204.88 94.77 210.97 94.77 204.36 100.77"/>
+  <polygon class="cls-2" points="195.21 100.77 189.12 100.77 195.72 94.77 201.81 94.77 195.21 100.77"/>
+  <polygon class="cls-2" points="185.89 100.77 179.8 100.77 186.4 94.77 192.49 94.77 185.89 100.77"/>
+  <polygon class="cls-2" points="176.94 100.77 170.85 100.77 177.46 94.77 183.55 94.77 176.94 100.77"/>
+  <polygon class="cls-2" points="168.03 100.77 161.94 100.77 168.54 94.77 174.63 94.77 168.03 100.77"/>
+  <polygon class="cls-2" points="157.67 100.77 57.78 100.77 65.03 94.77 165.26 94.77 157.67 100.77"/>
+  <rect class="cls-3" x="372.72" y="72.94" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="68.25" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="63.73" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="59.21" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="54.85" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="50.5" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="46.15" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="41.46" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="36.77" width="8.96" height="3.1"/>
+  <rect class="cls-3" x="372.72" y="32.08" width="8.96" height="3.1"/>
+</svg>
