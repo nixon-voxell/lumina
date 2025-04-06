@@ -14,10 +14,12 @@ pub(super) struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(teleporter::TeleporterPlugin)
+            .add_event::<ResetSpaceships>()
             .add_systems(
                 Update,
                 (
                     respawn_spaceships,
+                    reset_spaceships,
                     init_game,
                     propagate_game_score,
                     track_game_score,
@@ -94,6 +96,51 @@ fn respawn_spaceships(
         position.0 = spawn_translation.xy();
         *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
         **health = **max_health;
+    }
+}
+
+#[derive(Event)]
+pub struct ResetSpaceships;
+
+/// Resets all spaceship health, energy, and abilities when a game starts
+fn reset_spaceships(
+    mut commands: Commands,
+    mut q_spaceships: Query<(
+        &mut Health, 
+        &MaxHealth, 
+        &mut Energy,
+        &Spaceship,
+        Entity,
+        Option<&mut AbilityCooldown>, 
+        Option<&ShadowAbilityConfig>, 
+        Option<&HealAbilityConfig>,   
+    ), With<SourceEntity>>,
+    q_dash_cooldowns: Query<Entity, With<DashCooldown>>,
+    mut evr_reset_spaceships: EventReader<ResetSpaceships>,
+) {
+    if evr_reset_spaceships.read().next().is_some() {
+        info!("Resetting all spaceships for game start");
+        
+        for (mut health, max_health, mut energy, spaceship, entity, cooldown, shadow_config, heal_config) in q_spaceships.iter_mut() {
+            **health = **max_health;
+            energy.energy = spaceship.energy.max_energy;
+            energy.cooldown = 0.0;
+            
+            if let Some(mut cooldown) = cooldown {
+                // Reset the cooldown if the entity has either shadow or heal config
+                if shadow_config.is_some() || heal_config.is_some() {
+                    cooldown.reset();
+                }
+            }
+            
+            if q_dash_cooldowns.contains(entity) {
+                commands.entity(entity).remove::<DashCooldown>();
+            }
+            
+            info!("Reset spaceship: health={}/{}, energy={}/{}",
+                  **health, **max_health, 
+                  energy.energy, spaceship.energy.max_energy);
+        }
     }
 }
 
