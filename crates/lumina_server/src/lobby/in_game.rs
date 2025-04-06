@@ -38,7 +38,6 @@ fn start_game(
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
     time: Res<Time>,
-    mut evw_reset_spaceships: EventWriter<ResetSpaceships>,
 ) {
     for (mut countdown_timer, entity) in q_lobbies.iter_mut() {
         // When the countdown reaches zero, start the game.
@@ -55,7 +54,7 @@ fn start_game(
             );
 
             // Trigger spaceship reset
-            evw_reset_spaceships.send(ResetSpaceships);
+            commands.trigger_targets(ResetSpaceships, entity);
 
             commands
                 .entity(entity)

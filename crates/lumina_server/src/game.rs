@@ -14,18 +14,17 @@ pub(super) struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(teleporter::TeleporterPlugin)
-            .add_event::<ResetSpaceships>()
             .add_systems(
                 Update,
                 (
                     respawn_spaceships,
-                    reset_spaceships,
                     init_game,
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
                 ),
             )
+            .observe(reset_spaceships)
             .observe(end_game);
     }
 }
@@ -99,11 +98,12 @@ fn respawn_spaceships(
     }
 }
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct ResetSpaceships;
 
 /// Resets all spaceship health, energy, weapon and abilities when a game starts
 fn reset_spaceships(
+    _trigger: Trigger<ResetSpaceships>,
     mut commands: Commands,
     mut q_spaceships: Query<
         (
@@ -120,53 +120,49 @@ fn reset_spaceships(
         With<SourceEntity>,
     >,
     q_dash_cooldowns: Query<Entity, With<DashCooldown>>,
-    mut evr_reset_spaceships: EventReader<ResetSpaceships>,
-
     player_infos: Res<PlayerInfos>,
     mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
-    if evr_reset_spaceships.read().next().is_some() {
-        info!("Resetting all spaceships for game start");
+    info!("Resetting all spaceships for game start");
 
-        for (
-            mut health,
-            max_health,
-            mut energy,
-            spaceship,
-            player_id,
-            entity,
-            cooldown,
-            shadow_config,
-            heal_config,
-        ) in q_spaceships.iter_mut()
-        {
-            **health = **max_health;
-            energy.energy = spaceship.energy.max_energy;
-            energy.cooldown = 0.0;
+    for (
+        mut health,
+        max_health,
+        mut energy,
+        spaceship,
+        player_id,
+        entity,
+        cooldown,
+        shadow_config,
+        heal_config,
+    ) in q_spaceships.iter_mut()
+    {
+        **health = **max_health;
+        energy.energy = spaceship.energy.max_energy;
+        energy.cooldown = 0.0;
 
-            if let Some(mut cooldown) = cooldown {
-                // Reset the cooldown if the entity has either shadow or heal config
-                if shadow_config.is_some() || heal_config.is_some() {
-                    cooldown.reset();
-                }
+        if let Some(mut cooldown) = cooldown {
+            // Reset the cooldown if the entity has either shadow or heal config
+            if shadow_config.is_some() || heal_config.is_some() {
+                cooldown.reset();
             }
-
-            if q_dash_cooldowns.contains(entity) {
-                commands.entity(entity).remove::<DashCooldown>();
-            }
-
-            // Reload weapon
-            if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
-                if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
-                    weapon_state.reload(weapon);
-                }
-            }
-
-            info!(
-                "Reset spaceship: health={}/{}, energy={}/{}",
-                **health, **max_health, energy.energy, spaceship.energy.max_energy
-            );
         }
+
+        if q_dash_cooldowns.contains(entity) {
+            commands.entity(entity).remove::<DashCooldown>();
+        }
+
+        // Reload weapon
+        if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
+            if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
+                weapon_state.reload(weapon);
+            }
+        }
+
+        info!(
+            "Reset spaceship: health={}/{}, energy={}/{}",
+            **health, **max_health, energy.energy, spaceship.energy.max_energy
+        );
     }
 }
 
