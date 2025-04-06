@@ -122,18 +122,6 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Simple);
 
         // Physics
-        app.register_component::<RigidBody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
-        app.register_component::<PrimitiveRigidbody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
-        app.register_component::<MeshRigidbody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
-        app.register_component::<MassRigidbody>(ChannelDirection::ServerToClient)
-            .add_prediction(ComponentSyncMode::Once);
-
         app.register_component::<Position>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)
             .add_correction_fn(position::lerp);

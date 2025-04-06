@@ -2,12 +2,6 @@ use blenvy::*;
 use lightyear::prelude::*;
 use strum::{AsRefStr, EnumCount, EnumIter};
 
-pub(super) struct BlueprintsPlugin;
-
-impl Plugin for BlueprintsPlugin {
-    fn build(&self, _app: &mut App) {}
-}
-
 /// Marker for replicating the entity over the network.
 /// A [`server::Replicate`] bundle will be inserted on the server.
 ///
