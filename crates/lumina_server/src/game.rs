@@ -105,17 +105,20 @@ pub struct ResetSpaceships;
 /// Resets all spaceship health, energy, weapon and abilities when a game starts
 fn reset_spaceships(
     mut commands: Commands,
-    mut q_spaceships: Query<(
-        &mut Health, 
-        &MaxHealth, 
-        &mut Energy,
-        &Spaceship,
-        &PlayerId,
-        Entity,
-        Option<&mut AbilityCooldown>, 
-        Option<&ShadowAbilityConfig>, 
-        Option<&HealAbilityConfig>,   
-    ), With<SourceEntity>>,
+    mut q_spaceships: Query<
+        (
+            &mut Health,
+            &MaxHealth,
+            &mut Energy,
+            &Spaceship,
+            &PlayerId,
+            Entity,
+            Option<&mut AbilityCooldown>,
+            Option<&ShadowAbilityConfig>,
+            Option<&HealAbilityConfig>,
+        ),
+        With<SourceEntity>,
+    >,
     q_dash_cooldowns: Query<Entity, With<DashCooldown>>,
     mut evr_reset_spaceships: EventReader<ResetSpaceships>,
 
@@ -124,23 +127,23 @@ fn reset_spaceships(
 ) {
     if evr_reset_spaceships.read().next().is_some() {
         info!("Resetting all spaceships for game start");
-        
-        for (
-            mut health, 
-            max_health, 
-            mut energy, 
-            spaceship, 
-            player_id, 
-            entity,
-            cooldown, 
-            shadow_config, 
-            heal_config
-        ) in q_spaceships.iter_mut() {
 
+        for (
+            mut health,
+            max_health,
+            mut energy,
+            spaceship,
+            player_id,
+            entity,
+            cooldown,
+            shadow_config,
+            heal_config,
+        ) in q_spaceships.iter_mut()
+        {
             **health = **max_health;
             energy.energy = spaceship.energy.max_energy;
             energy.cooldown = 0.0;
-            
+
             if let Some(mut cooldown) = cooldown {
                 // Reset the cooldown if the entity has either shadow or heal config
                 if shadow_config.is_some() || heal_config.is_some() {
@@ -161,10 +164,7 @@ fn reset_spaceships(
 
             info!(
                 "Reset spaceship: health={}/{}, energy={}/{}",
-                **health,
-                **max_health,
-                energy.energy,
-                spaceship.energy.max_energy
+                **health, **max_health, energy.energy, spaceship.energy.max_energy
             );
         }
     }

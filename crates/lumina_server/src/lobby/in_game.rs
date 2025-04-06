@@ -5,8 +5,8 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
 use crate::game::ResetSpaceships;
+use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
 
 use super::{LobbyFull, LobbyInGame};
 
@@ -38,7 +38,7 @@ fn start_game(
     mut connection_manager: ResMut<ConnectionManager>,
     room_manager: Res<RoomManager>,
     time: Res<Time>,
-    mut evw_reset_spaceships: EventWriter<ResetSpaceships>, 
+    mut evw_reset_spaceships: EventWriter<ResetSpaceships>,
 ) {
     for (mut countdown_timer, entity) in q_lobbies.iter_mut() {
         // When the countdown reaches zero, start the game.
