@@ -105,7 +105,7 @@ pub struct ResetSpaceships;
 fn reset_spaceships(
     trigger: Trigger<ResetSpaceships>,
     mut commands: Commands,
-    q_lobbies: Query<&Lobby>, 
+    q_lobbies: Query<&Lobby>,
     mut q_spaceships: Query<
         (
             &mut Health,
@@ -125,7 +125,7 @@ fn reset_spaceships(
     mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
     let lobby_entity = trigger.entity();
-    
+
     // Get the Lobby component for this specific room
     let Ok(lobby) = q_lobbies.get(lobby_entity) else {
         warn!("No lobby found for entity {:?}", lobby_entity);
@@ -135,7 +135,9 @@ fn reset_spaceships(
     info!("Resetting spaceships for lobby {:?}", lobby_entity);
 
     for client_id in lobby.iter() {
-        if let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id)) {
+        if let Some(spaceship_entity) =
+            player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id))
+        {
             if let Ok((
                 mut health,
                 max_health,
@@ -146,10 +148,11 @@ fn reset_spaceships(
                 cooldown,
                 shadow_config,
                 heal_config,
-            )) = q_spaceships.get_mut(*spaceship_entity) {
+            )) = q_spaceships.get_mut(*spaceship_entity)
+            {
                 // Reset health
                 **health = **max_health;
-                
+
                 // Reset energy
                 energy.energy = spaceship.energy.max_energy;
                 energy.cooldown = 0.0;
@@ -167,7 +170,9 @@ fn reset_spaceships(
                 }
 
                 // Reload weapon
-                if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(&PlayerId(*client_id)) {
+                if let Some(weapon_entity) =
+                    player_infos[PlayerInfoType::Weapon].get(&PlayerId(*client_id))
+                {
                     if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
                         weapon_state.reload(weapon);
                     }
