@@ -41,53 +41,44 @@ impl Plugin for SpaceshipPlugin {
 /// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].
 fn init_shadow_vfx(
     mut commands: Commands,
-    q_spaceships: Query<Entity, (With<SourceEntity>, With<ShadowAbilityConfig>)>,
+    q_spaceships: Query<
+        Entity,
+        (
+            Or<(Added<SourceEntity>, Added<BlueprintInstanceReady>)>,
+            With<ShadowAbilityConfig>,
+            With<SourceEntity>,
+            With<BlueprintInstanceReady>,
+        ),
+    >,
     q_children: Query<&Children>,
     q_color_materials: Query<&Handle<ColorMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
-    mut evr_blueprint: EventReader<BlueprintEvent>,
 ) {
-    for bp_event in evr_blueprint.read() {
-        if let BlueprintEvent::InstanceReady {
-            entity,
-            blueprint_name,
-            ..
-        } = bp_event
-        {
-            if blueprint_name != &SpaceshipType::Assassin.info().name {
-                continue;
-            }
+    for entity in q_spaceships.iter() {
+        // Initialize origin colors of the materials.
+        let mut origin_colors = OriginColors::default();
+        let entity_color_pairs = q_children
+            .iter_descendants(entity)
+            .filter_map(|e| {
+                q_color_materials
+                    .get(e)
+                    .ok()
+                    .and_then(|handle| color_materials.get(handle))
+                    .map(|color_material| (e, color_material.clone()))
+            })
+            .collect::<Vec<_>>();
 
-            // Check if our target entity is a source entity and contains the ability config.
-            if q_spaceships.contains(*entity) == false {
-                continue;
-            }
-
-            // Initialize origin colors of the materials.
-            let mut origin_colors = OriginColors::default();
-            let entity_color_pairs = q_children
-                .iter_descendants(*entity)
-                .filter_map(|e| {
-                    q_color_materials
-                        .get(e)
-                        .ok()
-                        .and_then(|handle| color_materials.get(handle))
-                        .map(|color_material| (e, color_material.clone()))
-                })
-                .collect::<Vec<_>>();
-
-            for (child, color_material) in entity_color_pairs {
-                origin_colors.push((child, color_material.color));
-                // Create a new instance of the material so that it would only affect
-                // this specific instance instead of being shared with other materials.
-                commands
-                    .entity(child)
-                    .insert(color_materials.add(color_material));
-            }
-
-            commands.entity(*entity).insert(origin_colors);
-            info!("Setup origin colors for {entity}");
+        for (child, color_material) in entity_color_pairs {
+            origin_colors.push((child, color_material.color));
+            // Create a new instance of the material so that it would only affect
+            // this specific instance instead of being shared with other materials.
+            commands
+                .entity(child)
+                .insert(color_materials.add(color_material));
         }
+
+        commands.entity(entity).insert(origin_colors);
+        info!("Setup origin colors for {entity}");
     }
 }
 
@@ -137,7 +128,15 @@ fn apply_shadow_vfx(
 
 fn init_heal_vfx(
     mut commands: Commands,
-    q_spaceships: Query<(&HealAbilityConfig, Entity), Added<SourceEntity>>,
+    q_spaceships: Query<
+        (&HealAbilityConfig, Entity),
+        (
+            Or<(Added<SourceEntity>, Added<BlueprintInstanceReady>)>,
+            With<HealAbilityConfig>,
+            With<SourceEntity>,
+            With<BlueprintInstanceReady>,
+        ),
+    >,
     mut meshes: ResMut<Assets<Mesh>>,
     prepass_texture: Res<MainPrepassTexture>,
     color_palette: Res<ColorPalette>,
