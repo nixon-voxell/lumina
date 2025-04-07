@@ -21263,6 +21263,17 @@
       "type": "string",
       "typeInfo": "Enum"
     },
+    "lumina_shared::blueprints::NoRecursive": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "lumina_shared::blueprints::NoRecursive",
+      "properties": {},
+      "required": [],
+      "short_name": "NoRecursive",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "lumina_shared::blueprints::OreType": {
       "isComponent": true,
       "isResource": false,

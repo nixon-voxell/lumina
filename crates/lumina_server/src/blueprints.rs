@@ -15,7 +15,8 @@ impl Plugin for BlueprintsPlugin {
                 despawn_client_only,
                 replicate_from_server,
                 replicate_blueprint,
-            ),
+            )
+                .after(GltfBlueprintsSet::AfterSpawn),
         );
     }
 }
@@ -31,35 +32,44 @@ fn despawn_client_only(mut commands: Commands, q_entities: Query<Entity, Added<C
 fn replicate_from_server(
     mut commands: Commands,
     mut q_entities: Query<
-        (&ReplicateFromServer, &WorldIdx, Option<&PlayerId>, Entity),
+        (
+            &ReplicateFromServer,
+            &WorldIdx,
+            Has<NoRecursive>,
+            Option<&PlayerId>,
+            Entity,
+        ),
         (Without<SyncTarget>, Without<BlueprintSpawning>),
     >,
     q_children: Query<&Children>,
     q_sync_filter: Query<(), With<HierarchySync>>,
     mut room_manager: ResMut<RoomManager>,
 ) {
-    for (replicate, world_id, player_id, entity) in q_entities.iter_mut() {
+    for (replicate, world_id, no_recursive, player_id, entity) in q_entities.iter_mut() {
         // Will be controlled by player id if it exists.
         let target = player_id
             .map(|&id| NetworkTarget::Single(id.0))
             .unwrap_or_default();
 
-        commands
-            .entity(entity)
-            .insert(Replicate {
-                sync: SyncTarget {
-                    prediction: replicate.prediction_target(),
-                    interpolation: replicate.interpolation_target(),
-                },
-                controlled_by: ControlledBy {
-                    target,
-                    ..default()
-                },
-                relevance_mode: NetworkRelevanceMode::InterestManagement,
-                hierarchy: ReplicateHierarchy { recursive: true },
+        commands.entity(entity).insert(Replicate {
+            sync: SyncTarget {
+                prediction: replicate.prediction_target(),
+                interpolation: replicate.interpolation_target(),
+            },
+            controlled_by: ControlledBy {
+                target,
                 ..default()
-            })
-            .remove_parent_in_place();
+            },
+            relevance_mode: NetworkRelevanceMode::InterestManagement,
+            hierarchy: ReplicateHierarchy {
+                recursive: no_recursive,
+            },
+            ..default()
+        });
+
+        if no_recursive == false {
+            commands.entity(entity).remove_parent_in_place();
+        }
 
         // Add all child to room for replication to occur correctly.
         for child in q_children

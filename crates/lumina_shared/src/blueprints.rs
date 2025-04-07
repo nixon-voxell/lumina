@@ -29,6 +29,12 @@ impl ReplicateFromServer {
     }
 }
 
+/// Marker for preventing entity from being replicated recursively.
+/// This will also prevent the entity from leaving the hierarchy.
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct NoRecursive;
+
 /// Marker for replicating the entity inside the children hierarchy
 /// of [`ReplicateFromServer`] over the network.
 /// The entity will be added to the room accordingly on the server.
