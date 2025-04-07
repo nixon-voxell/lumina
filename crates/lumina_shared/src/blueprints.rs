@@ -29,6 +29,12 @@ impl ReplicateFromServer {
     }
 }
 
+/// Marker for preventing entity from being replicated recursively.
+/// This will also prevent the entity from leaving the hierarchy.
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct NoRecursive;
+
 /// Marker for replicating the entity inside the children hierarchy
 /// of [`ReplicateFromServer`] over the network.
 /// The entity will be added to the room accordingly on the server.
@@ -81,7 +87,7 @@ pub enum MapType {
     Component, Reflect, AsRefStr, Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq,
 )]
 #[reflect(Component)]
-#[strum(prefix = "levels/spaceships/")]
+#[strum(prefix = "spaceship_blueprints/")]
 pub enum SpaceshipType {
     #[default]
     Assassin,
@@ -99,7 +105,7 @@ impl SpaceshipType {
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-#[strum(prefix = "levels/weapons/")]
+#[strum(prefix = "weapon_blueprints/")]
 pub enum WeaponType {
     Cannon,
     GattlingGun,
@@ -164,7 +170,7 @@ impl OreType {
 
 #[derive(Component, Reflect, AsRefStr, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[reflect(Component)]
-#[strum(prefix = "levels/luminas/")]
+#[strum(prefix = "lumina_blueprints/")]
 pub enum LuminaType {
     Normal,
 }

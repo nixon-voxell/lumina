@@ -17,6 +17,7 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<NoRadiance>()
             // Blueprint
             .register_type::<ReplicateFromServer>()
+            .register_type::<NoRecursive>()
             .register_type::<HierarchySync>()
             .register_type::<ReplicateBlueprint>()
             .register_type::<ServerOnly>()

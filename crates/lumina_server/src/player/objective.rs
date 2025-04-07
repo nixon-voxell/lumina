@@ -16,22 +16,19 @@ pub(super) struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnLumina>()
-            .add_systems(
-                Update,
-                (
-                    setup_objective_area,
-                    replicate_ores,
-                    setup_lumina_spawn_area,
-                    replicate_lumina,
-                    track_lumina_lifetime,
-                    reset_objective_area,
-                    lumina_deposition,
-                ),
-            )
-            .add_systems(PostUpdate, setup_ores.before(init_health))
-            .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
-            .observe(spawn_lumina);
+        app.add_systems(
+            Update,
+            (
+                setup_objective_area,
+                setup_lumina_spawn_area,
+                track_lumina_lifetime,
+                reset_objective_area,
+                lumina_deposition,
+            ),
+        )
+        .add_systems(PostUpdate, setup_ores.before(init_health))
+        .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
+        .observe(spawn_lumina);
     }
 }
 
@@ -85,27 +82,6 @@ fn setup_objective_area(
                 break;
             }
         }
-    }
-}
-
-/// Replicate and setup [OreType] with their respective [ObjectiveArea] parent.
-fn replicate_ores(
-    mut commands: Commands,
-    mut q_ores: Query<(&WorldIdx, Entity), (With<OreType>, Added<WorldIdx>)>,
-    mut room_manager: ResMut<RoomManager>,
-) {
-    for (world_id, entity) in q_ores.iter_mut() {
-        // Set area target and replicate.
-        commands.entity(entity).insert((Replicate {
-            sync: SyncTarget {
-                prediction: NetworkTarget::All,
-                interpolation: NetworkTarget::None,
-            },
-            relevance_mode: NetworkRelevanceMode::InterestManagement,
-            ..default()
-        },));
-
-        room_manager.add_entity(entity, world_id.room_id());
     }
 }
 
@@ -201,26 +177,6 @@ fn ore_destruction(
     }
 }
 
-/// Replicate [LuminaType] to clients.
-fn replicate_lumina(
-    mut commands: Commands,
-    q_lumina: Query<(&WorldIdx, Entity), (With<LuminaType>, Added<WorldIdx>)>,
-    mut room_manager: ResMut<RoomManager>,
-) {
-    for (world_id, entity) in q_lumina.iter() {
-        commands.entity(entity).insert(Replicate {
-            sync: SyncTarget {
-                prediction: NetworkTarget::All,
-                interpolation: NetworkTarget::All,
-            },
-            relevance_mode: NetworkRelevanceMode::InterestManagement,
-            ..default()
-        });
-
-        room_manager.add_entity(entity, world_id.room_id());
-    }
-}
-
 /// Handles both collision detection and gameplay effects for Lumina collection.
 fn lumina_collection(
     mut commands: Commands,
@@ -292,24 +248,24 @@ fn track_lumina_lifetime(
 
 /// Spawns Lumina entities based on trigger events.
 fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
-    let event = trigger.event();
+    let spawn = trigger.event();
 
     let lumina_entity = commands
         .spawn((
-            LuminaType::Normal.config_info(),
+            LuminaType::Normal.info(),
             SpawnBlueprint,
-            Transform::from_xyz(event.position.x, event.position.y, 1.0),
-            event.world_id,
+            Transform::from_xyz(spawn.position.x, spawn.position.y, 1.0),
+            spawn.world_id,
         ))
         .id();
 
-    if let Some(sandbox_entity) = event.world_id.0 {
+    if let Some(sandbox_entity) = spawn.world_id.0 {
         commands.entity(lumina_entity).set_parent(sandbox_entity);
     }
 
     info!(
         "Spawned Lumina entity {:?} at position {:?}",
-        lumina_entity, event.position
+        lumina_entity, spawn.position
     );
 }
 
