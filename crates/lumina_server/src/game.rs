@@ -103,8 +103,9 @@ pub struct ResetSpaceships;
 
 /// Resets all spaceship health, energy, weapon and abilities when a game starts
 fn reset_spaceships(
-    _trigger: Trigger<ResetSpaceships>,
+    trigger: Trigger<ResetSpaceships>,
     mut commands: Commands,
+    q_lobbies: Query<&Lobby>, 
     mut q_spaceships: Query<
         (
             &mut Health,
@@ -123,46 +124,61 @@ fn reset_spaceships(
     player_infos: Res<PlayerInfos>,
     mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
-    info!("Resetting all spaceships for game start");
+    let lobby_entity = trigger.entity();
+    
+    // Get the Lobby component for this specific room
+    let Ok(lobby) = q_lobbies.get(lobby_entity) else {
+        warn!("No lobby found for entity {:?}", lobby_entity);
+        return;
+    };
 
-    for (
-        mut health,
-        max_health,
-        mut energy,
-        spaceship,
-        player_id,
-        entity,
-        cooldown,
-        shadow_config,
-        heal_config,
-    ) in q_spaceships.iter_mut()
-    {
-        **health = **max_health;
-        energy.energy = spaceship.energy.max_energy;
-        energy.cooldown = 0.0;
+    info!("Resetting spaceships for lobby {:?}", lobby_entity);
 
-        if let Some(mut cooldown) = cooldown {
-            // Reset the cooldown if the entity has either shadow or heal config
-            if shadow_config.is_some() || heal_config.is_some() {
-                cooldown.reset();
+    for client_id in lobby.iter() {
+        if let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id)) {
+            if let Ok((
+                mut health,
+                max_health,
+                mut energy,
+                spaceship,
+                _player_id,
+                entity,
+                cooldown,
+                shadow_config,
+                heal_config,
+            )) = q_spaceships.get_mut(*spaceship_entity) {
+                // Reset health
+                **health = **max_health;
+                
+                // Reset energy
+                energy.energy = spaceship.energy.max_energy;
+                energy.cooldown = 0.0;
+
+                // Reset ability cooldown
+                if let Some(mut cooldown) = cooldown {
+                    if shadow_config.is_some() || heal_config.is_some() {
+                        cooldown.reset();
+                    }
+                }
+
+                // Remove dash cooldown if present
+                if q_dash_cooldowns.contains(entity) {
+                    commands.entity(entity).remove::<DashCooldown>();
+                }
+
+                // Reload weapon
+                if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(&PlayerId(*client_id)) {
+                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
+                        weapon_state.reload(weapon);
+                    }
+                }
+
+                info!(
+                    "Reset spaceship for client {}: health={}/{}, energy={}/{}",
+                    client_id, **health, **max_health, energy.energy, spaceship.energy.max_energy
+                );
             }
         }
-
-        if q_dash_cooldowns.contains(entity) {
-            commands.entity(entity).remove::<DashCooldown>();
-        }
-
-        // Reload weapon
-        if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
-            if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
-                weapon_state.reload(weapon);
-            }
-        }
-
-        info!(
-            "Reset spaceship: health={}/{}, energy={}/{}",
-            **health, **max_health, energy.energy, spaceship.energy.max_energy
-        );
     }
 }
 
