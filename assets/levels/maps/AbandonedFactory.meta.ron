@@ -31,6 +31,7 @@
     ("TesseractGray1", File ( path: "materials/TesseractGray1.glb" )),
     ("TesseractBlack", File ( path: "materials/TesseractBlack.glb" )),
     ("FactoryBaseBackground", File ( path: "blueprints/FactoryBaseBackground.glb" )),
+    ("PurpleGlow", File ( path: "materials/PurpleGlow.glb" )),
     ("FactoryFloor2", File ( path: "materials/FactoryFloor2.glb" )),
     ("Warning sign", File ( path: "materials/Warning sign.glb" )),
     ("Door", File ( path: "blueprints/Door.glb" )),

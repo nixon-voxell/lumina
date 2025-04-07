@@ -2,13 +2,13 @@
   assets:
    [ 
     ("GattlingGun", File ( path: "weapon_blueprints/GattlingGun.glb" )),
-    ("GattlingGunBlue5", File ( path: "materials/GattlingGunBlue5.glb" )),
+    ("GattlingGunBlue3", File ( path: "materials/GattlingGunBlue3.glb" )),
+    ("GattlingGunDarkBlue1", File ( path: "materials/GattlingGunDarkBlue1.glb" )),
+    ("GattlingGunBlue1", File ( path: "materials/GattlingGunBlue1.glb" )),
     ("GattlingGunBlue4", File ( path: "materials/GattlingGunBlue4.glb" )),
     ("GattlingGunBlue2", File ( path: "materials/GattlingGunBlue2.glb" )),
-    ("GattlingGunBlue1", File ( path: "materials/GattlingGunBlue1.glb" )),
-    ("GattlingGunDarkBlue1", File ( path: "materials/GattlingGunDarkBlue1.glb" )),
     ("GattlingGunDarkBlue2", File ( path: "materials/GattlingGunDarkBlue2.glb" )),
-    ("GattlingGunBlue3", File ( path: "materials/GattlingGunBlue3.glb" )),
     ("GattlingGunBlack1", File ( path: "materials/GattlingGunBlack1.glb" )),
+    ("GattlingGunBlue5", File ( path: "materials/GattlingGunBlue5.glb" )),
    ]
 )
