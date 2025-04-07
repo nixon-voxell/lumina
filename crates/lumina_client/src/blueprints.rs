@@ -11,7 +11,6 @@ pub(super) struct BlueprintsPlugin;
 impl Plugin for BlueprintsPlugin {
     fn build(&self, app: &mut App) {
         app.spawn_blueprint_visual::<AmmoType, Without<AmmoRef>>()
-            .spawn_blueprint_visual::<LuminaType, ()>()
             .add_systems(
                 PostUpdate,
                 (despawn_server_only, spawn_replicated_blueprints).chain(),

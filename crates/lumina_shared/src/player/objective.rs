@@ -14,7 +14,8 @@ pub struct ObjectivePlugin;
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LuminaCollected>()
-            .add_systems(Update, (ore_visibility, setup_lumina_col_layer));
+            .add_systems(Update, ore_visibility)
+            .observe(setup_lumina_col_layer);
     }
 }
 
@@ -38,16 +39,12 @@ fn ore_visibility(
 
 /// Setup lumina collision layer such that it can only collide with spaceships.
 /// (Particularly avoiding ammos)
-fn setup_lumina_col_layer(
-    mut commands: Commands,
-    q_luminas: Query<Entity, (With<LuminaType>, Added<SourceEntity>)>,
-) {
-    for entity in q_luminas.iter() {
-        commands.entity(entity).insert(CollisionLayers::new(
-            GameLayer::Lumina,
-            [GameLayer::Spaceship],
-        ));
-    }
+fn setup_lumina_col_layer(trigger: Trigger<OnAdd, LuminaType>, mut commands: Commands) {
+    let entity = trigger.entity();
+    commands.entity(entity).insert(CollisionLayers::new(
+        GameLayer::Lumina,
+        [GameLayer::Spaceship, GameLayer::Lumina],
+    ));
 }
 
 /// Number of luminas collected by player.
