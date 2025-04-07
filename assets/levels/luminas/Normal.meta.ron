@@ -1,7 +1,7 @@
 (
   assets:
    [ 
-    ("NormalBlueprint", File ( path: "blueprints/NormalBlueprint.glb" )),
+    ("Normal", File ( path: "lumina_blueprints/Normal.glb" )),
     ("LuminaPurple", File ( path: "materials/LuminaPurple.glb" )),
     ("LuminaBlack1", File ( path: "materials/LuminaBlack1.glb" )),
     ("LuminaBlue1", File ( path: "materials/LuminaBlue1.glb" )),
