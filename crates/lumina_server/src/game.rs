@@ -135,14 +135,8 @@ fn reset_spaceships(
         if let Some(spaceship_entity) =
             player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id))
         {
-            if let Ok((
-                mut health,
-                max_health,
-                mut energy,
-                spaceship,
-                _player_id,
-                entity,
-            )) = q_spaceships.get_mut(*spaceship_entity)
+            if let Ok((mut health, max_health, mut energy, spaceship, _player_id, entity)) =
+                q_spaceships.get_mut(*spaceship_entity)
             {
                 // Reset health
                 **health = **max_health;
