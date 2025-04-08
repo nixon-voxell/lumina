@@ -101,7 +101,7 @@ fn respawn_spaceships(
 #[derive(Event, Debug)]
 pub struct ResetSpaceships;
 
-/// Resets all spaceship health, energy, weapon and abilities when a game starts
+/// Resets all spaceship health, energy, weapon  when a game starts
 fn reset_spaceships(
     trigger: Trigger<ResetSpaceships>,
     mut commands: Commands,
@@ -114,7 +114,6 @@ fn reset_spaceships(
             &Spaceship,
             &PlayerId,
             Entity,
-            Option<&mut AbilityCooldown>,
         ),
         With<SourceEntity>,
     >,
@@ -143,7 +142,6 @@ fn reset_spaceships(
                 spaceship,
                 _player_id,
                 entity,
-                cooldown,
             )) = q_spaceships.get_mut(*spaceship_entity)
             {
                 // Reset health
@@ -152,12 +150,6 @@ fn reset_spaceships(
                 // Reset energy
                 energy.energy = spaceship.energy.max_energy;
                 energy.cooldown = 0.0;
-
-                // Speed up ability cooldown
-                if let Some(mut cooldown) = cooldown {
-                    let duration = cooldown.duration();
-                    cooldown.set_elapsed(duration);
-                }
 
                 // Remove dash cooldown if present
                 if q_dash_cooldowns.contains(entity) {
