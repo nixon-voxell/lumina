@@ -24,6 +24,7 @@ impl Plugin for GamePlugin {
                     track_game_timer,
                 ),
             )
+            .observe(reset_spaceships)
             .observe(end_game);
     }
 }
@@ -94,6 +95,76 @@ fn respawn_spaceships(
         position.0 = spawn_translation.xy();
         *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
         **health = **max_health;
+    }
+}
+
+#[derive(Event, Debug)]
+pub struct ResetSpaceships;
+
+/// Resets all spaceship health, energy, weapon  when a game starts
+fn reset_spaceships(
+    trigger: Trigger<ResetSpaceships>,
+    mut commands: Commands,
+    q_lobbies: Query<&Lobby>,
+    mut q_spaceships: Query<
+        (
+            &mut Health,
+            &MaxHealth,
+            &mut Energy,
+            &Spaceship,
+            &PlayerId,
+            Entity,
+        ),
+        With<SourceEntity>,
+    >,
+    q_dash_cooldowns: Query<Entity, With<DashCooldown>>,
+    player_infos: Res<PlayerInfos>,
+    mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
+) {
+    let lobby_entity = trigger.entity();
+
+    // Get the Lobby component for this specific room
+    let Ok(lobby) = q_lobbies.get(lobby_entity) else {
+        warn!("No lobby found for entity {:?}", lobby_entity);
+        return;
+    };
+
+    info!("Resetting spaceships for lobby {:?}", lobby_entity);
+
+    for client_id in lobby.iter() {
+        if let Some(spaceship_entity) =
+            player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id))
+        {
+            if let Ok((mut health, max_health, mut energy, spaceship, _player_id, entity)) =
+                q_spaceships.get_mut(*spaceship_entity)
+            {
+                // Reset health
+                **health = **max_health;
+
+                // Reset energy
+                energy.energy = spaceship.energy.max_energy;
+                energy.cooldown = 0.0;
+
+                // Remove dash cooldown if present
+                if q_dash_cooldowns.contains(entity) {
+                    commands.entity(entity).remove::<DashCooldown>();
+                }
+
+                // Reload weapon
+                if let Some(weapon_entity) =
+                    player_infos[PlayerInfoType::Weapon].get(&PlayerId(*client_id))
+                {
+                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
+                        weapon_state.reload(weapon);
+                    }
+                }
+
+                info!(
+                    "Reset spaceship for client {}: health={}/{}, energy={}/{}",
+                    client_id, **health, **max_health, energy.energy, spaceship.energy.max_energy
+                );
+            }
+        }
     }
 }
 
