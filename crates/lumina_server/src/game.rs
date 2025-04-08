@@ -115,8 +115,6 @@ fn reset_spaceships(
             &PlayerId,
             Entity,
             Option<&mut AbilityCooldown>,
-            Option<&ShadowAbilityConfig>,
-            Option<&HealAbilityConfig>,
         ),
         With<SourceEntity>,
     >,
@@ -146,8 +144,6 @@ fn reset_spaceships(
                 _player_id,
                 entity,
                 cooldown,
-                shadow_config,
-                heal_config,
             )) = q_spaceships.get_mut(*spaceship_entity)
             {
                 // Reset health
@@ -157,11 +153,10 @@ fn reset_spaceships(
                 energy.energy = spaceship.energy.max_energy;
                 energy.cooldown = 0.0;
 
-                // Reset ability cooldown
+                // Speed up ability cooldown
                 if let Some(mut cooldown) = cooldown {
-                    if shadow_config.is_some() || heal_config.is_some() {
-                        cooldown.reset();
-                    }
+                    let duration = cooldown.duration();
+                    cooldown.set_elapsed(duration);
                 }
 
                 // Remove dash cooldown if present
