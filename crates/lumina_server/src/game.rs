@@ -69,7 +69,6 @@ fn respawn_spaceships(
             &MaxHealth,
             &mut Health,
             &CollectedLumina,
-            &WorldIdx,
             &PlayerId,
             Entity,
         ),
@@ -86,7 +85,6 @@ fn respawn_spaceships(
         max_health,
         mut health,
         collected_lumina,
-        _world_id,
         player_id,
         entity,
     ) in q_spaceships.iter_mut()

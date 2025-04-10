@@ -17,21 +17,20 @@ pub(super) struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlayerDeath>()
-            .add_systems(
-                Update,
-                (
-                    setup_objective_area,
-                    setup_lumina_spawn_area,
-                    track_lumina_lifetime,
-                    reset_objective_area,
-                    lumina_deposition,
-                ),
-            )
-            .add_systems(PostUpdate, setup_ores.before(init_health))
-            .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
-            .observe(spawn_lumina)
-            .observe(drop_lumina_on_death);
+        app.add_systems(
+            Update,
+            (
+                setup_objective_area,
+                setup_lumina_spawn_area,
+                track_lumina_lifetime,
+                reset_objective_area,
+                lumina_deposition,
+            ),
+        )
+        .add_systems(PostUpdate, setup_ores.before(init_health))
+        .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
+        .observe(spawn_lumina)
+        .observe(drop_lumina_on_death);
     }
 }
 
