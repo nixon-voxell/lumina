@@ -16,19 +16,22 @@ pub(super) struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                setup_objective_area,
-                setup_lumina_spawn_area,
-                track_lumina_lifetime,
-                reset_objective_area,
-                lumina_deposition,
-            ),
-        )
-        .add_systems(PostUpdate, setup_ores.before(init_health))
-        .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
-        .observe(spawn_lumina);
+        app.add_event::<PlayerDeath>()
+            .add_systems(
+                Update,
+                (
+                    setup_objective_area,
+                    setup_lumina_spawn_area,
+                    track_lumina_lifetime,
+                    reset_objective_area,
+                    lumina_deposition,
+                    handle_player_death.after(lumina_deposition),
+                    drop_lumina_on_death.after(handle_player_death),
+                ),
+            )
+            .add_systems(PostUpdate, setup_ores.before(init_health))
+            .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
+            .observe(spawn_lumina);
     }
 }
 
@@ -269,12 +272,93 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
     );
 }
 
+/// Handles player death events and triggers the [PlayerDeath] event.
+fn handle_player_death(
+    mut commands: Commands,
+    q_players: Query<
+        (
+            Entity,
+            &Health,
+            &Position,
+            &CollectedLumina,
+            &WorldIdx,
+            &PlayerId,
+        ),
+        Without<PlayerDead>,
+    >,
+    mut death_events: EventWriter<PlayerDeath>,
+) {
+    for (entity, health, position, collected_lumina, world_id, player_id) in q_players.iter() {
+        if **health <= 0.0 {
+            info!(
+                "Player {:?} has died with {} collected lumina",
+                player_id, collected_lumina.0
+            );
+            death_events.send(PlayerDeath {
+                player_entity: entity,
+                position: *position,
+                collected_lumina: collected_lumina.0 as u32,
+                world_id: *world_id,
+            });
+            // Mark as dead
+            commands.entity(entity).insert(PlayerDead);
+        }
+    }
+}
+
+/// Drops Lumina around the player's death position.
+fn drop_lumina_on_death(
+    mut commands: Commands,
+    mut q_players: Query<&mut CollectedLumina>,
+    mut death_events: EventReader<PlayerDeath>,
+) {
+    for death in death_events.read() {
+        // Get the player's collected lumina component
+        if let Ok(mut collected_lumina) = q_players.get_mut(death.player_entity) {
+            let lumina_count = death.collected_lumina;
+
+            // Spawn the dropped lumina around the death position
+            for _ in 0..lumina_count {
+                let radian = rand::random::<f32>() % TAU;
+                let dir = Vec2::from_angle(radian);
+                let radius = 2.0 + (lumina_count as f32 * 0.5);
+                let distance = rand::random::<f32>() % radius;
+                let spawn_position = Position(death.position.0 + (dir * distance));
+
+                commands.trigger(SpawnLumina {
+                    position: spawn_position,
+                    world_id: death.world_id,
+                });
+            }
+
+            // Clear the player's collected lumina
+            collected_lumina.0 = 0;
+            info!(
+                "Dropped {} lumina at position {:?} from player death",
+                lumina_count, death.position
+            );
+        }
+    }
+}
+
 #[derive(Event)]
 struct SpawnLumina {
     // Position where the Lumina will appear.
     pub position: Position,
     pub world_id: WorldIdx,
 }
+
+#[derive(Event)]
+struct PlayerDeath {
+    player_entity: Entity,
+    position: Position,
+    collected_lumina: u32,
+    world_id: WorldIdx,
+}
+
+/// Marker component for the player when they are dead.
+#[derive(Component)]
+struct PlayerDead;
 
 /// Marker component when the Ore is being destroyed.
 /// Must be removed when it's being replenished.
