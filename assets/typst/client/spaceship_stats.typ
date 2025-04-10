@@ -369,7 +369,50 @@
       )
     ]
 
+
     #place(bottom + right)[
+      #let lumina_percent = 100% * calc.pow(data.lumina_count / 15, 8.0)
+      #let sin_lerp_fast = calc.sin(elapsed-secs() * 4.0) * 0.5 + 0.5
+      #let sin_lerp = calc.sin(elapsed-secs() * 2.0) * 0.5 + 0.5
+      #let cos_lerp = calc.cos(elapsed-secs() * 2.0) * 0.5 + 0.5
+
+      #let lumina_colors = (
+        color
+          .mix(
+            (
+              color.mix(
+                (blue, 100% * sin_lerp),
+                (purple, 100% * (1.0 - sin_lerp)),
+              ),
+              100% - lumina_percent,
+            ),
+            (red, lumina_percent),
+          )
+          .transparentize(60% + (lumina_percent * 30% * sin_lerp_fast)),
+        color
+          .mix(
+            (
+              color.mix(
+                (blue, 100% * cos_lerp),
+                (purple, 100% * (1.0 - cos_lerp)),
+              ),
+              100% - lumina_percent,
+            ),
+            (red, lumina_percent),
+          )
+          .transparentize(60% + (lumina_percent * 30% * sin_lerp_fast)),
+      )
+
+      #box(
+        inset: 1em,
+        // radius: 0.5em,
+        fill: gradient.linear(..lumina_colors.map(col => col.darken(10%))),
+        stroke: (0.3em + 0.2em * sin_lerp_fast)
+          + gradient.linear(..lumina_colors.map(col => col.darken(60%))),
+      )[
+        Lumina: #data.lumina_count
+      ]
+
       #stack(
         dir: ltr,
         spacing: 1em,
