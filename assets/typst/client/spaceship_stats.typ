@@ -403,15 +403,18 @@
           .transparentize(60% + (lumina_percent * 30% * sin_lerp_fast)),
       )
 
-      #box(
-        inset: 1em,
-        // radius: 0.5em,
-        fill: gradient.linear(..lumina_colors.map(col => col.darken(10%))),
-        stroke: (0.3em + 0.2em * sin_lerp_fast)
-          + gradient.linear(..lumina_colors.map(col => col.darken(60%))),
-      )[
-        Lumina: #data.lumina_count
+      #box[
+        #polygon.regular(
+          fill: gradient.linear(..lumina_colors.map(col => col.darken(30%))),
+          stroke: (0.1em + 0.2em * sin_lerp_fast)
+            + gradient.linear(..lumina_colors.map(col => col.darken(60%))),
+          size: 3em,
+          vertices: 3,
+        )
+        #place(center + horizon, dy: 0.3em)[#data.lumina_count]
+        #place(center + bottom, dy: 0.7em)[#text(size: 0.7em)[Lumina]]
       ]
+
 
       #stack(
         dir: ltr,
