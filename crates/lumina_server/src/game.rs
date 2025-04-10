@@ -59,6 +59,7 @@ fn end_game(
 
 /// Respawn the spaceship by resetting its position and health to the initial values
 fn respawn_spaceships(
+    mut commands: Commands,
     mut q_spaceships: Query<
         (
             &Visibility,
@@ -67,6 +68,9 @@ fn respawn_spaceships(
             &SpawnPointEntity,
             &MaxHealth,
             &mut Health,
+            &CollectedLumina,
+            &PlayerId,
+            Entity,
         ),
         (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
     >,
@@ -74,27 +78,41 @@ fn respawn_spaceships(
 ) {
     // Spaceship becomes Visibility::Hidden when health drops to 0.
     for (
-        _,
+        visibility,
         mut position,
         mut rotation,
-        &SpawnPointEntity(spawn_point_entity),
+        spawn_point_entity,
         max_health,
         mut health,
-    ) in q_spaceships
-        .iter_mut()
-        .filter(|(viz, ..)| *viz == Visibility::Hidden)
+        collected_lumina,
+        player_id,
+        entity,
+    ) in q_spaceships.iter_mut()
     {
-        let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
-            .get(spawn_point_entity)
-            .map(|transform| transform.to_scale_rotation_translation())
-        else {
-            return;
-        };
+        if *visibility == Visibility::Hidden {
+            if collected_lumina.0 > 0 {
+                info!(
+                    "Player {:?} has died with {} collected lumina",
+                    player_id, collected_lumina.0
+                );
+                commands.trigger(PlayerDeath {
+                    player_entity: entity,
+                    position: *position,
+                });
+            }
 
-        // Reset position and health.
-        position.0 = spawn_translation.xy();
-        *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
-        **health = **max_health;
+            let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
+                .get(spawn_point_entity.0)
+                .map(|transform| transform.to_scale_rotation_translation())
+            else {
+                return;
+            };
+
+            // Reset position and health.
+            position.0 = spawn_translation.xy();
+            *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
+            **health = **max_health;
+        }
     }
 }
 
@@ -221,3 +239,10 @@ fn track_game_timer(
 /// Time left for a game (in seconds).
 #[derive(Component, Deref, DerefMut)]
 pub struct GameTimer(Timer);
+
+/// Triggered when a player dies.
+#[derive(Event)]
+pub struct PlayerDeath {
+    pub player_entity: Entity,
+    pub position: Position,
+}

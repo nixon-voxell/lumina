@@ -16,13 +16,13 @@
       #text(fill: yellow)[
         #button(
           lbl: <btn:reconnect>,
-          inter: interactions(),
+          inters: interactions(),
         )[Reconnect]
       ]
       #text(fill: red)[
         #button(
           lbl: <btn:exit-game>,
-          inter: interactions(),
+          inters: interactions(),
         )[Exit Game]
       ]
     ]
