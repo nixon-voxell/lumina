@@ -6,7 +6,7 @@ use lumina_shared::prelude::*;
 use server::*;
 
 use crate::game::ResetSpaceships;
-use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea};
+use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea, OBJECTIVE_AREA_COUNT};
 
 use super::{LobbyFull, LobbyInGame};
 
@@ -78,24 +78,37 @@ fn start_game(
 fn manage_objective_areas(
     mut commands: Commands,
     // Manage sandbox managers only.
-    q_manager: Query<&ObjectiveAreaManager, With<LobbyInGame>>,
+    mut q_manager: Query<&mut ObjectiveAreaManager, With<LobbyInGame>>,
     // Do no reset already resetting areas.
-    q_areas: Query<&ObjectiveArea, Without<ResetObjectiveArea>>,
+    q_areas: Query<(&ObjectiveArea, Has<ActiveObjectiveArea>), Without<ResetObjectiveArea>>,
 ) {
-    for manager in q_manager.iter() {
-        for area_entity in manager.areas.iter() {
-            if let Ok(area) = q_areas.get(*area_entity) {
-                let depleted = area.ores.unused().is_empty();
+    for mut manager in q_manager
+        .iter_mut()
+        // TODO: Use a better marker to indicate that the objective area manager is ready.
+        .filter(|m| m.areas.len() == OBJECTIVE_AREA_COUNT)
+    {
+        let area_entity = manager.areas[manager.selected_index];
+        if let Ok((area, is_active)) = q_areas.get(area_entity) {
+            let depleted = area.ores.unused().is_empty();
+            if depleted == false {
+                continue;
+            }
 
-                if depleted {
-                    // Reset in 5 seconds.
-                    commands
-                        .entity(*area_entity)
-                        .insert(ResetObjectiveArea(Timer::from_seconds(
-                            20.0,
-                            TimerMode::Once,
-                        )));
+            if is_active {
+                // Active area has been depleted, choose a new active area!
+                commands.entity(area_entity).remove::<ActiveObjectiveArea>();
+                let mut new_index = rand::random::<u32>() as usize % manager.areas.len();
+                if new_index == manager.selected_index {
+                    new_index = (new_index + 1) % manager.areas.len();
                 }
+
+                manager.selected_index = new_index;
+            } else {
+                // Reset in 5 seconds.
+                commands.entity(area_entity).insert((
+                    ResetObjectiveArea(Timer::from_seconds(5.0, TimerMode::Once)),
+                    ActiveObjectiveArea,
+                ));
             }
         }
     }
@@ -104,3 +117,6 @@ fn manage_objective_areas(
 /// Countdown before the game starts (in seconds).
 #[derive(Component, Deref, DerefMut)]
 pub struct CountdownTimer(Timer);
+
+#[derive(Component)]
+pub struct ActiveObjectiveArea;

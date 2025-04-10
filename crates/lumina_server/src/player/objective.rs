@@ -12,6 +12,9 @@ use server::*;
 
 use crate::LobbyInfos;
 
+// TODO: Allow for setting this through blender!
+pub const OBJECTIVE_AREA_COUNT: usize = 4;
+
 pub(super) struct ObjectivePlugin;
 
 impl Plugin for ObjectivePlugin {
@@ -296,8 +299,17 @@ pub struct ResetObjectiveArea(pub Timer);
 #[derive(Component)]
 struct ObjectiveAreaTarget(Entity);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Debug)]
 pub struct ObjectiveAreaManager {
     pub areas: Vec<Entity>,
-    // pub selected_area: usize,
+    pub selected_index: usize,
+}
+
+impl Default for ObjectiveAreaManager {
+    fn default() -> Self {
+        Self {
+            areas: Vec::new(),
+            selected_index: rand::random::<u32>() as usize % OBJECTIVE_AREA_COUNT,
+        }
+    }
 }
