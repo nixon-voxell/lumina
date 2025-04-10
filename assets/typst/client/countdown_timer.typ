@@ -21,11 +21,16 @@
     str(seconds)
   }
 
-  box(width: 100%, height: 100%)[
+  box(width: 100%, height: 100%, inset: 2em)[
     #place(top + left)[
-      // Display the countdown timer in MM:SS format
-      #text(fill: base7, size: 2em)[
-        #formatted_minutes:#formatted_seconds
+      #box()[
+        #image("../../icons/button02.svg", height: 3em)
+        #place(center + horizon)[
+          // Display the countdown timer in MM:SS format
+          #text(fill: base7, size: 2em)[
+            #formatted_minutes:#formatted_seconds
+          ]
+        ]
       ]
     ]
   ]

@@ -275,7 +275,12 @@ fn booster_vfx(
 fn cache_team_type(
     q_spaceships: Query<
         (&TeamType, &PlayerId),
-        (With<SourceEntity>, Changed<TeamType>, With<Spaceship>),
+        (
+            With<SourceEntity>,
+            With<TeamType>,
+            With<Spaceship>,
+            Or<(Changed<TeamType>, Added<Spaceship>, Added<SourceEntity>)>,
+        ),
     >,
     local_player_id: Res<LocalPlayerId>,
     mut local_team_type: ResMut<CachedGameStat>,

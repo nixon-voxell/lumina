@@ -28,6 +28,7 @@ fn spaceship_stats(
             &Energy,
             &Spaceship,
             &SpaceshipType,
+            &CollectedLumina,
             Option<&AbilityCooldown>,
             Has<AbilityEffect>,
         ),
@@ -51,6 +52,7 @@ fn spaceship_stats(
         energy,
         spaceship,
         spaceship_type,
+        lumina_collected,
         ability_cooldown,
         is_ability_active,
     )) = local_player_info
@@ -96,6 +98,7 @@ fn spaceship_stats(
         "magazine" => weapon_state.magazine(),
         "magazine_size" => weapon.magazine_size(),
         "reload_size" => reload_size,
+        "lumina_count" => lumina_collected.0,
     });
 
     func.dummy_update = func.dummy_update.wrapping_add(1);
