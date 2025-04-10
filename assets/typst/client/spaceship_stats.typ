@@ -94,6 +94,12 @@
     (wave_fill, wave_color_mix),
     (red, 100% - wave_color_mix),
   )
+
+  let arc_color_mix = arc_count / arc_total_count * 100%
+  let arc_color = color.mix(
+    (arc_fill, arc_color_mix),
+    (red, 100% - arc_color_mix),
+  )
   box(width: width, height: width, radius: width, clip: true)[
     #let offset_time = time + 2.2
     #let water_color = wave_color.darken(40%).saturate(50%)
@@ -138,19 +144,19 @@
   place(top + left)[
     #box(width: width, height: width, radius: width)[
       // Ring background.
-      #ring(width + distance, stroke_width, arc_fill.darken(80%))
+      #ring(width + distance, stroke_width, arc_color.darken(80%))
       // Inner ring.
       #ring(
         width + distance - stroke_width,
         0.06em,
-        wave_color.mix(arc_fill).lighten(40%).transparentize(30%),
+        wave_color.mix(arc_color).lighten(40%).transparentize(30%),
         glow_count: 2,
       )
       // Outer ring.
       #ring(
         width + distance + stroke_width,
         0.04em,
-        arc_fill.lighten(40%).transparentize(30% * glow_animation),
+        arc_color.lighten(40%).transparentize(30% * glow_animation),
         glow_count: 2,
       )
 
@@ -164,7 +170,7 @@
               width + distance,
               stroke_width * 0.5,
               arc_percentile,
-              arc_fill.darken(30%),
+              arc_color.darken(30%),
               cap,
             ),
           ),
@@ -186,7 +192,7 @@
               width + distance,
               stroke_width * (0.6 + i * 0.1),
               glow_arc_percentile,
-              arc_fill
+              arc_color
                 .desaturate(20%)
                 .transparentize(50% * glow_animation + (i * 20%)),
               cap,
@@ -318,8 +324,8 @@
           inset: 1em,
           disc_stats(
             width,
-            green.saturate(40%),
-            yellow.saturate(40%).mix(green.saturate(40%)),
+            green.desaturate(20%),
+            yellow.desaturate(20%).mix(green.desaturate(20%)),
             calc.ceil(data.max_health),
             calc.ceil(data.health),
             data.boost,
