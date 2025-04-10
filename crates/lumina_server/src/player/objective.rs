@@ -10,6 +10,7 @@ use lumina_shared::player::objective::LuminaSpawnArea;
 use lumina_shared::prelude::*;
 use server::*;
 
+use crate::game::PlayerDeath;
 use crate::LobbyInfos;
 
 // TODO: Allow for setting this through blender!
@@ -31,7 +32,8 @@ impl Plugin for ObjectivePlugin {
         )
         .add_systems(PostUpdate, setup_ores.before(init_health))
         .add_systems(FixedUpdate, (ore_destruction, lumina_collection))
-        .observe(spawn_lumina);
+        .observe(spawn_lumina)
+        .observe(drop_lumina_on_death);
     }
 }
 
@@ -270,6 +272,38 @@ fn spawn_lumina(trigger: Trigger<SpawnLumina>, mut commands: Commands) {
         "Spawned Lumina entity {:?} at position {:?}",
         lumina_entity, spawn.position
     );
+}
+
+/// Drops Lumina around the player's death position.
+fn drop_lumina_on_death(
+    trigger: Trigger<PlayerDeath>,
+    mut commands: Commands,
+    mut q_players: Query<(&mut CollectedLumina, &WorldIdx)>,
+) {
+    let death = trigger.event();
+    if let Ok((mut collected_lumina, world_id)) = q_players.get_mut(death.player_entity) {
+        if collected_lumina.0 > 0 {
+            let radius = 2.0 + (collected_lumina.0 as f32 * 0.5);
+            for _ in 0..collected_lumina.0 {
+                let radian = rand::random::<f32>() % TAU;
+                let dir = Vec2::from_angle(radian);
+                let distance = rand::random::<f32>() % radius;
+                let spawn_position = Position(death.position.0 + (dir * distance));
+
+                commands.trigger(SpawnLumina {
+                    position: spawn_position,
+                    world_id: *world_id,
+                });
+            }
+
+            let dropped_count = collected_lumina.0;
+            collected_lumina.0 = 0;
+            info!(
+                "Dropped {} lumina at position {:?} from player death",
+                dropped_count, death.position
+            );
+        }
+    }
 }
 
 #[derive(Event)]
