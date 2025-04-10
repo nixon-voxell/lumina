@@ -84,7 +84,6 @@ fn fire_ammo(
     let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
         commands
             .spawn(InitAmmoBundle::new(*ammo_type, collider.clone()))
-            .insert(Name::new(ammo_type.as_ref().to_string()))
             .id()
     });
 
