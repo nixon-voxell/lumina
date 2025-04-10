@@ -82,12 +82,10 @@ fn fire_ammo(
     let ammo_pool = &mut ammo_pools[*ammo_type as usize];
 
     let ammo_entity = ammo_pool.get_unused_or_spawn(|| {
-        let mut cmd = commands.spawn(InitAmmoBundle::new(*ammo_type, collider.clone()));
-
-        #[cfg(debug_assertions)]
-        cmd.insert(Name::new(ammo_type.as_ref().to_string()));
-
-        cmd.id()
+        commands
+            .spawn(InitAmmoBundle::new(*ammo_type, collider.clone()))
+            .insert(Name::new(ammo_type.as_ref().to_string()))
+            .id()
     });
 
     // Initialize fire ammo components.
