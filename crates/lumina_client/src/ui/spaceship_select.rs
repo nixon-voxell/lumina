@@ -25,21 +25,24 @@ pub(super) struct SpaceshipSelectUiPlugin;
 impl Plugin for SpaceshipSelectUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SelectSpaceship>()
-            .init_resource::<MainFunc>()
-            .init_resource::<ClientSpaceshipSelection>()
             .register_typst_asset::<SpaceshipSelect>()
             .compile_typst_func::<SpaceshipSelect, MainFunc>()
+            .push_to_main_window::<SpaceshipSelect, MainFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::LocalLobby).and_then(
+                    |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
+                        q_controller.single().curr_time() > f32::EPSILON
+                    },
+                ),
+            )
             .recompile_on_interaction::<MainFunc>(|func| &mut func.dummy_update)
+            .init_resource::<MainFunc>()
+            .init_resource::<ClientSpaceshipSelection>()
             .animate_resource::<MainFunc, f64>()
             .add_systems(Startup, setup_animation)
             .add_systems(
                 Update,
                 (
-                    push_to_main_window::<MainFunc>().run_if(
-                        |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
-                            q_controller.single().curr_time() > f32::EPSILON
-                        },
-                    ),
                     (handle_spaceship_selection, cancel_btn)
                         .run_if(|func: Res<MainFunc>| func.closing == false),
                     update_func_closing,

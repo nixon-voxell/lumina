@@ -35,7 +35,7 @@ impl Plugin for CameraPlugin {
                 (
                     follow_spaceship,
                     camera_zoom,
-                    spaceship_velocity_zoom_shake,
+                    spaceship_velocity_zoom,
                     main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
                     propagate_component::<NoRadiance>,
                 ),
@@ -200,7 +200,6 @@ fn follow_spaceship(
     }
 
     *aim_offset = Vec2::lerp(*aim_offset, target_aim_offset, aim_factor);
-    // TODO: Reconsider this behaviour.
     target_position.x += aim_offset.x;
     target_position.y += aim_offset.y;
 
@@ -210,7 +209,7 @@ fn follow_spaceship(
         .lerp(target_position, follow_factor);
 }
 
-fn spaceship_velocity_zoom_shake(
+fn spaceship_velocity_zoom(
     q_spaceships: Query<(&LinearVelocity, &Spaceship), (With<Spaceship>, With<SourceEntity>)>,
     mut camera_zoom: ResMut<CameraZoom>,
     local_player_info: LocalPlayerInfo,

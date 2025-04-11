@@ -97,7 +97,7 @@ fn manage_objective_areas(
             if is_active {
                 // Active area has been depleted, choose a new active area!
                 commands.entity(area_entity).remove::<ActiveObjectiveArea>();
-                let mut new_index = rand::random::<u32>() as usize % manager.areas.len();
+                let mut new_index = rand::random_range(0..=manager.areas.len());
                 if new_index == manager.selected_index {
                     new_index = (new_index + 1) % manager.areas.len();
                 }

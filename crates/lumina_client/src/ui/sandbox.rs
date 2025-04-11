@@ -14,13 +14,13 @@ impl Plugin for SandboxUiPlugin {
         app.add_event::<MessageEvent<LobbyData>>()
             .register_typst_asset::<SandboxUi>()
             .compile_typst_func::<SandboxUi, SandboxFunc>()
+            .push_to_main_window::<SandboxUi, SandboxFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::Sandbox),
+            )
             .recompile_on_interaction::<SandboxFunc>(|func| &mut func.dummy_update)
             .init_resource::<SandboxFunc>()
-            .add_systems(
-                Update,
-                (push_to_main_window::<SandboxFunc>(), exit_sandbox_btn)
-                    .run_if(in_state(Screen::Sandbox)),
-            )
+            .add_systems(Update, exit_sandbox_btn.run_if(in_state(Screen::Sandbox)))
             .add_systems(Update, handle_sandbox_data);
     }
 }

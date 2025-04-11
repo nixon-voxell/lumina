@@ -1,10 +1,11 @@
 use bevy::prelude::*;
-use bevy::render::view::RenderLayers;
+use bevy_radiance_cascades::NoRadiance;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
-use crate::camera::GameCamera;
 use crate::LocalClientId;
+
+use super::CachedGameStat;
 
 pub(super) struct NamePlugin;
 
@@ -23,22 +24,16 @@ impl Plugin for NamePlugin {
 fn update_spaceship_names(
     mut commands: Commands,
     q_global_transforms: Query<&GlobalTransform>,
-    mut q_names: Query<(&SpaceshipName, &mut Transform, Entity)>,
-    q_game_camera: Query<(&GlobalTransform, &OrthographicProjection), With<GameCamera>>,
+    mut q_names: Query<(&SpaceshipName, &mut Style, Entity)>,
 ) {
-    let Ok((camera_transform, proj)) = q_game_camera.get_single() else {
-        return;
-    };
-
-    for (name, mut transform, entity) in q_names.iter_mut() {
-        let Ok(global_transform) = q_global_transforms.get(**name) else {
+    for (name, mut style, entity) in q_names.iter_mut() {
+        let Ok(translation) = q_global_transforms.get(**name).map(|g| g.translation()) else {
             commands.entity(entity).despawn();
             continue;
         };
 
-        transform.translation =
-            (global_transform.translation() - Vec3::Y * OFFSET - camera_transform.translation())
-                / proj.scale;
+        style.left = Val::Px(translation.x);
+        style.top = Val::Px(translation.y - OFFSET);
     }
 }
 
@@ -52,34 +47,43 @@ fn init_spaceship_names(
             Without<SpaceshipNameInitialized>,
         ),
     >,
-    q_game_camera: Query<(&GlobalTransform, &OrthographicProjection), With<GameCamera>>,
+    game_stat: Res<CachedGameStat>,
+    color_palette: Res<ColorPalette>,
 ) {
-    let Ok((camera_transform, proj)) = q_game_camera.get_single() else {
+    let CachedGameStat {
+        team_type: Some(local_team_type),
+        ..
+    } = *game_stat
+    else {
         return;
     };
 
-    for (team_type, id, global_transform, entity) in q_spaceships.iter() {
+    for (team_type, id, _global_transform, entity) in q_spaceships.iter() {
         let name = NAMES[id.to_bits() as usize % NAMES.len()];
-        let color = match team_type {
-            TeamType::A => Color::Srgba(Srgba::hex("A9DC76").unwrap()),
-            TeamType::B => Color::Srgba(Srgba::hex("FF6188").unwrap()),
+        let color = if *team_type == local_team_type {
+            Color::linear_rgba(0.0, 4.0, 4.0, 1.0)
+        } else {
+            color_palette.red.with_luminance(4.0)
         };
 
-        commands.spawn((
-            SpaceshipName(entity),
-            Text2dBundle {
-                text: Text::from_section(name, TextStyle { color, ..default() }),
-                transform: Transform::from_translation(
-                    (global_transform.translation()
-                        - Vec3::Y * OFFSET
-                        - camera_transform.translation())
-                        / proj.scale,
-                ),
-                text_anchor: bevy::sprite::Anchor::TopCenter,
-                ..default()
-            },
-            RenderLayers::layer(1),
-        ));
+        commands
+            .spawn((
+                SpaceshipName(entity),
+                Text2dBundle {
+                    text: Text::from_section(name, TextStyle { color, ..default() }),
+                    // transform: Transform::from_translation(
+                    //     (global_transform.translation()
+                    //         - Vec3::Y * OFFSET
+                    //         - camera_transform.translation())
+                    //         / proj.scale,
+                    // ),
+                    text_anchor: bevy::sprite::Anchor::TopCenter,
+                    ..default()
+                },
+                NoRadiance,
+                // RenderLayers::layer(1),
+            ))
+            .insert(NodeBundle::default());
 
         commands.entity(entity).insert(SpaceshipNameInitialized);
     }

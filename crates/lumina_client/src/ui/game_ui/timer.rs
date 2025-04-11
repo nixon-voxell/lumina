@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use client::*;
 use lightyear::prelude::*;
+use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
@@ -13,13 +14,13 @@ impl Plugin for TimerUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<CountdownTimerUi>()
             .compile_typst_func::<CountdownTimerUi, CountdownTimerFunc>()
+            .push_to_main_window::<CountdownTimerUi, CountdownTimerFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::InGame),
+            )
             .init_resource::<CountdownTimerFunc>()
             .add_systems(Update, start_game)
-            .add_systems(
-                Update,
-                (update_timer, push_to_main_window::<CountdownTimerFunc>())
-                    .run_if(in_state(Screen::InGame)),
-            );
+            .add_systems(Update, update_timer.run_if(in_state(Screen::InGame)));
     }
 }
 
@@ -29,9 +30,7 @@ fn start_game(
     mut timer_func: ResMut<CountdownTimerFunc>,
 ) {
     for _ in evr_start_game.read() {
-        // Allow for custom timing.
-        // TODO: Read from a config!
-        timer_func.total_seconds = 60.0 * 4.0;
+        timer_func.total_seconds = GAME_DURATION as f64;
     }
 }
 

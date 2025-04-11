@@ -1,8 +1,8 @@
-use bevy::ecs::schedule::SystemConfigs;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_motiongfx::prelude::*;
 use velyst::prelude::*;
+use velyst::renderer::compile_typst_func;
 use velyst::typst_element::prelude::*;
 
 pub const WINDOW_FADE_DURATION: f32 = 1.0;
@@ -12,13 +12,16 @@ pub(super) struct MainWindowUiPlugin;
 impl Plugin for MainWindowUiPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(
-            Update,
+            PostUpdate,
             (
+                MainWindowTransformSyncSet.before(VelystSet::Compile),
                 MainWindowSet::Background,
                 MainWindowSet::Default,
                 MainWindowSet::Foreground,
             )
-                .chain(),
+                .chain()
+                // Makes sure that transform sensitive updates are in sync.
+                .after(TransformSystem::TransformPropagate),
         );
 
         app.register_typst_asset::<MainWindowUi>()
@@ -27,10 +30,7 @@ impl Plugin for MainWindowUiPlugin {
             .init_resource::<MainWindowFunc>()
             .add_event::<MainWindowTransparency>()
             .add_systems(Last, clear_main_window_body)
-            .add_systems(
-                Update,
-                (main_window_width_height, fade_transparency).before(VelystSet::Compile),
-            );
+            .add_systems(Update, (main_window_width_height, fade_transparency));
     }
 }
 
@@ -93,33 +93,38 @@ pub struct MainWindowFunc {
 #[typst_path = "typst/main_window.typ"]
 struct MainWindowUi;
 
-// Helper for ordering and pushing content to MainWindowFunc.
-
-/// Push content to the background layer of the window.
-pub fn push_to_main_window_background<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Background)
+/// App extension for ordering and pushing content to MainWindowFunc.
+pub trait MainWindowAppExt {
+    fn push_to_main_window<Path: TypstPath, Func: TypstFunc, M>(
+        &mut self,
+        window_set: MainWindowSet,
+        condition: impl Condition<M>,
+    ) -> &mut Self;
 }
 
-/// Push content to the center layer of the window.
-pub fn push_to_main_window<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Default)
-}
-
-/// Push content to the foreground layer of the window.
-pub fn push_to_main_window_foreground<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_unordered::<F>().in_set(MainWindowSet::Foreground)
-}
-
-/// Push content to the main window in no particular order.
-fn push_to_main_window_unordered<F: TypstFunc>() -> SystemConfigs {
-    push_to_main_window_impl::<F>
-        .into_configs()
-        .before(VelystSet::Compile)
+impl MainWindowAppExt for App {
+    /// Push [`TypstContent`] to the main window.
+    ///
+    /// The [`TypstContent`] will only be pushed:
+    /// - After the [`TypstFunc`] is compiled.
+    /// - Before the [`MainWindowFunc`] is compiled.
+    fn push_to_main_window<Path: TypstPath, Func: TypstFunc, M>(
+        &mut self,
+        window_set: MainWindowSet,
+        condition: impl Condition<M>,
+    ) -> &mut Self {
+        self.add_systems(
+            PostUpdate,
+            push_to_main_window_impl::<Func>
+                .after(compile_typst_func::<Path, Func>)
+                .before(compile_typst_func::<MainWindowUi, MainWindowFunc>)
+                .in_set(window_set)
+                .run_if(condition),
+        )
+    }
 }
 
 /// Push content of a typst function to the main window.
-///
-/// NOTE: The content shown will be 1 frame behind.
 fn push_to_main_window_impl<F: TypstFunc>(
     content: Res<TypstContent<F>>,
     mut main_func: ResMut<MainWindowFunc>,
@@ -127,9 +132,19 @@ fn push_to_main_window_impl<F: TypstFunc>(
     main_func.body.push(content.clone());
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub fn always_run() -> bool {
+    true
+}
+
+/// System set that happens after [`TransformSystem::TransformPropagate`]
+/// but before [`MainWindowSet`].
+#[derive(SystemSet, Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub struct MainWindowTransformSyncSet;
+
+#[derive(SystemSet, Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MainWindowSet {
     Background,
+    #[default]
     Default,
     Foreground,
 }

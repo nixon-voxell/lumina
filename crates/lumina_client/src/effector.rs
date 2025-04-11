@@ -110,7 +110,7 @@ fn show_effector_popup(
     // The effector entity that ui is currently positioned at.
     mut curr_effector: Local<Option<Entity>>,
 ) {
-    let Ok(mut popup_style) = q_style.get_single_mut() else {
+    let Ok(mut style) = q_style.get_single_mut() else {
         return;
     };
     let (mut player, controller) = q_seq_player.single_mut();
@@ -133,8 +133,8 @@ fn show_effector_popup(
         {
             // Set translation of the ui.
             let translation = effector_transform.translation();
-            popup_style.left = Val::Px(translation.x);
-            popup_style.top =
+            style.left = Val::Px(translation.x);
+            style.top =
                 Val::Px(translation.y + collider.shape_scaled().0.compute_local_aabb().maxs.y);
 
             // Show which button to press if it's interactable.

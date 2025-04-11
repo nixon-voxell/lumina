@@ -14,6 +14,10 @@ impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<MainMenuUi>()
             .compile_typst_func::<MainMenuUi, MainMenuFunc>()
+            .push_to_main_window::<MainMenuUi, MainMenuFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::MainMenu),
+            )
             .recompile_on_interaction::<MainMenuFunc>(|func| &mut func.dummy_update)
             .insert_resource(MainMenuFunc {
                 connection_msg: "Connecting to server...".to_string(),
@@ -22,13 +26,7 @@ impl Plugin for MainMenuUiPlugin {
             .add_systems(OnEnter(Screen::MainMenu), main_window_transparency)
             .add_systems(
                 Update,
-                (
-                    push_to_main_window::<MainMenuFunc>(),
-                    play_btn,
-                    reconnect_btn,
-                    exit_btn,
-                )
-                    .run_if(in_state(Screen::MainMenu)),
+                (play_btn, reconnect_btn, exit_btn).run_if(in_state(Screen::MainMenu)),
             )
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);

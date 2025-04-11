@@ -14,8 +14,9 @@ impl Plugin for SpaceshipStatsPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<SpaceshipStats>()
             .compile_typst_func::<SpaceshipStats, MainFunc>()
+            .push_to_main_window::<SpaceshipStats, MainFunc, _>(MainWindowSet::Default, always_run)
             .init_resource::<MainFunc>()
-            .add_systems(Update, (push_to_main_window::<MainFunc>(), spaceship_stats));
+            .add_systems(Update, spaceship_stats);
     }
 }
 

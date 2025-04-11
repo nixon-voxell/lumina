@@ -25,17 +25,18 @@ impl Plugin for GameModeUiPlugin {
         app.init_resource::<MainFunc>()
             .register_typst_asset::<GameMode>()
             .compile_typst_func::<GameMode, MainFunc>()
+            .push_to_main_window::<GameMode, MainFunc, _>(
+                MainWindowSet::Default,
+                |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
+                    q_controller.single().curr_time() > f32::EPSILON
+                },
+            )
             .recompile_on_interaction::<MainFunc>(|func| &mut func.dummy_update)
             .animate_resource::<MainFunc, f64>()
             .add_systems(Startup, setup_animation)
             .add_systems(
                 Update,
                 (
-                    push_to_main_window::<MainFunc>().run_if(
-                        |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
-                            q_controller.single().curr_time() > f32::EPSILON
-                        },
-                    ),
                     (sandbox_btn, matchmacke_btns, cancel_btn)
                         .run_if(|func: Res<MainFunc>| func.closing == false),
                     update_func_closing,
