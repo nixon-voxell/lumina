@@ -11,7 +11,11 @@ impl Plugin for ServerUiPlugin {
         app.register_typst_asset::<LobbyListUi>()
             .compile_typst_func::<LobbyListUi, LobbyListFunc>()
             .init_resource::<LobbyListFunc>()
-            .add_systems(Update, (lobbies, push_to_main_window::<LobbyListFunc>()));
+            .push_to_main_window::<LobbyListUi, LobbyListFunc, _>(
+                MainWindowSet::Default,
+                always_run,
+            )
+            .add_systems(Update, lobbies);
     }
 }
 

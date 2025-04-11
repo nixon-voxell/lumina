@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use velyst::prelude::*;
 
-use super::main_window::push_to_main_window_foreground;
+use crate::prelude::MainWindowSet;
+
+use super::main_window::MainWindowAppExt;
 use super::{can_show_content, CanShowContent};
 
 pub(super) struct PerfMetricsUiPlugin;
@@ -12,14 +14,11 @@ impl Plugin for PerfMetricsUiPlugin {
             .compile_typst_func::<PerfMetricsUi, PerfMetricsFunc>()
             .init_resource::<PerfMetricsFunc>()
             .init_resource::<CanShowContent<PerfMetricsFunc>>()
-            .add_systems(
-                Update,
-                (
-                    perf_metrics,
-                    push_to_main_window_foreground::<PerfMetricsFunc>()
-                        .run_if(can_show_content::<PerfMetricsFunc>),
-                ),
-            );
+            .push_to_main_window::<PerfMetricsUi, PerfMetricsFunc, _>(
+                MainWindowSet::Foreground,
+                can_show_content::<PerfMetricsFunc>,
+            )
+            .add_systems(Update, perf_metrics);
     }
 }
 
