@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy::window::PrimaryWindow;
 use bevy_motiongfx::prelude::*;
 use velyst::prelude::*;
@@ -15,14 +14,14 @@ impl Plugin for MainWindowUiPlugin {
         app.configure_sets(
             PostUpdate,
             (
+                MainWindowTransformSyncSet.before(VelystSet::Compile),
                 MainWindowSet::Background,
                 MainWindowSet::Default,
                 MainWindowSet::Foreground,
             )
                 .chain()
                 // Makes sure that transform sensitive updates are in sync.
-                .after(propagate_transforms)
-                .after(sync_simple_transforms),
+                .after(TransformSystem::TransformPropagate),
         );
 
         app.register_typst_asset::<MainWindowUi>()
@@ -136,6 +135,11 @@ fn push_to_main_window_impl<F: TypstFunc>(
 pub fn always_run() -> bool {
     true
 }
+
+/// System set that happens after [`TransformSystem::TransformPropagate`]
+/// but before [`MainWindowSet`].
+#[derive(SystemSet, Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub struct MainWindowTransformSyncSet;
 
 #[derive(SystemSet, Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MainWindowSet {

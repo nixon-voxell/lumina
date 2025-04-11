@@ -16,7 +16,7 @@ impl Plugin for PlayerStatsPlugin {
             .compile_typst_func::<PlayerStats, MainFunc>()
             .push_to_main_window::<PlayerStats, MainFunc, _>(MainWindowSet::Default, always_run)
             .init_resource::<MainFunc>()
-            .add_systems(Update, player_stats);
+            .add_systems(PostUpdate, player_stats.in_set(MainWindowTransformSyncSet));
     }
 }
 
