@@ -99,7 +99,7 @@ fn handle_player_death(
 fn process_respawn_delays(
     time: Res<Time>,
     mut commands: Commands,
-    mut q_respawn_delays: Query<(Entity, &mut RespawnDelay)>,
+    mut q_respawn_delays: Query<(Entity, &mut RespawnDelay, &PlayerId)>,
     mut q_spaceships: Query<
         (
             &mut Position,
@@ -111,8 +111,10 @@ fn process_respawn_delays(
         With<Spaceship>,
     >,
     q_global_transforms: Query<&GlobalTransform>,
+    player_infos: Res<PlayerInfos>,
+    mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
-    for (entity, mut respawn_delay) in q_respawn_delays.iter_mut() {
+    for (entity, mut respawn_delay, player_id) in q_respawn_delays.iter_mut() {
         respawn_delay.timer.tick(time.delta());
 
         if respawn_delay.timer.just_finished() {
@@ -131,6 +133,16 @@ fn process_respawn_delays(
                 position.0 = spawn_translation.xy();
                 *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
                 **health = **max_health;
+
+                // Reload weapon
+                if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
+                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
+                        weapon_state.reload(weapon);
+                        debug!("Reloaded weapon for player_id {:?}", player_id);
+                    } else {
+                        warn!("Failed to reload weapon for player_id {:?}", player_id);
+                    }
+                }
 
                 // Remove delay and Dead
                 commands
