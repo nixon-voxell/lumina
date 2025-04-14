@@ -7,6 +7,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::health::init_health;
 use lumina_shared::player::objective::LuminaSpawnArea;
+use lumina_shared::player::spaceship::Dead;
 use lumina_shared::prelude::*;
 use server::*;
 
@@ -186,7 +187,7 @@ fn ore_destruction(
 fn lumina_collection(
     mut commands: Commands,
     q_luminas: Query<(&CollidingEntities, Entity), (Changed<CollidingEntities>, With<LuminaStat>)>,
-    mut q_players: Query<(&PlayerId, &mut CollectedLumina)>,
+    mut q_players: Query<(&PlayerId, &mut CollectedLumina), Without<Dead>>,
 ) {
     for (colliding_entities, entity) in q_luminas.iter() {
         // Filter for players that collided with the Lumina.

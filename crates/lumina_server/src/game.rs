@@ -20,13 +20,13 @@ impl Plugin for GamePlugin {
                 Update,
                 (
                     handle_player_death,
-                    process_respawn_delays,
                     init_game,
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
                 ),
             )
+            .add_systems(PostUpdate, process_respawn_delays)
             .observe(reset_spaceships)
             .observe(end_game);
     }
