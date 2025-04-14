@@ -5,6 +5,8 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
+use crate::player::spaceship::Dead;
+use crate::prelude::Health;
 
 use super::ammo::FireAmmo;
 use super::prelude::TeamType;
@@ -191,10 +193,36 @@ fn weapon_attack(
         (Without<WeaponReload>, With<SourceEntity>),
     >,
     mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponState, Entity), With<SourceEntity>>,
+    q_spaceships: Query<(&Health, Option<&Dead>), With<Spaceship>>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Attack) == false {
+            continue;
+        }
+
+        // Validate spaceship state
+        let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(id) else {
+            debug!(
+                "Weapon attack rejected: No spaceship for player_id {:?}",
+                id
+            );
+            continue;
+        };
+
+        let Ok((health, dead)) = q_spaceships.get(*spaceship_entity) else {
+            debug!(
+                "Weapon attack rejected: Spaceship entity invalid {:?}",
+                spaceship_entity
+            );
+            continue;
+        };
+
+        if dead.is_some() || **health <= 0.0 {
+            debug!(
+                "Weapon attack rejected: Spaceship {:?} is dead or has zero health (player_id: {:?})",
+                spaceship_entity, id
+            );
             continue;
         }
 
@@ -218,6 +246,7 @@ fn weapon_attack(
                 position,
                 direction,
             });
+            debug!("Weapon fired for player_id {:?}", id);
         }
     }
 }
