@@ -86,7 +86,6 @@ fn spawn_game_camera(
             bloom,
             SmaaSettings::default(),
             RadianceCascadesConfig::default(),
-            SpatialListener::new(400.0),
         ))
         .id();
 
