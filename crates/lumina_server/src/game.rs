@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
@@ -191,7 +192,7 @@ fn init_game(mut commands: Commands, q_lobbies: Query<Entity, Added<LobbyInGame>
     for entity in q_lobbies.iter() {
         commands.entity(entity).insert((
             GameScore::new(50),
-            GameTimer(Timer::from_seconds(60.0 * 4.0, TimerMode::Once)),
+            GameTimer(Timer::from_seconds(GAME_DURATION, TimerMode::Once)),
         ));
     }
 }

@@ -10,7 +10,7 @@ use super::Connection;
 
 pub mod aim;
 mod ammo;
-mod name;
+// mod name;
 mod spaceship;
 mod weapon;
 
@@ -23,7 +23,7 @@ impl Plugin for PlayerPlugin {
             spaceship::SpaceshipPlugin,
             weapon::WeaponPlugin,
             ammo::AmmoPlugin,
-            name::NamePlugin,
+            // name::NamePlugin,
         ));
 
         app.init_resource::<LocalPlayerId>()

@@ -15,12 +15,15 @@ impl Plugin for GameOverUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<GameOverUi>()
             .compile_typst_func::<GameOverUi, GameOverFunc>()
+            .push_to_main_window::<GameOverUi, GameOverFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::GameOver),
+            )
             .init_resource::<GameOverFunc>()
             .add_systems(OnEnter(Screen::GameOver), set_game_over_values)
             .add_systems(
                 Update,
                 (
-                    push_to_main_window::<GameOverFunc>(),
                     interactable_func::<GameOverFunc>,
                     main_menu_btn,
                     set_game_over_values.run_if(resource_changed::<CachedGameStat>),

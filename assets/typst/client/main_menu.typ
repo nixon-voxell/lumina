@@ -3,7 +3,7 @@
 #import "../utils.typ": *
 
 
-#let connect_server(connection_msg) = {
+#let connect_server(connection_msg, dummy_update) = {
   set text(size: 2em)
 
   place(center + horizon)[
@@ -37,7 +37,7 @@
 ) = {
   box(width: 100%, height: 100%, inset: 4em)[
     #if connected == false {
-      connect_server(connection_msg)
+      connect_server(connection_msg, dummy_update)
       return
     }
 
