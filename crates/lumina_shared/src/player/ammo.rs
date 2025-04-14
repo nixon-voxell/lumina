@@ -8,6 +8,8 @@ use strum::IntoEnumIterator;
 
 use crate::blueprints::AmmoType;
 use crate::health::Health;
+use crate::player::spaceship::Dead;
+use crate::prelude::*;
 
 use super::{prelude::TeamType, GameLayer, PlayerId};
 
@@ -47,6 +49,8 @@ fn fire_ammo(
     mut commands: Commands,
     q_weapons: Query<(&AmmoStat, &PlayerId, &TeamType, &WorldIdx)>,
     q_ammo_refs: Query<&Collider, With<AmmoRef>>,
+    q_spaceships: Query<(&Health, Option<&Dead>), With<Spaceship>>,
+    player_infos: Res<PlayerInfos>,
     mut ammo_pools: ResMut<EntityPools<AmmoType>>,
     ammo_refs: Res<RefEntityMap<AmmoType>>,
 ) {
@@ -70,6 +74,31 @@ fn fire_ammo(
     else {
         return;
     };
+
+    // Check spaceship state
+    let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(&player_id) else {
+        debug!(
+            "FireAmmo rejected: No spaceship for player_id {:?}",
+            player_id
+        );
+        return;
+    };
+
+    let Ok((health, dead)) = q_spaceships.get(*spaceship_entity) else {
+        debug!(
+            "FireAmmo rejected: Spaceship entity invalid {:?}",
+            spaceship_entity
+        );
+        return;
+    };
+
+    if dead.is_some() || **health <= 0.0 {
+        debug!(
+            "FireAmmo rejected: Spaceship {:?} is dead or has zero health (player_id: {:?})",
+            spaceship_entity, player_id
+        );
+        return;
+    }
 
     let Some(collider) = ammo_refs
         .get(ammo_type)
