@@ -56,7 +56,10 @@ fn init_spaceships(
 /// Map [`PlayerAction`] to [`SpaceshipAction`].
 fn spaceship_actions(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_spaceships: Query<&mut SpaceshipAction, (With<Spaceship>, With<SourceEntity>)>,
+    mut q_spaceships: Query<
+        &mut SpaceshipAction,
+        (With<Spaceship>, With<SourceEntity>, Without<Dead>),
+    >,
     player_infos: Res<PlayerInfos>,
 ) {
     for (player_action, id) in q_actions.iter() {
@@ -119,3 +122,6 @@ pub struct Spaceship {
     pub dash: DashConfig,
     pub energy: EnergyConfig,
 }
+
+#[derive(Component)]
+pub struct Dead;
