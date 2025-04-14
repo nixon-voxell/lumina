@@ -1,7 +1,5 @@
 use bevy::audio::*;
 use bevy::prelude::*;
-use lumina_common::prelude::PlayerId;
-use lumina_shared::player::spaceship::Dead;
 use lumina_shared::prelude::*;
 
 use crate::screens::Screen;
@@ -40,51 +38,8 @@ fn button_interaction(
     }
 }
 
-fn fire_ammo(
-    trigger: Trigger<FireAmmo>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    q_spaceships: Query<(&Health, Option<&Dead>), With<Spaceship>>,
-    player_infos: Res<PlayerInfos>,
-    q_weapons: Query<&PlayerId>,
-) {
+fn fire_ammo(trigger: Trigger<FireAmmo>, mut commands: Commands, asset_server: Res<AssetServer>) {
     let fire_ammo = trigger.event();
-
-    // Get the player ID from the weapon entity
-    let Ok(player_id) = q_weapons.get(fire_ammo.weapon_entity) else {
-        debug!(
-            "FireAmmo audio rejected: Invalid weapon entity {:?}",
-            fire_ammo.weapon_entity
-        );
-        return;
-    };
-
-    // Check spaceship state
-    let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(player_id) else {
-        debug!(
-            "FireAmmo audio rejected: No spaceship for player_id {:?}",
-            player_id
-        );
-        return;
-    };
-
-    let Ok((health, dead)) = q_spaceships.get(*spaceship_entity) else {
-        debug!(
-            "FireAmmo audio rejected: Spaceship entity invalid {:?}",
-            spaceship_entity
-        );
-        return;
-    };
-
-    if dead.is_some() || **health <= 0.0 {
-        debug!(
-            "FireAmmo audio rejected: Spaceship {:?} is dead or has zero health (player_id: {:?})",
-            spaceship_entity, player_id
-        );
-        return;
-    }
-
-    // Play the audio if all checks pass
     let position = fire_ammo.position;
     commands.spawn((
         AudioBundle {
