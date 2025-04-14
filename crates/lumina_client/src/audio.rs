@@ -66,16 +66,10 @@ fn fire_ammo(
     };
 
     if is_local {
-        channel.play(audio_handle);
+        channel
+            .play(audio_handle)
+            .with_playback_rate(rand::random_range(0.9..=1.1));
     }
-
-    // commands.spawn((
-    //     AudioBundle {
-    //         source: asset_server.load("audio/Cannon.ogg"),
-    //         settings: PlaybackSettings::DESPAWN.with_spatial(true),
-    //     },
-    //     TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
-    // ));
 }
 
 fn ammo_hit(trigger: Trigger<AmmoHit>, mut commands: Commands, asset_server: Res<AssetServer>) {
