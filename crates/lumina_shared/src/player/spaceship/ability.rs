@@ -6,7 +6,10 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::health::{Health, MaxHealth};
+use crate::player::spaceship::Dead;
 use crate::player::GameLayer;
+use crate::prelude::PlayerInfoType;
+use crate::prelude::PlayerInfos;
 use crate::prelude::TeamType;
 
 use super::{Spaceship, SpaceshipAction};
@@ -134,7 +137,7 @@ fn apply_heal_ability(
 fn apply_ability_effect<T: ThreadSafe>(
     mut commands: Commands,
     q_abilities: Query<
-        (&SpaceshipAction, Entity),
+        (&SpaceshipAction, &PlayerId, Entity),
         (
             Without<AbilityCooldown>,
             Without<AbilityEffect>,
@@ -142,12 +145,40 @@ fn apply_ability_effect<T: ThreadSafe>(
             With<AbilityConfig<T>>,
         ),
     >,
+    q_spaceships: Query<(&Health, Option<&Dead>), With<Spaceship>>,
+    player_infos: Res<PlayerInfos>,
 ) {
-    for (action, entity) in q_abilities.iter() {
+    for (action, player_id, entity) in q_abilities.iter() {
         if action.is_ability == false {
             continue;
         }
 
+        // Validate spaceship state
+        let Some(spaceship_entity) = player_infos[PlayerInfoType::Spaceship].get(player_id) else {
+            debug!(
+                "Ability activation rejected: No spaceship for player_id {:?}",
+                player_id
+            );
+            continue;
+        };
+
+        let Ok((health, dead)) = q_spaceships.get(*spaceship_entity) else {
+            debug!(
+                "Ability activation rejected: Spaceship entity invalid {:?}",
+                spaceship_entity
+            );
+            continue;
+        };
+
+        if dead.is_some() || **health <= 0.0 {
+            debug!(
+                "Ability activation rejected: Spaceship {:?} is dead or has zero health (player_id: {:?})",
+                spaceship_entity, player_id
+            );
+            continue;
+        }
+
+        // Activate ability
         commands.start_cooldown_effect::<Ability, AbilityConfig<T>>(entity);
     }
 }
