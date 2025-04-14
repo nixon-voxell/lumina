@@ -36,6 +36,7 @@ impl Plugin for SpaceshipAbilityPlugin {
                     apply_heal_ability,
                 )
                     .chain(),
+                cancel_abilities_on_death,
             ),
         );
     }
@@ -180,6 +181,40 @@ fn apply_ability_effect<T: ThreadSafe>(
 
         // Activate ability
         commands.start_cooldown_effect::<Ability, AbilityConfig<T>>(entity);
+    }
+}
+
+/// Cancel ongoing ability effects when the spaceship dies.
+fn cancel_abilities_on_death(
+    mut commands: Commands,
+    mut q_spaceships: Query<
+        (Entity, &PlayerId, Option<&mut ShapeCaster>),
+        (With<Spaceship>, With<SourceEntity>, Added<Dead>),
+    >,
+    player_infos: Res<PlayerInfos>,
+) {
+    for (spaceship_entity, player_id, shape_caster) in q_spaceships.iter_mut() {
+        if let Some(ability_entity) = player_infos[PlayerInfoType::Spaceship].get(player_id) {
+            // Remove ability components
+            commands
+                .entity(*ability_entity)
+                .remove::<AbilityEffect>()
+                .remove::<AbilityCooldown>();
+
+            // Disable ShapeCaster for HealAbility if present
+            if let Some(mut shape_caster) = shape_caster {
+                shape_caster.disable();
+                debug!(
+                    "Disabled ShapeCaster for dead spaceship {:?}",
+                    spaceship_entity
+                );
+            }
+
+            debug!(
+                "Canceled abilities for dead spaceship {:?}",
+                spaceship_entity
+            );
+        }
     }
 }
 
