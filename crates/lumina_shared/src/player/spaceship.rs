@@ -123,5 +123,11 @@ pub struct Spaceship {
     pub energy: EnergyConfig,
 }
 
+/// Query that filter entities without the [`Dead`] components.
+pub type AliveQuery<'w, 's, D, F = ()> = Query<'w, 's, D, (F, Without<Dead>)>;
+
+/// Query that filter entities with the [`Dead`] components.
+pub type DeadQuery<'w, 's, D, F = ()> = Query<'w, 's, D, (F, With<Dead>)>;
+
 #[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct Dead;

@@ -12,7 +12,6 @@ use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
-use crate::player::spaceship::Dead;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 

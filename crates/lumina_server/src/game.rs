@@ -24,9 +24,9 @@ impl Plugin for GamePlugin {
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
+                    process_respawn_delays,
                 ),
             )
-            .add_systems(PostUpdate, process_respawn_delays)
             .observe(reset_spaceships)
             .observe(end_game);
     }
@@ -64,31 +64,21 @@ fn end_game(
 fn handle_player_death(
     mut commands: Commands,
     mut q_spaceships: Query<
-        (&Health, &Position, &CollectedLumina, &PlayerId, Entity),
+        (&Health, &Position, &PlayerId, Entity),
         (With<Spaceship>, With<SourceEntity>, Changed<Health>),
     >,
 ) {
-    for (health, position, collected_lumina, player_id, entity) in q_spaceships.iter_mut() {
+    for (health, position, player_id, entity) in q_spaceships.iter_mut() {
         if **health <= 0.0 {
-            if collected_lumina.0 > 0 {
-                info!(
-                    "Player {:?} died with {} lumina",
-                    player_id, collected_lumina.0
-                );
-                commands.trigger(PlayerDeath {
-                    player_entity: entity,
-                    position: *position,
-                });
-            }
+            commands.trigger(PlayerDeath {
+                player_entity: entity,
+                position: *position,
+            });
 
             // Mark as dead and clear SpaceshipAction
-            commands
-                .entity(entity)
-                .insert(Dead)
-                .remove::<SpaceshipAction>()
-                .insert(RespawnDelay {
-                    timer: Timer::from_seconds(5.0, TimerMode::Once),
-                });
+            commands.entity(entity).insert(Dead).insert(RespawnDelay {
+                timer: Timer::from_seconds(5.0, TimerMode::Once),
+            });
 
             info!("Player {:?} will respawn after 5 seconds", player_id);
         }
@@ -145,11 +135,7 @@ fn process_respawn_delays(
                 }
 
                 // Remove delay and Dead
-                commands
-                    .entity(entity)
-                    .remove::<RespawnDelay>()
-                    .remove::<Dead>()
-                    .insert(SpaceshipAction::default());
+                commands.entity(entity).remove::<(Dead, RespawnDelay)>();
 
                 info!("Player {:?} has respawned after death penalty", entity);
             }
@@ -212,8 +198,7 @@ fn reset_spaceships(
                 // Remove Dead and RespawnDelay, ensure SpaceshipAction
                 commands
                     .entity(entity)
-                    .remove::<Dead>()
-                    .remove::<RespawnDelay>()
+                    .remove::<(Dead, RespawnDelay)>()
                     .insert(SpaceshipAction::default());
 
                 // Reload weapon
