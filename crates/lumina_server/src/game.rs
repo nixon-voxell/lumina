@@ -23,10 +23,10 @@ impl Plugin for GamePlugin {
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
-                    process_respawn_delays,
+                    track_respawn_delays,
                 ),
             )
-            .observe(reset_spaceships)
+            .observe(reset_all_spaceships_in_lobby)
             .observe(end_game);
     }
 }
@@ -69,15 +69,20 @@ fn handle_player_death(
 ) {
     for (health, position, player_id, entity) in q_spaceships.iter_mut() {
         if **health <= 0.0 {
-            commands.trigger(PlayerDeath {
-                player_entity: entity,
-                position: *position,
-            });
+            commands.trigger_targets(
+                PlayerDeath {
+                    position: *position,
+                },
+                entity,
+            );
 
             // Mark as dead and clear SpaceshipAction
-            commands.entity(entity).insert(Dead).insert(RespawnDelay {
-                timer: Timer::from_seconds(5.0, TimerMode::Once),
-            });
+            commands.entity(entity).insert((
+                Dead,
+                RespawnDelay {
+                    timer: Timer::from_seconds(5.0, TimerMode::Once),
+                },
+            ));
 
             info!("Player {:?} will respawn after 5 seconds", player_id);
         }
@@ -85,7 +90,7 @@ fn handle_player_death(
 }
 
 /// Process respawn delays and respawn players when timer finishes and resetting its position and health to the initial values
-fn process_respawn_delays(
+fn track_respawn_delays(
     time: Res<Time>,
     mut commands: Commands,
     mut q_respawn_delays: Query<(Entity, &mut RespawnDelay, &PlayerId)>,
@@ -143,11 +148,11 @@ fn process_respawn_delays(
 }
 
 #[derive(Event, Debug)]
-pub struct ResetSpaceships;
+pub struct ResetAllSpaceshipsInLobby;
 
-/// Resets all spaceship health, energy, weapon  when a game starts
-fn reset_spaceships(
-    trigger: Trigger<ResetSpaceships>,
+/// Resets all spaceship health, energy, weapon within the lobby when a game starts.
+fn reset_all_spaceships_in_lobby(
+    trigger: Trigger<ResetAllSpaceshipsInLobby>,
     mut commands: Commands,
     q_lobbies: Query<&Lobby>,
     mut q_spaceships: Query<
@@ -275,7 +280,7 @@ pub struct GameTimer(Timer);
 /// Triggered when a player dies.
 #[derive(Event)]
 pub struct PlayerDeath {
-    pub player_entity: Entity,
+    /// The position when the player dies.
     pub position: Position,
 }
 

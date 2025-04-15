@@ -282,7 +282,7 @@ fn drop_lumina_on_death(
     mut q_players: Query<(&mut CollectedLumina, &WorldIdx)>,
 ) {
     let death = trigger.event();
-    if let Ok((mut collected_lumina, world_id)) = q_players.get_mut(death.player_entity) {
+    if let Ok((mut collected_lumina, world_id)) = q_players.get_mut(trigger.entity()) {
         if collected_lumina.0 > 0 {
             let radius = 2.0 + (collected_lumina.0 as f32 * 0.5);
             for _ in 0..collected_lumina.0 {
