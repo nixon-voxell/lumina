@@ -23,7 +23,7 @@ pub mod prelude {
     pub use super::objective::{CollectedLumina, LuminaCollected, LuminaStat, ObjectiveArea};
     pub use super::spaceship::{
         AbilityCooldown, AbilityEffect, AliveQuery, DashCooldown, DashEffect, Dead, DeadQuery,
-        Energy, HealAbilityConfig, RotationDiff, ShadowAbilityConfig, Spaceship,
+        Energy, HealAbilityConfig, RotationDiff, ShadowAbilityConfig, Spaceship, SpaceshipAction,
         TargetAcceleration, TargetDamping,
     };
     pub use super::spawn_point::{
