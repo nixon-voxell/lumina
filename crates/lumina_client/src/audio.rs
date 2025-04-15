@@ -1,8 +1,8 @@
 use std::time::Duration;
 
+use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
-use bevy_kira_audio::AudioSource as KiraAudioSouce;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
@@ -14,7 +14,8 @@ impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_kira_audio::AudioPlugin);
 
-        app.init_resource::<Background>()
+        app.insert_resource(SpatialAudio { max_distance: 25. })
+            .init_resource::<Background>()
             .add_audio_channel::<Background>()
             .init_resource::<SoundFx>()
             .add_audio_channel::<SoundFx>();
@@ -23,6 +24,10 @@ impl Plugin for AudioPlugin {
             .add_systems(OnEnter(Screen::MainMenu), play_main_menu_music)
             .add_systems(OnEnter(Screen::InGame), play_in_game_music)
             .add_systems(Update, button_interaction)
+            .add_systems(
+                Update,
+                setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
+            )
             .observe(init_audio_receiver)
             .observe(fire_ammo)
             .observe(ammo_hit);
@@ -47,7 +52,7 @@ fn button_interaction(
 
 fn fire_ammo(
     trigger: Trigger<FireAmmo>,
-    q_weapon: Query<(&WeaponType, &PlayerId)>,
+    mut q_weapon: Query<(&mut AudioEmitter, &WeaponType, &PlayerId)>,
     sound_fx: Res<SoundFx>,
     channel: Res<AudioChannel<SoundFx>>,
     local_player_id: Res<LocalPlayerId>,
@@ -55,7 +60,7 @@ fn fire_ammo(
     let fire_ammo = trigger.event();
     // let position = fire_ammo.position;
 
-    let Ok((weapon_type, id)) = q_weapon.get(fire_ammo.weapon_entity) else {
+    let Ok((mut emitter, weapon_type, id)) = q_weapon.get_mut(fire_ammo.weapon_entity) else {
         return;
     };
 
@@ -65,10 +70,13 @@ fn fire_ammo(
         WeaponType::GattlingGun => sound_fx.gattling_shot.clone_weak(),
     };
 
-    if is_local {
-        channel
-            .play(audio_handle)
-            .with_playback_rate(rand::random_range(0.9..=1.1));
+    let instance_handle = channel
+        .play(audio_handle)
+        .with_playback_rate(rand::random_range(0.9..=1.0))
+        .handle();
+
+    if is_local == false {
+        emitter.instances.push(instance_handle);
     }
 }
 
@@ -110,6 +118,15 @@ fn init_audio_receiver(trigger: Trigger<OnAdd, GameCamera>, mut commands: Comman
     commands.entity(trigger.entity()).insert(AudioReceiver);
 }
 
+fn setup_audio_emitter<Filter: QueryFilter>(
+    mut commands: Commands,
+    q_criteria: Query<Entity, (With<SourceEntity>, Without<AudioEmitter>, Filter)>,
+) {
+    for entity in q_criteria.iter() {
+        commands.entity(entity).insert(AudioEmitter::default());
+    }
+}
+
 fn setup_default_channel_settings(
     background_channel: Res<AudioChannel<Background>>,
     // soundfx_channel: ResMut<AudioChannel<SoundFx>>,
@@ -117,38 +134,49 @@ fn setup_default_channel_settings(
     background_channel.set_volume(0.5);
 }
 
-/// Marker for background audio channel.
-#[derive(Resource)]
-pub struct Background {
-    main_menu: Handle<KiraAudioSouce>,
-    in_game: Handle<KiraAudioSouce>,
-}
-
-impl FromWorld for Background {
-    fn from_world(world: &mut World) -> Self {
-        Self {
-            main_menu: world.load_asset("audio/bg_music/main-menu.ogg"),
-            in_game: world.load_asset("audio/bg_music/in-game.ogg"),
-        }
+AudioChannelTracks!(
+    /// Marker for background audio channel.
+    #[derive(Resource)]
+    pub struct Background {},
+    tracks {
+        main_menu: "audio/bg_music/main-menu.ogg",
+        in_game: "audio/bg_music/in-game.ogg",
     }
-}
+);
 
-/// Marker for sound effects audio channel.
-#[derive(Resource)]
-pub struct SoundFx {
-    button_click: Handle<KiraAudioSouce>,
-    button_hover: Handle<KiraAudioSouce>,
-    cannon_shot: Handle<KiraAudioSouce>,
-    gattling_shot: Handle<KiraAudioSouce>,
-}
-
-impl FromWorld for SoundFx {
-    fn from_world(world: &mut World) -> Self {
-        Self {
-            button_click: world.load_asset("audio/ui/button-click.ogg"),
-            button_hover: world.load_asset("audio/ui/button-hover.ogg"),
-            cannon_shot: world.load_asset("audio/weapon/cannon-shot.ogg"),
-            gattling_shot: world.load_asset("audio/weapon/gattling-shot.ogg"),
-        }
+AudioChannelTracks!(
+    /// Marker for sound effects audio channel.
+    #[derive(Resource)]
+    pub struct SoundFx {},
+    tracks {
+        button_click: "audio/ui/button-click.ogg",
+        button_hover: "audio/ui/button-hover.ogg",
+        cannon_shot: "audio/weapon/cannon-shot.ogg",
+        gattling_shot: "audio/weapon/gattling-shot.ogg",
     }
+);
+
+#[macro_export]
+macro_rules! AudioChannelTracks {
+    (
+        $( #[$attr:meta] )*
+        $viz:vis struct $struct_name:ident {},
+        tracks {
+            $($field_name:ident: $audio_path:literal,)*
+        }
+    ) => {
+        $( #[$attr] )*
+        $viz struct $struct_name {
+            $($field_name: Handle<::bevy_kira_audio::AudioSource>,)*
+        }
+
+        impl ::bevy::ecs::world::FromWorld for $struct_name {
+            fn from_world(world: &mut World) -> Self {
+                Self {
+                    $($field_name: world.load_asset($audio_path),)*
+                }
+            }
+        }
+    };
 }
+pub use AudioChannelTracks;
