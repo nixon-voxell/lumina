@@ -5,7 +5,7 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::game::ResetSpaceships;
+use crate::game::ResetAllSpaceshipsInLobby;
 use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea, OBJECTIVE_AREA_COUNT};
 
 use super::{LobbyFull, LobbyInGame};
@@ -54,7 +54,7 @@ fn start_game(
             );
 
             // Trigger spaceship reset
-            commands.trigger_targets(ResetSpaceships, entity);
+            commands.trigger_targets(ResetAllSpaceshipsInLobby, entity);
 
             commands
                 .entity(entity)

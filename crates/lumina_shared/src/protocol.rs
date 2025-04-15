@@ -64,6 +64,9 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<Health>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
+        app.register_component::<Dead>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
+
         app.register_component::<LuminaType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
