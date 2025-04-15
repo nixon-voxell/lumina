@@ -12,15 +12,18 @@ impl Plugin for ScoreBarUiPlugin {
     fn build(&self, app: &mut App) {
         app.register_typst_asset::<ScoreBarUi>()
             .compile_typst_func::<ScoreBarUi, ScoreBarFunc>()
+            .push_to_main_window::<ScoreBarUi, ScoreBarFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::Sandbox).or_else(in_state(Screen::InGame)),
+            )
             .init_resource::<ScoreBarFunc>()
             .add_systems(OnEnter(Screen::LocalLobby), reset_game_score)
             .add_systems(
                 Update,
-                (
-                    udpate_game_score.run_if(resource_changed::<CachedGameStat>),
-                    push_to_main_window::<ScoreBarFunc>(),
-                )
-                    .run_if(in_state(Screen::Sandbox).or_else(in_state(Screen::InGame))),
+                udpate_game_score.run_if(
+                    resource_changed::<CachedGameStat>
+                        .and_then(in_state(Screen::Sandbox).or_else(in_state(Screen::InGame))),
+                ),
             );
     }
 }

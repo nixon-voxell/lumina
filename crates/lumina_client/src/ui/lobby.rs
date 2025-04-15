@@ -14,11 +14,14 @@ impl Plugin for LobbyUiPlugin {
         app.register_typst_asset::<LobbyUi>()
             .compile_typst_func::<LobbyUi, LobbyFunc>()
             .recompile_on_interaction::<LobbyFunc>(|func| &mut func.dummy_update)
+            .push_to_main_window::<LobbyUi, LobbyFunc, _>(
+                MainWindowSet::Default,
+                in_state(Screen::MultiplayerLobby),
+            )
             .init_resource::<LobbyFunc>()
             .add_systems(
                 Update,
-                (push_to_main_window::<LobbyFunc>(), exit_lobby_btn)
-                    .run_if(in_state(Screen::MultiplayerLobby)),
+                exit_lobby_btn.run_if(in_state(Screen::MultiplayerLobby)),
             )
             .add_systems(Update, (handle_lobby_data, handle_lobby_update));
     }
