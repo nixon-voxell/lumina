@@ -18,14 +18,15 @@ impl Plugin for GamePlugin {
             .add_systems(
                 Update,
                 (
-                    respawn_spaceships,
+                    handle_player_death,
                     init_game,
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
+                    track_respawn_delays,
                 ),
             )
-            .observe(reset_spaceships)
+            .observe(reset_all_spaceships_in_lobby)
             .observe(end_game);
     }
 }
@@ -58,71 +59,100 @@ fn end_game(
     commands.entity(entity).remove::<LobbyInGame>();
 }
 
-/// Respawn the spaceship by resetting its position and health to the initial values
-fn respawn_spaceships(
+/// Trigger PlayerDeath event, mark player as dead and set respawn delay.
+fn handle_player_death(
     mut commands: Commands,
     mut q_spaceships: Query<
+        (&Health, &Position, &PlayerId, Entity),
+        (With<Spaceship>, With<SourceEntity>, Changed<Health>),
+    >,
+) {
+    for (health, position, player_id, entity) in q_spaceships.iter_mut() {
+        if **health <= 0.0 {
+            commands.trigger_targets(
+                PlayerDeath {
+                    position: *position,
+                },
+                entity,
+            );
+
+            // Mark as dead and clear SpaceshipAction
+            commands.entity(entity).insert((
+                Dead,
+                RespawnDelay {
+                    timer: Timer::from_seconds(5.0, TimerMode::Once),
+                },
+            ));
+
+            info!("Player {:?} will respawn after 5 seconds", player_id);
+        }
+    }
+}
+
+/// Process respawn delays and respawn players when timer finishes and resetting its position and health to the initial values
+fn track_respawn_delays(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut q_respawn_delays: Query<(Entity, &mut RespawnDelay, &PlayerId)>,
+    mut q_spaceships: Query<
         (
-            &Visibility,
             &mut Position,
             &mut Rotation,
             &SpawnPointEntity,
             &MaxHealth,
             &mut Health,
-            &CollectedLumina,
-            &PlayerId,
-            Entity,
         ),
-        (With<Spaceship>, Changed<Visibility>, With<SourceEntity>),
+        With<Spaceship>,
     >,
     q_global_transforms: Query<&GlobalTransform>,
+    player_infos: Res<PlayerInfos>,
+    mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
-    // Spaceship becomes Visibility::Hidden when health drops to 0.
-    for (
-        visibility,
-        mut position,
-        mut rotation,
-        spawn_point_entity,
-        max_health,
-        mut health,
-        collected_lumina,
-        player_id,
-        entity,
-    ) in q_spaceships.iter_mut()
-    {
-        if *visibility == Visibility::Hidden {
-            if collected_lumina.0 > 0 {
-                info!(
-                    "Player {:?} has died with {} collected lumina",
-                    player_id, collected_lumina.0
-                );
-                commands.trigger(PlayerDeath {
-                    player_entity: entity,
-                    position: *position,
-                });
+    for (entity, mut respawn_delay, player_id) in q_respawn_delays.iter_mut() {
+        respawn_delay.timer.tick(time.delta());
+
+        if respawn_delay.timer.just_finished() {
+            if let Ok((mut position, mut rotation, spawn_point_entity, max_health, mut health)) =
+                q_spaceships.get_mut(entity)
+            {
+                let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
+                    .get(spawn_point_entity.0)
+                    .map(|transform| transform.to_scale_rotation_translation())
+                else {
+                    warn!("No valid spawn point for entity {:?}", entity);
+                    continue;
+                };
+
+                // Reset position and health.
+                position.0 = spawn_translation.xy();
+                *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
+                **health = **max_health;
+
+                // Reload weapon
+                if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
+                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
+                        weapon_state.reload(weapon);
+                        debug!("Reloaded weapon for player_id {:?}", player_id);
+                    } else {
+                        warn!("Failed to reload weapon for player_id {:?}", player_id);
+                    }
+                }
+
+                // Remove delay and Dead
+                commands.entity(entity).remove::<(Dead, RespawnDelay)>();
+
+                info!("Player {:?} has respawned after death penalty", entity);
             }
-
-            let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
-                .get(spawn_point_entity.0)
-                .map(|transform| transform.to_scale_rotation_translation())
-            else {
-                return;
-            };
-
-            // Reset position and health.
-            position.0 = spawn_translation.xy();
-            *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
-            **health = **max_health;
         }
     }
 }
 
 #[derive(Event, Debug)]
-pub struct ResetSpaceships;
+pub struct ResetAllSpaceshipsInLobby;
 
-/// Resets all spaceship health, energy, weapon  when a game starts
-fn reset_spaceships(
-    trigger: Trigger<ResetSpaceships>,
+/// Resets all spaceship health, energy, weapon within the lobby when a game starts.
+fn reset_all_spaceships_in_lobby(
+    trigger: Trigger<ResetAllSpaceshipsInLobby>,
     mut commands: Commands,
     q_lobbies: Query<&Lobby>,
     mut q_spaceships: Query<
@@ -168,6 +198,12 @@ fn reset_spaceships(
                 if q_dash_cooldowns.contains(entity) {
                     commands.entity(entity).remove::<DashCooldown>();
                 }
+
+                // Remove Dead and RespawnDelay, ensure SpaceshipAction
+                commands
+                    .entity(entity)
+                    .remove::<(Dead, RespawnDelay)>()
+                    .insert(SpaceshipAction::default());
 
                 // Reload weapon
                 if let Some(weapon_entity) =
@@ -244,6 +280,12 @@ pub struct GameTimer(Timer);
 /// Triggered when a player dies.
 #[derive(Event)]
 pub struct PlayerDeath {
-    pub player_entity: Entity,
+    /// The position when the player dies.
     pub position: Position,
+}
+
+/// Component to track the respawn delay
+#[derive(Component)]
+pub struct RespawnDelay {
+    pub timer: Timer,
 }

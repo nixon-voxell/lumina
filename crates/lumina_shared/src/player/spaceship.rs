@@ -25,7 +25,10 @@ impl Plugin for SpaceshipPlugin {
         ))
         .add_systems(FixedUpdate, spaceship_actions)
         .add_systems(PreUpdate, init_spaceships)
-        .add_systems(PostUpdate, spaceship_health);
+        .add_systems(PostUpdate, spaceship_health)
+        .observe(reset_action_on_death)
+        .observe(remove_rigidbody_on_death)
+        .observe(add_rigidbody_on_respawn);
     }
 }
 
@@ -53,10 +56,33 @@ fn init_spaceships(
     }
 }
 
+fn reset_action_on_death(
+    trigger: Trigger<OnAdd, Dead>,
+    mut q_spaceship_actions: Query<&mut SpaceshipAction>,
+) {
+    let Ok(mut spaceship_action) = q_spaceship_actions.get_mut(trigger.entity()) else {
+        return;
+    };
+
+    *spaceship_action = SpaceshipAction::default();
+}
+
+fn remove_rigidbody_on_death(trigger: Trigger<OnAdd, Dead>, mut commands: Commands) {
+    if let Some(mut cmd) = commands.get_entity(trigger.entity()) {
+        cmd.remove::<RigidBody>();
+    }
+}
+
+fn add_rigidbody_on_respawn(trigger: Trigger<OnRemove, Dead>, mut commands: Commands) {
+    if let Some(mut cmd) = commands.get_entity(trigger.entity()) {
+        cmd.insert(RigidBody::Dynamic);
+    }
+}
+
 /// Map [`PlayerAction`] to [`SpaceshipAction`].
 fn spaceship_actions(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
-    mut q_spaceships: Query<&mut SpaceshipAction, (With<Spaceship>, With<SourceEntity>)>,
+    mut q_spaceships: AliveQuery<&mut SpaceshipAction, (With<Spaceship>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (player_action, id) in q_actions.iter() {
@@ -119,3 +145,12 @@ pub struct Spaceship {
     pub dash: DashConfig,
     pub energy: EnergyConfig,
 }
+
+/// Query that filter entities without the [`Dead`] components.
+pub type AliveQuery<'w, 's, D, F = ()> = Query<'w, 's, D, (F, Without<Dead>)>;
+
+/// Query that filter entities with the [`Dead`] components.
+pub type DeadQuery<'w, 's, D, F = ()> = Query<'w, 's, D, (F, With<Dead>)>;
+
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct Dead;

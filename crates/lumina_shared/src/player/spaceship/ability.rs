@@ -9,7 +9,7 @@ use crate::health::{Health, MaxHealth};
 use crate::player::GameLayer;
 use crate::prelude::TeamType;
 
-use super::{Spaceship, SpaceshipAction};
+use super::{AliveQuery, Spaceship, SpaceshipAction};
 
 pub(super) struct SpaceshipAbilityPlugin;
 
@@ -133,7 +133,7 @@ fn apply_heal_ability(
 /// Apply ability effect on ability action press.
 fn apply_ability_effect<T: ThreadSafe>(
     mut commands: Commands,
-    q_abilities: Query<
+    q_abilities: AliveQuery<
         (&SpaceshipAction, Entity),
         (
             Without<AbilityCooldown>,
@@ -148,6 +148,7 @@ fn apply_ability_effect<T: ThreadSafe>(
             continue;
         }
 
+        // Activate ability
         commands.start_cooldown_effect::<Ability, AbilityConfig<T>>(entity);
     }
 }
@@ -204,3 +205,6 @@ pub struct HealAbility {
     /// The amount of healing per second.
     pub healing_rate: f32,
 }
+
+// #[derive(Event)]
+// pub struct CancelAbility;
