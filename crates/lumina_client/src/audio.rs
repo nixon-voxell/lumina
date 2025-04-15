@@ -14,19 +14,25 @@ impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_kira_audio::AudioPlugin);
 
-        app.insert_resource(SpatialAudio { max_distance: 25. })
-            .init_resource::<Background>()
-            .add_audio_channel::<Background>()
-            .init_resource::<SoundFx>()
-            .add_audio_channel::<SoundFx>();
+        app.insert_resource(SpatialAudio {
+            max_distance: 1600.,
+        })
+        .init_resource::<Background>()
+        .add_audio_channel::<Background>()
+        .init_resource::<SoundFx>()
+        .add_audio_channel::<SoundFx>()
+        .init_resource::<EmitterPool>();
 
         app.add_systems(Startup, setup_default_channel_settings)
             .add_systems(OnEnter(Screen::MainMenu), play_main_menu_music)
             .add_systems(OnEnter(Screen::InGame), play_in_game_music)
-            .add_systems(Update, button_interaction)
             .add_systems(
                 Update,
-                setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
+                (
+                    setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
+                    button_interaction,
+                    return_emitter_pool,
+                ),
             )
             .observe(init_audio_receiver)
             .observe(fire_ammo)
@@ -58,7 +64,6 @@ fn fire_ammo(
     local_player_id: Res<LocalPlayerId>,
 ) {
     let fire_ammo = trigger.event();
-    // let position = fire_ammo.position;
 
     let Ok((mut emitter, weapon_type, id)) = q_weapon.get_mut(fire_ammo.weapon_entity) else {
         return;
@@ -70,25 +75,39 @@ fn fire_ammo(
         WeaponType::GattlingGun => sound_fx.gattling_shot.clone_weak(),
     };
 
-    let instance_handle = channel
-        .play(audio_handle)
-        .with_playback_rate(rand::random_range(0.9..=1.0))
-        .handle();
+    let mut play_command = channel.play(audio_handle);
+    play_command.with_playback_rate(rand::random_range(0.85..=1.0));
 
+    // Use spatial audio for other spaceships.
     if is_local == false {
-        emitter.instances.push(instance_handle);
+        // Let the spatial audio system decide the volume.
+        emitter
+            .instances
+            .push(play_command.with_volume(0.0).handle());
     }
 }
 
-fn ammo_hit(trigger: Trigger<AmmoHit>, mut commands: Commands, asset_server: Res<AssetServer>) {
-    // let position = trigger.event();
-    // commands.spawn((
-    //     AudioBundle {
-    //         source: asset_server.load("audio/AmmoHit.ogg"),
-    //         settings: PlaybackSettings::DESPAWN.with_spatial(true),
-    //     },
-    //     TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
-    // ));
+fn ammo_hit(
+    trigger: Trigger<AmmoHit>,
+    mut commands: Commands,
+    sound_fx: Res<SoundFx>,
+    channel: Res<AudioChannel<SoundFx>>,
+    mut emitter_pool: ResMut<EmitterPool>,
+) {
+    let position = trigger.event();
+    let entity = emitter_pool.get_unused_or_spawn(|| commands.spawn_empty().id());
+
+    commands.entity(entity).insert((
+        TransformBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+        AudioEmitter {
+            instances: vec![channel
+                .play(sound_fx.ammo_hit.clone_weak())
+                .with_playback_rate(rand::random_range(0.85..=1.0))
+                // Let the spatial audio system decide the volume.
+                .with_volume(0.0)
+                .handle()],
+        },
+    ));
 }
 
 fn play_main_menu_music(background: Res<Background>, channel: Res<AudioChannel<Background>>) {
@@ -134,6 +153,37 @@ fn setup_default_channel_settings(
     background_channel.set_volume(0.5);
 }
 
+fn return_emitter_pool(
+    q_emitters: Query<&AudioEmitter, Changed<AudioEmitter>>,
+    mut pool: ResMut<EmitterPool>,
+) {
+    let unused_entities = pool
+        .used()
+        .iter()
+        .filter(|entity| {
+            // When emitter instances are empty, cound it as unused.
+            q_emitters
+                .get(**entity)
+                .map(|emitter| emitter.instances.is_empty())
+                .unwrap_or_default()
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+
+    for entity in unused_entities {
+        pool.set_unused(entity);
+    }
+}
+
+#[derive(Resource, Default, Deref, DerefMut)]
+struct EmitterPool(EntityPool);
+
+#[derive(Bundle)]
+pub struct EmitterBundle {
+    emitter: AudioEmitter,
+    spatial: SpatialBundle,
+}
+
 AudioChannelTracks!(
     /// Marker for background audio channel.
     #[derive(Resource)]
@@ -151,6 +201,7 @@ AudioChannelTracks!(
     tracks {
         button_click: "audio/ui/button-click.ogg",
         button_hover: "audio/ui/button-hover.ogg",
+        ammo_hit: "audio/weapon/ammo-hit.ogg",
         cannon_shot: "audio/weapon/cannon-shot.ogg",
         gattling_shot: "audio/weapon/gattling-shot.ogg",
     }
