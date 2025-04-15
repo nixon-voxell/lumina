@@ -6,7 +6,10 @@ use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
+use crate::{
+    lobby::{ClientExitLobby, Lobby, LobbyInGame},
+    player::ResetSpaceship,
+};
 
 mod teleporter;
 
@@ -23,10 +26,9 @@ impl Plugin for GamePlugin {
                     propagate_game_score,
                     track_game_score,
                     track_game_timer,
-                    track_respawn_delays,
+                    track_respawn_delay,
                 ),
             )
-            .observe(reset_all_spaceships_in_lobby)
             .observe(end_game);
     }
 }
@@ -89,137 +91,41 @@ fn handle_player_death(
     }
 }
 
-/// Process respawn delays and respawn players when timer finishes and resetting its position and health to the initial values
-fn track_respawn_delays(
+/// Track [`RespawnDelay`] and respawn players when timer finishes
+/// by resetting its [`Position`] & [`Rotation`] and triggering [`ResetSpaceship`].
+fn track_respawn_delay(
     time: Res<Time>,
     mut commands: Commands,
-    mut q_respawn_delays: Query<(Entity, &mut RespawnDelay, &PlayerId)>,
-    mut q_spaceships: Query<
-        (
-            &mut Position,
-            &mut Rotation,
-            &SpawnPointEntity,
-            &MaxHealth,
-            &mut Health,
-        ),
-        With<Spaceship>,
-    >,
+    mut q_respawn_delays: Query<(
+        &mut RespawnDelay,
+        &mut Position,
+        &mut Rotation,
+        &SpawnPointEntity,
+        Entity,
+    )>,
     q_global_transforms: Query<&GlobalTransform>,
-    player_infos: Res<PlayerInfos>,
-    mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
 ) {
-    for (entity, mut respawn_delay, player_id) in q_respawn_delays.iter_mut() {
-        respawn_delay.timer.tick(time.delta());
-
-        if respawn_delay.timer.just_finished() {
-            if let Ok((mut position, mut rotation, spawn_point_entity, max_health, mut health)) =
-                q_spaceships.get_mut(entity)
-            {
-                let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
-                    .get(spawn_point_entity.0)
-                    .map(|transform| transform.to_scale_rotation_translation())
-                else {
-                    warn!("No valid spawn point for entity {:?}", entity);
-                    continue;
-                };
-
-                // Reset position and health.
-                position.0 = spawn_translation.xy();
-                *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
-                **health = **max_health;
-
-                // Reload weapon
-                if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(player_id) {
-                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
-                        weapon_state.reload(weapon);
-                        debug!("Reloaded weapon for player_id {:?}", player_id);
-                    } else {
-                        warn!("Failed to reload weapon for player_id {:?}", player_id);
-                    }
-                }
-
-                // Remove delay and Dead
-                commands.entity(entity).remove::<(Dead, RespawnDelay)>();
-
-                info!("Player {:?} has respawned after death penalty", entity);
-            }
+    for (mut respawn_delay, mut position, mut rotation, spawn_point_entity, entity) in
+        q_respawn_delays.iter_mut()
+    {
+        if respawn_delay.timer.tick(time.delta()).just_finished() == false {
+            continue;
         }
-    }
-}
 
-#[derive(Event, Debug)]
-pub struct ResetAllSpaceshipsInLobby;
+        commands.entity(entity).remove::<(Dead, RespawnDelay)>();
+        commands.trigger_targets(ResetSpaceship, entity);
 
-/// Resets all spaceship health, energy, weapon within the lobby when a game starts.
-fn reset_all_spaceships_in_lobby(
-    trigger: Trigger<ResetAllSpaceshipsInLobby>,
-    mut commands: Commands,
-    q_lobbies: Query<&Lobby>,
-    mut q_spaceships: Query<
-        (
-            &mut Health,
-            &MaxHealth,
-            &mut Energy,
-            &Spaceship,
-            &PlayerId,
-            Entity,
-        ),
-        With<SourceEntity>,
-    >,
-    q_dash_cooldowns: Query<Entity, With<DashCooldown>>,
-    player_infos: Res<PlayerInfos>,
-    mut q_weapons: Query<(&mut WeaponState, &Weapon), With<SourceEntity>>,
-) {
-    let lobby_entity = trigger.entity();
+        let Ok((_, spawn_rotation, spawn_translation)) = q_global_transforms
+            .get(spawn_point_entity.0)
+            .map(|transform| transform.to_scale_rotation_translation())
+        else {
+            warn!("No valid spawn point for entity {:?}", entity);
+            continue;
+        };
 
-    // Get the Lobby component for this specific room
-    let Ok(lobby) = q_lobbies.get(lobby_entity) else {
-        warn!("No lobby found for entity {:?}", lobby_entity);
-        return;
-    };
-
-    info!("Resetting spaceships for lobby {:?}", lobby_entity);
-
-    for client_id in lobby.iter() {
-        if let Some(spaceship_entity) =
-            player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*client_id))
-        {
-            if let Ok((mut health, max_health, mut energy, spaceship, _player_id, entity)) =
-                q_spaceships.get_mut(*spaceship_entity)
-            {
-                // Reset health
-                **health = **max_health;
-
-                // Reset energy
-                energy.energy = spaceship.energy.max_energy;
-                energy.cooldown = 0.0;
-
-                // Remove dash cooldown if present
-                if q_dash_cooldowns.contains(entity) {
-                    commands.entity(entity).remove::<DashCooldown>();
-                }
-
-                // Remove Dead and RespawnDelay, ensure SpaceshipAction
-                commands
-                    .entity(entity)
-                    .remove::<(Dead, RespawnDelay)>()
-                    .insert(SpaceshipAction::default());
-
-                // Reload weapon
-                if let Some(weapon_entity) =
-                    player_infos[PlayerInfoType::Weapon].get(&PlayerId(*client_id))
-                {
-                    if let Ok((mut weapon_state, weapon)) = q_weapons.get_mut(*weapon_entity) {
-                        weapon_state.reload(weapon);
-                    }
-                }
-
-                info!(
-                    "Reset spaceship for client {}: health={}/{}, energy={}/{}",
-                    client_id, **health, **max_health, energy.energy, spaceship.energy.max_energy
-                );
-            }
-        }
+        // Reset position and rotation.
+        position.0 = spawn_translation.xy();
+        *rotation = Rotation::radians(spawn_rotation.to_scaled_axis().z);
     }
 }
 

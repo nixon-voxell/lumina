@@ -9,7 +9,7 @@ mod in_game;
 mod matchmaking;
 mod sandbox;
 
-use crate::player::objective::ObjectiveAreaManager;
+use crate::player::{objective::ObjectiveAreaManager, ResetSpaceship};
 
 use super::LobbyInfos;
 
@@ -33,7 +33,8 @@ impl Plugin for LobbyPlugin {
                 handle_exit_lobby,
                 execute_exit_lobby,
             ),
-        );
+        )
+        .observe(reset_spaceships_in_lobby);
     }
 }
 
@@ -131,6 +132,32 @@ fn execute_exit_lobby(
     }
 }
 
+/// Trigger [`super::player::ResetSpaceship`] for all spaceship in the lobby.
+fn reset_spaceships_in_lobby(
+    trigger: Trigger<ResetSpaceshipsInLobby>,
+    mut commands: Commands,
+    q_lobbies: Query<&Lobby>,
+    player_infos: Res<PlayerInfos>,
+) {
+    let lobby_entity = trigger.entity();
+
+    // Get the Lobby component for this specific room
+    let Ok(lobby) = q_lobbies.get(lobby_entity) else {
+        warn!("No lobby found for entity {:?}", lobby_entity);
+        return;
+    };
+
+    info!("Resetting spaceships for lobby {:?}", lobby_entity);
+
+    let spaceship_entities = lobby
+        .iter()
+        .filter_map(|id| player_infos[PlayerInfoType::Spaceship].get(&PlayerId(*id)))
+        .copied()
+        .collect::<Vec<_>>();
+
+    commands.trigger_targets(ResetSpaceship, spaceship_entities);
+}
+
 #[derive(Bundle)]
 pub(super) struct LobbyBundle {
     pub lobby: Lobby,
@@ -194,3 +221,7 @@ impl ClientExitLobby {
 /// Use this to cleanup whatever cached lobby data.
 #[derive(Event)]
 pub struct LobbyRemoval(pub RoomId);
+
+/// Trigger [`ResetSpaceship`] for all spaceship in the lobby.
+#[derive(Event, Debug)]
+pub struct ResetSpaceshipsInLobby;

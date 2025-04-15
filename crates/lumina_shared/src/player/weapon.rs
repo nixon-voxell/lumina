@@ -5,7 +5,7 @@ use lightyear::prelude::*;
 use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
-use crate::player::spaceship::Dead;
+use crate::player::prelude::*;
 
 use super::ammo::FireAmmo;
 use super::prelude::TeamType;
@@ -20,10 +20,10 @@ impl Plugin for WeaponPlugin {
             .add_systems(
                 FixedUpdate,
                 (
-                    weapon_magazine_tracker,
-                    weapon_reload,
-                    weapon_recharge,
-                    weapon_manual_reload,
+                    track_weapon_magazine,
+                    track_weapon_reload,
+                    recharge_weapon,
+                    manual_weapon_reload,
                     (weapon_direction, weapon_attack).chain(),
                 ),
             )
@@ -98,21 +98,21 @@ fn weapon_direction(
     }
 }
 
-/// Track the [`WeaponState::magazine()`] and reload when it reaches `0`.
-fn weapon_magazine_tracker(
+/// Track the [`WeaponMagazine`] and reload when it reaches `0`.
+fn track_weapon_magazine(
     mut commands: Commands,
     q_weapons: Query<
-        (&WeaponState, &Weapon, Entity),
+        (&WeaponMagazine, &Weapon, Entity),
         (
-            Changed<WeaponState>,
+            Changed<WeaponMagazine>,
             Without<WeaponReload>,
             With<SourceEntity>,
         ),
     >,
     q_reload: Query<Entity, With<WeaponReload>>,
 ) {
-    for (state, weapon, entity) in q_weapons.iter() {
-        if state.magazine > 0 {
+    for (magazine, weapon, entity) in q_weapons.iter() {
+        if magazine.0 > 0 {
             continue;
         }
 
@@ -131,19 +131,19 @@ fn weapon_magazine_tracker(
     }
 }
 
-fn weapon_reload(
+fn track_weapon_reload(
     mut commands: Commands,
     mut q_weapons: Query<
-        (&mut WeaponReload, &mut WeaponState, &Weapon, Entity),
+        (&mut WeaponReload, &mut WeaponMagazine, &Weapon, Entity),
         With<SourceEntity>,
     >,
     time: Res<Time>,
 ) {
-    for (mut reload, mut stat, weapon, entity) in q_weapons.iter_mut() {
+    for (mut reload, mut magazine, weapon, entity) in q_weapons.iter_mut() {
         reload.tick(time.delta());
 
         if reload.finished() {
-            stat.magazine = weapon.magazine_size();
+            magazine.0 = weapon.magazine_size();
 
             // Remove the reload component since reloading is done
             commands.entity(entity).remove::<WeaponReload>();
@@ -152,14 +152,14 @@ fn weapon_reload(
 }
 
 /// Manually trigger a weapon reload via keybind action by
-/// emptying the [`WeaponState::magazine()`] (set to 0).
+/// emptying the [`WeaponMagazine`] (set to 0).
 ///
-/// This will then be tracked by [`weapon_magazine_tracker()`]
+/// This will then be tracked by [`track_weapon_magazine()`]
 /// and perform the actual reload sequence.
-fn weapon_manual_reload(
+fn manual_weapon_reload(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_weapons: Query<
-        (&mut WeaponState, &Weapon),
+        (&mut WeaponMagazine, &Weapon),
         (
             With<SourceEntity>,
             // Do not reload weapons that are reloading.
@@ -170,15 +170,14 @@ fn weapon_manual_reload(
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Reload) {
-            if let Some((mut state, weapon)) = player_infos[PlayerInfoType::Weapon]
+            if let Some((mut magazine, weapon)) = player_infos[PlayerInfoType::Weapon]
                 .get(id)
                 .and_then(|e| q_weapons.get_mut(*e).ok())
             {
                 // Do not reload if magazine is full.
-                // TODO: Play a one shot sound when this happens?
-                if state.magazine() < weapon.magazine_size() {
+                if magazine.0 < weapon.magazine_size() {
                     // Trigger a reload by emptying the entire magazine.
-                    state.magazine = 0;
+                    magazine.0 = 0;
                 }
             }
         }
@@ -191,8 +190,17 @@ fn weapon_attack(
         (&ActionState<PlayerAction>, &PlayerId),
         (Without<WeaponReload>, With<SourceEntity>),
     >,
-    mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponState, Entity), With<SourceEntity>>,
-    q_dead_spaceships: Query<(), (With<Spaceship>, With<Dead>, With<SourceEntity>)>,
+    mut q_weapons: Query<
+        (
+            &Transform,
+            &Weapon,
+            &mut WeaponMagazine,
+            &mut WeaponRecharge,
+            Entity,
+        ),
+        With<SourceEntity>,
+    >,
+    q_dead_spaceships: DeadQuery<(), (With<Spaceship>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
@@ -218,15 +226,19 @@ fn weapon_attack(
         }
 
         // Attack!
-        if let Some((transform, weapon, mut state, weapon_entity)) = player_infos
+        if let Some((transform, weapon, mut magazine, mut recharge, weapon_entity)) = player_infos
             [PlayerInfoType::Weapon]
             .get(id)
             .and_then(|e| q_weapons.get_mut(*e).ok())
         {
-            if state.can_fire() == false {
+            if magazine.0 == 0 || recharge.finished() == false {
                 continue;
             }
-            state.fire();
+
+            // Use up one ammo.
+            magazine.0 = magazine.saturating_sub(1);
+            // Reset the recharge.
+            recharge.reset();
 
             let direction = transform.local_x().xy();
             let position = transform.translation.xy() + direction * weapon.fire_radius;
@@ -242,9 +254,9 @@ fn weapon_attack(
     }
 }
 
-fn weapon_recharge(mut q_weapons: Query<&mut WeaponState, With<SourceEntity>>, time: Res<Time>) {
-    for mut state in q_weapons.iter_mut() {
-        state.recharge.tick(time.delta());
+fn recharge_weapon(mut q_weapons: Query<&mut WeaponRecharge, With<SourceEntity>>, time: Res<Time>) {
+    for mut recharge in q_weapons.iter_mut() {
+        recharge.tick(time.delta());
     }
 }
 
@@ -277,8 +289,8 @@ pub struct Weapon {
     recoil: f32,
     /// Radius location where the ammo fires off.
     fire_radius: f32,
-    /// Duration in seconds for weapon to reload when [`WeaponState::magazine()`]
-    /// is depleted.
+    /// Duration in seconds for weapon to reload when
+    /// [`WeaponMagazine`] is depleted.
     reload_duration: f32,
 }
 
@@ -298,52 +310,28 @@ impl Component for Weapon {
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(|mut world, entity, _| {
             let weapon = world.entity(entity).get::<Self>().unwrap();
-            let state = WeaponState::new(weapon);
-            world.commands().entity(entity).insert(state);
+            let bundle = (WeaponMagazine::new(weapon), WeaponRecharge::new(weapon));
+
+            world.commands().entity(entity).insert(bundle);
         });
     }
 }
 
-/// The state of the current weapon.
-#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct WeaponState {
-    /// Amount of ammo left in the magazine.
-    magazine: u32,
-    /// Accumulated duration since the last attack from the weapon.
-    recharge: Timer,
+#[derive(Component, Deref, DerefMut, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeaponMagazine(pub u32);
+
+impl WeaponMagazine {
+    pub fn new(weapon: &Weapon) -> Self {
+        Self(weapon.magazine_size)
+    }
 }
 
-impl WeaponState {
+#[derive(Component, Deref, DerefMut, Debug, Clone)]
+pub struct WeaponRecharge(pub Timer);
+
+impl WeaponRecharge {
     pub fn new(weapon: &Weapon) -> Self {
-        Self {
-            magazine: weapon.magazine_size,
-            recharge: Timer::from_seconds(weapon.firing_rate, TimerMode::Once),
-        }
-    }
-
-    pub fn magazine(&self) -> u32 {
-        self.magazine
-    }
-
-    pub fn recharge(&self) -> &Timer {
-        &self.recharge
-    }
-
-    pub fn can_fire(&self) -> bool {
-        self.magazine != 0 && self.recharge.finished()
-    }
-
-    /// Perform a weapon fire action which uses up 1 ammo from
-    /// [`Self::magazine()`] and resets [`Self::recharge()`].
-    pub fn fire(&mut self) {
-        // Use up one ammo.
-        self.magazine = self.magazine.saturating_sub(1);
-        // Reset the recharge.
-        self.recharge.reset();
-    }
-
-    pub fn reload(&mut self, weapon: &Weapon) {
-        self.magazine = weapon.magazine_size;
+        Self(Timer::from_seconds(weapon.firing_rate, TimerMode::Once))
     }
 }
 

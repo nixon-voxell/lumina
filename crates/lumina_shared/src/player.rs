@@ -29,7 +29,7 @@ pub mod prelude {
     pub use super::spawn_point::{
         SpawnPoint, SpawnPointEntity, SpawnPointParent, SpawnPointUsed, TeamType,
     };
-    pub use super::weapon::{Weapon, WeaponReload, WeaponState};
+    pub use super::weapon::{Weapon, WeaponMagazine, WeaponRecharge, WeaponReload};
     pub use super::{PlayerInfoType, PlayerInfos};
 }
 

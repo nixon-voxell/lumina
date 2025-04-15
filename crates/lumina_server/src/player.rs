@@ -43,7 +43,8 @@ impl Plugin for PlayerPlugin {
                         .in_set(GltfBlueprintsSet::AfterSpawn),
                 ),
             )
-            .observe(spawn_players);
+            .observe(spawn_players)
+            .observe(reset_spaceship);
     }
 }
 
@@ -210,6 +211,49 @@ fn clear_unused_spawn_points(
     }
 }
 
+fn reset_spaceship(
+    trigger: Trigger<ResetSpaceship>,
+    mut commands: Commands,
+    mut q_spaceships: Query<
+        (&mut Health, &MaxHealth, &mut Energy, &Spaceship, &PlayerId),
+        With<SourceEntity>,
+    >,
+    mut q_weapons: Query<(&mut WeaponRecharge, &mut WeaponMagazine, &Weapon), With<SourceEntity>>,
+    player_infos: Res<PlayerInfos>,
+) {
+    let entity = trigger.entity();
+    let Ok((mut health, max_health, mut energy, spaceship, id)) = q_spaceships.get_mut(entity)
+    else {
+        return;
+    };
+
+    // Reset health.
+    **health = **max_health;
+
+    // Reset energy.
+    energy.energy = spaceship.energy.max_energy;
+    energy.cooldown = 0.0;
+
+    commands
+        .entity(entity)
+        // Reset dash cooldown.
+        .remove::<DashCooldown>()
+        // Revive spaceship.
+        .remove::<Dead>();
+
+    // Instant reload weapon.
+    if let Some(weapon_entity) = player_infos[PlayerInfoType::Weapon].get(id) {
+        if let Ok((mut recharge, mut magazine, weapon)) = q_weapons.get_mut(*weapon_entity) {
+            let recharge_duration = recharge.duration();
+            recharge.tick(recharge_duration);
+            magazine.0 = weapon.magazine_size();
+        }
+
+        // Reset reload.
+        commands.entity(*weapon_entity).remove::<WeaponReload>();
+    }
+}
+
 #[derive(Event)]
 pub struct SpawnClientPlayer {
     pub client_id: ClientId,
@@ -221,3 +265,7 @@ pub struct SpawnClientPlayer {
 /// Defaults to [`SpaceshipType::default`] if no selection is found.
 #[derive(Resource, Default, Deref, DerefMut)]
 pub struct ClientSpaceshipSelection(HashMap<ClientId, SpaceshipType>);
+
+/// Resets spaceship's health, energy, and weapon.
+#[derive(Event)]
+pub struct ResetSpaceship;
