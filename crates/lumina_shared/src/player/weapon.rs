@@ -6,7 +6,6 @@ use lumina_common::prelude::*;
 
 use crate::action::PlayerAction;
 use crate::player::spaceship::Dead;
-use crate::prelude::Health;
 
 use super::ammo::FireAmmo;
 use super::prelude::TeamType;
@@ -193,7 +192,7 @@ fn weapon_attack(
         (Without<WeaponReload>, With<SourceEntity>),
     >,
     mut q_weapons: Query<(&Transform, &Weapon, &mut WeaponState, Entity), With<SourceEntity>>,
-    q_spaceships: Query<(&Health, Option<&Dead>), With<Spaceship>>,
+    q_dead_spaceships: Query<(), (With<Spaceship>, With<Dead>, With<SourceEntity>)>,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
@@ -210,15 +209,7 @@ fn weapon_attack(
             continue;
         };
 
-        let Ok((health, dead)) = q_spaceships.get(*spaceship_entity) else {
-            debug!(
-                "Weapon attack rejected: Spaceship entity invalid {:?}",
-                spaceship_entity
-            );
-            continue;
-        };
-
-        if dead.is_some() || **health <= 0.0 {
+        if q_dead_spaceships.contains(*spaceship_entity) {
             debug!(
                 "Weapon attack rejected: Spaceship {:?} is dead or has zero health (player_id: {:?})",
                 spaceship_entity, id

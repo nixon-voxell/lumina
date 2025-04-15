@@ -12,6 +12,7 @@ use crate::game::prelude::*;
 use crate::health::{Health, MaxHealth};
 use crate::player::objective::CollectedLumina;
 use crate::player::prelude::*;
+use crate::player::spaceship::Dead;
 
 pub const INPUT_REPLICATION_GROUP: ReplicationGroup = ReplicationGroup::new_id(1);
 
@@ -62,6 +63,9 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<Health>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
+
+        app.register_component::<Dead>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<LuminaType>(ChannelDirection::ServerToClient)

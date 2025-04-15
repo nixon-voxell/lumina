@@ -123,5 +123,5 @@ pub struct Spaceship {
     pub energy: EnergyConfig,
 }
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct Dead;
