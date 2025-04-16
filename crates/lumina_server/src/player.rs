@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use blenvy::*;
@@ -215,14 +216,30 @@ fn reset_spaceship(
     trigger: Trigger<ResetSpaceship>,
     mut commands: Commands,
     mut q_spaceships: Query<
-        (&mut Health, &MaxHealth, &mut Energy, &Spaceship, &PlayerId),
+        (
+            &mut Health,
+            &MaxHealth,
+            &mut Energy,
+            &Spaceship,
+            &mut LinearVelocity,
+            &mut AngularVelocity,
+            &PlayerId,
+        ),
         With<SourceEntity>,
     >,
     mut q_weapons: Query<(&mut WeaponRecharge, &mut WeaponMagazine, &Weapon), With<SourceEntity>>,
     player_infos: Res<PlayerInfos>,
 ) {
     let entity = trigger.entity();
-    let Ok((mut health, max_health, mut energy, spaceship, id)) = q_spaceships.get_mut(entity)
+    let Ok((
+        mut health,
+        max_health,
+        mut energy,
+        spaceship,
+        mut linear_velocity,
+        mut angular_velocity,
+        id,
+    )) = q_spaceships.get_mut(entity)
     else {
         return;
     };
@@ -252,6 +269,10 @@ fn reset_spaceship(
         // Reset reload.
         commands.entity(*weapon_entity).remove::<WeaponReload>();
     }
+
+    // Reset velocities.
+    linear_velocity.0 = Vec2::ZERO;
+    angular_velocity.0 = 0.0;
 }
 
 #[derive(Event)]
@@ -266,6 +287,6 @@ pub struct SpawnClientPlayer {
 #[derive(Resource, Default, Deref, DerefMut)]
 pub struct ClientSpaceshipSelection(HashMap<ClientId, SpaceshipType>);
 
-/// Resets spaceship's health, energy, and weapon.
+/// Resets spaceship's health, energy, weapon, and velocities.
 #[derive(Event)]
 pub struct ResetSpaceship;

@@ -1,12 +1,16 @@
 use std::time::Duration;
 
+use avian2d::prelude::LinearVelocity;
 use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
+use bevy_motiongfx::prelude::ease;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
-use crate::{camera::GameCamera, player::LocalPlayerId, screens::Screen};
+use crate::camera::GameCamera;
+use crate::player::LocalPlayerId;
+use crate::screens::Screen;
 
 pub(super) struct AudioPlugin;
 
@@ -23,8 +27,11 @@ impl Plugin for AudioPlugin {
         .add_audio_channel::<SoundFx>()
         .init_resource::<EmitterPool>();
 
-        app.add_systems(Startup, setup_default_channel_settings)
-            .add_systems(OnEnter(Screen::MainMenu), play_main_menu_music)
+        app.world_mut()
+            .resource_mut::<AudioChannel<Background>>()
+            .set_volume(0.5);
+
+        app.add_systems(OnEnter(Screen::MainMenu), play_main_menu_music)
             .add_systems(OnEnter(Screen::InGame), play_in_game_music)
             .add_systems(
                 Update,
@@ -32,11 +39,14 @@ impl Plugin for AudioPlugin {
                     setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
                     button_interaction,
                     return_emitter_pool,
+                    spaceship_velocity_pitch,
+                    setup_spaceship_audio,
                 ),
             )
             .observe(init_audio_receiver)
             .observe(fire_ammo)
-            .observe(ammo_hit);
+            .observe(ammo_hit)
+            .observe(cleanup_removed_instances);
     }
 }
 
@@ -110,6 +120,67 @@ fn ammo_hit(
     ));
 }
 
+/// Change spaceship audio pitch based on its [`LinearVelocity`].
+fn spaceship_velocity_pitch(
+    q_spaceships: Query<(&LinearVelocity, &Spaceship, &Handle<AudioInstance>), With<SourceEntity>>,
+    mut instances: ResMut<Assets<AudioInstance>>,
+) {
+    const MAX_RATE: f32 = 3.0;
+
+    for (velocity, spaceship, instance_handle) in q_spaceships.iter() {
+        // Apply ease to zoom more towards maximal velocity and vice versa.
+        let velocity_factor =
+            ease::quad::ease_in_out(velocity.length() / spaceship.movement.max_linear_speed)
+                .clamp(0.0, 1.0);
+        let playback_rate = f32::lerp(1.0, MAX_RATE, velocity_factor) as f64;
+
+        if let Some(instance) = instances.get_mut(instance_handle) {
+            instance.set_playback_rate(playback_rate, AudioTween::default());
+        }
+    }
+}
+
+/// Setup audio instances for each spaceship.
+/// Use spatial audio for non local spaceships.
+fn setup_spaceship_audio(
+    mut commands: Commands,
+    mut q_spaceships: Query<
+        (&mut AudioEmitter, &PlayerId, Entity),
+        (Added<AudioEmitter>, With<Spaceship>, With<SourceEntity>),
+    >,
+    sound_fx: Res<SoundFx>,
+    channel: Res<AudioChannel<SoundFx>>,
+    local_player_id: Res<LocalPlayerId>,
+) {
+    for (mut emitter, id, entity) in q_spaceships.iter_mut() {
+        let mut audio_cmd = channel.play(sound_fx.idle.clone_weak());
+        audio_cmd.linear_fade_in(Duration::from_secs(2)).looped();
+
+        // Apply spatial audio for non local spaceships.
+        if *id != **local_player_id {
+            let handle = audio_cmd.with_volume(0.0).handle();
+            emitter.instances.push(handle.clone_weak());
+            commands.entity(entity).insert(handle);
+        } else {
+            commands.entity(entity).insert(audio_cmd.handle());
+        }
+    }
+}
+
+fn cleanup_removed_instances(
+    trigger: Trigger<OnRemove, Handle<AudioInstance>>,
+    q_instances: Query<&Handle<AudioInstance>>,
+    mut instances: ResMut<Assets<AudioInstance>>,
+) {
+    if let Some(mut instance) = q_instances
+        .get(trigger.entity())
+        .ok()
+        .and_then(|h| instances.remove(h))
+    {
+        instance.stop(AudioTween::default());
+    }
+}
+
 fn play_main_menu_music(background: Res<Background>, channel: Res<AudioChannel<Background>>) {
     channel.stop();
     channel
@@ -118,6 +189,7 @@ fn play_main_menu_music(background: Res<Background>, channel: Res<AudioChannel<B
             Duration::from_secs(1),
             AudioEasing::InOutPowi(2),
         ))
+        .with_volume(0.6)
         .looped();
 }
 
@@ -139,18 +211,11 @@ fn init_audio_receiver(trigger: Trigger<OnAdd, GameCamera>, mut commands: Comman
 
 fn setup_audio_emitter<Filter: QueryFilter>(
     mut commands: Commands,
-    q_criteria: Query<Entity, (With<SourceEntity>, Without<AudioEmitter>, Filter)>,
+    q_criteria: Query<Entity, (Without<AudioEmitter>, Filter, With<SourceEntity>)>,
 ) {
     for entity in q_criteria.iter() {
         commands.entity(entity).insert(AudioEmitter::default());
     }
-}
-
-fn setup_default_channel_settings(
-    background_channel: Res<AudioChannel<Background>>,
-    // soundfx_channel: ResMut<AudioChannel<SoundFx>>,
-) {
-    background_channel.set_volume(0.5);
 }
 
 fn return_emitter_pool(
@@ -161,7 +226,7 @@ fn return_emitter_pool(
         .used()
         .iter()
         .filter(|entity| {
-            // When emitter instances are empty, cound it as unused.
+            // When emitter instances are empty, count it as unused.
             q_emitters
                 .get(**entity)
                 .map(|emitter| emitter.instances.is_empty())
@@ -201,6 +266,7 @@ AudioChannelTracks!(
     tracks {
         button_click: "audio/ui/button-click.ogg",
         button_hover: "audio/ui/button-hover.ogg",
+        idle: "audio/spaceship/idle.ogg",
         ammo_hit: "audio/weapon/ammo-hit.ogg",
         cannon_shot: "audio/weapon/cannon-shot.ogg",
         gattling_shot: "audio/weapon/gattling-shot.ogg",

@@ -209,7 +209,7 @@ fn follow_spaceship(
 }
 
 fn spaceship_velocity_zoom(
-    q_spaceships: Query<(&LinearVelocity, &Spaceship), (With<Spaceship>, With<SourceEntity>)>,
+    q_spaceships: Query<(&LinearVelocity, &Spaceship), With<SourceEntity>>,
     mut camera_zoom: ResMut<CameraZoom>,
     local_player_info: LocalPlayerInfo,
 ) {
