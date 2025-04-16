@@ -22,9 +22,11 @@ where
     Config: CooldownEffectConfig,
 {
     fn build(&self, app: &mut App) {
+        app.configure_sets(FixedUpdate, CooldownEffectSet);
+
         app.add_systems(
             FixedUpdate,
-            (track_effect::<T, Config>, track_cooldown::<T, Config>),
+            (track_effect::<T, Config>, track_cooldown::<T, Config>).in_set(CooldownEffectSet),
         );
     }
 }
@@ -131,3 +133,6 @@ impl CooldownEffectCommandExt for Commands<'_, '_> {
         });
     }
 }
+
+#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub struct CooldownEffectSet;
