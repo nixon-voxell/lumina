@@ -21,11 +21,14 @@ pub mod weapon;
 pub mod prelude {
     pub use super::ammo::{AmmoEffect, AmmoHit, AmmoLifetime, AmmoStat, FireAmmo};
     pub use super::objective::{CollectedLumina, LuminaCollected, LuminaStat, ObjectiveArea};
-    pub use super::spaceship::{
-        AbilityCooldown, AbilityEffect, AliveQuery, DashCooldown, DashEffect, Dead, DeadQuery,
-        Energy, HealAbilityConfig, RotationDiff, ShadowAbilityConfig, Spaceship, SpaceshipAction,
-        TargetAcceleration, TargetDamping,
+    pub use super::spaceship::ability::{
+        AbilityActive, AbilityConfig, AbilityCooldownTimer, AbilityEffectTimer, CancelAbility,
+        HealAbilityConfig, ShadowAbilityConfig,
     };
+    pub use super::spaceship::movement::{
+        DashCooldown, DashEffect, Energy, RotationDiff, TargetAcceleration, TargetDamping,
+    };
+    pub use super::spaceship::{AliveQuery, Dead, DeadQuery, Spaceship, SpaceshipAction};
     pub use super::spawn_point::{
         SpawnPoint, SpawnPointEntity, SpawnPointParent, SpawnPointUsed, TeamType,
     };

@@ -271,7 +271,7 @@ fn mimic_spaceship_comp<T: Component + Clone>(
             // Weapons and spaceships might get despawned when changing them
             // in local lobby.
             if let Some(mut cmd) = commands.get_entity(*entity) {
-                cmd.insert(comp.clone());
+                cmd.try_insert(comp.clone());
             }
         }
     }

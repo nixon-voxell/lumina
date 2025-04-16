@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
+use std::time::Duration;
 
 use bevy::prelude::*;
-use lightyear::prelude::*;
 
-use crate::prelude::SourceEntity;
-use crate::utils::{PlayerId, ThreadSafe};
+use crate::prelude::{AutoTimer, AutoTimerFinished, AutoTimerPlugin, StartAutoTimerCommandExt};
+use crate::utils::ThreadSafe;
 
 /// Plugin for tracking effect and adding cooldown after the effect.
 ///
@@ -22,12 +22,20 @@ where
     Config: CooldownEffectConfig,
 {
     fn build(&self, app: &mut App) {
-        app.configure_sets(FixedUpdate, CooldownEffectSet);
+        // Prevent duplicate plugins.
+        if app.is_plugin_added::<AutoTimerPlugin<Effect<T>, FixedUpdate, CooldownEffectSet>>()
+            == false
+        {
+            app.add_plugins((
+                AutoTimerPlugin::<Effect<T>, _, _>::new(FixedUpdate)
+                    .with_system_set(CooldownEffectSet),
+                AutoTimerPlugin::<Cooldown<T>, _, _>::new(FixedUpdate)
+                    .with_system_set(CooldownEffectSet),
+            ));
+        }
 
-        app.add_systems(
-            FixedUpdate,
-            (track_effect::<T, Config>, track_cooldown::<T, Config>).in_set(CooldownEffectSet),
-        );
+        app.configure_sets(FixedUpdate, CooldownEffectSet)
+            .observe(on_effect_finished::<T, Config>);
     }
 }
 
@@ -37,70 +45,35 @@ impl<T, Config> Default for CooldownEffectPlugin<T, Config> {
     }
 }
 
-/// Track effect timer and remove it + apply cooldown after it ends.
-fn track_effect<T: ThreadSafe, Config: CooldownEffectConfig>(
+/// Start cooldown timer on effect timer finished.
+fn on_effect_finished<T, Config>(
+    trigger: Trigger<AutoTimerFinished<Effect<T>>>,
     mut commands: Commands,
-    mut q_abilities: Query<
-        (&mut Effect<T>, &Config, Entity),
-        (Without<Cooldown<T>>, With<SourceEntity>),
-    >,
-    time: Res<Time>,
-) {
-    for (mut effect, config, entity) in q_abilities.iter_mut() {
-        if effect.finished() {
-            commands
-                .entity(entity)
-                .remove::<Effect<T>>()
-                .insert(Cooldown::<T>::new(config.cooldown_duration()));
+    q_configs: Query<&Config>,
+) where
+    T: ThreadSafe,
+    Config: CooldownEffectConfig,
+{
+    let entity = trigger.entity();
+    if let Ok(config) = q_configs.get(entity) {
+        if let Some(mut cmd) = commands.get_entity(entity) {
+            cmd.start_auto_timer::<Cooldown<T>>(Duration::from_secs_f32(
+                config.cooldown_duration(),
+            ));
         }
-        effect.tick(time.delta());
     }
 }
 
-/// Track cooldown timer and remove it after it ends.
-fn track_cooldown<T: ThreadSafe, Config: CooldownEffectConfig>(
-    mut commands: Commands,
-    mut q_abilities: Query<
-        (&mut Cooldown<T>, &PlayerId, Entity),
-        (Without<Effect<T>>, With<Config>, With<SourceEntity>),
-    >,
-    time: Res<Time>,
-    network_identity: NetworkIdentity,
-) {
-    for (mut cooldown, player_id, entity) in q_abilities.iter_mut() {
-        if cooldown.finished()
-            // Only server or local player can remove the cooldown for correct syncing.
-            && (network_identity.is_server() || player_id.is_local())
-        {
-            commands.entity(entity).remove::<Cooldown<T>>();
-        }
-        cooldown.tick(time.delta());
-    }
-}
+pub type EffectTimer<T> = AutoTimer<Effect<T>>;
+pub type CooldownTimer<T> = AutoTimer<Cooldown<T>>;
 
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct Cooldown<T>(#[deref] Timer, PhantomData<T>);
+/// Marker component for a effect timer.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Effect<T>(PhantomData<T>);
 
-impl<T> Cooldown<T> {
-    pub fn new(duration_secs: f32) -> Self {
-        Self(
-            Timer::from_seconds(duration_secs, TimerMode::Once),
-            PhantomData,
-        )
-    }
-}
-
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct Effect<T>(#[deref] Timer, PhantomData<T>);
-
-impl<T> Effect<T> {
-    pub fn new(duration_secs: f32) -> Self {
-        Self(
-            Timer::from_seconds(duration_secs, TimerMode::Once),
-            PhantomData,
-        )
-    }
-}
+/// Marker component for a cooldown timer.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Cooldown<T>(PhantomData<T>);
 
 pub trait CooldownEffectConfig: Component {
     fn effect_duration(&self) -> f32;
@@ -126,10 +99,9 @@ impl CooldownEffectCommandExt for Commands<'_, '_> {
             };
 
             let effect_duration = config.effect_duration();
-            world
-                .commands()
-                .entity(entity)
-                .insert(Effect::<T>::new(effect_duration));
+            if let Some(mut cmd) = world.commands().get_entity(entity) {
+                cmd.start_auto_timer::<Effect<T>>(Duration::from_secs_f32(effect_duration));
+            }
         });
     }
 }

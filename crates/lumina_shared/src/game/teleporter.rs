@@ -11,8 +11,8 @@ impl Plugin for TeleporterPlugin {
     }
 }
 
-pub type TeleporterEffect = Effect<Teleporter>;
-pub type TeleporterCooldown = Cooldown<Teleporter>;
+pub type TeleporterEffect = EffectTimer<Teleporter>;
+pub type TeleporterCooldown = CooldownTimer<Teleporter>;
 
 /// The starting point of the teleporter.
 #[derive(Component, Reflect)]

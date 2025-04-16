@@ -6,10 +6,8 @@ use lumina_shared::game::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::{
-    lobby::{ClientExitLobby, Lobby, LobbyInGame},
-    player::ResetSpaceship,
-};
+use crate::lobby::{ClientExitLobby, Lobby, LobbyInGame};
+use crate::player::ResetSpaceship;
 
 mod teleporter;
 
@@ -84,6 +82,7 @@ fn handle_player_death(
                 RespawnDelay {
                     timer: Timer::from_seconds(5.0, TimerMode::Once),
                 },
+                CancelAbility,
             ));
 
             info!("Player {:?} will respawn after 5 seconds", player_id);

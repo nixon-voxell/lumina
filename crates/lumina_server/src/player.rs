@@ -273,6 +273,8 @@ fn reset_spaceship(
     // Reset velocities.
     linear_velocity.0 = Vec2::ZERO;
     angular_velocity.0 = 0.0;
+
+    commands.entity(entity).insert(CancelAbility);
 }
 
 #[derive(Event)]
@@ -287,6 +289,6 @@ pub struct SpawnClientPlayer {
 #[derive(Resource, Default, Deref, DerefMut)]
 pub struct ClientSpaceshipSelection(HashMap<ClientId, SpaceshipType>);
 
-/// Resets spaceship's health, energy, weapon, and velocities.
+/// Resets spaceship's health, energy, weapon, velocities, and abilities.
 #[derive(Event)]
 pub struct ResetSpaceship;
