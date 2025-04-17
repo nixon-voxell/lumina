@@ -201,7 +201,7 @@ pub struct HealVfx {
 }
 
 /// Automatically cue in and out animation [timer][AutoTimer] depending on
-/// the insertion of [`AbilityVfxIn`] and [`AbilityVfxOut`].
+/// the insertion and removal of [`AbilityActive`].
 struct VfxCueTimerPlugin<Cue: VfxCue>(PhantomData<Cue>);
 
 impl<Cue: VfxCue> Plugin for VfxCueTimerPlugin<Cue> {

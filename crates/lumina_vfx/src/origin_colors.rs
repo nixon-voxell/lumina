@@ -18,15 +18,16 @@ impl<Filter: QueryFilter> Default for OriginColorsPlugin<Filter> {
     }
 }
 
-/// Initialize the original colors of spaceship materials with the [`ShadowAbilityConfig`].
+/// Initialize the original colors of spaceship materials
+/// within the hierarchy of the filter criteria.
 fn init_origin_colors<Filter: QueryFilter>(
     mut commands: Commands,
-    q_spaceships: Query<Entity, Filter>,
+    q_entities: Query<Entity, Filter>,
     q_children: Query<&Children>,
     q_color_materials: Query<&Handle<ColorMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for entity in q_spaceships.iter() {
+    for entity in q_entities.iter() {
         // Initialize origin colors of the materials.
         let mut origin_colors = OriginColors::default();
         let entity_color_pairs = q_children
