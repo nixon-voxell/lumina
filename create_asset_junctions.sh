@@ -20,7 +20,7 @@ cd crates/bevy_radiance_cascades
 ln -s ../../assets assets
 cd ../..
 
-cd crates/test_bed
+cd crates/bevy_post_process
 ln -s ../../assets assets
 cd ../..
 

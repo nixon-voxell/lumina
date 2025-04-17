@@ -104,12 +104,7 @@ fn disable_heal_ability(
 fn apply_heal_ability(
     q_spaceships: Query<
         (&ShapeHits, &HealAbilityConfig, Entity),
-        (
-            Without<AbilityCooldownTimer>,
-            With<AbilityEffectTimer>,
-            Without<CancelAbility>,
-            With<SourceEntity>,
-        ),
+        (With<AbilityActive>, With<SourceEntity>),
     >,
     mut q_healths: Query<(&mut Health, &MaxHealth), (With<Spaceship>, With<SourceEntity>)>,
     q_team_types: Query<&TeamType, (With<Spaceship>, With<SourceEntity>)>,
