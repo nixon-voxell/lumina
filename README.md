@@ -39,18 +39,6 @@ run.bat x
 
 With `x` being the number of clients you want to spawn.
 
-### Test Bed
-
-To improve development time, the `crates/test_bed/` folder is used to test out art assets and see how they look like in-game.
-Run the test bed using the following command:
-
-```
-cargo run --bin test_bed
-```
-
-With `test_name` being the name of your testing example.
-
-
 ## Tech Stack
 
 Lumina is made mainly using the Rust language.

@@ -1159,6 +1159,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_post_process"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_ptr"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6630,24 +6637,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "test_bed"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy-inspector-egui",
- "bevy_enoki",
- "bevy_radiance_cascades",
- "bevy_shader_utils",
- "bevy_vello",
- "blenvy",
- "lumina_common",
- "noisy_bevy",
- "rand 0.9.0",
- "velyst",
 ]
 
 [[package]]
