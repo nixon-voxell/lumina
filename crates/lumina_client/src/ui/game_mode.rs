@@ -112,7 +112,7 @@ fn matchmacke_btns(
     let mut player_count = None;
     for (i, &btn) in MATCHMAKE_BTNS.iter().enumerate() {
         if interactions.pressed(btn) {
-            player_count = Some(1 << (i + 1));
+            player_count = Some((i as u8 + 1) << 1);
             break;
         }
     }
