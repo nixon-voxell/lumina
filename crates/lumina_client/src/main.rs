@@ -1,8 +1,8 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::audio::{AudioPlugin, SpatialScale, Volume};
 use bevy::prelude::*;
-#[cfg(not(feature = "dev"))]
-use bevy::window::WindowMode;
+// #[cfg(not(feature = "dev"))]
+// use bevy::window::WindowMode;
 use bevy::window::WindowResolution;
 
 fn main() {
@@ -24,8 +24,8 @@ fn main() {
                     fit_canvas_to_parent: true,
                     prevent_default_event_handling: true,
                     resolution: WindowResolution::default().with_scale_factor_override(1.0),
-                    #[cfg(not(feature = "dev"))]
-                    mode: WindowMode::Fullscreen,
+                    // #[cfg(not(feature = "dev"))]
+                    // mode: WindowMode::Fullscreen,
                     ..default()
                 }
                 .into(),
