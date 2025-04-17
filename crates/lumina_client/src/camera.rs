@@ -9,6 +9,8 @@ use bevy::render::view::RenderLayers;
 use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy::window::PrimaryWindow;
 use bevy_motiongfx::prelude::*;
+use bevy_post_process::chromatic_aberration::ChromaticAberrationConfig;
+use bevy_post_process::vignette::VignetteConfig;
 use bevy_radiance_cascades::prelude::*;
 use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
 use leafwing_input_manager::prelude::*;
@@ -19,6 +21,7 @@ use lumina_vfx::prelude::*;
 use noisy_bevy::simplex_noise_2d_seeded;
 
 use crate::player::aim::IsUsingMouse;
+use crate::player::LocalPlayerId;
 
 use super::player::LocalPlayerInfo;
 
@@ -26,27 +29,31 @@ pub(super) struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(bevy_radiance_cascades::FlatlandGiPlugin)
-            .init_resource::<CameraZoom>()
-            .init_resource::<CameraShake>()
-            .add_systems(Startup, spawn_game_camera)
-            .add_systems(
-                Update,
-                (
-                    follow_spaceship,
-                    camera_zoom,
-                    spaceship_velocity_zoom,
-                    main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
-                    propagate_component::<NoRadiance>,
-                ),
-            )
-            .add_systems(PreUpdate, restore_camera_shake)
-            .add_systems(
-                PostUpdate,
-                camera_shake
-                    .before(propagate_transforms)
-                    .before(sync_simple_transforms),
-            );
+        app.add_plugins((
+            bevy_radiance_cascades::FlatlandGiPlugin,
+            bevy_post_process::PostProcessPlugin,
+        ))
+        .init_resource::<CameraZoom>()
+        .init_resource::<CameraShake>()
+        .add_systems(Startup, spawn_game_camera)
+        .add_systems(
+            Update,
+            (
+                damage_effect,
+                follow_spaceship,
+                camera_zoom,
+                spaceship_velocity_zoom,
+                main_window_zoom.run_if(resource_changed::<MainWindowFunc>),
+                propagate_component::<NoRadiance>,
+            ),
+        )
+        .add_systems(PreUpdate, restore_camera_shake)
+        .add_systems(
+            PostUpdate,
+            camera_shake
+                .before(propagate_transforms)
+                .before(sync_simple_transforms),
+        );
     }
 }
 
@@ -86,6 +93,11 @@ fn spawn_game_camera(
             bloom,
             SmaaSettings::default(),
             RadianceCascadesConfig::default(),
+            VignetteConfig::default(),
+            ChromaticAberrationConfig {
+                distance: 1.0,
+                ..default()
+            },
         ))
         .id();
 
@@ -133,6 +145,46 @@ fn spawn_game_camera(
     ));
 
     commands.insert_resource(MainPrepassTexture::new(image_handle, window.size()));
+}
+
+fn damage_effect(
+    mut commands: Commands,
+    mut q_camera: Query<(&mut ChromaticAberrationConfig, &mut VignetteConfig), With<GameCamera>>,
+    mut q_spaceships: Query<
+        (&Health, Option<&mut PreviousHealth>, &PlayerId, Entity),
+        (With<Spaceship>, With<SourceEntity>, Changed<Health>),
+    >,
+    local_player_id: Res<LocalPlayerId>,
+    time: Res<Time>,
+) {
+    const SPEED: f32 = 4.0;
+    let delta = time.delta_seconds() * SPEED;
+
+    let Ok((mut chrom, mut vignette)) = q_camera.get_single_mut() else {
+        return;
+    };
+
+    if let Some((health, prev_health, _, entity)) = q_spaceships
+        .iter_mut()
+        .find(|(.., &id, _)| id == local_player_id.0)
+    {
+        match prev_health {
+            Some(mut prev_health) => {
+                if prev_health.0 > **health {
+                    chrom.distance = -0.5;
+                    vignette.tint = Vec3::new(2.0, 0.0, 0.0);
+                    // We have been damaged.
+                }
+                prev_health.0 = **health;
+            }
+            None => {
+                commands.entity(entity).insert(PreviousHealth(**health));
+            }
+        }
+    }
+
+    chrom.distance = chrom.distance.lerp(1.0, delta);
+    vignette.tint = vignette.tint.lerp(Vec3::ZERO, delta);
 }
 
 fn follow_spaceship(
@@ -367,3 +419,6 @@ impl CameraShake {
 
 #[derive(Component)]
 pub(super) struct GameCamera;
+
+#[derive(Component, Deref, DerefMut)]
+pub struct PreviousHealth(f32);

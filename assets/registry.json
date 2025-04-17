@@ -11890,6 +11890,74 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_post_process::chromatic_aberration::ChromaticAberrationConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_post_process::chromatic_aberration::ChromaticAberrationConfig",
+      "properties": {
+        "contrast": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "distance": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "intensity": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "samples": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        }
+      },
+      "required": [
+        "intensity",
+        "distance",
+        "contrast",
+        "samples"
+      ],
+      "short_name": "ChromaticAberrationConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
+    "bevy_post_process::vignette::VignetteConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_post_process::vignette::VignetteConfig",
+      "properties": {
+        "distance": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "intensity": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        },
+        "tint": {
+          "type": {
+            "$ref": "#/$defs/glam::Vec3"
+          }
+        }
+      },
+      "required": [
+        "intensity",
+        "distance",
+        "tint"
+      ],
+      "short_name": "VignetteConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_radiance_cascades::NoRadiance": {
       "additionalProperties": false,
       "isComponent": true,

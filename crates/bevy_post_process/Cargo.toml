@@ -8,5 +8,9 @@ authors.workspace = true
 [dependencies]
 bevy = { workspace = true }
 
+[dev-dependencies]
+bevy-inspector-egui = { workspace = true }
+bevy = { workspace = true, features = ["dynamic_linking", "file_watcher"] }
+
 [lints]
 workspace = true

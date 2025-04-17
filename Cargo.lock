@@ -1163,6 +1163,7 @@ name = "bevy_post_process"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy-inspector-egui",
 ]
 
 [[package]]
@@ -4133,6 +4134,7 @@ dependencies = [
  "bevy_enoki",
  "bevy_kira_audio",
  "bevy_motiongfx",
+ "bevy_post_process",
  "bevy_radiance_cascades",
  "bevy_shader_utils",
  "bevy_vello",
