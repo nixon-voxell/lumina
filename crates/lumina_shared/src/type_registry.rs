@@ -39,9 +39,10 @@ impl Plugin for TypeRegistryPlugin {
             .register_type::<Animator>()
             .register_type::<Playback>()
             // Player
-            .register_type::<Weapon>()
             .register_type::<Spaceship>()
             .register_type::<SpaceshipType>() // Needed for ui.
+            .register_type::<Weapon>()
+            .register_type::<WeaponType>() // Needed for audio.
             .register_type::<AmmoStat>()
             .register_type::<AmmoType>()
             .register_type::<AmmoRef>()

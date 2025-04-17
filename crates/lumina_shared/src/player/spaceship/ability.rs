@@ -1,8 +1,10 @@
 use std::ops::Add;
+use std::time::Duration;
 
 use avian2d::prelude::*;
 use bevy::prelude::*;
 use lightyear::prelude::*;
+use lumina_common::cooldown_effect::CooldownEffectSet;
 use lumina_common::prelude::*;
 
 use crate::health::{Health, MaxHealth};
@@ -33,8 +35,11 @@ impl Plugin for SpaceshipAbilityPlugin {
                     apply_heal_ability,
                 )
                     .chain(),
+                cancel_ability.after(CooldownEffectSet),
             ),
-        );
+        )
+        .observe(ability_in)
+        .observe(ability_out);
     }
 }
 
@@ -68,7 +73,7 @@ fn enable_heal_ability(
     mut q_spaceships: Query<
         &mut ShapeCaster,
         (
-            Added<AbilityEffect>,
+            Added<AbilityEffectTimer>,
             With<HealAbilityConfig>,
             With<SourceEntity>,
         ),
@@ -84,7 +89,7 @@ fn disable_heal_ability(
     mut q_spaceships: Query<
         &mut ShapeCaster,
         (
-            Added<AbilityCooldown>,
+            Added<AbilityCooldownTimer>,
             With<HealAbilityConfig>,
             With<SourceEntity>,
         ),
@@ -100,8 +105,9 @@ fn apply_heal_ability(
     q_spaceships: Query<
         (&ShapeHits, &HealAbilityConfig, Entity),
         (
-            Without<AbilityCooldown>,
-            With<AbilityEffect>,
+            Without<AbilityCooldownTimer>,
+            With<AbilityEffectTimer>,
+            Without<CancelAbility>,
             With<SourceEntity>,
         ),
     >,
@@ -136,8 +142,8 @@ fn apply_ability_effect<T: ThreadSafe>(
     q_abilities: AliveQuery<
         (&SpaceshipAction, Entity),
         (
-            Without<AbilityCooldown>,
-            Without<AbilityEffect>,
+            Without<AbilityCooldownTimer>,
+            Without<AbilityEffectTimer>,
             With<SourceEntity>,
             With<AbilityConfig<T>>,
         ),
@@ -153,11 +159,65 @@ fn apply_ability_effect<T: ThreadSafe>(
     }
 }
 
+fn ability_in(
+    trigger: Trigger<OnAdd, AbilityEffectTimer>,
+    mut commands: Commands,
+    q_player_ids: Query<&PlayerId>,
+    network_identity: NetworkIdentity,
+) {
+    let entity = trigger.entity();
+    if let Ok(id) = q_player_ids.get(entity) {
+        if network_identity.is_server() || id.is_local() {
+            commands.entity(entity).insert(AbilityActive);
+        }
+    }
+}
+
+fn ability_out(
+    trigger: Trigger<OnAdd, AbilityCooldownTimer>,
+    mut commands: Commands,
+    q_player_ids: Query<&PlayerId>,
+    network_identity: NetworkIdentity,
+) {
+    let entity = trigger.entity();
+    if let Ok(id) = q_player_ids.get(entity) {
+        if network_identity.is_server() || id.is_local() {
+            commands.entity(entity).remove::<AbilityActive>();
+        }
+    }
+}
+
+fn cancel_ability(
+    mut commands: Commands,
+    mut q_abilities: Query<
+        (
+            Option<&mut AbilityEffectTimer>,
+            Option<&mut AbilityCooldownTimer>,
+            Entity,
+        ),
+        With<CancelAbility>,
+    >,
+) {
+    for (effect, cooldown, entity) in q_abilities.iter_mut() {
+        if let Some(mut effect) = effect {
+            let duration = effect.duration();
+            effect.tick(duration);
+        } else if let Some(mut cooldown) = cooldown {
+            // Allow some time for vfx to go off.
+            let duration = cooldown.duration().saturating_sub(Duration::from_secs(1));
+            cooldown.tick(duration);
+        } else {
+            // Cleanup.
+            commands.entity(entity).remove::<CancelAbility>();
+        }
+    }
+}
+
 pub type ShadowAbilityConfig = AbilityConfig<ShadowAbility>;
 pub type HealAbilityConfig = AbilityConfig<HealAbility>;
 
-pub type AbilityEffect = Effect<Ability>;
-pub type AbilityCooldown = Cooldown<Ability>;
+pub type AbilityEffectTimer = EffectTimer<Ability>;
+pub type AbilityCooldownTimer = CooldownTimer<Ability>;
 
 /// Marker struct for ability effect cooldown.
 #[derive(Clone, PartialEq)]
@@ -167,8 +227,10 @@ pub struct Ability;
 #[derive(Component, Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[reflect(Component)]
 pub struct AbilityConfig<T> {
-    duration: f32,
-    cooldown: f32,
+    pub duration: f32,
+    pub cooldown: f32,
+    pub cue_in_duration: f32,
+    pub cue_out_duration: f32,
     ability: T,
 }
 
@@ -188,23 +250,63 @@ impl<T: ThreadSafe> CooldownEffectConfig for AbilityConfig<T> {
     }
 }
 
-#[derive(Serialize, Reflect, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ShadowAbility {
     /// A color multiplier for the spaceship's material. (Should be a negative value).
     pub strength: f32,
-    /// Transition duration of the spaceship's material colors.
-    pub transition_duration: f32,
 }
 
-#[derive(Serialize, Reflect, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Reflect, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct HealAbility {
     /// Radius of the ability.
     pub radius: f32,
-    /// Animation speed of the vfx.
-    pub animation_speed: f32,
     /// The amount of healing per second.
     pub healing_rate: f32,
 }
 
+/// Temporary marker component for canceling ability until a better
+/// ability system comes along.
+#[derive(Component)]
+pub struct CancelAbility;
+
+#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct AbilityActive;
+
+// use std::marker::PhantomData;
+// use bevy::ecs::system::{IntoObserverSystem, ObserverSystem};
+
+// /// An empty trigger that does nothing.
+// fn empty_trigger<E: Event, B: Bundle>(_: Trigger<E, B>) {}
+
+// // fn on_reset(trigger: Trigger<CancelAbility>, mut commands: Commands) {
+// //     commands.entity(trigger.entity()).remove::<AbilityEffect>().insert(AbilityCooldown())
+// // }
+
+// pub trait AbilitySystem: Bundle + Sized {
+//     fn init() -> impl ObserverSystem<OnAdd, Self> {
+//         IntoObserverSystem::into_system(empty_trigger)
+//     }
+
+//     fn on_enable() -> impl ObserverSystem<EnableAbility, ()> {
+//         IntoObserverSystem::into_system(empty_trigger)
+//     }
+
+//     fn on_disable() -> impl ObserverSystem<DisableAbility, ()> {
+//         IntoObserverSystem::into_system(empty_trigger)
+//     }
+
+//     fn on_reset() -> impl ObserverSystem<CancelAbility, ()> {
+//         IntoObserverSystem::into_system(empty_trigger)
+//     }
+// }
+
+// #[derive(Event)]
+// pub struct EnableAbility;
+
+// #[derive(Event)]
+// pub struct DisableAbility;
+
 // #[derive(Event)]
 // pub struct CancelAbility;
+
+// pub struct AbilityEnableTimer();

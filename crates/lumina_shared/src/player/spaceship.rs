@@ -3,17 +3,15 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
+use movement::*;
 
 use crate::action::PlayerAction;
 use crate::health::Health;
 use crate::player::objective::CollectedLumina;
 use crate::player::{GameLayer, PlayerId, PlayerInfoType, PlayerInfos};
 
-pub use ability::*;
-pub use movement::*;
-
-mod ability;
-mod movement;
+pub mod ability;
+pub mod movement;
 
 pub(super) struct SpaceshipPlugin;
 

@@ -26,7 +26,7 @@ impl Plugin for GameModeUiPlugin {
             .register_typst_asset::<GameMode>()
             .compile_typst_func::<GameMode, MainFunc>()
             .push_to_main_window::<GameMode, MainFunc, _>(
-                MainWindowSet::Default,
+                MainWindowSet::Foreground,
                 |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
                     q_controller.single().curr_time() > f32::EPSILON
                 },
