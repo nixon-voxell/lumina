@@ -107,7 +107,7 @@ fn apply_heal_ability(
         (With<AbilityActive>, With<SourceEntity>),
     >,
     mut q_healths: Query<(&mut Health, &MaxHealth), (With<Spaceship>, With<SourceEntity>)>,
-    q_team_types: Query<&TeamType, (With<Spaceship>, With<SourceEntity>)>,
+    q_team_types: AliveQuery<&TeamType, (With<Spaceship>, With<SourceEntity>)>,
     time: Res<Time>,
 ) {
     let dt = time.delta_seconds();
