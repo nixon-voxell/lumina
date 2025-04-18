@@ -16,7 +16,7 @@ impl Plugin for RespawnCueUiPlugin {
             .register_typst_asset::<RespawnTimer>()
             .compile_typst_func::<RespawnTimer, RespawnTimerFunc>()
             .push_to_main_window::<RespawnTimer, RespawnTimerFunc, _>(
-                MainWindowSet::Default,
+                MainWindowSet::Foreground,
                 in_state(Screen::InGame),
             )
             .recompile_on_interaction::<RespawnTimerFunc>(|func| &mut func.dummy_update)
