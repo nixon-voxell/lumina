@@ -13,8 +13,10 @@ lumina_vfx = { workspace = true }
 lumina_dev = { workspace = true, optional = true }
 bevy_shader_utils = { workspace = true }
 bevy_radiance_cascades = { workspace = true }
+bevy_post_process = { workspace = true }
 velyst = { workspace = true }
 bevy = { workspace = true }
+bevy_kira_audio = { workspace = true }
 bevy_vello = { workspace = true }
 lightyear = { workspace = true }
 leafwing-input-manager = { workspace = true }

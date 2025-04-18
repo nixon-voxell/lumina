@@ -26,7 +26,7 @@ impl Plugin for GameModeUiPlugin {
             .register_typst_asset::<GameMode>()
             .compile_typst_func::<GameMode, MainFunc>()
             .push_to_main_window::<GameMode, MainFunc, _>(
-                MainWindowSet::Default,
+                MainWindowSet::Foreground,
                 |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
                     q_controller.single().curr_time() > f32::EPSILON
                 },
@@ -112,7 +112,7 @@ fn matchmacke_btns(
     let mut player_count = None;
     for (i, &btn) in MATCHMAKE_BTNS.iter().enumerate() {
         if interactions.pressed(btn) {
-            player_count = Some(1 << (i + 1));
+            player_count = Some((i as u8 + 1) << 1);
             break;
         }
     }

@@ -105,16 +105,19 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<HealAbilityConfig>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<AbilityEffect>(ChannelDirection::ServerToClient)
+        app.register_component::<AbilityEffectTimer>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
-        app.register_component::<AbilityCooldown>(ChannelDirection::ServerToClient)
+        app.register_component::<AbilityCooldownTimer>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Simple);
+
+        app.register_component::<AbilityActive>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<WeaponType>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<WeaponState>(ChannelDirection::ServerToClient)
+        app.register_component::<WeaponMagazine>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
 
         app.register_component::<WeaponReload>(ChannelDirection::ServerToClient)

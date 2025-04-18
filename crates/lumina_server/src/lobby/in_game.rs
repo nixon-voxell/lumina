@@ -5,10 +5,9 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-use crate::game::ResetAllSpaceshipsInLobby;
 use crate::player::objective::{ObjectiveAreaManager, ResetObjectiveArea, OBJECTIVE_AREA_COUNT};
 
-use super::{LobbyFull, LobbyInGame};
+use super::{LobbyFull, LobbyInGame, ResetSpaceshipsInLobby};
 
 pub(super) struct InGamePlugin;
 
@@ -53,8 +52,8 @@ fn start_game(
                 &room_manager,
             );
 
-            // Trigger spaceship reset
-            commands.trigger_targets(ResetAllSpaceshipsInLobby, entity);
+            // Trigger spaceship reset.
+            commands.trigger_targets(ResetSpaceshipsInLobby, entity);
 
             commands
                 .entity(entity)
@@ -74,7 +73,6 @@ fn start_game(
     }
 }
 
-// TODO: Needs better management, and only open when one area at a time...
 fn manage_objective_areas(
     mut commands: Commands,
     // Manage sandbox managers only.

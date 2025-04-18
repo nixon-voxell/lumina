@@ -28,7 +28,7 @@ impl Plugin for SpaceshipSelectUiPlugin {
             .register_typst_asset::<SpaceshipSelect>()
             .compile_typst_func::<SpaceshipSelect, MainFunc>()
             .push_to_main_window::<SpaceshipSelect, MainFunc, _>(
-                MainWindowSet::Default,
+                MainWindowSet::Foreground,
                 in_state(Screen::LocalLobby).and_then(
                     |q_controller: Query<&SequenceController, With<AnimationMarker>>| {
                         q_controller.single().curr_time() > f32::EPSILON

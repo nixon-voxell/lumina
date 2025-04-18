@@ -4,12 +4,14 @@ use bevy_enoki::prelude::*;
 
 mod main_prepass;
 mod material2d;
+mod origin_colors;
 mod particle;
 mod type_registry;
 
 pub mod prelude {
     pub use crate::main_prepass::{MainPrepassCamera, MainPrepassTexture};
     pub use crate::material2d::{BoosterMaterial, HealAbilityMaterial};
+    pub use crate::origin_colors::{OriginColors, OriginColorsPlugin};
     pub use crate::particle::{AmmoHitMaterial, MuzzleFlashMaterial};
     pub use crate::particle::{DespawnVfx, DespawnVfxEffects, DespawnVfxType};
     pub use crate::particle::{
