@@ -123,8 +123,8 @@ fn boost_movement(
             &mut Energy,
             &SpaceshipAction,
             &Spaceship,
-            Option<&AbilityActive>,
-            Option<&ShadowAbilityConfig>,
+            Has<AbilityActive>,
+            Has<ShadowAbilityConfig>,
         ),
         (Without<DashEffect>, With<SourceEntity>),
     >,
@@ -142,7 +142,7 @@ fn boost_movement(
         let consumption = boost.energy_consumption * time.delta_seconds();
 
         // Check if ShadowAbility is active
-        let is_shadow_active = ability_active.is_some() && shadow_config.is_some();
+        let is_shadow_active = ability_active && shadow_config;
 
         if action.is_boosting {
             if !is_shadow_active && energy.energy < consumption {
@@ -188,8 +188,8 @@ fn dash_movement(
             &SpaceshipAction,
             &Spaceship,
             Entity,
-            Option<&AbilityActive>,
-            Option<&ShadowAbilityConfig>,
+            Has<AbilityActive>,
+            Has<ShadowAbilityConfig>,
         ),
         (
             Without<DashEffect>,
@@ -209,7 +209,7 @@ fn dash_movement(
     ) in q_spaceships.iter_mut()
     {
         // Check if ShadowAbility is active
-        let is_shadow_active = ability_active.is_some() && shadow_config.is_some();
+        let is_shadow_active = ability_active && shadow_config;
 
         if action.is_dash {
             if !is_shadow_active && energy.energy < dash.energy_consumption {
