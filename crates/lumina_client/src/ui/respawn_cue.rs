@@ -12,14 +12,14 @@ pub(super) struct RespawnCueUiPlugin;
 
 impl Plugin for RespawnCueUiPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<RespawnTimerFunc>()
-            .register_typst_asset::<RespawnTimer>()
-            .compile_typst_func::<RespawnTimer, RespawnTimerFunc>()
-            .push_to_main_window::<RespawnTimer, RespawnTimerFunc, _>(
+        app.init_resource::<MainFunc>()
+            .register_typst_asset::<RespawnCue>()
+            .compile_typst_func::<RespawnCue, MainFunc>()
+            .push_to_main_window::<RespawnCue, MainFunc, _>(
                 MainWindowSet::Foreground,
                 in_state(Screen::InGame),
             )
-            .recompile_on_interaction::<RespawnTimerFunc>(|func| &mut func.dummy_update)
+            .recompile_on_interaction::<MainFunc>(|func| &mut func.dummy_update)
             .add_systems(
                 Update,
                 update_respawn_timer.run_if(in_state(Screen::InGame)),
@@ -29,7 +29,7 @@ impl Plugin for RespawnCueUiPlugin {
 
 fn update_respawn_timer(
     time: Res<Time>,
-    mut func: ResMut<RespawnTimerFunc>,
+    mut func: ResMut<MainFunc>,
     q_spaceships: Query<(Entity, Has<Dead>), With<SourceEntity>>,
     local_player_info: LocalPlayerInfo,
     mut timer: Local<Option<f32>>,
@@ -94,7 +94,7 @@ fn update_respawn_timer(
 
 #[derive(TypstFunc, Resource)]
 #[typst_func(name = "main", layer = 1)]
-struct RespawnTimerFunc {
+struct MainFunc {
     is_dead: bool,
     elapsed_time: f64,
     remaining_time: f64,
@@ -102,7 +102,7 @@ struct RespawnTimerFunc {
     dummy_update: u8,
 }
 
-impl Default for RespawnTimerFunc {
+impl Default for MainFunc {
     fn default() -> Self {
         Self {
             is_dead: false,
@@ -115,5 +115,5 @@ impl Default for RespawnTimerFunc {
 }
 
 #[derive(TypstPath)]
-#[typst_path = "typst/client/respawn_cue_bar.typ"]
-struct RespawnTimer;
+#[typst_path = "typst/client/respawn_cue.typ"]
+struct RespawnCue;

@@ -21,10 +21,10 @@
       #box(
         width: 15em,
         height: 15em,
-        fill: rgb(0, 0, 0, 80%),
-        stroke: 3pt + rgb(255, 50, 50, 50%),
-        radius: 8pt,
-        inset: 1.2em,
+        // fill: rgb(0, 0, 0, 80%),
+        // stroke: 3pt + rgb(255, 50, 50, 50%),
+        // radius: 8pt,
+        // inset: 1.2em,
       )[
         #set text(
           font: "IBrand",
