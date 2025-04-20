@@ -74,5 +74,11 @@ fn mouse_motion(
     }
 }
 
-#[derive(Resource, Deref, DerefMut, Default, Copy, Clone)]
+#[derive(Resource, Deref, DerefMut, Copy, Clone)]
 pub struct IsUsingMouse(pub bool);
+
+impl Default for IsUsingMouse {
+    fn default() -> Self {
+        Self(true)
+    }
+}

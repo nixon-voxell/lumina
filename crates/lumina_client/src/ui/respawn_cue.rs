@@ -15,6 +15,7 @@ pub(super) struct RespawnCueUiPlugin;
 impl Plugin for RespawnCueUiPlugin {
     fn build(&self, app: &mut App) {
         let run_condition = in_state(Screen::InGame).or_else(in_state(Screen::MultiplayerLobby));
+
         app.init_resource::<MainFunc>()
             .register_typst_asset::<RespawnCue>()
             .compile_typst_func::<RespawnCue, MainFunc>()
