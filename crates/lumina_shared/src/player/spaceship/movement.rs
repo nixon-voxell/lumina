@@ -7,6 +7,7 @@ use lumina_common::prelude::*;
 #[allow(unused_imports)]
 use crate::action::PlayerAction;
 use crate::player::PlayerId;
+use crate::prelude::*;
 
 use super::{Spaceship, SpaceshipAction};
 
@@ -122,16 +123,36 @@ fn boost_movement(
             &mut Energy,
             &SpaceshipAction,
             &Spaceship,
+            Has<AbilityActive>,
+            Has<ShadowAbilityConfig>,
         ),
         (Without<DashEffect>, With<SourceEntity>),
     >,
     time: Res<Time>,
 ) {
-    for (mut acceleration, mut energy, action, Spaceship { boost, .. }) in q_spaceships.iter_mut() {
+    for (
+        mut acceleration,
+        mut energy,
+        action,
+        Spaceship { boost, .. },
+        ability_active,
+        shadow_config,
+    ) in q_spaceships.iter_mut()
+    {
         let consumption = boost.energy_consumption * time.delta_seconds();
 
-        if action.is_boosting && energy.energy >= consumption {
-            energy.energy -= consumption;
+        // Check if ShadowAbility is active
+        let is_shadow_active = ability_active && shadow_config;
+
+        if action.is_boosting {
+            if !is_shadow_active && energy.energy < consumption {
+                // Skip if not enough energy and ShadowAbility is not active
+                continue;
+            }
+            if !is_shadow_active {
+                // Consume energy only if ShadowAbility is not active
+                energy.energy -= consumption;
+            }
             **acceleration += boost.linear_acceleration;
         }
     }
@@ -167,6 +188,8 @@ fn dash_movement(
             &SpaceshipAction,
             &Spaceship,
             Entity,
+            Has<AbilityActive>,
+            Has<ShadowAbilityConfig>,
         ),
         (
             Without<DashEffect>,
@@ -175,9 +198,28 @@ fn dash_movement(
         ),
     >,
 ) {
-    for (mut energy, direction, action, Spaceship { dash, .. }, entity) in q_spaceships.iter_mut() {
-        if action.is_dash && energy.energy >= dash.energy_consumption {
-            energy.energy -= dash.energy_consumption;
+    for (
+        mut energy,
+        direction,
+        action,
+        Spaceship { dash, .. },
+        entity,
+        ability_active,
+        shadow_config,
+    ) in q_spaceships.iter_mut()
+    {
+        // Check if ShadowAbility is active
+        let is_shadow_active = ability_active && shadow_config;
+
+        if action.is_dash {
+            if !is_shadow_active && energy.energy < dash.energy_consumption {
+                // Skip if not enough energy and ShadowAbility is not active
+                continue;
+            }
+            if !is_shadow_active {
+                // Consume energy only if ShadowAbility is not active
+                energy.energy -= dash.energy_consumption;
+            }
             commands.entity(entity).insert((
                 DashEffect {
                     timer: Timer::from_seconds(dash.duration, TimerMode::Once),
