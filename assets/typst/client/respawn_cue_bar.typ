@@ -4,7 +4,7 @@
 #let main(is_dead, elapsed_time, remaining_time, percentage, dummy_update) = {
   if not is_dead {
     // Hide the UI when not dead
-    return 
+    return
   }
 
   // Total respawn time
@@ -15,7 +15,7 @@
     #box(
       width: 100%,
       height: 100%,
-      fill: rgb(0, 0, 0, 60%)
+      fill: rgb(0, 0, 0, 60%),
     )[]
     #place(top + center, dy: 6em)[
       #box(
@@ -27,7 +27,7 @@
         inset: 1.2em,
       )[
         #set text(
-          font: "IBrand", 
+          font: "IBrand",
           size: 1em,
           fill: rgb(255, 100, 100),
           weight: "bold",
@@ -35,7 +35,12 @@
         #stack(
           dir: ttb,
           spacing: 0.5em,
-          text(underline(offset: 3pt, stroke: 1pt + rgb(255, 50, 50))[CRITICAL FAILURE]),
+          text(
+            underline(
+              offset: 3pt,
+              stroke: 1pt + rgb(255, 50, 50),
+            )[CRITICAL FAILURE],
+          ),
           text(size: 0.8em, fill: rgb(255, 50, 50).desaturate(20%))[
             Spaceship Destroyed
           ],
@@ -49,7 +54,7 @@
         )
         #let countdown = calc.clamp(remaining_time, 0.0, total_time)
         #let countdown_str = calc.round(countdown * 10.0) / 10.0
-        
+
         #stack(
           dir: ttb,
           spacing: 0.5em,
@@ -57,7 +62,7 @@
           text(
             size: 1em,
             weight: "bold",
-            fill: rgb(0, 255, 180)
+            fill: rgb(0, 255, 180),
           )[
             #countdown_str ~ s
           ],
