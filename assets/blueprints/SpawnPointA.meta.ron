@@ -2,14 +2,14 @@
   assets:
    [ 
     ("SpawnerPlatform", File ( path: "blueprints/SpawnerPlatform.glb" )),
-    ("SpawnerGreen1", File ( path: "materials/SpawnerGreen1.glb" )),
-    ("SpawnerGreen2", File ( path: "materials/SpawnerGreen2.glb" )),
-    ("SpawnerBlue1", File ( path: "materials/SpawnerBlue1.glb" )),
     ("SpawnerBlack1", File ( path: "materials/SpawnerBlack1.glb" )),
-    ("SpawnerGreen3", File ( path: "materials/SpawnerGreen3.glb" )),
-    ("SpawnerBlue2", File ( path: "materials/SpawnerBlue2.glb" )),
+    ("SpawnerGreen1", File ( path: "materials/SpawnerGreen1.glb" )),
     ("SpawnerBlue3", File ( path: "materials/SpawnerBlue3.glb" )),
+    ("SpawnerBlue2", File ( path: "materials/SpawnerBlue2.glb" )),
+    ("SpawnerGreen2", File ( path: "materials/SpawnerGreen2.glb" )),
     ("SpawnerBlue8", File ( path: "materials/SpawnerBlue8.glb" )),
+    ("SpawnerBlue1", File ( path: "materials/SpawnerBlue1.glb" )),
     ("SpawnerGray1", File ( path: "materials/SpawnerGray1.glb" )),
+    ("SpawnerGreen3", File ( path: "materials/SpawnerGreen3.glb" )),
    ]
 )

@@ -11,6 +11,7 @@ pub(super) mod game_over;
 pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
+pub(super) mod movement_button;
 pub(super) mod respawn_cue;
 pub(super) mod sandbox;
 pub(super) mod spaceship_select;
@@ -22,6 +23,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             splash::SplashUiPlugin,
+            movement_button::MovementButtonUiPlugin,
             main_menu::MainMenuUiPlugin,
             game_mode::GameModeUiPlugin,
             lobby::LobbyUiPlugin,
