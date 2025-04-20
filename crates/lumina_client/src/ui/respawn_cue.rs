@@ -12,18 +12,15 @@ pub(super) struct RespawnCueUiPlugin;
 
 impl Plugin for RespawnCueUiPlugin {
     fn build(&self, app: &mut App) {
+        let run_condition = in_state(Screen::InGame).or_else(in_state(Screen::MultiplayerLobby));
         app.init_resource::<MainFunc>()
             .register_typst_asset::<RespawnCue>()
             .compile_typst_func::<RespawnCue, MainFunc>()
             .push_to_main_window::<RespawnCue, MainFunc, _>(
                 MainWindowSet::Foreground,
-                in_state(Screen::InGame),
+                run_condition.clone(),
             )
-            .recompile_on_interaction::<MainFunc>(|func| &mut func.dummy_update)
-            .add_systems(
-                Update,
-                update_respawn_timer.run_if(in_state(Screen::InGame)),
-            );
+            .add_systems(Update, update_respawn_timer.run_if(run_condition));
     }
 }
 
