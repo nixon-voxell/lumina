@@ -276,7 +276,7 @@
   width,
   height,
   keybind,
-  bg_color: base2.transparentize(30%),
+  bg_color: base3.transparentize(30%),
   load_color: base0.transparentize(30%),
   stroke_color: base2.transparentize(30%).lighten(20%),
 ) = {
@@ -412,14 +412,16 @@
             "/icons/dash.svg",
             height * 2,
             height * 2,
-            [#text(size: 0.8em)[[Space]]],
+            if data.is_using_mouse { [#text(size: 0.8em)[[Space]]] } else {
+              [A]
+            },
           ),
           effect_cooldown_display(
             data.ability_cooldown,
             "/icons/" + ability_icon + ".svg",
             height * 3,
             height * 3,
-            [Q],
+            if data.is_using_mouse { [Q] } else { [B] },
             bg_color: if data.ability_active {
               blue.darken(60% + 20% * sin_lerp_fast)
             } else {
