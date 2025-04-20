@@ -1,5 +1,5 @@
 #import "../monokai_pro.typ": *
-#import "../utils.typ": lerp
+#import "../utils.typ": lerp, parallelogram
 
 #let wave(width, height, amplitude, freq, time, fill) = {
   let s_time = (
@@ -275,31 +275,31 @@
   icon_path,
   width,
   height,
-  bg_color: base4,
+  keybind,
+  bg_color: base2.transparentize(30%),
+  load_color: base0.transparentize(30%),
+  stroke_color: base2.transparentize(30%).lighten(20%),
 ) = {
-  let fill_height = cooldown * 100%
-  let border_radius = 0.4em
-
   box(
-    width: width,
-    height: height,
-    fill: bg_color.transparentize(20%),
-    radius: border_radius,
-    stroke: (paint: bg_color.lighten(40%), thickness: 0.1em),
-    clip: true,
-  )[
-    // Icon and cooldown overlay
-    #box(inset: 0.5em, image(icon_path))
-
-    // Dark overlay inside the icon filling from bottom to top
-    #place(bottom)[
-      #rect(
-        width: 100%,
-        height: fill_height,
-        fill: black.transparentize(10%),
-      )
-    ]
-  ]
+    inset: (x: 0.5em),
+    parallelogram(
+      height: width,
+      width: height,
+      slant: -width * 0.6,
+      fill: gradient.linear(
+        (bg_color, 0%),
+        (bg_color, 100% * (1.0 - cooldown)),
+        (load_color, 100% * (1.0 - cooldown)),
+        (load_color, 100%),
+        angle: 90deg,
+      ),
+      stroke: stroke_color + 0.2em,
+    )[#box(inset: (x: height * 0.5))[
+        #image(icon_path)
+        #place(center + top, dy: -height * 0.6, dx: width * 0.2)[#keybind]
+      ]
+    ],
+  )
 }
 
 #let main(data, dummy_update) = {
@@ -388,7 +388,7 @@
             ),
             (red, lumina_percent),
           )
-          .transparentize(60% + (lumina_percent * 30% * sin_lerp_fast)),
+          .transparentize(30% + (lumina_percent * 30% * sin_lerp_fast)),
         color
           .mix(
             (
@@ -400,39 +400,52 @@
             ),
             (red, lumina_percent),
           )
-          .transparentize(60% + (lumina_percent * 30% * sin_lerp_fast)),
+          .transparentize(30% + (lumina_percent * 30% * sin_lerp_fast)),
       )
 
-      #box[
+      #box(
+        stack(
+          dir: ltr,
+          spacing: 0.3em,
+          effect_cooldown_display(
+            data.dash_cooldown,
+            "/icons/dash.svg",
+            height * 2,
+            height * 2,
+            [#text(size: 0.8em)[[Space]]],
+          ),
+          effect_cooldown_display(
+            data.ability_cooldown,
+            "/icons/" + ability_icon + ".svg",
+            height * 3,
+            height * 3,
+            [Q],
+            bg_color: if data.ability_active {
+              blue.darken(60% + 20% * sin_lerp_fast)
+            } else {
+              base3.transparentize(30%)
+            },
+            stroke_color: if data.ability_active {
+              gradient.linear(
+                ..lumina_colors.map(fill => fill.transparentize(20%)),
+              )
+            } else {
+              base3.transparentize(30%).lighten(20%)
+            },
+          ),
+        ),
+      )
+      #box(inset: (left: -height * 2))[
         #polygon.regular(
-          fill: gradient.linear(..lumina_colors.map(col => col.darken(30%))),
-          stroke: (0.1em + 0.2em * sin_lerp_fast)
-            + gradient.linear(..lumina_colors.map(col => col.darken(60%))),
-          size: 3em,
+          fill: base3.transparentize(60%),
+          stroke: (0.1em + 0.1em * sin_lerp_fast)
+            + gradient.linear(..lumina_colors.map(col => col.darken(20%))),
+          size: height * 2,
           vertices: 3,
         )
         #place(center + horizon, dy: 0.3em)[#data.lumina_count]
         #place(center + bottom, dy: 0.7em)[#text(size: 0.7em)[Lumina]]
       ]
-
-
-      #stack(
-        dir: ltr,
-        spacing: 1em,
-        effect_cooldown_display(
-          data.dash_cooldown,
-          "/icons/dash.svg",
-          height * 2,
-          height * 2,
-        ),
-        effect_cooldown_display(
-          data.ability_cooldown,
-          "/icons/" + ability_icon + ".svg",
-          height * 3,
-          height * 3,
-          bg_color: if data.ability_active { blue.darken(60%) } else { base4 },
-        ),
-      )
     ]
   ]
 }
