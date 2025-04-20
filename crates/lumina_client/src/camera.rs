@@ -39,7 +39,7 @@ impl Plugin for CameraPlugin {
         .add_systems(
             Update,
             (
-                damage_effect,
+                health_effect,
                 follow_spaceship,
                 camera_zoom,
                 spaceship_velocity_zoom,
@@ -147,7 +147,7 @@ fn spawn_game_camera(
     commands.insert_resource(MainPrepassTexture::new(image_handle, window.size()));
 }
 
-fn damage_effect(
+fn health_effect(
     mut commands: Commands,
     mut q_camera: Query<(&mut ChromaticAberrationConfig, &mut VignetteConfig), With<GameCamera>>,
     mut q_spaceships: Query<
@@ -171,9 +171,12 @@ fn damage_effect(
         match prev_health {
             Some(mut prev_health) => {
                 if prev_health.0 > **health {
+                    // We have been damaged.
                     chrom.distance = -0.5;
                     vignette.tint = Vec3::new(2.0, 0.0, 0.0);
-                    // We have been damaged.
+                } else if prev_health.0 < **health {
+                    // We have been healed.
+                    vignette.tint = Vec3::new(0.0, 2.0, 0.0);
                 }
                 prev_health.0 = **health;
             }

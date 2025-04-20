@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::game::prelude::*;
+use lumina_shared::game::RESPAWN_DURATION;
 use lumina_shared::prelude::*;
 use server::*;
 
@@ -80,12 +81,15 @@ fn handle_player_death(
             commands.entity(entity).insert((
                 Dead,
                 RespawnDelay {
-                    timer: Timer::from_seconds(5.0, TimerMode::Once),
+                    timer: Timer::from_seconds(RESPAWN_DURATION, TimerMode::Once),
                 },
                 CancelAbility,
             ));
 
-            info!("Player {:?} will respawn after 5 seconds", player_id);
+            info!(
+                "Player {:?} will respawn after {RESPAWN_DURATION} seconds",
+                player_id
+            );
         }
     }
 }
