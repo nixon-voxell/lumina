@@ -354,16 +354,57 @@
             ],
             box(width: 1em),
 
-            ..range(data.magazine_size).map(i => {
-              let bullet_icon = if i < data.magazine { "bullet" } else {
-                "bullet-used"
-              }
+            {
+              let chunk_size = data.reload_chunk_size
+              let magazine_size = data.magazine_size
+              let magazine = data.magazine
+              let reload_size = data.reload_size
+              let full_chunks = data.full_chunks
 
-              move(
-                dy: if i < data.reload_size { 0em } else { 0.7em },
-                image("/icons/" + bullet_icon + ".svg", height: 1em),
+              // Calculate number of chunks
+              let total_chunks = calc.ceil(magazine_size / chunk_size)
+
+              // Render bullets grouped by chunks
+              stack(
+                dir: ltr,
+                // Spacing between chunks
+                spacing: 0.3em, 
+                ..range(total_chunks).map(chunk_idx => {
+                  let start_idx = chunk_idx * chunk_size
+                  let end_idx = calc.min(start_idx + chunk_size, magazine_size)
+                  // Render bullets in this chunk
+                  stack(
+                    dir: ltr,
+                    spacing: -0.2em,
+                    ..range(start_idx, end_idx).map(i => {
+                      let bullet_icon = if i < magazine { "bullet" } else { "bullet-used" }
+                      // index of the first bullet in this chunk
+                      let chunk_start = full_chunks * chunk_size
+                      let dy = if  chunk_idx < full_chunks {
+                        // chunks already full, stay up
+                          0em
+                        // chunks not yet touched, stay down
+                        } else if chunk_idx > full_chunks {
+                          0.7em
+                        } else {
+                          // no progress yet, everything in this chunk sits down
+                          if reload_size <= chunk_start {
+                            0.7em
+                          } else if i < reload_size {
+                            0em
+                          } else {
+                            0.7em
+                          }
+                        }
+                      move(
+                        dy: dy,
+                        image("/icons/" + bullet_icon + ".svg", height: 1em),
+                      )
+                    })
+                  )
+                })
               )
-            }),
+            }
           )
         ],
       )
