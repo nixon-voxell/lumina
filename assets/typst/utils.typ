@@ -230,3 +230,32 @@
     ] #lbl
   ]
 }
+
+#let parallelogram(
+  body,
+  height: 1em,
+  width: 1em,
+  slant: 0.5em,
+  fill: base0,
+  stroke: base2,
+) = context {
+  let total_width = width + calc.abs(slant)
+
+  box(
+    inset: (right: -total_width),
+    polygon(
+      stroke: stroke,
+      fill: fill,
+      (0em, 0em),
+      (slant, height),
+      (width + slant, height),
+      (width, 0em),
+    ),
+  )
+
+  box(
+    width: width + calc.abs(slant),
+    height: height,
+    place(center + horizon, body),
+  )
+}

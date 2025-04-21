@@ -6,6 +6,7 @@ use velyst::prelude::*;
 use velyst::typst::foundations::{dict, Dict};
 use velyst::typst::utils::OptionExt;
 
+use crate::player::aim::IsUsingMouse;
 use crate::player::LocalPlayerInfo;
 
 pub(super) struct SpaceshipStatsPlugin;
@@ -39,6 +40,7 @@ fn spaceship_stats(
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
     time: Res<Time>,
+    is_using_mouse: Res<IsUsingMouse>,
     mut boost_lerp: Local<f64>,
     mut health_lerp: Local<f64>,
 ) {
@@ -100,6 +102,7 @@ fn spaceship_stats(
         "magazine_size" => weapon.magazine_size(),
         "reload_size" => reload_size,
         "lumina_count" => lumina_collected.0,
+        "is_using_mouse" => is_using_mouse.0,
     });
 
     func.dummy_update = func.dummy_update.wrapping_add(1);

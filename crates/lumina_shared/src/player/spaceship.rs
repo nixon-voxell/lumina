@@ -73,7 +73,7 @@ fn remove_rigidbody_on_death(trigger: Trigger<OnAdd, Dead>, mut commands: Comman
 
 fn add_rigidbody_on_respawn(trigger: Trigger<OnRemove, Dead>, mut commands: Commands) {
     if let Some(mut cmd) = commands.get_entity(trigger.entity()) {
-        cmd.insert(RigidBody::Dynamic);
+        cmd.try_insert(RigidBody::Dynamic);
     }
 }
 
