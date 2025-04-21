@@ -22297,6 +22297,11 @@
             "$ref": "#/$defs/f32"
           }
         },
+        "reload_chunk_size": {
+          "type": {
+            "$ref": "#/$defs/u32"
+          }
+        },
         "reload_duration": {
           "type": {
             "$ref": "#/$defs/f32"
@@ -22308,7 +22313,8 @@
         "magazine_size",
         "recoil",
         "fire_radius",
-        "reload_duration"
+        "reload_duration",
+        "reload_chunk_size"
       ],
       "short_name": "Weapon",
       "type": "object",

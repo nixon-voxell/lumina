@@ -2,9 +2,9 @@
   assets:
    [ 
     ("Cannon", File ( path: "weapon_blueprints/Cannon.glb" )),
-    ("CannonYellow1", File ( path: "materials/CannonYellow1.glb" )),
-    ("CannonYellow2", File ( path: "materials/CannonYellow2.glb" )),
     ("CannonGray2", File ( path: "materials/CannonGray2.glb" )),
+    ("CannonYellow2", File ( path: "materials/CannonYellow2.glb" )),
+    ("CannonYellow1", File ( path: "materials/CannonYellow1.glb" )),
     ("CannonYellow3", File ( path: "materials/CannonYellow3.glb" )),
    ]
 )
