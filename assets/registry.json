@@ -22406,7 +22406,9 @@
       "oneOf": [
         "GunSparks",
         "MuzzleFlash",
-        "BoosterFlakes"
+        "BoosterFlakes",
+        "Smoke",
+        "Lumina"
       ],
       "short_name": "InPlaceVfxType",
       "type": "string",

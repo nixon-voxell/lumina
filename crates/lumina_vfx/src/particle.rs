@@ -104,7 +104,7 @@ impl<T: Component> Plugin for InPlaceVfxMapPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (init_in_place_vfx_map::<T>, map_in_place_vfx::<T>).chain(),
+            (setup_in_place_vfx_map::<T>, map_in_place_vfx::<T>).chain(),
         );
     }
 }
@@ -116,7 +116,7 @@ impl<T: Component> Default for InPlaceVfxMapPlugin<T> {
 }
 
 /// Insert [`InPlaceVfxMap`] component to target entities that just spawned.
-fn init_in_place_vfx_map<T: Component>(
+fn setup_in_place_vfx_map<T: Component>(
     mut commands: Commands,
     q_targets: Query<
         Entity,
@@ -176,6 +176,8 @@ pub enum InPlaceVfxType {
     GunSparks,
     MuzzleFlash,
     BoosterFlakes,
+    Smoke,
+    Lumina,
 }
 
 /// Marker for [`InPlaceVfxType`] that has already been mapped.
