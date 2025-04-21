@@ -14,7 +14,6 @@
 }
 
 #let score_bar(score, max_score, dummy_update) = {
-  // let score = 0
   let local_score = (score / max_score)
   let local_percent = local_score * 100%
 
@@ -30,7 +29,6 @@
   let sin_time = calc.sin(elapsed-secs()) * 0.5 + 0.5
 
   box(width: 100%, height: 100%)[
-    #local_percent
     #place(top + center)[
       #set align(horizon)
       #stack(
