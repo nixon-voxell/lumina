@@ -102,6 +102,8 @@ fn booster_vfx(
             &TargetAcceleration,
             &RotationDiff,
             &InPlaceVfxMap,
+            Has<ShadowAbilityConfig>,
+            Has<AbilityActive>,
             Entity,
         ),
         With<SourceEntity>,
@@ -117,6 +119,8 @@ fn booster_vfx(
         acceleration,
         rotation_diff,
         vfx_map,
+        has_shadow_ability,
+        is_ability_active,
         entity,
     ) in q_spaceships.iter()
     {
@@ -146,7 +150,11 @@ fn booster_vfx(
             continue;
         };
 
-        let active_state = ignition > 0.5;
+        let mut active_state = ignition > 0.5;
+        // No particle will be spawned when shadow ability is active.
+        if has_shadow_ability && is_ability_active {
+            active_state = false;
+        }
 
         for vfx_entity in vfx_entities.iter() {
             if let Ok((mut state, mut instance)) = q_particles.get_mut(*vfx_entity) {
