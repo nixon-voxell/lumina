@@ -1,22 +1,22 @@
 #import "../monokai_pro.typ": *
+#import "../utils.typ": *
 
 #let score_display(team_score, col) = {
-  rect(
+  parallelogram(
+    height: 2em,
     width: 3em,
-    height: 3em,
-    fill: col.darken(60%).transparentize(50%),
-    radius: 4pt,
-    stroke: col.darken(90%) + 0.2em,
+    slant: 0.5em,
+    stroke: none,
+    fill: col.darken(80%).transparentize(30%),
   )[
-    #align(horizon)[
-      #text(fill: base8, size: 1.3em)[#team_score]
-    ]
+    #text(fill: col.lighten(60%), size: 1.3em)[#team_score]
   ]
 }
 
-#let score_bar(score, max_score) = {
-  let local_percent = (score / max_score) * 100%
-  let other_percent = 100% - local_percent
+#let score_bar(score, max_score, dummy_update) = {
+  // let score = 0
+  let local_score = (score / max_score)
+  let local_percent = local_score * 100%
 
   let grad_sharpness = 1%
   let local_grad = calc.max(local_percent - grad_sharpness, 0%)
@@ -25,48 +25,38 @@
   let friendly_color = blue.transparentize(70%)
   let enemy_color = red.transparentize(70%)
 
-  box(width: 100%, height: 100%, inset: 2em)[
+  let total_length = 30em
+
+  let sin_time = calc.sin(elapsed-secs()) * 0.5 + 0.5
+
+  box(width: 100%, height: 100%)[
+    #local_percent
     #place(top + center)[
       #set align(horizon)
       #stack(
         dir: ltr,
-        spacing: 1em,
+        spacing: -0.25em,
         score_display(score, blue),
-        box(
-          width: 50%,
+        parallelogram(
+          width: total_length,
           height: 1em,
+          slant: 0.25em,
           fill: gradient.linear(
-            space: rgb,
-            (friendly_color, 0%),
-            (friendly_color, local_grad),
-            (enemy_color, other_grad),
-            (enemy_color, 100%),
+            (blue.darken(30%).transparentize(50%), 0%),
+            (blue, lerp(sin_time, 0%, local_percent)),
+            (blue.darken(30%).transparentize(50%), local_percent),
+            (red.darken(30%).transparentize(50%), local_percent),
+            (red, lerp(sin_time, 100%, local_percent)),
+            (red.darken(30%).transparentize(50%), 100%),
           ),
-          outset: 0.2em,
-        )[
-          #place(left + horizon)[
-            #box(
-              width: local_percent,
-              height: 100%,
-              fill: blue,
-            )
-          ]
-          #place(right + horizon)[
-            #box(
-              width: other_percent,
-              height: 100%,
-              fill: red,
-            )
-          ]
-
-          #place(dx: local_percent - grad_sharpness * 0.5)[
-            #box(
-              width: 0.5em,
-              height: 200%,
-              fill: base8.transparentize(30%),
-            )
-          ]
-        ],
+          stroke: gradient.linear(
+            (blue.lighten(60%).transparentize(60%), 0%),
+            (blue.darken(60%).transparentize(60%), local_percent),
+            (red.darken(60%).transparentize(60%), local_percent),
+            (red.lighten(60%).transparentize(60%), 100%),
+          )
+            + 0.2em,
+        )[],
         score_display(max_score - score, red),
       )
     ]

@@ -10,20 +10,23 @@ pub(super) struct ScoreBarUiPlugin;
 
 impl Plugin for ScoreBarUiPlugin {
     fn build(&self, app: &mut App) {
+        let run_condition = in_state(Screen::Sandbox).or_else(in_state(Screen::InGame));
+
         app.register_typst_asset::<ScoreBarUi>()
             .compile_typst_func::<ScoreBarUi, ScoreBarFunc>()
             .push_to_main_window::<ScoreBarUi, ScoreBarFunc, _>(
                 MainWindowSet::Default,
-                in_state(Screen::Sandbox).or_else(in_state(Screen::InGame)),
+                run_condition.clone(),
             )
             .init_resource::<ScoreBarFunc>()
             .add_systems(OnEnter(Screen::LocalLobby), reset_game_score)
             .add_systems(
                 Update,
-                udpate_game_score.run_if(
-                    resource_changed::<CachedGameStat>
-                        .and_then(in_state(Screen::Sandbox).or_else(in_state(Screen::InGame))),
-                ),
+                (
+                    udpate_game_score.run_if(resource_changed::<CachedGameStat>),
+                    dummy_update,
+                )
+                    .run_if(run_condition),
             );
     }
 }
@@ -48,11 +51,16 @@ fn reset_game_score(mut func: ResMut<ScoreBarFunc>) {
     *func = ScoreBarFunc::default();
 }
 
+fn dummy_update(mut func: ResMut<ScoreBarFunc>) {
+    func.dummy_update = func.dummy_update.wrapping_add(1);
+}
+
 #[derive(TypstFunc, Resource)]
 #[typst_func(name = "score_bar")]
 pub struct ScoreBarFunc {
     score: u8,
     max_score: u8,
+    dummy_update: u8,
 }
 
 impl Default for ScoreBarFunc {
@@ -60,6 +68,7 @@ impl Default for ScoreBarFunc {
         Self {
             score: 1,
             max_score: 2,
+            dummy_update: 0,
         }
     }
 }

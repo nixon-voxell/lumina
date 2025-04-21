@@ -29,7 +29,10 @@ impl Plugin for OreVfxPlugin {
 /// Dim ore's light based on ore's [`Health`].
 fn ore_health_dimming(
     mut commands: Commands,
-    q_ores: Query<(&OriginColors, &Health, &MaxHealth), (Changed<Health>, With<OreType>)>,
+    q_ores: Query<
+        (&OriginColors, &Health, &MaxHealth),
+        (Or<(Changed<Health>, Added<OriginColors>)>, With<OreType>),
+    >,
     q_color_materials: Query<&Handle<ColorMaterial>>,
     mut color_materials: ResMut<Assets<ColorMaterial>>,
 ) {
