@@ -121,13 +121,17 @@ fn track_weapon_magazine(
             continue;
         }
 
-        // If magazine is empty, trigger a full reload
-        commands
-            .entity(entity)
-            .insert(WeaponReload(Timer::from_seconds(
-                weapon.reload_duration(),
-                TimerMode::Once,
-            )));
+        // Calculate chunks needed to fill the magazine from 0
+        let bullets_needed = weapon.magazine_size();
+        let chunks_needed =
+            (bullets_needed as f32 / weapon.reload_chunk_size() as f32).ceil() as u32;
+
+        // Magazine is already 0, start reload
+        commands.entity(entity).insert(WeaponReload::new(
+            weapon.reload_chunk_size,
+            weapon.reload_duration,
+            chunks_needed,
+        ));
     }
 }
 
@@ -140,13 +144,29 @@ fn track_weapon_reload(
     time: Res<Time>,
 ) {
     for (mut reload, mut magazine, weapon, entity) in q_weapons.iter_mut() {
-        reload.tick(time.delta());
+        reload.timer.tick(time.delta());
 
-        if reload.finished() {
-            magazine.0 = weapon.magazine_size();
+        if reload.timer.finished() {
+            // Calculate which chunk is currently filling
+            let chunk_size = reload.chunk_size;
+            let current_full_chunks = magazine.0 / chunk_size;
 
-            // Remove the reload component since reloading is done
-            commands.entity(entity).remove::<WeaponReload>();
+            // Fill the next chunk completely
+            let next_chunk_idx = current_full_chunks + 1;
+            let next_chunk_bullets = next_chunk_idx * chunk_size;
+
+            // Make sure magazine capacity not exceeding
+            magazine.0 = next_chunk_bullets.min(weapon.magazine_size());
+
+            reload.current_chunk += 1;
+
+            // Check if all chunks are reloaded or magazine is full
+            if reload.current_chunk >= reload.total_chunks || magazine.0 >= weapon.magazine_size() {
+                commands.entity(entity).remove::<WeaponReload>();
+            } else {
+                // Reset the timer for the next chunk
+                reload.timer.reset();
+            }
         }
     }
 }
@@ -159,26 +179,35 @@ fn track_weapon_reload(
 fn manual_weapon_reload(
     q_actions: Query<(&ActionState<PlayerAction>, &PlayerId), With<SourceEntity>>,
     mut q_weapons: Query<
-        (&mut WeaponMagazine, &Weapon),
-        (
-            With<SourceEntity>,
-            // Do not reload weapons that are reloading.
-            Without<WeaponReload>,
-        ),
+        (&mut WeaponMagazine, &Weapon, Entity),
+        (With<SourceEntity>, Without<WeaponReload>),
     >,
+    mut commands: Commands,
     player_infos: Res<PlayerInfos>,
 ) {
     for (action, id) in q_actions.iter() {
         if action.pressed(&PlayerAction::Reload) {
-            if let Some((mut magazine, weapon)) = player_infos[PlayerInfoType::Weapon]
+            if let Some((magazine, weapon, entity)) = player_infos[PlayerInfoType::Weapon]
                 .get(id)
                 .and_then(|e| q_weapons.get_mut(*e).ok())
             {
                 // Do not reload if magazine is full.
-                if magazine.0 < weapon.magazine_size() {
-                    // Trigger a reload by emptying the entire magazine.
-                    magazine.0 = 0;
+                if magazine.0 >= weapon.magazine_size() {
+                    continue;
                 }
+
+                // Calculate how many chunks are not full (including partially filled chunks)
+                let chunk_size = weapon.reload_chunk_size();
+                let total_magazine_chunks = (weapon.magazine_size() + chunk_size - 1) / chunk_size;
+                let full_chunks = magazine.0 / chunk_size;
+                let chunks_to_reload = total_magazine_chunks - full_chunks;
+
+                // Start reload
+                commands.entity(entity).insert(WeaponReload::new(
+                    chunk_size,
+                    weapon.reload_duration,
+                    chunks_to_reload,
+                ));
             }
         }
     }
@@ -240,6 +269,9 @@ fn weapon_attack(
             // Reset the recharge.
             recharge.reset();
 
+            // Cancel any ongoing reload.
+            commands.entity(weapon_entity).remove::<WeaponReload>();
+
             let direction = transform.local_x().xy();
             let position = transform.translation.xy() + direction * weapon.fire_radius;
 
@@ -292,6 +324,8 @@ pub struct Weapon {
     /// Duration in seconds for weapon to reload when
     /// [`WeaponMagazine`] is depleted.
     reload_duration: f32,
+    /// Number of bullets reloaded per chunk.
+    reload_chunk_size: u32,
 }
 
 impl Weapon {
@@ -301,6 +335,10 @@ impl Weapon {
 
     pub fn reload_duration(&self) -> f32 {
         self.reload_duration
+    }
+
+    pub fn reload_chunk_size(&self) -> u32 {
+        self.reload_chunk_size
     }
 }
 
@@ -335,6 +373,23 @@ impl WeaponRecharge {
     }
 }
 
-/// Reload timer based on [`Weapon::reload_duration()`].
-#[derive(Component, Serialize, Deserialize, Deref, DerefMut, Debug, Clone, PartialEq)]
-pub struct WeaponReload(Timer);
+/// Reload timer for a chunk-based reload, handling multiple chunks.
+#[derive(Component, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct WeaponReload {
+    pub timer: Timer,
+    pub chunk_size: u32,
+    pub total_chunks: u32,
+    pub current_chunk: u32,
+}
+
+impl WeaponReload {
+    pub fn new(chunk_size: u32, reload_duration: f32, total_chunks: u32) -> Self {
+        // Timer is per chunk
+        Self {
+            timer: Timer::from_seconds(reload_duration, TimerMode::Once),
+            chunk_size,
+            total_chunks,
+            current_chunk: 0,
+        }
+    }
+}
