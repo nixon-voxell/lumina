@@ -15,6 +15,7 @@ impl Plugin for MainWindowUiPlugin {
             PostUpdate,
             (
                 MainWindowTransformSyncSet.before(VelystSet::Compile),
+                MainWindowSet::First,
                 MainWindowSet::Background,
                 MainWindowSet::Default,
                 MainWindowSet::Foreground,
@@ -143,6 +144,7 @@ pub struct MainWindowTransformSyncSet;
 
 #[derive(SystemSet, Default, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MainWindowSet {
+    First,
     Background,
     #[default]
     Default,
