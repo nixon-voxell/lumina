@@ -8,6 +8,7 @@ use velyst::typst::utils::OptionExt;
 
 use crate::player::aim::IsUsingMouse;
 use crate::player::LocalPlayerInfo;
+use crate::ui::game_ui::settings::SettingsOverlay;
 
 pub(super) struct SpaceshipStatsPlugin;
 
@@ -17,7 +18,8 @@ impl Plugin for SpaceshipStatsPlugin {
             .compile_typst_func::<SpaceshipStats, MainFunc>()
             .push_to_main_window::<SpaceshipStats, MainFunc, _>(MainWindowSet::Default, always_run)
             .init_resource::<MainFunc>()
-            .add_systems(Update, spaceship_stats);
+            .init_resource::<SettingsOverlay>()
+            .add_systems(Update, (spaceship_stats, settings_btn));
     }
 }
 
@@ -106,6 +108,16 @@ fn spaceship_stats(
     });
 
     func.dummy_update = func.dummy_update.wrapping_add(1);
+}
+
+fn settings_btn(
+    interactions: InteractionQuery,
+    mut overlay: ResMut<SettingsOverlay>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
+) {
+    if interactions.pressed("btn:settings") {
+        overlay.visible = true;
+    }
 }
 
 fn calculate_cooldown(timer: &Timer) -> f64 {

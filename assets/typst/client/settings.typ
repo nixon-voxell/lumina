@@ -2,28 +2,44 @@
 #import "../utils.typ": *
 
 #let settings() = {
-  box(width: 100%, height: 100%, inset: 4em, fill: black)[
-    #place(center + top)[
-      #text(fill: yellow, size: 4em, font: "IBrand")[= Settings]
-    ]
-    #place(center + horizon)[
-      #text(fill: green, size: 2em)[
-        BGM
-      ]
-      #linebreak()
-      #linebreak()
-      #text(fill: green, size: 2em)[
-        VFX
-      ]
-    ]
-    
-    #place(center + bottom)[
-      #box(height: 3em)[
-        #text(fill: red)[
-            #button(
+
+  box(width: 100%, height: 100%, inset: (top: 6em, right: 2em))[
+    #place(top + right)[
+      #stack(
+        dir: ltr,
+        spacing: 2em,
+        scale(100%)[
+						#button(
+						fill: yellow,
+            lbl: <btn:bgm>,
+            inters: interactions(),
+          )[== #emoji.notes BGM]
+        ],
+        scale(100%)[
+						#button(
+						fill: yellow,
+            lbl: <btn:vfx>,
+            inters: interactions(),
+          )[== #emoji.speaker.waves VFX]
+        ],
+      )
+			
+      #align(right)[
+        #set text(fill: red)
+        #scale(100%)[
+          #button(
             lbl: <btn:close>,
             inters: interactions(),
-            )[== Close]
+          )[== #emoji.crossmark.box Close]
+        ]
+      ]
+      #align(right)[
+        #set text(fill: red)
+        #scale(100%)[
+          #button(
+            lbl: <btn:leave>,
+            inters: interactions(),
+          )[== #emoji.arrow.r.filled Leave]
         ]
       ]
     ]

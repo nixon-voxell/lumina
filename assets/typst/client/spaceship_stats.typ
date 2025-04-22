@@ -1,5 +1,5 @@
 #import "../monokai_pro.typ": *
-#import "../utils.typ": lerp, parallelogram
+#import "../utils.typ": lerp, parallelogram, button
 
 #let wave(width, height, amplitude, freq, time, fill) = {
   let s_time = (
@@ -447,6 +447,15 @@
         )
         #place(center + horizon, dy: 0.3em)[#data.lumina_count]
         #place(center + bottom, dy: 0.7em)[#text(size: 0.7em)[Lumina]]
+      ]
+    ]
+
+    #place(top + right)[
+      #box(height: 3em)[
+        #button(
+          lbl: <btn:settings>,
+          inters: interactions(),
+        )[== #emoji.gear Settings]
       ]
     ]
   ]
