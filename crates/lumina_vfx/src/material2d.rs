@@ -15,7 +15,7 @@ impl Plugin for Material2dVfxPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             material_from_component_plugin::<BoosterMaterial>,
-            // material_from_component_plugin::<PortalMaterial>,
+            material_from_component_plugin::<PortalMaterial>,
             material_from_component_plugin::<HealAbilityMaterial>,
             MainPrepassComponentPlugin::<HealAbilityMaterial>::default(),
         ));
@@ -60,9 +60,9 @@ impl Material2d for HealAbilityMaterial {
 #[reflect(Component)]
 pub struct PortalMaterial {
     #[uniform(0)]
-    pub primary_color: LinearRgba,
-    #[uniform(1)]
-    pub secondary_color: LinearRgba,
+    pub color: LinearRgba,
+    // #[uniform(1)]
+    // pub secondary_color: LinearRgba,
 }
 
 impl Material2d for PortalMaterial {

@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use bevy::render::render_resource::*;
+use bevy::render::view::{NoFrustumCulling, VisibilitySystems};
 use bevy::utils::HashMap;
 use bevy_enoki::prelude::*;
 use bevy_enoki::EnokiPlugin;
@@ -24,8 +25,22 @@ impl Plugin for ParticleVfxPlugin {
                 ),
             )
             .add_systems(Update, setup_in_place_vfx)
+            .add_systems(
+                PostUpdate,
+                do_not_cull_vfx.before(VisibilitySystems::CheckVisibility),
+            )
             .observe(one_shot_vfx::<ColorParticle2dMaterial>)
             .observe(one_shot_vfx::<AmmoHitMaterial>);
+    }
+}
+
+// A hack for making all vfx still visible even if some of them are off screen.
+fn do_not_cull_vfx(
+    mut commands: Commands,
+    mut q_vfx: Query<Entity, Added<ParticleEffectInstance>>,
+) {
+    for entity in q_vfx.iter_mut() {
+        commands.entity(entity).insert(NoFrustumCulling);
     }
 }
 
@@ -104,7 +119,7 @@ impl<T: Component> Plugin for InPlaceVfxMapPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (init_in_place_vfx_map::<T>, map_in_place_vfx::<T>).chain(),
+            (setup_in_place_vfx_map::<T>, map_in_place_vfx::<T>).chain(),
         );
     }
 }
@@ -116,7 +131,7 @@ impl<T: Component> Default for InPlaceVfxMapPlugin<T> {
 }
 
 /// Insert [`InPlaceVfxMap`] component to target entities that just spawned.
-fn init_in_place_vfx_map<T: Component>(
+fn setup_in_place_vfx_map<T: Component>(
     mut commands: Commands,
     q_targets: Query<
         Entity,
@@ -176,6 +191,8 @@ pub enum InPlaceVfxType {
     GunSparks,
     MuzzleFlash,
     BoosterFlakes,
+    Smoke,
+    Lumina,
 }
 
 /// Marker for [`InPlaceVfxType`] that has already been mapped.

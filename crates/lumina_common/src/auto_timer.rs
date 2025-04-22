@@ -51,7 +51,7 @@ where
         if self.remove_on_finish {
             // Allow other systems to read the value of the timer in between
             // before removing it all together.
-            app.add_systems(Last, remove_on_finish_trigger::<M>);
+            app.add_systems(Last, remove_on_finish::<M>);
         }
     }
 }
@@ -123,11 +123,23 @@ pub fn timer_update<M: ThreadSafe>(
     }
 }
 
-fn remove_on_finish_trigger<M: ThreadSafe>(
+fn remove_on_finish<M: ThreadSafe>(
     mut commands: Commands,
     mut evr_timer_finished: EventReader<AutoTimerFinished<M>>,
+    q_timers: Query<&AutoTimer<M>>,
 ) {
     for AutoTimerFinished(entity, _) in evr_timer_finished.read() {
+        if let Ok(timer) = q_timers.get(*entity) {
+            if timer.mode() == TimerMode::Repeating {
+                // Let events trigger again.
+                if let Some(mut cmd) = commands.get_entity(*entity) {
+                    cmd.remove::<AutoTimerFinishMarker>();
+                }
+                // If this is a repeating timer, do not remove it.
+                continue;
+            }
+        }
+
         // Remove timer on finish.
         if let Some(mut cmd) = commands.get_entity(*entity) {
             cmd.remove::<AutoTimer<M>>();
@@ -175,11 +187,25 @@ impl<M: ThreadSafe> AutoTimerFinished<M> {
 
 pub trait StartAutoTimerCommandExt {
     fn start_auto_timer<M: ThreadSafe>(&mut self, duration: Duration) -> &mut Self;
+
+    fn start_auto_timer_with_mode<M: ThreadSafe>(
+        &mut self,
+        duration: Duration,
+        mode: TimerMode,
+    ) -> &mut Self;
 }
 
 impl StartAutoTimerCommandExt for EntityCommands<'_> {
     fn start_auto_timer<M: ThreadSafe>(&mut self, duration: Duration) -> &mut Self {
         self.try_insert(AutoTimer::<M>::new(Timer::new(duration, TimerMode::Once)))
+    }
+
+    fn start_auto_timer_with_mode<M: ThreadSafe>(
+        &mut self,
+        duration: Duration,
+        mode: TimerMode,
+    ) -> &mut Self {
+        self.try_insert(AutoTimer::<M>::new(Timer::new(duration, mode)))
     }
 }
 

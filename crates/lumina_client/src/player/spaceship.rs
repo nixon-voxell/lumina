@@ -1,7 +1,4 @@
-use std::f32::consts::FRAC_PI_4;
-
 use bevy::prelude::*;
-use bevy_enoki::prelude::*;
 use client::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -12,78 +9,15 @@ use lumina_vfx::prelude::*;
 use super::{CachedGameStat, LocalPlayerId};
 
 mod ability_vfx;
+mod state_vfx;
 
 pub(super) struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InPlaceVfxMapPlugin::<Spaceship>::default())
-            .add_plugins(ability_vfx::AbilityVfxPlugin)
-            .add_systems(
-                Update,
-                (spawn_networked_action, cache_team_type, booster_vfx),
-            );
-    }
-}
-
-/// Animate booster vfx based on spaceship's acceleration.
-fn booster_vfx(
-    q_childrens: Query<&Children>,
-    q_spaceships: Query<
-        (
-            &Spaceship,
-            &TargetAcceleration,
-            &RotationDiff,
-            &InPlaceVfxMap,
-            Entity,
-        ),
-        With<SourceEntity>,
-    >,
-    mut q_states: Query<&mut ParticleSpawnerState>,
-    mut q_boosters: Query<&mut BoosterMaterial, With<SourceEntity>>,
-    time: Res<Time>,
-) {
-    for (
-        Spaceship {
-            movement, boost, ..
-        },
-        acceleration,
-        rotation_diff,
-        vfx_map,
-        entity,
-    ) in q_spaceships.iter()
-    {
-        // Ignition.
-        let ignition = f32::clamp(**acceleration / movement.linear_acceleration, 0.0, 1.0);
-        // Boost.
-        let boost_acc = f32::max(0.0, **acceleration - movement.linear_acceleration);
-        let boost_acc_size = boost.linear_acceleration;
-
-        // TODO: Make a map to the entities.
-        for child in q_childrens.iter_descendants(entity) {
-            let Ok(mut booster) = q_boosters.get_mut(child) else {
-                continue;
-            };
-
-            booster.ignition = booster.ignition.lerp(ignition, time.delta_seconds() * 4.0);
-            booster.inv_scale = FloatExt::lerp(1.0, 0.6, boost_acc / boost_acc_size);
-
-            // Rotation.
-            booster.rotation += **rotation_diff;
-            booster.rotation = f32::clamp(booster.rotation, -FRAC_PI_4, FRAC_PI_4);
-            booster.rotation = booster.rotation.lerp(0.0, time.delta_seconds() * 6.0);
-        }
-
-        if let Some(vfx_entities) = vfx_map.get(&InPlaceVfxType::BoosterFlakes) {
-            for vfx_entity in vfx_entities.iter() {
-                if let Ok(mut state) = q_states.get_mut(*vfx_entity) {
-                    match ignition > 0.5 {
-                        true => state.active = true,
-                        false => state.active = false,
-                    }
-                }
-            }
-        }
+            .add_plugins((ability_vfx::AbilityVfxPlugin, state_vfx::StateVfxPlugin))
+            .add_systems(Update, (spawn_networked_action, cache_team_type));
     }
 }
 

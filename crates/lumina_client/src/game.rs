@@ -6,11 +6,14 @@ use lumina_shared::prelude::*;
 
 use crate::effector::*;
 
+mod ore_vfx;
+
 pub(super) struct GamePugin;
 
 impl Plugin for GamePugin {
     fn build(&self, app: &mut App) {
-        app.observe(teleport_player)
+        app.add_plugins(ore_vfx::OreVfxPlugin)
+            .observe(teleport_player)
             .observe(disable_teleporter)
             .observe(enable_teleporter)
             .observe(deposit_tesseract);
