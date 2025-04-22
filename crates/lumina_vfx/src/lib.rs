@@ -10,7 +10,7 @@ mod type_registry;
 
 pub mod prelude {
     pub use crate::main_prepass::{MainPrepassCamera, MainPrepassTexture};
-    pub use crate::material2d::{BoosterMaterial, HealAbilityMaterial};
+    pub use crate::material2d::{BoosterMaterial, HealAbilityMaterial, PortalMaterial};
     pub use crate::origin_colors::{OriginColors, OriginColorsPlugin};
     pub use crate::particle::{AmmoHitMaterial, MuzzleFlashMaterial};
     pub use crate::particle::{DespawnVfx, DespawnVfxEffects, DespawnVfxType};

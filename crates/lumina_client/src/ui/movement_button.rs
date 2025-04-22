@@ -20,7 +20,7 @@ impl Plugin for MovementButtonUiPlugin {
         app.register_typst_asset::<MovementButton>()
             .compile_typst_func::<MovementButton, MainFunc>()
             .push_to_main_window::<MovementButton, MainFunc, _>(
-                MainWindowSet::Default,
+                MainWindowSet::Background,
                 run_condition.clone(),
             )
             .init_resource::<MainFunc>()
