@@ -2,11 +2,11 @@
   assets:
    [ 
     ("Defender", File ( path: "spaceship_blueprints/Defender.glb" )),
-    ("DefenderBlue2", File ( path: "materials/DefenderBlue2.glb" )),
-    ("DefenderBlack1", File ( path: "materials/DefenderBlack1.glb" )),
-    ("DefenderDarkBlue1", File ( path: "materials/DefenderDarkBlue1.glb" )),
-    ("DefenderBlue4", File ( path: "materials/DefenderBlue4.glb" )),
-    ("DefenderBlue3", File ( path: "materials/DefenderBlue3.glb" )),
     ("DefenderBlue1", File ( path: "materials/DefenderBlue1.glb" )),
+    ("DefenderBlue3", File ( path: "materials/DefenderBlue3.glb" )),
+    ("DefenderBlack1", File ( path: "materials/DefenderBlack1.glb" )),
+    ("DefenderBlue4", File ( path: "materials/DefenderBlue4.glb" )),
+    ("DefenderBlue2", File ( path: "materials/DefenderBlue2.glb" )),
+    ("DefenderDarkBlue1", File ( path: "materials/DefenderDarkBlue1.glb" )),
    ]
 )
