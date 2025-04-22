@@ -354,16 +354,63 @@
             ],
             box(width: 1em),
 
-            ..range(data.magazine_size).map(i => {
-              let bullet_icon = if i < data.magazine { "bullet" } else {
-                "bullet-used"
-              }
+            {
+              let chunk_size = data.reload_chunk_size
+              let magazine_size = data.magazine_size
+              let magazine = data.magazine
+              let reload_size = data.reload_size
+              let full_chunks = data.full_chunks
 
-              move(
-                dy: if i < data.reload_size { 0em } else { 0.7em },
-                image("/icons/" + bullet_icon + ".svg", height: 1em),
+              // Calculate number of chunks
+              let total_chunks = calc.ceil(magazine_size / chunk_size)
+
+              // Render bullets grouped by chunks
+              stack(
+                dir: ltr,
+                // Spacing between chunks
+                spacing: 0.3em, 
+                ..range(total_chunks).map(chunk_idx => {
+                  let start_idx = chunk_idx * chunk_size
+                  let end_idx = calc.min(start_idx + chunk_size, magazine_size)
+
+                  let curr_start = full_chunks * chunk_size
+                  let curr_end   = curr_start + chunk_size
+                  let chunk_done = reload_size >= curr_end
+                  let in_current = chunk_idx == full_chunks
+                  let is_reloading = reload_size > magazine
+
+                  stack(
+                    dir: ltr,
+                    spacing: -0.2em,
+                    ..range(start_idx, end_idx).map(i => {
+                      let reloaded_slot = in_current and (reload_size >= i + 1)
+                      let bullet_icon   = if i < magazine or reloaded_slot {
+                          "bullet"
+                        } else {
+                          "bullet-used"
+                        }
+                      let dy = if chunk_done {
+                        // once a chunk’s fully reloaded, all up
+                          0em
+                        // while reloading chunk, whole chunk down
+                        } else if is_reloading and in_current {
+                          0.7em
+                        // normal firing logic, used bullets drop one by one
+                        } else if i < magazine {
+                          0em
+                        // everything else stays down
+                        } else {
+                          0.7em
+                        }                       
+                      move(
+                        dy: dy,
+                        image("/icons/" + bullet_icon + ".svg", height: 1em),
+                      )
+                    })
+                  )
+                })
               )
-            }),
+            }
           )
         ],
       )

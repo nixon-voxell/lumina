@@ -2,12 +2,12 @@
   assets:
    [ 
     ("Assassin", File ( path: "spaceship_blueprints/Assassin.glb" )),
-    ("AssassinBlack1", File ( path: "materials/AssassinBlack1.glb" )),
+    ("AssassinYellow3", File ( path: "materials/AssassinYellow3.glb" )),
     ("AssassinBlack2", File ( path: "materials/AssassinBlack2.glb" )),
     ("AssassinGray1", File ( path: "materials/AssassinGray1.glb" )),
+    ("AssassinBlack1", File ( path: "materials/AssassinBlack1.glb" )),
+    ("AssassinYellow2", File ( path: "materials/AssassinYellow2.glb" )),
     ("AssassinYellow1", File ( path: "materials/AssassinYellow1.glb" )),
     ("AssassinGray2", File ( path: "materials/AssassinGray2.glb" )),
-    ("AssassinYellow3", File ( path: "materials/AssassinYellow3.glb" )),
-    ("AssassinYellow2", File ( path: "materials/AssassinYellow2.glb" )),
    ]
 )

@@ -78,10 +78,17 @@ fn spaceship_stats(
     // 0.0 if there is no cooldown, otherwise, calculate it.
     let dash_cooldown = dash_cooldown.map_or_default(|c| calculate_cooldown(c));
     let ability_cooldown = ability_cooldown.map_or_default(|c| calculate_cooldown(c));
-    // Calculate magazine reloaded.
-    let reload_size = weapon_reload.map_or(magazine.0, |r| {
-        let reload_percentage = r.elapsed_secs() / r.duration().as_secs_f32();
-        (reload_percentage * weapon.magazine_size() as f32) as u32
+    let chunk_size = weapon.reload_chunk_size();
+    let chunk_size_f = chunk_size as f32;
+    // Number of full chunks in the magazine
+    let full_chunks = magazine.0 / chunk_size;
+    let reload_size = weapon_reload.map_or(magazine.0 as f32, |r| {
+        let base_bullets = (full_chunks * chunk_size) as f32;
+        // How far we are through the chunk right now
+        let reload_percentage = r.timer.elapsed_secs() / r.timer.duration().as_secs_f32();
+        let current_chunk_bullets = reload_percentage * chunk_size_f;
+        // Clamp to magazine_size so we never overshoot
+        (base_bullets + current_chunk_bullets).min(weapon.magazine_size() as f32)
     });
 
     *boost_lerp = boost_lerp.lerp(
@@ -100,8 +107,10 @@ fn spaceship_stats(
         "ability_active" => is_ability_active,
         "magazine" => magazine.0,
         "magazine_size" => weapon.magazine_size(),
-        "reload_size" => reload_size,
+        "reload_size" => reload_size as f64,
         "lumina_count" => lumina_collected.0,
+        "reload_chunk_size" => chunk_size,
+        "full_chunks" => full_chunks,
         "is_using_mouse" => is_using_mouse.0,
     });
 

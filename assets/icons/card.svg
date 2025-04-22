@@ -1,69 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 411.67 710.52">
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 411.7 710.5">
+  <!-- Generator: Adobe Illustrator 29.0.1, SVG Export Plug-In . SVG Version: 2.1.0 Build 192)  -->
   <defs>
     <style>
-      .cls-1, .cls-2 {
+      .st0, .st1 {
+        fill: #69cad4;
+      }
+
+      .st2 {
         fill: none;
+        isolation: isolate;
+        opacity: .8;
+        stroke-width: 4px;
+      }
+
+      .st2, .st1 {
         stroke: #69cad4;
         stroke-miterlimit: 10;
       }
-      .cls-1 {
-        fill: #69cad4;
-        fill-opacity: 0.8;
+
+      .st1 {
+        fill-opacity: .8;
         stroke-width: 2px;
       }
-
-      .cls-3 {
-        filter: url(#outer-glow-1);
-      }
-
-      .cls-3, .cls-4 {
-        fill: #69cad4;
-      }
-
-      .cls-5 {
-        fill: #69cad4;
-      }
-
-      .cls-2 {
-        opacity: 0.8;
-        stroke-width: 4px;
-      }
     </style>
-    <filter id="outer-glow-1" x="386.07" y="160.66" width="45.6" height="45.36" filterUnits="userSpaceOnUse">
-      <feOffset dx="0" dy="0"/>
-      <feGaussianBlur result="blur" stdDeviation="7"/>
-      <feFlood flood-color="#63c9d6" flood-opacity=".9"/>
-      <feComposite in2="blur" operator="in"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
   </defs>
-  <g id="Layer_2" data-name="Layer 2">
-    <path class="cls-1" d="M408.82,182.32V20.66h-128.15L260.54.53,1.19.5v195.08l16.71,16.71v301.77l-17.4,17.4v150.38l27.07,28.13h113.43l15.07-17.08h102.47l17.08,17.08h133.53v-123.01l-14.51-14.51v-185.08l14.18-14.18v-160.72"/>
-    <polygon class="cls-5" points="275.64 .5 409.15 .5 409.15 12.95 287.25 12.95 275.64 .5"/>
-    <polygon class="cls-5" points=".75 210.25 10.13 220.33 10.13 501.88 .75 511.96 .75 210.25"/>
-    <polygon class="cls-5" points="152.72 709.96 161.65 701.03 253.86 701.03 263.35 710.52 152.72 709.96"/>
-    <polygon class="cls-4" points="408.09 385.9 398.18 395.84 398.18 389.14 408.09 379.21 408.09 385.9"/>
-    <polygon class="cls-4" points="408.09 397.88 398.18 407.82 398.18 401.12 408.09 391.18 408.09 397.88"/>
-    <polygon class="cls-4" points="408.09 409.86 398.18 419.8 398.18 413.1 408.09 403.16 408.09 409.86"/>
-    <polygon class="cls-4" points="408.09 421.84 398.18 431.78 398.18 425.08 408.09 415.14 408.09 421.84"/>
-    <polygon class="cls-4" points="408.09 433.82 398.18 443.76 398.18 437.06 408.09 427.12 408.09 433.82"/>
-    <polygon class="cls-4" points="408.09 445.8 398.18 455.74 398.18 449.04 408.09 439.1 408.09 445.8"/>
-    <polygon class="cls-4" points="408.09 457.78 398.18 467.72 398.18 461.02 408.09 451.08 408.09 457.78"/>
-    <polygon class="cls-4" points="408.09 469.76 398.18 479.69 398.18 473 408.09 463.06 408.09 469.76"/>
-    <polygon class="cls-4" points="408.09 481.74 398.18 491.67 398.18 484.98 408.09 475.04 408.09 481.74"/>
-    <polygon class="cls-4" points="408.09 493.72 398.18 503.65 398.18 496.96 408.09 487.02 408.09 493.72"/>
-    <polygon class="cls-4" points="408.09 505.7 398.18 515.63 398.18 508.94 408.09 499 408.09 505.7"/>
-    <polygon class="cls-4" points="408.09 517.68 398.18 527.61 398.18 520.92 408.09 510.98 408.09 517.68"/>
-    <polygon class="cls-4" points="408.09 529.66 398.18 539.59 398.18 532.89 408.09 522.96 408.09 529.66"/>
-    <polygon class="cls-4" points="408.09 541.64 398.18 551.57 398.18 544.87 408.09 534.94 408.09 541.64"/>
-    <polygon class="cls-4" points="408.09 553.62 398.18 563.55 398.18 556.85 408.09 546.92 408.09 553.62"/>
-    <circle class="cls-3" cx="408.82" cy="183.32" r="1.62"/>
-    <circle class="cls-4" cx="408.82" cy="211.6" r="1.62"/>
-    <polyline class="cls-2" points="66.02 11.08 11.13 11.08 11.13 80.84"/>
+  <g id="Layer_2">
+    <path class="st1" d="M408.8,182.3V20.7h-128.1L260.5.5H.8s0,195.1,0,195.1l17.1,16.7v301.8l-17.1,17.4v150.4l26.8,28.2h113.4l15.1-17.2h102.5l17.1,17.2h133.2v-123.1l-14.2-14.5v-185.1l14.2-14.2v-160.7"/>
+    <polygon class="st0" points="275.6 .5 408.8 .5 408.8 12.9 287.2 12.9 275.6 .5"/>
+    <polygon class="st0" points=".8 210.2 10.1 220.3 10.1 501.9 .8 512 .8 210.2"/>
+    <polygon class="st0" points="152.7 710.1 161.6 701 253.9 701 263.4 710.1 152.7 710.1"/>
+    <polygon class="st0" points="408.1 385.9 398.2 395.8 398.2 389.1 408.1 379.2 408.1 385.9"/>
+    <polygon class="st0" points="408.1 397.9 398.2 407.8 398.2 401.1 408.1 391.2 408.1 397.9"/>
+    <polygon class="st0" points="408.1 409.9 398.2 419.8 398.2 413.1 408.1 403.2 408.1 409.9"/>
+    <polygon class="st0" points="408.1 421.8 398.2 431.8 398.2 425.1 408.1 415.1 408.1 421.8"/>
+    <polygon class="st0" points="408.1 433.8 398.2 443.8 398.2 437.1 408.1 427.1 408.1 433.8"/>
+    <polygon class="st0" points="408.1 445.8 398.2 455.7 398.2 449 408.1 439.1 408.1 445.8"/>
+    <polygon class="st0" points="408.1 457.8 398.2 467.7 398.2 461 408.1 451.1 408.1 457.8"/>
+    <polygon class="st0" points="408.1 469.8 398.2 479.7 398.2 473 408.1 463.1 408.1 469.8"/>
+    <polygon class="st0" points="408.1 481.7 398.2 491.7 398.2 485 408.1 475 408.1 481.7"/>
+    <polygon class="st0" points="408.1 493.7 398.2 503.6 398.2 497 408.1 487 408.1 493.7"/>
+    <polygon class="st0" points="408.1 505.7 398.2 515.6 398.2 508.9 408.1 499 408.1 505.7"/>
+    <polygon class="st0" points="408.1 517.7 398.2 527.6 398.2 520.9 408.1 511 408.1 517.7"/>
+    <polygon class="st0" points="408.1 529.7 398.2 539.6 398.2 532.9 408.1 523 408.1 529.7"/>
+    <polygon class="st0" points="408.1 541.6 398.2 551.6 398.2 544.9 408.1 534.9 408.1 541.6"/>
+    <polygon class="st0" points="408.1 553.6 398.2 563.5 398.2 556.8 408.1 546.9 408.1 553.6"/>
+    <circle class="st0" cx="408.8" cy="183.3" r="1.6"/>
+    <circle class="st0" cx="408.8" cy="211.6" r="1.6"/>
+    <polyline class="st2" points="66 11.1 11.1 11.1 11.1 80.8"/>
   </g>
-  <g id="Layer_4" data-name="Layer 4">
-    <polyline class="cls-2" points="346.29 702.03 401.18 702.03 401.18 652.27"/>
-    <line class="cls-2" x1="11.13" y1="533.17" x2="11.13" y2="675.16"/>
+  <g id="Layer_4">
+    <polyline class="st2" points="346.3 702 401.2 702 401.2 652.3"/>
+    <line class="st2" x1="11.1" y1="533.2" x2="11.1" y2="675.2"/>
   </g>
 </svg>
