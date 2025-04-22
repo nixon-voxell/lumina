@@ -57,6 +57,9 @@
         )[],
         score_display(max_score - score, red),
       )
+      // #box(inset: (x: 1em))[K: 0]/
+      // #box(inset: (x: 1em))[D: 0]/
+      // #box(inset: (x: 1em))[A: 0]
     ]
   ]
 }
