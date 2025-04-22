@@ -8,6 +8,7 @@ use super::Connection;
 
 pub(super) mod game_mode;
 pub(super) mod game_over;
+pub(super) mod settings;
 pub(super) mod game_ui;
 pub(super) mod lobby;
 pub(super) mod main_menu;
@@ -25,6 +26,7 @@ impl Plugin for UiPlugin {
             splash::SplashUiPlugin,
             movement_button::MovementButtonUiPlugin,
             main_menu::MainMenuUiPlugin,
+            settings::SettingsUiPlugin,
             game_mode::GameModeUiPlugin,
             lobby::LobbyUiPlugin,
             game_ui::GameUiPlugin,

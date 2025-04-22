@@ -8,6 +8,7 @@ use crate::Connection;
 
 use super::Screen;
 
+use crate::ui::settings::SettingsOverlay;
 pub(super) struct MainMenuUiPlugin;
 
 impl Plugin for MainMenuUiPlugin {
@@ -23,10 +24,11 @@ impl Plugin for MainMenuUiPlugin {
                 connection_msg: "Connecting to server...".to_string(),
                 ..default()
             })
+            .insert_resource(SettingsOverlay::default())
             .add_systems(OnEnter(Screen::MainMenu), main_window_transparency)
             .add_systems(
                 Update,
-                (play_btn, reconnect_btn, exit_btn).run_if(in_state(Screen::MainMenu)),
+                (play_btn, reconnect_btn, exit_btn, settings_btn).run_if(in_state(Screen::MainMenu)),
             )
             .add_systems(OnEnter(Connection::Connected), connected_to_server)
             .add_systems(OnEnter(Connection::Disconnected), disconnected_from_server);
@@ -64,6 +66,16 @@ fn reconnect_btn(
     if interactions.pressed("btn:reconnect") {
         next_connection_state.set(Connection::Connecting);
         func.connection_msg = "Connecting to server...".to_string();
+    }
+}
+
+fn settings_btn(
+    interactions: InteractionQuery,
+    mut overlay: ResMut<SettingsOverlay>,
+    mut evw_transparency: EventWriter<MainWindowTransparency>,
+) {
+    if interactions.pressed("btn:settings") {
+        overlay.visible = true;
     }
 }
 
