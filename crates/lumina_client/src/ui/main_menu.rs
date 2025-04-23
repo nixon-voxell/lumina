@@ -37,7 +37,7 @@ fn connected_to_server(mut func: ResMut<MainMenuFunc>) {
     func.connected = true;
 }
 
-pub fn disconnected_from_server(
+fn disconnected_from_server(
     mut func: ResMut<MainMenuFunc>,
     mut next_screen_state: ResMut<NextState<Screen>>,
 ) {
