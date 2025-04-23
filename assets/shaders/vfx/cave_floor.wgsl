@@ -1,10 +1,9 @@
-#import bevy_render::maths::HALF_PI
-#import bevy_sprite::mesh2d_view_bindings::{globals, view}
 #import bevy_sprite::mesh2d_vertex_output::VertexOutput
 #import bevy_shader_utils::perlin_noise_2d::perlinNoise2
 
-@group(2) @binding(0) var<uniform> color0: vec4<f32>;
-@group(2) @binding(1) var<uniform> color1: vec4<f32>;
+@group(2) @binding(0) var<uniform> time: f32;
+@group(2) @binding(1) var<uniform> color0: vec4<f32>;
+@group(2) @binding(2) var<uniform> color1: vec4<f32>;
 
 fn hash(p: vec2<f32>, seed: vec2<f32>) -> f32 {
     return fract(sin(dot(p, seed)) * 43758.5453);
@@ -48,7 +47,7 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
     let cell_pos = nearest_point / size;
     let noise_size = 7.0;
 
-    let noise = pow(perlinNoise2(cell_pos * noise_size + globals.time * 0.1) * 0.5 + 0.5, 0.8);
+    let noise = pow(perlinNoise2(cell_pos * noise_size + time * 0.1) * 0.5 + 0.5, 0.8);
 
     return vec4<f32>(vec3<f32>(mix(color1.rgb, color0.rgb, noise)), smoothstep(0.6, 1.0, noise) * 0.75);
 }

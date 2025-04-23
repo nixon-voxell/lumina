@@ -87,9 +87,12 @@ impl Material2d for PortalMaterial {
 #[derive(Component, Reflect, Asset, AsBindGroup, Debug, Clone)]
 #[reflect(Component)]
 pub struct CaveFloorMaterial {
+    #[reflect(ignore)]
     #[uniform(0)]
-    pub color0: LinearRgba,
+    pub time: f32,
     #[uniform(1)]
+    pub color0: LinearRgba,
+    #[uniform(2)]
     pub color1: LinearRgba,
 }
 
