@@ -31,7 +31,9 @@
 
       // Respawn countdown
       #linebreak()
-      #let countdown_str = calc.round(data.countdown * 10.0) / 10.0
+      #let countdown_str = (
+        calc.round(calc.max(data.countdown, 0.0) * 10.0) / 10.0
+      )
 
       #text(size: 1.3em, fill: blue)[Respawning in...]\
       #text(size: 1.5em, fill: green)[
@@ -45,7 +47,7 @@
         fill: base2.transparentize(40%),
       )[
         #box(
-          width: 100% * data.percentage,
+          width: 100% * calc.max(data.percentage, 0.0),
           height: 100%,
           fill: blue,
         )

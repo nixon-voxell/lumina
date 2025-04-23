@@ -12,8 +12,8 @@
       = Sandbox
     ]
 
-    #place(bottom + right, dy: 1em)[
-      #text(fill: base6)[Room Id: #room_id]
+    #place(bottom + right, dy: 1.6em)[
+      #text(fill: base6, size: 0.8em)[Room Id: #room_id]
     ]
 
     #place(top + right)[
