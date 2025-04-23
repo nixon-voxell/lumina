@@ -42,7 +42,7 @@
     }
 
     #place(center + horizon)[
-      #text(fill: yellow, size: 7em, font: "IBrand")[= Lumina]
+      #text(fill: yellow, size: 7em)[= Lumina]
 
       #text(fill: green, size: 2em)[
         #button(

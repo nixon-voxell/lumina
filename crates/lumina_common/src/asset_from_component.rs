@@ -9,15 +9,13 @@ pub struct AssetFromComponentPlugin<T: AssetFromComponent>(PhantomData<T>);
 
 impl<T: AssetFromComponent> Plugin for AssetFromComponentPlugin<T> {
     fn build(&self, app: &mut App) {
-        app
-            // .add_plugins(Material2dPlugin::<T>::default())
-            .add_systems(
-                PostUpdate,
-                (
-                    replicate_asset_from_component::<T>,
-                    update_asset_from_component::<T>,
-                ),
-            );
+        app.add_systems(
+            PostUpdate,
+            (
+                replicate_asset_from_component::<T>,
+                update_asset_from_component::<T>,
+            ),
+        );
     }
 }
 

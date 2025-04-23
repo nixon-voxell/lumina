@@ -8,6 +8,9 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use lumina_vfx::prelude::*;
 
+use crate::screens::Screen;
+use crate::ui::game_ui::timer::CountdownTimerFunc;
+
 pub(super) struct OreVfxPlugin;
 
 impl Plugin for OreVfxPlugin {
@@ -20,9 +23,24 @@ impl Plugin for OreVfxPlugin {
             Added<BlueprintInstanceReady>,
             With<OreType>,
         )>::default())
-        .add_systems(Update, ore_health_dimming)
+        .add_systems(Update, (update_cave_floor, ore_health_dimming))
         .observe(on_blink_start)
         .observe(on_blink_end);
+    }
+}
+
+fn update_cave_floor(
+    mut q_cave_floor: Query<&mut CaveFloorMaterial>,
+    timer_func: Res<CountdownTimerFunc>,
+    screen: Res<State<Screen>>,
+    time: Res<Time>,
+) {
+    if let Ok(mut cave_floor) = q_cave_floor.get_single_mut() {
+        match screen.get() {
+            // Sync the cave floor animation time so that it's the same for everyone.
+            Screen::InGame => cave_floor.time = timer_func.total_seconds as f32,
+            _ => cave_floor.time = time.elapsed_seconds(),
+        }
     }
 }
 

@@ -16,6 +16,7 @@ impl Plugin for Material2dVfxPlugin {
         app.add_plugins((
             material_from_component_plugin::<BoosterMaterial>,
             material_from_component_plugin::<PortalMaterial>,
+            material_from_component_plugin::<CaveFloorMaterial>,
             material_from_component_plugin::<HealAbilityMaterial>,
             MainPrepassComponentPlugin::<HealAbilityMaterial>::default(),
         ));
@@ -61,8 +62,6 @@ impl Material2d for HealAbilityMaterial {
 pub struct PortalMaterial {
     #[uniform(0)]
     pub color: LinearRgba,
-    // #[uniform(1)]
-    // pub secondary_color: LinearRgba,
 }
 
 impl Material2d for PortalMaterial {
@@ -82,6 +81,24 @@ impl Material2d for PortalMaterial {
         }
 
         Ok(())
+    }
+}
+
+#[derive(Component, Reflect, Asset, AsBindGroup, Debug, Clone)]
+#[reflect(Component)]
+pub struct CaveFloorMaterial {
+    #[reflect(ignore)]
+    #[uniform(0)]
+    pub time: f32,
+    #[uniform(1)]
+    pub color0: LinearRgba,
+    #[uniform(2)]
+    pub color1: LinearRgba,
+}
+
+impl Material2d for CaveFloorMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/vfx/cave_floor.wgsl".into()
     }
 }
 

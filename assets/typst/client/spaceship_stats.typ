@@ -428,9 +428,7 @@
               base3.transparentize(30%)
             },
             stroke_color: if data.ability_active {
-              gradient.linear(
-                ..lumina_colors.map(fill => fill.transparentize(20%)),
-              )
+              blue.lighten(20% + 20% * sin_lerp_fast)
             } else {
               base3.transparentize(30%).lighten(20%)
             },

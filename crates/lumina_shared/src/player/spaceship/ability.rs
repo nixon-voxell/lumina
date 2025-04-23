@@ -103,16 +103,22 @@ fn disable_heal_ability(
 /// Apply healing effect to spaceships that are inside the radius and also in the same team.
 fn apply_heal_ability(
     q_spaceships: Query<
-        (&ShapeHits, &HealAbilityConfig, Entity),
+        (&ShapeHits, &HealAbilityConfig, &PlayerId, Entity),
         (With<AbilityActive>, With<SourceEntity>),
     >,
     mut q_healths: Query<(&mut Health, &MaxHealth), (With<Spaceship>, With<SourceEntity>)>,
     q_team_types: AliveQuery<&TeamType, (With<Spaceship>, With<SourceEntity>)>,
     time: Res<Time>,
+    network_identity: NetworkIdentity,
 ) {
     let dt = time.delta_seconds();
 
-    for (hits, config, entity) in q_spaceships.iter() {
+    for (hits, config, id, entity) in q_spaceships.iter() {
+        // Only apply heal ability on local or sever.
+        if !(network_identity.is_server() || id.is_local()) {
+            continue;
+        }
+
         let heal_amount = config.ability().healing_rate * dt;
 
         if let Ok((mut health, max_health)) = q_healths.get_mut(entity) {

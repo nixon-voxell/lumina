@@ -3,7 +3,7 @@ use bevy::prelude::*;
 mod player_stats;
 mod score_bar;
 mod spaceship_stats;
-mod timer;
+pub mod timer;
 
 pub(super) struct GameUiPlugin;
 
