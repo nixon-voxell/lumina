@@ -197,8 +197,6 @@ fn ammo_collision(
             if let Ok((mut health, col_team_type)) = q_healths.get_mut(entity) {
                 if col_team_type.is_some_and(|t| t != team_type) || col_team_type.is_none() {
                     **health -= effect.damage;
-                    // Prevent health from going below 0.
-                    **health = health.max(0.0);
                 }
             }
 
