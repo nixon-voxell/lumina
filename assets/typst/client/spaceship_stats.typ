@@ -450,8 +450,9 @@
       ]
     ]
 
-    #place(top + right)[
+    #place(top + right, dy: 2.25em)[
       #box(height: 3em)[
+        #set text(size: 0.7em)
         #button(
           lbl: <btn:settings>,
           inters: interactions(),

@@ -120,6 +120,30 @@
   ]
 }
 
+#let settings_button(
+  body,
+  lbl: label,
+  inters: array,
+  fill: none,
+  svg_idx: 0,
+) = {
+  context [
+    #let fill = if fill != none { fill } else {
+      text.fill
+    }
+
+    #box(
+      width: 2em,
+      height: 2em,
+      fill: fill,
+      stroke: none,
+      radius: 50%,
+    )[
+      #place(center + horizon, body)
+    ] #lbl
+  ]
+}
+
 #let card_button(
   body,
   lbl: label,
@@ -238,6 +262,7 @@
   slant: 0.5em,
   fill: base0,
   stroke: base2,
+  alignment: center + horizon
 ) = context {
   let total_width = width + calc.abs(slant)
 
@@ -256,6 +281,6 @@
   box(
     width: width + calc.abs(slant),
     height: height,
-    place(center + horizon, body),
+    place(alignment, body),
   )
 }

@@ -110,11 +110,7 @@ fn spaceship_stats(
     func.dummy_update = func.dummy_update.wrapping_add(1);
 }
 
-fn settings_btn(
-    interactions: InteractionQuery,
-    mut overlay: ResMut<SettingsOverlay>,
-    mut evw_transparency: EventWriter<MainWindowTransparency>,
-) {
+fn settings_btn(interactions: InteractionQuery, mut overlay: ResMut<SettingsOverlay>) {
     if interactions.pressed("btn:settings") {
         overlay.visible = true;
     }
