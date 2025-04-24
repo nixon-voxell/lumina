@@ -65,8 +65,28 @@ fn kill(
     sound_fx: Res<SoundFx>,
     channel: Res<AudioChannel<SoundFx>>,
 ) {
-    for _ in events.read() {
+    for event in events.read() {
         channel.play(sound_fx.kill.clone_weak());
+
+        let mut cmd = match event.message().streak_count {
+            1 => channel.play(sound_fx.target_down.clone_weak()),
+            2 => channel.play(sound_fx.double_down.clone_weak()),
+            3 => channel.play(sound_fx.on_fire.clone_weak()),
+            4 => channel.play(sound_fx.killing_spree.clone_weak()),
+            5 => channel.play(sound_fx.unstoppable.clone_weak()),
+            6 => channel.play(sound_fx.dominating.clone_weak()),
+            7 => channel.play(sound_fx.godlike.clone_weak()),
+            // Randomly play one if we are over the voice line count.
+            _ => match rand::random_range(0..4) {
+                0 => channel.play(sound_fx.killing_spree.clone_weak()),
+                1 => channel.play(sound_fx.unstoppable.clone_weak()),
+                2 => channel.play(sound_fx.dominating.clone_weak()),
+                3 => channel.play(sound_fx.godlike.clone_weak()),
+                _ => unreachable!(),
+            },
+        };
+
+        cmd.with_volume(2.0);
     }
 }
 
@@ -300,6 +320,13 @@ AudioChannelTracks!(
         cannon_shot: "audio/weapon/cannon-shot.ogg",
         gattling_shot: "audio/weapon/gattling-shot.ogg",
         kill: "audio/sfx/kill.ogg",
+        target_down: "audio/streak/target_down.ogg",
+        double_down: "audio/streak/double_down.ogg",
+        on_fire: "audio/streak/on_fire.ogg",
+        killing_spree: "audio/streak/killing_spree.ogg",
+        unstoppable: "audio/streak/unstoppable.ogg",
+        dominating: "audio/streak/dominating.ogg",
+        godlike: "audio/streak/godlike.ogg",
     }
 );
 

@@ -23,7 +23,7 @@ pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((objective::ObjectivePlugin, kda::KDAPlugin))
+        app.add_plugins((objective::ObjectivePlugin, kda::KdaPlugin))
             .init_resource::<ClientSpaceshipSelection>()
             .add_systems(
                 PreUpdate,

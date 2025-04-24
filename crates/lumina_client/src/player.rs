@@ -10,6 +10,7 @@ use super::Connection;
 
 pub mod aim;
 mod ammo;
+mod kda;
 mod spaceship;
 mod weapon;
 

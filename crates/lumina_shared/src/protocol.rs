@@ -221,7 +221,10 @@ pub struct ObjectivePosition(pub Vec2);
 
 /// Sent from server to a specific client when that client killed an enemy.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct KilledPlayer(pub PlayerId);
+pub struct KilledPlayer {
+    pub killed_id: PlayerId,
+    pub streak_count: u8,
+}
 
 /// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]

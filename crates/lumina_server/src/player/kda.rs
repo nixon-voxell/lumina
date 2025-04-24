@@ -4,12 +4,13 @@ use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 use server::*;
 
-pub struct KDAPlugin;
+pub struct KdaPlugin;
 
-impl Plugin for KDAPlugin {
+impl Plugin for KdaPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (init_kda, player_death))
-            .observe(on_ammo_hit);
+            .observe(on_ammo_hit)
+            .observe(on_kill);
     }
 }
 
@@ -26,7 +27,7 @@ fn init_kda(
     >,
 ) {
     for entity in q_spaceships.iter() {
-        commands.entity(entity).insert(KDABundle::default());
+        commands.entity(entity).insert(KdaBundle::default());
     }
 }
 
@@ -48,37 +49,51 @@ fn on_ammo_hit(trigger: Trigger<AmmoHit>, mut commands: Commands, player_infos: 
 }
 
 fn player_death(
+    mut commands: Commands,
     mut q_spaceships: Query<
         (&mut DeathCount, &mut StreakCount, &LastDamage, &PlayerId),
         (Added<Dead>, With<Spaceship>, With<SourceEntity>),
     >,
-    mut q_kill_counts: Query<&mut KillCount>,
-    player_infos: Res<PlayerInfos>,
-    mut connection_manager: ResMut<ConnectionManager>,
 ) {
-    for (mut death_count, mut streak_count, last_damage, dead_id) in q_spaceships.iter_mut() {
+    for (mut death_count, mut streak_count, last_damage, &dead_id) in q_spaceships.iter_mut() {
         death_count.0 += 1;
         // Reset streak on death.
         streak_count.0 = 0;
 
-        let Some(id) = last_damage.0 else {
+        let Some(alive_id) = last_damage.0 else {
             continue;
         };
 
-        if let Some(mut kill_count) = player_infos[PlayerInfoType::Spaceship]
-            .get(&id)
-            .and_then(|e| q_kill_counts.get_mut(*e).ok())
-        {
-            kill_count.0 += 1;
+        commands.trigger(Kill { alive_id, dead_id });
+    }
+}
 
-            let _ = connection_manager
-                .send_message::<OrdReliableChannel, _>(id.0, &KilledPlayer(*dead_id));
-        }
+fn on_kill(
+    trigger: Trigger<Kill>,
+    mut q_kill_counts: Query<(&mut KillCount, &mut StreakCount)>,
+    player_infos: Res<PlayerInfos>,
+    mut connection_manager: ResMut<ConnectionManager>,
+) {
+    let Kill { alive_id, dead_id } = trigger.event();
+    if let Some((mut kill_count, mut streak_count)) = player_infos[PlayerInfoType::Spaceship]
+        .get(alive_id)
+        .and_then(|e| q_kill_counts.get_mut(*e).ok())
+    {
+        kill_count.0 += 1;
+        streak_count.0 += 1;
+
+        let _ = connection_manager.send_message::<OrdReliableChannel, _>(
+            alive_id.0,
+            &KilledPlayer {
+                killed_id: *dead_id,
+                streak_count: streak_count.0 as u8,
+            },
+        );
     }
 }
 
 #[derive(Bundle, Default)]
-pub struct KDABundle {
+pub struct KdaBundle {
     pub last_damage: LastDamage,
     pub kill_count: KillCount,
     pub streak_count: StreakCount,
@@ -99,3 +114,11 @@ pub struct StreakCount(pub u32);
 /// The number of deaths the player currently has.
 #[derive(Component, Default, Deref, DerefMut)]
 pub struct DeathCount(pub u32);
+
+#[derive(Event, Clone, Copy)]
+struct Kill {
+    /// The id of player that secures the kill.
+    pub alive_id: PlayerId,
+    /// The id of player that is being killed.
+    pub dead_id: PlayerId,
+}

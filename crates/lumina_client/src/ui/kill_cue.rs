@@ -5,7 +5,7 @@ use lumina_shared::prelude::*;
 use lumina_ui::prelude::*;
 use velyst::prelude::*;
 
-use crate::screens::Screen;
+use crate::{player::LocalPlayerInfo, screens::Screen};
 
 use super::game_ui::get_name;
 
@@ -22,7 +22,11 @@ impl Plugin for KillCueUiPlugin {
                 MainWindowSet::Foreground,
                 run_condition.clone(),
             )
-            .add_systems(Update, animate_kill_cue.run_if(run_condition));
+            .add_systems(OnEnter(Screen::LocalLobby), reset_ui)
+            .add_systems(
+                Update,
+                (animate_kill_cue, reset_streak).run_if(run_condition),
+            );
     }
 }
 
@@ -35,13 +39,32 @@ fn animate_kill_cue(
     let delta = time.delta_seconds_f64() * SPEED;
 
     for event in events.read() {
-        let name = get_name(&event.message.0);
+        let message = event.message();
+        let name = get_name(&message.killed_id);
         // Assign name and restart animation.
         func.name = name;
         func.animate = 0.0;
+        func.streak = message.streak_count;
     }
 
     func.animate = func.animate.lerp(1.0, delta);
+}
+
+/// Reset streak on local spaceship death.
+fn reset_streak(
+    q_dead: DeadQuery<()>,
+    local_player_info: LocalPlayerInfo,
+    mut func: ResMut<MainFunc>,
+) {
+    if let Some(entity) = local_player_info.get(PlayerInfoType::Spaceship) {
+        if q_dead.contains(entity) {
+            func.streak = 0;
+        }
+    }
+}
+
+fn reset_ui(mut func: ResMut<MainFunc>) {
+    *func = MainFunc::default();
 }
 
 #[derive(TypstFunc, Resource)]
@@ -49,6 +72,7 @@ fn animate_kill_cue(
 struct MainFunc {
     name: &'static str,
     animate: f64,
+    streak: u8,
 }
 
 impl Default for MainFunc {
@@ -56,6 +80,7 @@ impl Default for MainFunc {
         Self {
             name: "",
             animate: 1.0,
+            streak: 0,
         }
     }
 }
