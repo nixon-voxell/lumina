@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 mod player_stats;
 mod score_bar;
+mod settings;
 mod spaceship_stats;
 pub mod timer;
 
@@ -12,6 +13,7 @@ impl Plugin for GameUiPlugin {
         app.add_plugins((
             timer::TimerUiPlugin,
             spaceship_stats::SpaceshipStatsPlugin,
+            settings::SettingsUiPlugin,
             score_bar::ScoreBarUiPlugin,
             player_stats::PlayerStatsPlugin,
         ));
