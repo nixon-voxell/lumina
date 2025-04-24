@@ -131,7 +131,7 @@ pub enum WeaponType {
 #[strum(prefix = "levels/ammos/")]
 pub enum AmmoType {
     LongRange,
-    // ShortRange,
+    ShortRange,
     // Honing,
 }
 
