@@ -49,14 +49,14 @@ fn on_ammo_hit(trigger: Trigger<AmmoHit>, mut commands: Commands, player_infos: 
 
 fn player_death(
     mut q_spaceships: Query<
-        (&mut DeathCount, &mut StreakCount, &LastDamage),
+        (&mut DeathCount, &mut StreakCount, &LastDamage, &PlayerId),
         (Added<Dead>, With<Spaceship>, With<SourceEntity>),
     >,
     mut q_kill_counts: Query<&mut KillCount>,
     player_infos: Res<PlayerInfos>,
     mut connection_manager: ResMut<ConnectionManager>,
 ) {
-    for (mut death_count, mut streak_count, last_damage) in q_spaceships.iter_mut() {
+    for (mut death_count, mut streak_count, last_damage, dead_id) in q_spaceships.iter_mut() {
         death_count.0 += 1;
         // Reset streak on death.
         streak_count.0 = 0;
@@ -71,8 +71,8 @@ fn player_death(
         {
             kill_count.0 += 1;
 
-            let _ =
-                connection_manager.send_message::<OrdReliableChannel, _>(id.0, &KilledPlayer(id));
+            let _ = connection_manager
+                .send_message::<OrdReliableChannel, _>(id.0, &KilledPlayer(*dead_id));
         }
     }
 }

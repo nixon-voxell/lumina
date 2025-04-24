@@ -7,6 +7,8 @@ mod settings;
 mod spaceship_stats;
 pub mod timer;
 
+pub use player_stats::get_name;
+
 pub(super) struct GameUiPlugin;
 
 impl Plugin for GameUiPlugin {
