@@ -98,9 +98,9 @@ fn spaceship_actions(
                 )
                 .flatten();
             action.is_boosting = player_action.pressed(&PlayerAction::Boost);
-            action.is_dash = player_action.just_pressed(&PlayerAction::Dash);
+            action.is_dash = player_action.pressed(&PlayerAction::Dash);
             action.is_braking = player_action.pressed(&PlayerAction::Brake);
-            action.is_ability = player_action.just_pressed(&PlayerAction::Ability);
+            action.is_ability = player_action.pressed(&PlayerAction::Ability);
         }
     }
 }

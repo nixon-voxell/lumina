@@ -93,7 +93,11 @@ fn spawn_game_camera(
             bloom,
             SmaaSettings::default(),
             RadianceCascadesConfig::default(),
-            VignetteConfig::default(),
+            VignetteConfig {
+                distance: -0.3,
+                intensity: 6.0,
+                ..default()
+            },
             ChromaticAberrationConfig {
                 distance: 1.0,
                 ..default()
@@ -152,12 +156,12 @@ fn health_effect(
     mut q_camera: Query<(&mut ChromaticAberrationConfig, &mut VignetteConfig), With<GameCamera>>,
     mut q_spaceships: Query<
         (&Health, Option<&mut PreviousHealth>, &PlayerId, Entity),
-        (With<Spaceship>, With<SourceEntity>, Changed<Health>),
+        (With<Spaceship>, With<SourceEntity>),
     >,
     local_player_id: Res<LocalPlayerId>,
     time: Res<Time>,
 ) {
-    const SPEED: f32 = 4.0;
+    const SPEED: f32 = 2.0;
     let delta = time.delta_seconds() * SPEED;
 
     let Ok((mut chrom, mut vignette)) = q_camera.get_single_mut() else {
@@ -172,13 +176,20 @@ fn health_effect(
             Some(mut prev_health) => {
                 if prev_health.0 > **health {
                     // We have been damaged.
-                    chrom.distance = -0.5;
+                    chrom.distance = -0.4;
                     vignette.tint = Vec3::new(2.0, 0.0, 0.0);
+                    // Immediate feedback for damage.
+                    prev_health.0 = **health;
                 } else if prev_health.0 < **health {
                     // We have been healed.
                     vignette.tint = Vec3::new(0.0, 2.0, 0.0);
+                    // Delayed feedback for healing.
+                    prev_health.0 = prev_health.0.lerp(**health, time.delta_seconds() * 6.0);
+
+                    if (prev_health.0 - **health).abs() < 0.01 {
+                        prev_health.0 = **health;
+                    }
                 }
-                prev_health.0 = **health;
             }
             None => {
                 commands.entity(entity).insert(PreviousHealth(**health));

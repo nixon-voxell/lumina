@@ -34,7 +34,11 @@ fn lumina_vfx(
 
         let active_state = lumina.0 > 0;
         // Lower value at first, then boost up to maximum.
-        let lumina_ratio = ease::quint::ease_in(lumina.0 as f32 / CollectedLumina::MAX as f32);
+        let lumina_ratio = ease::quint::ease_in(f32::clamp(
+            lumina.0 as f32 / CollectedLumina::MAX as f32,
+            0.0,
+            1.0,
+        ));
 
         for entity in entities.iter() {
             if let Ok((mut state, mut instance)) = q_particles.get_mut(*entity) {
@@ -72,7 +76,7 @@ fn smoke_vfx(
             continue;
         };
 
-        let health_ratio = **health / **max_health;
+        let health_ratio = f32::clamp(**health / **max_health, 0.0, 1.0);
         let active_state = health_ratio < THRESHOLD;
 
         let smoke_ratio =
@@ -129,7 +133,7 @@ fn booster_vfx(
         // Boost.
         let boost_acc = f32::max(0.0, **acceleration - movement.linear_acceleration);
         let boost_acc_size = boost.linear_acceleration;
-        let boost_ratio = boost_acc / boost_acc_size;
+        let boost_ratio = f32::clamp(boost_acc / boost_acc_size, 0.0, 1.0);
 
         // TODO: Make a map to the entities.
         for child in q_childrens.iter_descendants(entity) {
