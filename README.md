@@ -82,6 +82,8 @@ You can run multiple instances of `lumina_client.exe` which will act like a diff
 
 To host for your entire LAN (local area network), open up terminal and determine your local IP address using `ipconfig` on Windows or `ifconfig` on Linux/Mac.
 
+![poster](./.github/assets/local-ip.png)
+
 Then, copy the IP address and paste it in `assets/settings.ron` in the `server_addr` field:
 ```ron
     ..
