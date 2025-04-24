@@ -36,6 +36,7 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<StartGame>(ChannelDirection::ServerToClient);
         app.register_message::<EndGame>(ChannelDirection::ServerToClient);
         app.register_message::<GameScore>(ChannelDirection::ServerToClient);
+        app.register_message::<ObjectivePosition>(ChannelDirection::ServerToClient);
         app.register_message::<DepositLumina>(ChannelDirection::ClientToServer);
         app.register_message::<SelectSpaceship>(ChannelDirection::ClientToServer);
         app.register_message::<Teleport>(ChannelDirection::ClientToServer);
@@ -213,6 +214,9 @@ pub struct SelectSpaceship(pub SpaceshipType);
 pub struct Teleport {
     pub teleporter: Teleporter,
 }
+
+#[derive(Event, Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct ObjectivePosition(pub Vec2);
 
 /// A [`ChannelMode::OrderedReliable`] channel with a priority of 1.0.
 #[derive(Channel)]

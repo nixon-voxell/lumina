@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+mod objective_area_arrrow;
 mod player_stats;
 mod score_bar;
 mod settings;
@@ -16,6 +17,7 @@ impl Plugin for GameUiPlugin {
             settings::SettingsUiPlugin,
             score_bar::ScoreBarUiPlugin,
             player_stats::PlayerStatsPlugin,
+            objective_area_arrrow::ObjectiveArrowUiPlugin,
         ));
     }
 }
