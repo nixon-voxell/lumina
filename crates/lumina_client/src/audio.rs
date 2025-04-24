@@ -5,6 +5,8 @@ use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 use bevy_motiongfx::prelude::ease;
+use client::*;
+use lightyear::prelude::*;
 use lumina_common::prelude::*;
 use lumina_shared::prelude::*;
 
@@ -42,6 +44,7 @@ impl Plugin for AudioPlugin {
             .add_systems(
                 Update,
                 (
+                    kill,
                     update_volume_settings.run_if(resource_changed::<AudioVolumeSettings>),
                     setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
                     button_interaction,
@@ -57,28 +60,13 @@ impl Plugin for AudioPlugin {
     }
 }
 
-fn update_volume_settings(
-    bgm_channel: Res<AudioChannel<Background>>,
-    vfx_channel: Res<AudioChannel<SoundFx>>,
-    settings: Res<AudioVolumeSettings>,
-) {
-    bgm_channel.set_volume(settings.bgm_volume);
-    vfx_channel.set_volume(settings.vfx_volume);
-}
-
-fn button_interaction(
-    q_interactions: Query<&Interaction, Changed<Interaction>>,
+fn kill(
+    mut events: EventReader<MessageEvent<KilledPlayer>>,
     sound_fx: Res<SoundFx>,
     channel: Res<AudioChannel<SoundFx>>,
 ) {
-    for interaction in q_interactions.iter() {
-        let handle = match interaction {
-            Interaction::Pressed => sound_fx.button_click.clone_weak(),
-            Interaction::Hovered => sound_fx.button_hover.clone_weak(),
-            Interaction::None => continue,
-        };
-
-        channel.play(handle);
+    for _ in events.read() {
+        channel.play(sound_fx.kill.clone_weak());
     }
 }
 
@@ -120,7 +108,7 @@ fn ammo_hit(
     channel: Res<AudioChannel<SoundFx>>,
     mut emitter_pool: ResMut<EmitterPool>,
 ) {
-    let position = trigger.event();
+    let position = trigger.event().position;
     let entity = emitter_pool.get_unused_or_spawn(|| commands.spawn_empty().id());
 
     commands.entity(entity).insert((
@@ -148,7 +136,7 @@ fn spaceship_velocity_pitch(
         let velocity_factor =
             ease::quad::ease_in_out(velocity.length() / spaceship.movement.max_linear_speed)
                 .clamp(0.0, 1.0);
-        let playback_rate = f32::lerp(1.0, MAX_RATE, velocity_factor) as f64;
+        let playback_rate = 1.0.lerp(MAX_RATE, velocity_factor) as f64;
 
         if let Some(instance) = instances.get_mut(instance_handle) {
             instance.set_playback_rate(playback_rate, AudioTween::default());
@@ -256,6 +244,31 @@ fn return_emitter_pool(
     }
 }
 
+fn update_volume_settings(
+    bgm_channel: Res<AudioChannel<Background>>,
+    vfx_channel: Res<AudioChannel<SoundFx>>,
+    settings: Res<AudioVolumeSettings>,
+) {
+    bgm_channel.set_volume(settings.bgm_volume);
+    vfx_channel.set_volume(settings.vfx_volume);
+}
+
+fn button_interaction(
+    q_interactions: Query<&Interaction, Changed<Interaction>>,
+    sound_fx: Res<SoundFx>,
+    channel: Res<AudioChannel<SoundFx>>,
+) {
+    for interaction in q_interactions.iter() {
+        let handle = match interaction {
+            Interaction::Pressed => sound_fx.button_click.clone_weak(),
+            Interaction::Hovered => sound_fx.button_hover.clone_weak(),
+            Interaction::None => continue,
+        };
+
+        channel.play(handle);
+    }
+}
+
 #[derive(Resource, Default, Deref, DerefMut)]
 struct EmitterPool(EntityPool);
 
@@ -286,6 +299,7 @@ AudioChannelTracks!(
         ammo_hit: "audio/weapon/ammo-hit.ogg",
         cannon_shot: "audio/weapon/cannon-shot.ogg",
         gattling_shot: "audio/weapon/gattling-shot.ogg",
+        kill: "audio/sfx/kill.ogg",
     }
 );
 
