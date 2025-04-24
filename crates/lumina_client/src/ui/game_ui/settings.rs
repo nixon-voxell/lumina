@@ -6,20 +6,6 @@ use velyst::prelude::*;
 pub(super) struct SettingsUiPlugin;
 
 use crate::audio::{Background, SoundFx};
-#[derive(Resource)]
-pub struct AudioSettings {
-    pub bgm_volume: f64,
-    pub vfx_volume: f64,
-}
-
-impl Default for AudioSettings {
-    fn default() -> Self {
-        AudioSettings {
-            bgm_volume: 0.5,
-            vfx_volume: 0.5,
-        }
-    }
-}
 
 impl Plugin for SettingsUiPlugin {
     fn build(&self, app: &mut App) {
@@ -31,6 +17,7 @@ impl Plugin for SettingsUiPlugin {
             )
             .recompile_on_interaction::<SettingsFunc>(|func| &mut func.dummy_update)
             .init_resource::<SettingsFunc>()
+            .init_resource::<SettingsOverlay>()
             .init_resource::<AudioSettings>()
             .add_systems(Update, (adjust_audio, close_settings));
     }
@@ -50,24 +37,39 @@ fn adjust_audio(
     mut audio_settings: ResMut<AudioSettings>,
 ) {
     if interactions.pressed("btn:decrease_bgm") {
-        audio_settings.bgm_volume = (audio_settings.bgm_volume - 0.1).clamp(0.0, 1.0);
+        audio_settings.bgm_volume = (audio_settings.bgm_volume - 0.1).max(0.0);
         bgm_channel.set_volume(audio_settings.bgm_volume);
     }
     if interactions.pressed("btn:increase_bgm") {
-        audio_settings.bgm_volume = (audio_settings.bgm_volume + 0.1).clamp(0.0, 1.0);
+        audio_settings.bgm_volume = (audio_settings.bgm_volume + 0.1).min(1.0);
         bgm_channel.set_volume(audio_settings.bgm_volume);
     }
     if interactions.pressed("btn:decrease_vfx") {
-        audio_settings.vfx_volume = (audio_settings.vfx_volume - 0.1).clamp(0.0, 1.0);
+        audio_settings.vfx_volume = (audio_settings.vfx_volume - 0.1).max(0.0);
         vfx_channel.set_volume(audio_settings.vfx_volume);
     }
     if interactions.pressed("btn:increase_vfx") {
-        audio_settings.vfx_volume = (audio_settings.vfx_volume + 0.1).clamp(0.0, 1.0);
+        audio_settings.vfx_volume = (audio_settings.vfx_volume + 0.1).min(1.0);
         vfx_channel.set_volume(audio_settings.vfx_volume);
     }
 
     func.bgm_volume = audio_settings.bgm_volume;
     func.vfx_volume = audio_settings.vfx_volume;
+}
+
+#[derive(Resource)]
+pub struct AudioSettings {
+    pub bgm_volume: f64,
+    pub vfx_volume: f64,
+}
+
+impl Default for AudioSettings {
+    fn default() -> Self {
+        AudioSettings {
+            bgm_volume: 0.5,
+            vfx_volume: 0.5,
+        }
+    }
 }
 
 #[derive(TypstFunc, Resource)]

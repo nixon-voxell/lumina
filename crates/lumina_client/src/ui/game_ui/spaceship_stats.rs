@@ -18,7 +18,6 @@ impl Plugin for SpaceshipStatsPlugin {
             .compile_typst_func::<SpaceshipStats, MainFunc>()
             .push_to_main_window::<SpaceshipStats, MainFunc, _>(MainWindowSet::Default, always_run)
             .init_resource::<MainFunc>()
-            .init_resource::<SettingsOverlay>()
             .add_systems(Update, (spaceship_stats, settings_btn));
     }
 }
