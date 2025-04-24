@@ -5,7 +5,7 @@ use velyst::prelude::*;
 
 pub(super) struct SettingsUiPlugin;
 
-use crate::audio::{Background, SoundFx};
+use crate::audio::AudioVolumeSettings;
 
 impl Plugin for SettingsUiPlugin {
     fn build(&self, app: &mut App) {
@@ -32,44 +32,23 @@ fn close_settings(interactions: InteractionQuery, mut overlay: ResMut<SettingsOv
 fn adjust_audio(
     mut func: ResMut<SettingsFunc>,
     interactions: InteractionQuery,
-    bgm_channel: Res<AudioChannel<Background>>,
-    vfx_channel: Res<AudioChannel<SoundFx>>,
-    mut audio_settings: ResMut<AudioSettings>,
+    mut audio_settings: ResMut<AudioVolumeSettings>,
 ) {
     if interactions.pressed("btn:decrease_bgm") {
         audio_settings.bgm_volume = (audio_settings.bgm_volume - 0.1).max(0.0);
-        bgm_channel.set_volume(audio_settings.bgm_volume);
     }
     if interactions.pressed("btn:increase_bgm") {
         audio_settings.bgm_volume = (audio_settings.bgm_volume + 0.1).min(1.0);
-        bgm_channel.set_volume(audio_settings.bgm_volume);
     }
     if interactions.pressed("btn:decrease_vfx") {
         audio_settings.vfx_volume = (audio_settings.vfx_volume - 0.1).max(0.0);
-        vfx_channel.set_volume(audio_settings.vfx_volume);
     }
     if interactions.pressed("btn:increase_vfx") {
         audio_settings.vfx_volume = (audio_settings.vfx_volume + 0.1).min(1.0);
-        vfx_channel.set_volume(audio_settings.vfx_volume);
     }
 
     func.bgm_volume = audio_settings.bgm_volume;
     func.vfx_volume = audio_settings.vfx_volume;
-}
-
-#[derive(Resource)]
-pub struct AudioSettings {
-    pub bgm_volume: f64,
-    pub vfx_volume: f64,
-}
-
-impl Default for AudioSettings {
-    fn default() -> Self {
-        AudioSettings {
-            bgm_volume: 0.5,
-            vfx_volume: 0.5,
-        }
-    }
 }
 
 #[derive(TypstFunc, Resource)]
@@ -82,9 +61,10 @@ pub struct SettingsFunc {
 
 impl Default for SettingsFunc {
     fn default() -> Self {
+        let default_audio = AudioVolumeSettings::default();
         SettingsFunc {
-            bgm_volume: 0.5,
-            vfx_volume: 0.5,
+            bgm_volume: default_audio.bgm_volume,
+            vfx_volume: default_audio.vfx_volume,
             dummy_update: 0,
         }
     }

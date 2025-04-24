@@ -18,24 +18,31 @@ impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_kira_audio::AudioPlugin);
 
-        app.insert_resource(SpatialAudio {
-            max_distance: 1600.,
-        })
-        .init_resource::<Background>()
-        .add_audio_channel::<Background>()
-        .init_resource::<SoundFx>()
-        .add_audio_channel::<SoundFx>()
-        .init_resource::<EmitterPool>();
+        app.init_resource::<AudioVolumeSettings>()
+            .insert_resource(SpatialAudio {
+                max_distance: 1600.,
+            })
+            .init_resource::<Background>()
+            .add_audio_channel::<Background>()
+            .init_resource::<SoundFx>()
+            .add_audio_channel::<SoundFx>()
+            .init_resource::<EmitterPool>();
 
+        // This is required to set before the startup system/state event trigger happens.
+        let audio_volume_settings = AudioVolumeSettings::default();
         app.world_mut()
             .resource_mut::<AudioChannel<Background>>()
-            .set_volume(0.5);
+            .set_volume(audio_volume_settings.bgm_volume);
+        app.world_mut()
+            .resource_mut::<AudioChannel<Background>>()
+            .set_volume(audio_volume_settings.vfx_volume);
 
         app.add_systems(OnEnter(Screen::MainMenu), play_main_menu_music)
             .add_systems(OnEnter(Screen::InGame), play_in_game_music)
             .add_systems(
                 Update,
                 (
+                    update_volume_settings.run_if(resource_changed::<AudioVolumeSettings>),
                     setup_audio_emitter::<Or<(With<Weapon>, With<Spaceship>)>>,
                     button_interaction,
                     return_emitter_pool,
@@ -48,6 +55,15 @@ impl Plugin for AudioPlugin {
             .observe(ammo_hit)
             .observe(cleanup_removed_instances);
     }
+}
+
+fn update_volume_settings(
+    bgm_channel: Res<AudioChannel<Background>>,
+    vfx_channel: Res<AudioChannel<SoundFx>>,
+    settings: Res<AudioVolumeSettings>,
+) {
+    bgm_channel.set_volume(settings.bgm_volume);
+    vfx_channel.set_volume(settings.vfx_volume);
 }
 
 fn button_interaction(
@@ -297,3 +313,18 @@ macro_rules! AudioChannelTracks {
     };
 }
 pub use AudioChannelTracks;
+
+#[derive(Resource)]
+pub struct AudioVolumeSettings {
+    pub bgm_volume: f64,
+    pub vfx_volume: f64,
+}
+
+impl Default for AudioVolumeSettings {
+    fn default() -> Self {
+        AudioVolumeSettings {
+            bgm_volume: 0.5,
+            vfx_volume: 1.0,
+        }
+    }
+}
