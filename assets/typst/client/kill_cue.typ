@@ -1,7 +1,7 @@
 #import "../monokai_pro.typ": *
 #import "../utils.typ": *
 
-#let main(name, animate, streak) = context {
+#let main(name, animate, streak, kill_count, death_count) = context {
   box(width: 100%, height: 100%, inset: 2em)[
     #if animate < 0.99 {
       let (time0, time1) = calculate_section_time(
@@ -36,7 +36,12 @@
     }
 
     #place(right + bottom, dy: -8em)[
-      #text(fill: orange)[#streak x]
+      #box(image("/icons/fire.svg", height: 1em))
+      #text(fill: orange)[#streak x]\
+      #box(image("/icons/knife.svg", height: 1em))
+      #text(fill: red)[#kill_count]\
+      #box(image("/icons/rip.svg", height: 1em))
+      #text(fill: purple)[#death_count]
     ]
   ]
 }

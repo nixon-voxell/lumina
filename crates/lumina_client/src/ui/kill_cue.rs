@@ -45,6 +45,7 @@ fn animate_kill_cue(
         func.name = name;
         func.animate = 0.0;
         func.streak = message.streak_count;
+        func.kill_count += 1;
     }
 
     func.animate = func.animate.lerp(1.0, delta);
@@ -52,13 +53,15 @@ fn animate_kill_cue(
 
 /// Reset streak on local spaceship death.
 fn reset_streak(
-    q_dead: DeadQuery<()>,
+    // Just died.
+    q_dead: Query<(), Added<Dead>>,
     local_player_info: LocalPlayerInfo,
     mut func: ResMut<MainFunc>,
 ) {
     if let Some(entity) = local_player_info.get(PlayerInfoType::Spaceship) {
         if q_dead.contains(entity) {
             func.streak = 0;
+            func.death_count += 1;
         }
     }
 }
@@ -73,6 +76,8 @@ struct MainFunc {
     name: &'static str,
     animate: f64,
     streak: u8,
+    kill_count: u8,
+    death_count: u8,
 }
 
 impl Default for MainFunc {
@@ -81,6 +86,8 @@ impl Default for MainFunc {
             name: "",
             animate: 1.0,
             streak: 0,
+            kill_count: 0,
+            death_count: 0,
         }
     }
 }
