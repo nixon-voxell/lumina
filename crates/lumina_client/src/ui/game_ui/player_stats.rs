@@ -64,7 +64,7 @@ fn player_stats(
         id,
     ) in q_spaceships.iter()
     {
-        let name = NAMES[id.to_bits() as usize % NAMES.len()];
+        let name = get_name(id);
         let transparency = match (ability_effect, ability_cooldown) {
             (Some(effect), None) if has_shadow_ability => effect.elapsed_secs() / 0.3,
             (None, Some(cooldown)) if has_shadow_ability => 1.0 - (cooldown.elapsed_secs() / 0.5),
@@ -100,7 +100,11 @@ struct MainFunc {
 #[typst_path = "typst/client/player_stats.typ"]
 pub struct PlayerStats;
 
-const NAMES: [&str; 50] = [
+pub fn get_name(id: &PlayerId) -> &'static str {
+    NAMES[id.to_bits() as usize % NAMES.len()]
+}
+
+pub const NAMES: [&str; 50] = [
     "Luminara",
     "Gloam",
     "Radiant",

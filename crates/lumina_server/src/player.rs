@@ -16,13 +16,14 @@ use crate::lobby::LobbyRemoval;
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
+pub mod kda;
 pub(super) mod objective;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(objective::ObjectivePlugin)
+        app.add_plugins((objective::ObjectivePlugin, kda::KdaPlugin))
             .init_resource::<ClientSpaceshipSelection>()
             .add_systems(
                 PreUpdate,

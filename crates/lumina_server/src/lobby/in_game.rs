@@ -76,17 +76,22 @@ fn start_game(
 fn manage_objective_areas(
     mut commands: Commands,
     // Manage sandbox managers only.
-    mut q_manager: Query<&mut ObjectiveAreaManager, With<LobbyInGame>>,
+    mut q_manager: Query<(&mut ObjectiveAreaManager, Entity), With<LobbyInGame>>,
     // Do no reset already resetting areas.
-    q_areas: Query<(&ObjectiveArea, Has<ActiveObjectiveArea>), Without<ResetObjectiveArea>>,
+    q_areas: Query<
+        (&ObjectiveArea, Has<ActiveObjectiveArea>, &GlobalTransform),
+        Without<ResetObjectiveArea>,
+    >,
+    mut connection: ResMut<ConnectionManager>,
+    room_manager: Res<RoomManager>,
 ) {
-    for mut manager in q_manager
+    for (mut manager, lobby_entity) in q_manager
         .iter_mut()
         // TODO: Use a better marker to indicate that the objective area manager is ready.
-        .filter(|m| m.areas.len() == OBJECTIVE_AREA_COUNT)
+        .filter(|(m, _)| m.areas.len() == OBJECTIVE_AREA_COUNT)
     {
         let area_entity = manager.areas[manager.selected_index];
-        if let Ok((area, is_active)) = q_areas.get(area_entity) {
+        if let Ok((area, is_active, transform)) = q_areas.get(area_entity) {
             let depleted = area.ores.unused().is_empty();
             if depleted == false {
                 continue;
@@ -107,6 +112,11 @@ fn manage_objective_areas(
                     ResetObjectiveArea(Timer::from_seconds(5.0, TimerMode::Once)),
                     ActiveObjectiveArea,
                 ));
+                let _ = connection.send_message_to_room::<OrdReliableChannel, _>(
+                    &ObjectivePosition(transform.translation().xy()),
+                    lobby_entity.room_id(),
+                    &room_manager,
+                );
             }
         }
     }
