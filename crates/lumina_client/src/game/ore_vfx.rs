@@ -65,7 +65,7 @@ fn ore_health_dimming(
     const END_OFFSET: f32 = 0.5;
 
     for (origin_colors, health, max_health) in q_ores.iter() {
-        let health_ratio = **health / **max_health;
+        let health_ratio = f32::clamp(**health / **max_health, 0.0, 1.0);
 
         let no_health = (health_ratio - 0.0).abs() < f32::EPSILON;
         let full_health = (health_ratio - 1.0).abs() < f32::EPSILON;
@@ -157,7 +157,7 @@ fn on_blink_end(
 
         commands
             .entity(entity)
-            .start_auto_timer::<BlinkStart>(Duration::from_secs_f32(blink.start_duration));
+            .start_auto_timer::<BlinkStart>(Duration::from_secs_f32(blink.start_duration.max(0.0)));
     }
 }
 

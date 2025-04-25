@@ -21544,7 +21544,8 @@
       "isResource": false,
       "long_name": "lumina_shared::blueprints::AmmoType",
       "oneOf": [
-        "LongRange"
+        "LongRange",
+        "ShortRange"
       ],
       "short_name": "AmmoType",
       "type": "string",
