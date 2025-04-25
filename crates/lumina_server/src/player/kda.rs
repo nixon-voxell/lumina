@@ -70,17 +70,29 @@ fn player_death(
 
 fn on_kill(
     trigger: Trigger<Kill>,
-    mut q_kill_counts: Query<(&mut KillCount, &mut StreakCount)>,
+    mut q_kill_counts: Query<(
+        &mut KillCount,
+        &mut StreakCount,
+        Has<ShadowAbilityConfig>,
+        &mut Health,
+        &MaxHealth,
+    )>,
     player_infos: Res<PlayerInfos>,
     mut connection_manager: ResMut<ConnectionManager>,
 ) {
     let Kill { alive_id, dead_id } = trigger.event();
-    if let Some((mut kill_count, mut streak_count)) = player_infos[PlayerInfoType::Spaceship]
-        .get(alive_id)
-        .and_then(|e| q_kill_counts.get_mut(*e).ok())
+    if let Some((mut kill_count, mut streak_count, is_shadow, mut health, max_health)) =
+        player_infos[PlayerInfoType::Spaceship]
+            .get(alive_id)
+            .and_then(|e| q_kill_counts.get_mut(*e).ok())
     {
         kill_count.0 += 1;
         streak_count.0 += 1;
+
+        // Apply life steal for assassin.
+        if is_shadow {
+            **health = (**health + 10.0).min(**max_health);
+        }
 
         let _ = connection_manager.send_message::<OrdReliableChannel, _>(
             alive_id.0,

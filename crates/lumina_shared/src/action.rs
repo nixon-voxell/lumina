@@ -62,6 +62,8 @@ impl PlayerAction {
         input_map.insert(Self::Move, VirtualDPad::wasd());
         input_map.insert(Self::Dash, KeyCode::Space);
         input_map.insert(Self::Boost, KeyCode::ShiftLeft);
+        // Additional option.
+        input_map.insert(Self::Boost, MouseButton::Right);
         input_map.insert(Self::Brake, KeyCode::ControlLeft);
         input_map.insert(Self::Interact, KeyCode::KeyE);
         input_map.insert(Self::Attack, MouseButton::Left);
