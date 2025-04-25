@@ -23,6 +23,7 @@ impl Plugin for KillCueUiPlugin {
                 run_condition.clone(),
             )
             .add_systems(OnEnter(Screen::LocalLobby), reset_ui)
+            .add_systems(OnEnter(Screen::InGame), reset_ui)
             .add_systems(
                 Update,
                 (animate_kill_cue, reset_streak).run_if(run_condition),

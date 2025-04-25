@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use blenvy::*;
+use kda::KdaBundle;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -275,7 +276,12 @@ fn reset_spaceship(
     linear_velocity.0 = Vec2::ZERO;
     angular_velocity.0 = 0.0;
 
-    commands.entity(entity).insert(CancelAbility);
+    commands.entity(entity).insert((
+        // Reset abilities.
+        CancelAbility,
+        // Reset kda.
+        KdaBundle::default(),
+    ));
 }
 
 #[derive(Event)]
