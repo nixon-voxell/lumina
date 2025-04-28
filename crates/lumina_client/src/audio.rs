@@ -86,7 +86,7 @@ fn kill(
             },
         };
 
-        cmd.with_volume(2.0);
+        cmd.with_volume(3.0);
     }
 }
 

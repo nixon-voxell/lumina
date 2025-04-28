@@ -13,7 +13,7 @@ pub mod prelude {
 
 // TODO: Read from a config!
 // Allow for custom timing.
-pub const GAME_DURATION: f32 = 60.0 * 10.0;
+pub const GAME_DURATION: f32 = 60.0 * 7.0;
 pub const RESPAWN_DURATION: f32 = 7.0;
 
 pub(super) struct GamePlugin;
