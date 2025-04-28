@@ -2,6 +2,7 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use blenvy::*;
+use kda::KdaBundle;
 use leafwing_input_manager::prelude::*;
 use lightyear::prelude::*;
 use lumina_common::prelude::*;
@@ -16,13 +17,14 @@ use crate::lobby::LobbyRemoval;
 use super::lobby::Lobby;
 use super::LobbyInfos;
 
+pub mod kda;
 pub(super) mod objective;
 
 pub(super) struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(objective::ObjectivePlugin)
+        app.add_plugins((objective::ObjectivePlugin, kda::KdaPlugin))
             .init_resource::<ClientSpaceshipSelection>()
             .add_systems(
                 PreUpdate,
@@ -274,7 +276,12 @@ fn reset_spaceship(
     linear_velocity.0 = Vec2::ZERO;
     angular_velocity.0 = 0.0;
 
-    commands.entity(entity).insert(CancelAbility);
+    commands.entity(entity).insert((
+        // Reset abilities.
+        CancelAbility,
+        // Reset kda.
+        KdaBundle::default(),
+    ));
 }
 
 #[derive(Event)]

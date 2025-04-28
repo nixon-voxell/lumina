@@ -17,9 +17,9 @@ impl Plugin for RespawnCueUiPlugin {
         let run_condition = in_state(Screen::InGame).or_else(in_state(Screen::MultiplayerLobby));
 
         app.init_resource::<MainFunc>()
-            .register_typst_asset::<RespawnCue>()
-            .compile_typst_func::<RespawnCue, MainFunc>()
-            .push_to_main_window::<RespawnCue, MainFunc, _>(
+            .register_typst_asset::<RespawnCueUi>()
+            .compile_typst_func::<RespawnCueUi, MainFunc>()
+            .push_to_main_window::<RespawnCueUi, MainFunc, _>(
                 MainWindowSet::Foreground,
                 run_condition.clone(),
             )
@@ -67,4 +67,4 @@ struct MainFunc {
 
 #[derive(TypstPath)]
 #[typst_path = "typst/client/respawn_cue.typ"]
-struct RespawnCue;
+struct RespawnCueUi;

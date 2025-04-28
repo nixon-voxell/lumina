@@ -138,7 +138,10 @@ fn ammo_collision(
     mut commands: Commands,
     q_col_criteria: Query<(Option<&PlayerId>, Has<Sensor>)>,
     // Only apply damage on the server.
-    mut q_healths: Query<(&mut Health, Option<&TeamType>), With<server::SyncTarget>>,
+    mut q_healths: Query<
+        (&mut Health, Option<&TeamType>, Option<&PlayerId>),
+        With<server::SyncTarget>,
+    >,
     q_ammo_stats: Query<&AmmoStat, With<SourceEntity>>,
     mut q_ammos: Query<
         (
@@ -180,6 +183,7 @@ fn ammo_collision(
         };
 
         let mut hit = false;
+        let mut hit_id = None;
 
         for &entity in colliding.iter() {
             // Ignore if we are colliding with entity that
@@ -194,9 +198,10 @@ fn ammo_collision(
             }
 
             // Apply damage if not in the same team or there is no team.
-            if let Ok((mut health, col_team_type)) = q_healths.get_mut(entity) {
+            if let Ok((mut health, col_team_type, id)) = q_healths.get_mut(entity) {
                 if col_team_type.is_some_and(|t| t != team_type) || col_team_type.is_none() {
                     **health -= effect.damage;
+                    hit_id = id.copied();
                 }
             }
 
@@ -224,7 +229,11 @@ fn ammo_collision(
         if hit {
             let duration = lifetime.duration();
             lifetime.tick(duration);
-            commands.trigger(AmmoHit(*position));
+            commands.trigger(AmmoHit {
+                position: *position,
+                origin_player_id: *id,
+                hit_player_id: hit_id,
+            });
         }
     }
 }
@@ -287,8 +296,14 @@ pub struct FireAmmo {
     pub direction: Vec2,
 }
 
-#[derive(Event, Deref)]
-pub struct AmmoHit(Position);
+#[derive(Event)]
+pub struct AmmoHit {
+    /// The position that the ammo hits something.
+    pub position: Position,
+    /// The original player that fires the ammo.
+    pub origin_player_id: PlayerId,
+    pub hit_player_id: Option<PlayerId>,
+}
 
 /// Reference to the weapon entity that fired the ammo.
 #[derive(Component)]

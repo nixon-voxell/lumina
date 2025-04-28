@@ -27,17 +27,17 @@ impl Plugin for TimerUiPlugin {
 /// Wait for [`StartGame`] command from server.
 fn start_game(
     mut evr_start_game: EventReader<MessageEvent<StartGame>>,
-    mut timer_func: ResMut<CountdownTimerFunc>,
+    mut func: ResMut<CountdownTimerFunc>,
 ) {
     for _ in evr_start_game.read() {
-        timer_func.total_seconds = GAME_DURATION as f64;
+        func.total_seconds = GAME_DURATION as f64;
     }
 }
 
 /// Update the [`CountdownTimerFunc`].
-fn update_timer(time: Res<Time>, mut timer_func: ResMut<CountdownTimerFunc>) {
+fn update_timer(time: Res<Time>, mut func: ResMut<CountdownTimerFunc>) {
     // Ensures it stays above 0.0.
-    timer_func.total_seconds = (timer_func.total_seconds - time.delta_seconds_f64()).max(0.0);
+    func.total_seconds = (func.total_seconds - time.delta_seconds_f64()).max(0.0);
 }
 
 #[derive(TypstFunc, Resource, Default)]

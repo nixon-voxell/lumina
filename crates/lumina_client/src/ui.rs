@@ -9,6 +9,7 @@ use super::Connection;
 pub(super) mod game_mode;
 pub(super) mod game_over;
 pub(super) mod game_ui;
+pub(super) mod kill_cue;
 pub(super) mod lobby;
 pub(super) mod main_menu;
 pub(super) mod movement_button;
@@ -32,6 +33,7 @@ impl Plugin for UiPlugin {
             sandbox::SandboxUiPlugin,
             spaceship_select::SpaceshipSelectUiPlugin,
             respawn_cue::RespawnCueUiPlugin,
+            kill_cue::KillCueUiPlugin,
         ));
 
         app.add_systems(OnEnter(Connection::Disconnected), return_to_main_menu)
