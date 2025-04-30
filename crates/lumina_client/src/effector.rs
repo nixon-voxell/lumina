@@ -217,6 +217,37 @@ fn effector_trigger<E: Event + Clone>(
     }
 }
 
+pub fn close_effector_popup<E: Component, M: Component>(
+    mut commands: Commands,
+    collided_effector: Res<CollidedEffector>,
+    mut curr_effector: Local<Option<Entity>>,
+    q_effectors: Query<Entity, With<E>>,
+    mut q_player: Query<&mut SequencePlayer, With<M>>,
+) {
+    if collided_effector.is_changed() {
+        // Handle the previous effector
+        if let Some(current) = *curr_effector {
+            if Some(current) != **collided_effector {
+                // Remove the trigger from the previous effector
+                if q_effectors.get(current).is_ok() {
+                    commands.entity(current).remove::<InteractedEffector>();
+                }
+                *curr_effector = None;
+                if let Ok(mut player) = q_player.get_single_mut() {
+                    player.time_scale = -1.0;
+                }
+            }
+        }
+
+        // Handle the new effector
+        if let Some(new_effector) = **collided_effector {
+            if q_effectors.get(new_effector).is_ok() {
+                *curr_effector = Some(new_effector);
+            }
+        }
+    }
+}
+
 /// Popup message when player enters the effector collision range.
 #[derive(Component, Reflect, Default, Debug, Deref, DerefMut)]
 #[reflect(Component)]

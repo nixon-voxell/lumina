@@ -8,7 +8,7 @@ use lumina_ui::prelude::*;
 use velyst::prelude::*;
 use velyst::typst::foundations;
 
-use crate::effector::{CollidedEffector, InteractedEffector, MatchmakeEffector};
+use crate::effector::{close_effector_popup, InteractedEffector, MatchmakeEffector};
 use crate::typ_animation::AnimateTypAppExt;
 
 use super::lobby::LobbyFunc;
@@ -40,7 +40,7 @@ impl Plugin for GameModeUiPlugin {
                     (sandbox_btn, matchmacke_btns, cancel_btn)
                         .run_if(|func: Res<MainFunc>| func.closing == false),
                     update_func_closing,
-                    close_game_modes,
+                    close_effector_popup::<MatchmakeEffector, AnimationMarker>,
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )
@@ -58,34 +58,6 @@ fn show_game_modes(
         .remove::<InteractedEffector>();
 
     q_player.single_mut().time_scale = 1.0;
-}
-
-fn close_game_modes(
-    mut commands: Commands,
-    collided_effector: Res<CollidedEffector>,
-    mut curr_effector: Local<Option<Entity>>,
-    q_effectors: Query<Entity, With<MatchmakeEffector>>,
-    mut q_player: Query<&mut SequencePlayer, With<AnimationMarker>>,
-) {
-    if collided_effector.is_changed() {
-        if let Some(current) = *curr_effector {
-            if Some(current) != **collided_effector {
-                // Remove the trigger from the previous effector
-                if q_effectors.get(current).is_ok() {
-                    commands.entity(current).remove::<InteractedEffector>();
-                }
-                *curr_effector = None;
-                q_player.single_mut().time_scale = -1.0;
-            }
-        }
-
-        // Update the current effector if a new one is detected
-        if let Some(new_effector) = **collided_effector {
-            if q_effectors.get(new_effector).is_ok() {
-                *curr_effector = Some(new_effector);
-            }
-        }
-    }
 }
 
 fn setup_animation(mut commands: Commands) {
