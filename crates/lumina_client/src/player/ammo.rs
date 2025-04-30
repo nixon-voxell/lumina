@@ -21,7 +21,7 @@ fn ammo_hit_vfx(
     let ammo_hit = trigger.event();
     commands.trigger(DespawnVfx {
         vfx_type: DespawnVfxType::AmmoHit,
-        transform: Transform::from_translation(ammo_hit.extend(10.0)),
+        transform: Transform::from_translation(ammo_hit.position.extend(10.0)),
         material: material_handle.clone_weak(),
     });
 }

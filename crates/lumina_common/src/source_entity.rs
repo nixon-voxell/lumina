@@ -38,7 +38,7 @@ fn set_source_impl<C: Component, F: QueryFilter>(
     q_entities: Query<Entity, (With<C>, F, Without<SourceEntity>)>,
 ) {
     for entity in q_entities.iter() {
-        commands.entity(entity).insert(SourceEntity);
+        commands.entity(entity).try_insert(SourceEntity);
         debug!("SOURCE: {entity}.");
     }
 }
