@@ -12095,6 +12095,25 @@
       "type": "object",
       "typeInfo": "Struct"
     },
+    "bevy_post_process::greyscale::GreyscaleConfig": {
+      "additionalProperties": false,
+      "isComponent": true,
+      "isResource": false,
+      "long_name": "bevy_post_process::greyscale::GreyscaleConfig",
+      "properties": {
+        "intensity": {
+          "type": {
+            "$ref": "#/$defs/f32"
+          }
+        }
+      },
+      "required": [
+        "intensity"
+      ],
+      "short_name": "GreyscaleConfig",
+      "type": "object",
+      "typeInfo": "Struct"
+    },
     "bevy_post_process::vignette::VignetteConfig": {
       "additionalProperties": false,
       "isComponent": true,

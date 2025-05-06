@@ -10,6 +10,7 @@ use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy::window::PrimaryWindow;
 use bevy_motiongfx::prelude::*;
 use bevy_post_process::chromatic_aberration::ChromaticAberrationConfig;
+use bevy_post_process::greyscale::GreyscaleConfig;
 use bevy_post_process::vignette::VignetteConfig;
 use bevy_radiance_cascades::prelude::*;
 use bevy_radiance_cascades::radiance_cascades::RadianceCascadesTextures;
@@ -102,6 +103,7 @@ fn spawn_game_camera(
                 distance: 1.0,
                 ..default()
             },
+            GreyscaleConfig::default(),
         ))
         .id();
 
@@ -153,20 +155,32 @@ fn spawn_game_camera(
 
 fn health_effect(
     mut commands: Commands,
-    mut q_camera: Query<(&mut ChromaticAberrationConfig, &mut VignetteConfig), With<GameCamera>>,
-    mut q_spaceships: Query<
+    mut q_camera: Query<
+        (
+            &mut ChromaticAberrationConfig,
+            &mut VignetteConfig,
+            &mut GreyscaleConfig,
+        ),
+        With<GameCamera>,
+    >,
+    mut q_spaceships: AliveQuery<
         (&Health, Option<&mut PreviousHealth>, &PlayerId, Entity),
         (With<Spaceship>, With<SourceEntity>),
     >,
+    q_dead: DeadQuery<&PlayerId>,
     local_player_id: Res<LocalPlayerId>,
     time: Res<Time>,
 ) {
     const SPEED: f32 = 2.0;
     let delta = time.delta_seconds() * SPEED;
 
-    let Ok((mut chrom, mut vignette)) = q_camera.get_single_mut() else {
+    let Ok((mut chrom, mut vignette, mut greyscale)) = q_camera.get_single_mut() else {
         return;
     };
+
+    let is_dead = q_dead
+        .iter()
+        .any(|&player_id| player_id == local_player_id.0);
 
     if let Some((health, prev_health, _, entity)) = q_spaceships
         .iter_mut()
@@ -197,6 +211,9 @@ fn health_effect(
         }
     }
 
+    greyscale.intensity = greyscale
+        .intensity
+        .lerp(if is_dead { 1.0 } else { 0.0 }, delta);
     chrom.distance = chrom.distance.lerp(1.0, delta);
     vignette.tint = vignette.tint.lerp(Vec3::ZERO, delta);
 }
