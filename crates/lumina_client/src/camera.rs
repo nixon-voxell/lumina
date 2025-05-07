@@ -10,6 +10,7 @@ use bevy::transform::systems::{propagate_transforms, sync_simple_transforms};
 use bevy::window::PrimaryWindow;
 use bevy_motiongfx::prelude::*;
 use bevy_post_process::chromatic_aberration::ChromaticAberrationConfig;
+use bevy_post_process::glitch::GlitchConfig;
 use bevy_post_process::greyscale::GreyscaleConfig;
 use bevy_post_process::vignette::VignetteConfig;
 use bevy_radiance_cascades::prelude::*;
@@ -104,6 +105,7 @@ fn spawn_game_camera(
                 ..default()
             },
             GreyscaleConfig::default(),
+            GlitchConfig::default(),
         ))
         .id();
 
@@ -160,6 +162,7 @@ fn health_effect(
             &mut ChromaticAberrationConfig,
             &mut VignetteConfig,
             &mut GreyscaleConfig,
+            &mut GlitchConfig,
         ),
         With<GameCamera>,
     >,
@@ -174,7 +177,7 @@ fn health_effect(
     const SPEED: f32 = 2.0;
     let delta = time.delta_seconds() * SPEED;
 
-    let Ok((mut chrom, mut vignette, mut greyscale)) = q_camera.get_single_mut() else {
+    let Ok((mut chrom, mut vignette, mut greyscale, mut glitch)) = q_camera.get_single_mut() else {
         return;
     };
 
@@ -216,6 +219,13 @@ fn health_effect(
         .lerp(if is_dead { 1.0 } else { 0.0 }, delta);
     chrom.distance = chrom.distance.lerp(1.0, delta);
     vignette.tint = vignette.tint.lerp(Vec3::ZERO, delta);
+
+    if is_dead {
+        glitch.intensity = 1.0;
+        glitch.time = time.elapsed_seconds();
+    } else {
+        glitch.intensity = glitch.intensity.lerp(0.0, delta);
+    }
 }
 
 fn follow_spaceship(
