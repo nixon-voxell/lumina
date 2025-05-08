@@ -8,7 +8,7 @@ use lumina_ui::prelude::*;
 use velyst::prelude::*;
 use velyst::typst::foundations;
 
-use crate::effector::{InteractedEffector, MatchmakeEffector};
+use crate::effector::{close_effector_popup, InteractedEffector, MatchmakeEffector};
 use crate::typ_animation::AnimateTypAppExt;
 
 use super::lobby::LobbyFunc;
@@ -40,6 +40,7 @@ impl Plugin for GameModeUiPlugin {
                     (sandbox_btn, matchmacke_btns, cancel_btn)
                         .run_if(|func: Res<MainFunc>| func.closing == false),
                     update_func_closing,
+                    close_effector_popup::<MatchmakeEffector, AnimationMarker>,
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )

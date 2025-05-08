@@ -7,7 +7,7 @@ use velyst::prelude::*;
 use velyst::typst::foundations;
 
 use crate::client::ConnectionManager;
-use crate::effector::{InteractedEffector, SpaceshipSelectEffector};
+use crate::effector::{close_effector_popup, InteractedEffector, SpaceshipSelectEffector};
 use crate::typ_animation::AnimateTypAppExt;
 
 use lumina_shared::protocol::SelectSpaceship;
@@ -46,6 +46,7 @@ impl Plugin for SpaceshipSelectUiPlugin {
                     (handle_spaceship_selection, cancel_btn)
                         .run_if(|func: Res<MainFunc>| func.closing == false),
                     update_func_closing,
+                    close_effector_popup::<SpaceshipSelectEffector, AnimationMarker>,
                 )
                     .run_if(in_state(Screen::LocalLobby)),
             )

@@ -10,50 +10,63 @@
     }
   }
 
-  let (time0, time1, time2) = calculate_section_time(animate, 3)
-
   box(width: 100%, height: 100%)[
+    #let card_contents = (
+      (
+        <btn:assassin>,
+         yellow,
+        [
+          = #underline[Assassin]
+          #linebreak()
+          Fast and agile spaceship, specialized in stealth and precision strikes.
+        ],
+        dummy_update,
+      ),
+      (
+        <btn:defender>,
+        blue,
+        [
+          = #underline[Defender]
+          #linebreak()
+          High durability spaceship, with strong shields for defense-focused gameplay.
+        ],
+        dummy_update,
+      ),
+    )
+
+    #let section_times = calculate_section_time(
+      animate,
+      card_contents.len() + 1,
+    )
+
     #place(center + horizon)[
+      #set text(size: 1.5em)
       #stack(
         dir: ltr,
         spacing: 2em,
-        scale(90% + 10% * time0)[
-          #text(size: 1.5em)[
-            #let fill = yellow.transparentize(100% - 100% * time0)
-            #card_button(
-              lbl: set_label(<btn:assassin>),
-              inters: interactions(),
-              fill: fill,
-            )[
-              #text(fill: fill, underline[= Assassin])
-              #linebreak()
-              #set text(fill: fill.desaturate(80%))
-              Fast and agile spaceship, specialized in stealth and precision strikes.
-            ]
-          ]
-        ],
-        scale(90% + 10% * time1)[
-          #text(size: 1.5em)[
-            #let fill = blue.transparentize(100% - 100% * time1)
-            #card_button(
-              lbl: set_label(<btn:defender>),
-              inters: interactions(),
-              fill: fill,
-            )[
-              #text(fill: fill, underline[= Defender])
-              #linebreak()
-              #set text(fill: fill.desaturate(80%))
-              High durability spaceship, with strong shields for defense-focused gameplay.
-            ]
-          ]
-        ],
+        ..card_contents
+          .enumerate()
+          .map(it => {
+            let (i, (lbl, fill, content, d)) = it
+            let time = section_times.at(i)
+
+            let fill = fill.transparentize(100% - 100% * time)
+            set text(fill: fill)
+
+            scale(90% + 10% * time)[
+              #card_button(
+                content,
+                lbl: set_label(lbl),
+                inters: interactions(),
+                fill: fill,
+              )]
+          }),
       )
 
-
-      #linebreak()
       #align(right)[
-        #set text(fill: red.transparentize(100% - 100% * time2))
-        #scale(90% + 10% * time2)[
+        #let time = section_times.last()
+        #set text(fill: red.transparentize(100% - 100% * time))
+        #scale(90% + 10% * time)[
           #button(
             lbl: <btn:cancel-spaceship>,
             inters: interactions(),
